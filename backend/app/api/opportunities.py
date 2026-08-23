@@ -1,11 +1,60 @@
-from fastapi import APIRouter
+import uuid
+from typing import Annotated
 
-from app.schemas.opportunity import Opportunity
-from app.services.opportunity_service import list_sample_opportunities
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
+
+from app.db.session import get_db
+from app.schemas.opportunity import OpportunityListResponse, OpportunityRead
+from app.services.opportunity_service import (
+    DeliveryMode,
+    OpportunitySort,
+    OpportunityStatus,
+    OpportunityType,
+    get_opportunity_by_id,
+    list_opportunities,
+)
 
 router = APIRouter(prefix="/opportunities", tags=["opportunities"])
 
+DbDep = Annotated[Session, Depends(get_db)]
 
-@router.get("", response_model=list[Opportunity])
-def list_opportunities() -> list[Opportunity]:
-    return list_sample_opportunities()
+
+@router.get("", response_model=OpportunityListResponse)
+def list_opportunities_route(
+    db: DbDep,
+    search: Annotated[str | None, Query(description="Full-text search on title, summary, description")] = None,
+    opportunity_type: Annotated[OpportunityType | None, Query(description="Filter by opportunity type")] = None,
+    status: Annotated[OpportunityStatus | None, Query(description="Filter by lifecycle status")] = None,
+    delivery_mode: Annotated[DeliveryMode | None, Query(description="Filter by delivery mode")] = None,
+    source_id: Annotated[uuid.UUID | None, Query(description="Filter by source UUID")] = None,
+    upcoming: Annotated[bool, Query(description="Only show opportunities with a future submission deadline")] = False,
+    sort: Annotated[OpportunitySort, Query(description="Sort order: newest | deadline | title")] = OpportunitySort.newest,
+    page: Annotated[int, Query(ge=1, description="Page number (1-indexed)")] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100, description="Items per page (max 100)")] = 20,
+) -> OpportunityListResponse:
+    """List opportunities with optional filtering, search, and pagination."""
+    return list_opportunities(
+        db,
+        search=search,
+        opportunity_type=opportunity_type.value if opportunity_type else None,
+        status=status.value if status else None,
+        delivery_mode=delivery_mode.value if delivery_mode else None,
+        source_id=source_id,
+        upcoming=upcoming,
+        sort=sort,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get("/{opportunity_id}", response_model=OpportunityRead)
+def get_opportunity_route(
+    opportunity_id: uuid.UUID,
+    db: DbDep,
+) -> OpportunityRead:
+    """Get a single opportunity by UUID."""
+    opportunity = get_opportunity_by_id(db, opportunity_id)
+    if opportunity is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    return opportunity
