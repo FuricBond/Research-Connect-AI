@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: researchconnect-postgres
+    environment:
+      POSTGRES_DB: researchconnect
+      POSTGRES_USER: researchconnect
+      POSTGRES_PASSWORD: researchconnect
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/app/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+volumes:
+  postgres_data:
