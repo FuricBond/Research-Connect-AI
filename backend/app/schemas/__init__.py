@@ -1,4 +1,6 @@
 from app.schemas.opportunity import (
+    IngestionRunRead,
+    IngestionRunStatus,
     OpportunityFee,
     OpportunityListItem,
     OpportunityListResponse,
@@ -10,4 +12,6 @@ __all__ = [
     "OpportunityListItem",
     "OpportunityListResponse",
     "OpportunityRead",
+    "IngestionRunRead",
+    "IngestionRunStatus",
 ]

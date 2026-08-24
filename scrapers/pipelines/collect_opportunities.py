@@ -8,21 +8,15 @@ Options:
     --topic TEXT        WikiCFP search topic (default: "artificial intelligence")
     --pages INT         Number of list pages to fetch (default: 1)
     --dry-run           Parse and validate but do NOT write to the database
-
-This script must NOT be imported by or run from FastAPI.
-It is a standalone development/operation command.
+    --sweep-expired     Also sweep and mark past active opportunities in DB as EXPIRED
 
 Pipeline stages:
     1. Fetch HTML pages from WikiCFP (with 5s crawl-delay between pages)
     2. Parse each page into RawOpportunity records
-    3. Normalize each record
-    4. Validate each record (invalid records are logged and dropped)
-    5. Deduplicate (application-level, in-memory)
-    6. Persist to PostgreSQL (unless --dry-run)
-
-Logging:
-    Logs: source, pages fetched, records parsed, rejected, inserted, updated,
-          duplicates detected, errors.
+    3. Normalize each record (dates, types, URLs, whitespace)
+    4. Validate each record (invalid records logged and dropped)
+    5. Deduplicate (Tier 1/2 confirmed duplicates skipped; Tier 3 potential duplicates flagged)
+    6. Persist to PostgreSQL (NEW, UPDATED, UNCHANGED, EXPIRED) + record IngestionRun metrics
 """
 from __future__ import annotations
 
@@ -37,6 +31,8 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 from scrapers.deduplication.detector import DuplicateDetector
+from scrapers.expiration.manager import is_opportunity_expired
+from scrapers.models import DuplicateClassification, LifecycleAction
 from scrapers.normalizers.opportunity_normalizer import normalize_opportunity
 from scrapers.sources.wikicfp import WikiCFPSource
 from scrapers.validators.opportunity_validator import validate_opportunity
@@ -53,26 +49,32 @@ def run_pipeline(
     topic: str = "artificial intelligence",
     max_pages: int = 1,
     dry_run: bool = False,
+    sweep_expired: bool = False,
 ) -> dict:
     """
     Run the full opportunity ingestion pipeline.
 
     Returns:
-        dict with keys: fetched, parsed, rejected, inserted, updated, duplicates, errors
+        dict containing structured metrics.
     """
     stats = {
         "source": "WikiCFP",
         "topic": topic,
         "pages_fetched": 0,
         "parsed": 0,
-        "rejected": 0,
+        "valid": 0,
+        "invalid": 0,
         "inserted": 0,
         "updated": 0,
+        "unchanged": 0,
         "duplicates": 0,
+        "potential_duplicates": 0,
+        "expired": 0,
         "errors": 0,
+        "run_id": None,
     }
 
-    logger.info("=== ResearchConnect AI — Opportunity Scraper ===")
+    logger.info("=== ResearchConnect AI — Opportunity Scraper Pipeline ===")
     logger.info("Source: WikiCFP | Topic: %r | Pages: %d | Dry-run: %s", topic, max_pages, dry_run)
 
     detector = DuplicateDetector()
@@ -112,45 +114,56 @@ def run_pipeline(
                 normalized.raw_source_id,
                 "; ".join(errors),
             )
-            stats["rejected"] += 1
+            stats["invalid"] += 1
             continue
+        stats["valid"] += 1
         valid_records.append(normalized)
 
-    logger.info(
-        "Validation: %d valid, %d rejected.",
-        len(valid_records),
-        stats["rejected"],
-    )
+    logger.info("Validation: %d valid, %d invalid.", stats["valid"], stats["invalid"])
 
     # ── Step 5: Deduplicate ───────────────────────────────────────────────────
-    deduplicated = []
+    to_persist = []
     for opp in valid_records:
-        result = detector.check(opp)
-        if result.is_duplicate:
+        dup_result = detector.check(opp)
+        if dup_result.classification == DuplicateClassification.CONFIRMED_DUPLICATE:
             logger.debug(
-                "Duplicate detected (tier %d): %r — %s",
-                result.tier,
+                "Confirmed duplicate (tier %d): %r — %s",
+                dup_result.tier,
                 opp.title,
-                result.reason,
+                dup_result.reason,
             )
             stats["duplicates"] += 1
         else:
+            if dup_result.classification == DuplicateClassification.POTENTIAL_DUPLICATE:
+                logger.info(
+                    "Potential duplicate flagged: %r — %s",
+                    opp.title,
+                    dup_result.reason,
+                )
+                stats["potential_duplicates"] += 1
+
             detector.register(opp)
-            deduplicated.append(opp)
+            to_persist.append(opp)
 
     logger.info(
-        "Deduplication: %d unique, %d duplicates.", len(deduplicated), stats["duplicates"]
+        "Deduplication: %d to process, %d confirmed duplicates, %d potential duplicates.",
+        len(to_persist),
+        stats["duplicates"],
+        stats["potential_duplicates"],
     )
 
+    # Check expiration on parsed records
+    for opp in to_persist:
+        if is_opportunity_expired(opp):
+            stats["expired"] += 1
+
     if dry_run:
-        logger.info("[DRY RUN] Skipping database write. %d records would be persisted.", len(deduplicated))
-        stats["inserted"] = 0
-        stats["updated"] = 0
+        logger.info("[DRY RUN] Skipping database persistence. %d records would be persisted.", len(to_persist))
         return stats
 
     # ── Step 6: Persist ───────────────────────────────────────────────────────
-    # Import here so that the pipeline can be imported/tested without a live DB
     from app.db.session import SessionLocal
+    from scrapers.expiration.manager import expire_past_opportunities
     from scrapers.persistence.opportunity_repo import OpportunityRepository
 
     with SessionLocal() as session:
@@ -158,19 +171,34 @@ def run_pipeline(
         persistence_result = repo.save_batch(
             source_name="WikiCFP",
             source_base_url="http://www.wikicfp.com",
-            opportunities=deduplicated,
+            opportunities=to_persist,
+            topic=topic,
+            pages_fetched=stats["pages_fetched"],
+            records_parsed=stats["parsed"],
+            records_invalid=stats["invalid"],
         )
+
+        if sweep_expired:
+            swept_count = expire_past_opportunities(session)
+            logger.info("Swept %d past opportunities in DB as EXPIRED", swept_count)
+            stats["expired"] += swept_count
 
     stats["inserted"] = persistence_result.inserted
     stats["updated"] = persistence_result.updated
+    stats["unchanged"] = persistence_result.unchanged
     stats["duplicates"] += persistence_result.skipped_duplicate
+    stats["potential_duplicates"] += persistence_result.potential_duplicates
     stats["errors"] = persistence_result.errors
+    stats["run_id"] = str(persistence_result.run_id) if persistence_result.run_id else None
 
     logger.info(
-        "=== Pipeline complete: inserted=%d updated=%d duplicates=%d errors=%d ===",
+        "=== Ingestion Complete: inserted=%d updated=%d unchanged=%d duplicates=%d potential_dups=%d expired=%d errors=%d ===",
         stats["inserted"],
         stats["updated"],
+        stats["unchanged"],
         stats["duplicates"],
+        stats["potential_duplicates"],
+        stats["expired"],
         stats["errors"],
     )
     return stats
@@ -178,7 +206,7 @@ def run_pipeline(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="ResearchConnect AI — WikiCFP opportunity scraper"
+        description="ResearchConnect AI — WikiCFP opportunity scraper & ingestion pipeline"
     )
     parser.add_argument(
         "--topic",
@@ -196,15 +224,21 @@ def main() -> None:
         action="store_true",
         help="Parse and validate but do NOT write to the database",
     )
+    parser.add_argument(
+        "--sweep-expired",
+        action="store_true",
+        help="Perform a sweep over existing DB records to transition expired opportunities",
+    )
     args = parser.parse_args()
 
     stats = run_pipeline(
         topic=args.topic,
         max_pages=args.pages,
         dry_run=args.dry_run,
+        sweep_expired=args.sweep_expired,
     )
 
-    print("\n--- Pipeline Summary ---")
+    print("\n--- Pipeline Execution Summary ---")
     for key, value in stats.items():
         print(f"  {key}: {value}")
 

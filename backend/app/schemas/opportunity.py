@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
+from enum import Enum
 import uuid
 
 from pydantic import BaseModel, ConfigDict
@@ -56,6 +57,7 @@ class OpportunityBase(BaseModel):
     status: str
     source_id: uuid.UUID | None = None
     last_verified_at: datetime | None = None
+    last_seen_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -86,6 +88,7 @@ class OpportunityListItem(BaseModel):
     is_predatory_flag: bool
     risk_score: Decimal | None = None
     status: str
+    last_seen_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -96,3 +99,33 @@ class OpportunityListResponse(BaseModel):
     page: int
     page_size: int
     total: int
+
+
+class IngestionRunStatus(str, Enum):
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
+
+
+class IngestionRunRead(BaseModel):
+    """Schema for ingestion run audit log records."""
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    source_id: uuid.UUID
+    status: IngestionRunStatus
+    topic: str | None = None
+    pages_fetched: int
+    records_parsed: int
+    records_valid: int
+    records_invalid: int
+    records_inserted: int
+    records_updated: int
+    records_unchanged: int
+    duplicates_detected: int
+    potential_duplicates_detected: int
+    records_expired: int
+    error_message: str | None = None
+    metrics_detail: dict | None = None
+    started_at: datetime
+    completed_at: datetime | None = None

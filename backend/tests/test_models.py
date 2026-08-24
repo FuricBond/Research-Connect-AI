@@ -1,6 +1,9 @@
+from datetime import datetime, timezone
 import uuid
+
 from app.models import (
     Base,
+    IngestionRunModel,
     OpportunityModel,
     OpportunityTopicModel,
     ResearchProfileModel,
@@ -12,7 +15,7 @@ from app.models import (
 
 
 def test_models_registered_in_metadata() -> None:
-    """Verify all 7 Phase 1 tables are registered in SQLAlchemy Base.metadata."""
+    """Verify all Phase 1 and Phase 2.1 tables are registered in SQLAlchemy Base.metadata."""
     table_names = Base.metadata.tables.keys()
 
     expected_tables = {
@@ -23,6 +26,7 @@ def test_models_registered_in_metadata() -> None:
         "opportunities",
         "opportunity_topics",
         "saved_opportunities",
+        "ingestion_runs",
     }
 
     assert expected_tables.issubset(table_names), f"Missing tables in metadata: {expected_tables - set(table_names)}"
@@ -56,9 +60,10 @@ def test_user_and_profile_instantiation() -> None:
 
 
 def test_opportunity_and_vector_instantiation() -> None:
-    """Verify OpportunityModel with 384-dimensional embedding column."""
+    """Verify OpportunityModel with 384-dimensional embedding column and last_seen_at."""
     opp_id = uuid.uuid4()
     dummy_vector = [0.05] * 384
+    now = datetime.now(tz=timezone.utc)
 
     opportunity = OpportunityModel(
         id=opp_id,
@@ -69,12 +74,14 @@ def test_opportunity_and_vector_instantiation() -> None:
         location="Vienna, Austria",
         indexing=["Scopus", "IEEE Xplore"],
         embedding=dummy_vector,
+        last_seen_at=now,
     )
 
     assert opportunity.title == "International Conference on Machine Learning"
     assert opportunity.opportunity_type == "CONFERENCE"
     assert opportunity.delivery_mode == "HYBRID"
     assert opportunity.status == "ACTIVE"
+    assert opportunity.last_seen_at == now
     assert len(opportunity.embedding) == 384
 
 
@@ -111,3 +118,33 @@ def test_saved_opportunity_instantiation() -> None:
     assert saved.user_id == user_id
     assert saved.opportunity_id == opp_id
     assert saved.notes == "Target for abstract submission deadline"
+
+
+def test_ingestion_run_instantiation() -> None:
+    """Verify IngestionRunModel instantiation and metric tracking."""
+    source_id = uuid.uuid4()
+    run_id = uuid.uuid4()
+
+    run = IngestionRunModel(
+        id=run_id,
+        source_id=source_id,
+        status="COMPLETED",
+        topic="artificial intelligence",
+        pages_fetched=2,
+        records_parsed=40,
+        records_valid=38,
+        records_invalid=2,
+        records_inserted=30,
+        records_updated=5,
+        records_unchanged=3,
+        duplicates_detected=2,
+        potential_duplicates_detected=1,
+        records_expired=4,
+    )
+
+    assert run.id == run_id
+    assert run.source_id == source_id
+    assert run.status == "COMPLETED"
+    assert run.records_inserted == 30
+    assert run.records_updated == 5
+    assert run.records_unchanged == 3

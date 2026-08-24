@@ -5,11 +5,48 @@ RawOpportunity  — data as extracted directly from the source HTML, with
                   minimal transformation (only whitespace stripping).
 NormalizedOpportunity — validated, type-coerced, URL-canonicalized record
                         ready for duplicate detection and database insertion.
+LifecycleAction — record-level action taken during ingestion.
+DuplicateClassification — distinction between confirmed duplicate, potential duplicate, and unique.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from enum import Enum
+from typing import Any
+
+
+class LifecycleAction(str, Enum):
+    """Lifecycle change action for an opportunity record during ingestion."""
+    NEW = "NEW"                          # Inserted for the first time
+    UPDATED = "UPDATED"                  # Existing record modified with new/changed metadata
+    UNCHANGED = "UNCHANGED"              # Existing record identical; last_seen_at refreshed
+    DUPLICATE = "DUPLICATE"              # Exact duplicate detected (same source+id or URL)
+    POTENTIAL_DUPLICATE = "POTENTIAL_DUPLICATE"  # Cross-source soft collision (title+deadline)
+    INVALID = "INVALID"                  # Rejected by validator
+    EXPIRED = "EXPIRED"                  # Past deadline / event end date
+
+
+class DuplicateClassification(str, Enum):
+    """Classification of duplicate detection check."""
+    CONFIRMED_DUPLICATE = "CONFIRMED_DUPLICATE"  # Tier 1 or Tier 2 exact match
+    POTENTIAL_DUPLICATE = "POTENTIAL_DUPLICATE"  # Tier 3 soft match (title + deadline)
+    UNIQUE = "UNIQUE"                            # No collisions detected
+
+
+@dataclass
+class FieldChange:
+    """Represents a detected modification to an opportunity field."""
+    field_name: str
+    old_value: Any
+    new_value: Any
+
+
+@dataclass
+class ChangeDetectionResult:
+    """Outcome of change detection comparison between DB model and incoming normalized data."""
+    has_changed: bool
+    changes: list[FieldChange] = field(default_factory=list)
 
 
 @dataclass
@@ -18,7 +55,7 @@ class RawOpportunity:
     Data extracted directly from a single source entry.
 
     All string fields are left as-is from the HTML (after basic whitespace
-    stripping).  All fields are optional except `title` and `source_name`.
+    stripping). All fields are optional except `title` and `source_name`.
     """
 
     # Provenance
@@ -48,7 +85,7 @@ class NormalizedOpportunity:
     Cleaned, validated, type-coerced opportunity record.
 
     This is the output of the normalizer and input to the duplicate detector
-    and persistence service.  It maps 1:1 to OpportunityModel columns.
+    and persistence service. It maps 1:1 to OpportunityModel columns.
     """
 
     # Provenance
@@ -71,7 +108,7 @@ class NormalizedOpportunity:
     location: str | None
     delivery_mode: str               # ONLINE | OFFLINE | HYBRID
 
-    # Status (always ACTIVE for freshly scraped records)
+    # Status (business lifecycle: ACTIVE, EXPIRED, ARCHIVED, DRAFT, UNVERIFIED)
     status: str = "ACTIVE"
 
     # Optional enrichment fields
@@ -79,9 +116,16 @@ class NormalizedOpportunity:
     publisher: str | None = None
     summary: str | None = None
     description: str | None = None
+    indexing: list[str] | None = None
+    apc_or_fee: dict | None = None
+
+    # Freshness / timestamps
+    last_seen_at: datetime | None = None
+    last_verified_at: datetime | None = None
 
     # Risk / quality (not populated by scraper — Phase 2)
     is_predatory_flag: bool = False
 
-    # Validation metadata (not stored in DB — used for pipeline logging)
+    # Ingestion metadata (used for pipeline tracking)
+    lifecycle_action: LifecycleAction | None = None
     validation_errors: list[str] = field(default_factory=list)

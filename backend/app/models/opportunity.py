@@ -47,6 +47,7 @@ class OpportunityModel(Base, TimestampMixin):
         ),
         Index("idx_opportunities_type_status", "opportunity_type", "status"),
         Index("idx_opportunities_deadline", "submission_deadline"),
+        Index("idx_opportunities_last_seen", "last_seen_at"),
     )
 
     # Primary Key
@@ -111,6 +112,7 @@ class OpportunityModel(Base, TimestampMixin):
     )
     raw_source_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     last_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     # AI / Embedding (384-dimensional for all-MiniLM-L6-v2, optional)
     embedding: Mapped[list[float] | None] = mapped_column(Vector(384), nullable=True)

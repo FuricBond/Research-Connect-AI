@@ -2,13 +2,14 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 import uuid
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Numeric, String, Text
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
+    from app.models.ingestion_run import IngestionRunModel
     from app.models.opportunity import OpportunityModel
 
 
@@ -52,12 +53,36 @@ class SourceModel(Base, TimestampMixin):
         default=1.00,
         nullable=False,
     )
+
+    # Operational Health & Metrics
     last_scraped_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
+    )
+    last_successful_scrape_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    last_failed_scrape_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    consecutive_failure_count: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
+    )
+    total_scrape_count: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        nullable=False,
     )
 
     # Relationships
     opportunities: Mapped[list["OpportunityModel"]] = relationship(
         back_populates="source",
+    )
+    ingestion_runs: Mapped[list["IngestionRunModel"]] = relationship(
+        back_populates="source",
+        cascade="all, delete-orphan",
     )

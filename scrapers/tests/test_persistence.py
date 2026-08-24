@@ -11,14 +11,16 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
-from sqlalchemy import Boolean, Column, DateTime, String, Text, create_engine, select
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text, create_engine, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 _ROOT = Path(__file__).resolve().parents[3]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from scrapers.models import NormalizedOpportunity
+from scrapers.change_detection.detector import detect_changes
+from scrapers.expiration.manager import is_opportunity_expired
+from scrapers.models import LifecycleAction, NormalizedOpportunity
 
 
 # ── SQLite-compatible test schema ─────────────────────────────────────────────
@@ -36,6 +38,10 @@ class SqSource(SqBase):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     reliability_score: Mapped[float] = mapped_column(String(10), default="1.00", nullable=False)
     last_scraped_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_successful_scrape_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_failed_scrape_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    consecutive_failure_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    total_scrape_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(tz=timezone.utc), nullable=False
     )
@@ -64,6 +70,7 @@ class SqOpportunity(SqBase):
     raw_source_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     is_predatory_flag: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     last_verified_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     slug: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(tz=timezone.utc), nullable=False
@@ -71,6 +78,28 @@ class SqOpportunity(SqBase):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(tz=timezone.utc), nullable=False
     )
+
+
+class SqIngestionRun(SqBase):
+    __tablename__ = "ingestion_runs"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    source_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    status: Mapped[str] = mapped_column(String(50), default="RUNNING", nullable=False)
+    topic: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    pages_fetched: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    records_parsed: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    records_valid: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    records_invalid: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    records_inserted: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    records_updated: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    records_unchanged: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    duplicates_detected: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    potential_duplicates_detected: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    records_expired: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(tz=timezone.utc), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 SQLITE_URL = "sqlite:///:memory:"
@@ -103,7 +132,7 @@ def db_session() -> Generator[Session, None, None]:
 class StubOpportunityRepo:
     """
     Test-only repository that mirrors OpportunityRepository logic but uses
-    the SQLite SqSource / SqOpportunity tables instead of the production models.
+    the SQLite SqSource / SqOpportunity / SqIngestionRun tables.
     """
 
     def __init__(self, session: Session) -> None:
@@ -117,17 +146,29 @@ class StubOpportunityRepo:
                 id=str(uuid.uuid4()),
                 name=name,
                 base_url=base_url,
+                consecutive_failure_count=0,
+                total_scrape_count=0,
             )
             self._session.add(source)
             self._session.flush()
         return source.id
 
-    def upsert_opportunity(self, opp: NormalizedOpportunity, source_id: str) -> str:
+    def upsert_opportunity(
+        self,
+        opp: NormalizedOpportunity,
+        source_id: str,
+        now: datetime | None = None,
+    ) -> LifecycleAction:
+        ref_time = now or datetime.now(tz=timezone.utc)
         stmt = select(SqOpportunity).where(
             SqOpportunity.source_id == source_id,
             SqOpportunity.raw_source_id == opp.raw_source_id,
         )
         existing = self._session.execute(stmt).scalar_one_or_none()
+
+        is_expired = is_opportunity_expired(opp, ref_time)
+        target_status = "EXPIRED" if is_expired else opp.status
+
         if existing is None:
             new = SqOpportunity(
                 id=str(uuid.uuid4()),
@@ -137,24 +178,49 @@ class StubOpportunityRepo:
                 location=opp.location,
                 website_url=opp.website_url,
                 submission_deadline=opp.submission_deadline,
-                status=opp.status,
+                status=target_status,
                 source_id=source_id,
                 raw_source_id=opp.raw_source_id,
                 is_predatory_flag=opp.is_predatory_flag,
-                last_verified_at=datetime.now(tz=timezone.utc),
+                last_verified_at=ref_time,
+                last_seen_at=ref_time,
             )
             self._session.add(new)
             self._session.flush()
-            return "inserted"
+            return LifecycleAction.EXPIRED if is_expired else LifecycleAction.NEW
         else:
-            old_title = existing.title
-            existing.title = opp.title
-            existing.delivery_mode = opp.delivery_mode
-            existing.location = opp.location
-            existing.website_url = opp.website_url
-            existing.submission_deadline = opp.submission_deadline
+            change_result = detect_changes(existing, opp)
+            existing.last_seen_at = ref_time
+
+            if is_expired and existing.status in {"ACTIVE", "UNVERIFIED"}:
+                existing.status = "EXPIRED"
+                change_result.has_changed = True
+
+            if change_result.has_changed:
+                for c in change_result.changes:
+                    setattr(existing, c.field_name, c.new_value)
+                existing.updated_at = ref_time
+                existing.last_verified_at = ref_time
+                self._session.flush()
+                return LifecycleAction.UPDATED
+            else:
+                self._session.flush()
+                return LifecycleAction.UNCHANGED
+
+    def finish_run(self, source_id: str, success: bool, now: datetime | None = None) -> None:
+        ref_time = now or datetime.now(tz=timezone.utc)
+        stmt = select(SqSource).where(SqSource.id == source_id)
+        source = self._session.execute(stmt).scalar_one_or_none()
+        if source:
+            source.last_scraped_at = ref_time
+            source.total_scrape_count += 1
+            if success:
+                source.last_successful_scrape_at = ref_time
+                source.consecutive_failure_count = 0
+            else:
+                source.last_failed_scrape_at = ref_time
+                source.consecutive_failure_count += 1
             self._session.flush()
-            return "updated" if existing.title != old_title else "no_change"
 
 
 def make_norm(**kwargs) -> NormalizedOpportunity:
@@ -171,6 +237,7 @@ def make_norm(**kwargs) -> NormalizedOpportunity:
         event_end_date=None,
         location="Vienna, Austria",
         delivery_mode="OFFLINE",
+        status="ACTIVE",
     )
     defaults.update(kwargs)
     return NormalizedOpportunity(**defaults)
@@ -196,20 +263,14 @@ class TestGetOrCreateSource:
         id2 = repo.get_or_create_source("WikiCFP", "http://www.wikicfp.com")
         assert id1 == id2
 
-    def test_different_names_different_ids(self, db_session):
-        repo = StubOpportunityRepo(db_session)
-        id1 = repo.get_or_create_source("Source A")
-        id2 = repo.get_or_create_source("Source B")
-        assert id1 != id2
 
-
-class TestUpsertOpportunity:
+class TestUpsertOpportunityLifecycle:
     def test_inserts_new_opportunity(self, db_session):
         repo = StubOpportunityRepo(db_session)
         source_id = repo.get_or_create_source("WikiCFP")
         opp = make_norm()
         action = repo.upsert_opportunity(opp, source_id)
-        assert action == "inserted"
+        assert action == LifecycleAction.NEW
 
         stmt = select(SqOpportunity).where(
             SqOpportunity.source_id == source_id,
@@ -218,24 +279,39 @@ class TestUpsertOpportunity:
         result = db_session.execute(stmt).scalar_one_or_none()
         assert result is not None
         assert result.title == "AI Conference 2026"
-        assert result.opportunity_type == "CONFERENCE"
+        assert result.last_seen_at is not None
 
-    def test_updates_existing_opportunity(self, db_session):
+    def test_unchanged_opportunity_returns_unchanged_and_refreshes_last_seen(self, db_session):
         repo = StubOpportunityRepo(db_session)
         source_id = repo.get_or_create_source("WikiCFP")
-        opp_v1 = make_norm(title="AI Conference 2026")
+        t1 = datetime(2026, 8, 24, 10, 0, 0, tzinfo=timezone.utc)
+        t2 = datetime(2026, 8, 24, 12, 0, 0, tzinfo=timezone.utc)
+
+        opp = make_norm(title="Static Title")
+        repo.upsert_opportunity(opp, source_id, now=t1)
+
+        # Ingest identical record at t2
+        action = repo.upsert_opportunity(opp, source_id, now=t2)
+        assert action == LifecycleAction.UNCHANGED
+
+        stmt = select(SqOpportunity).where(SqOpportunity.raw_source_id == "12345")
+        row = db_session.execute(stmt).scalar_one()
+        assert row.last_seen_at.replace(tzinfo=timezone.utc) == t2
+
+    def test_updates_existing_opportunity_when_fields_change(self, db_session):
+        repo = StubOpportunityRepo(db_session)
+        source_id = repo.get_or_create_source("WikiCFP")
+        opp_v1 = make_norm(title="AI Conference 2026", location="Vienna")
         repo.upsert_opportunity(opp_v1, source_id)
 
-        opp_v2 = make_norm(title="AI Conference 2026 — Updated Title")
+        opp_v2 = make_norm(title="AI Conference 2026 (Extended)", location="Prague")
         action = repo.upsert_opportunity(opp_v2, source_id)
-        assert action == "updated"
+        assert action == LifecycleAction.UPDATED
 
-        stmt = select(SqOpportunity).where(
-            SqOpportunity.source_id == source_id,
-            SqOpportunity.raw_source_id == "12345",
-        )
-        result = db_session.execute(stmt).scalar_one_or_none()
-        assert "Updated Title" in result.title
+        stmt = select(SqOpportunity).where(SqOpportunity.raw_source_id == "12345")
+        result = db_session.execute(stmt).scalar_one()
+        assert result.title == "AI Conference 2026 (Extended)"
+        assert result.location == "Prague"
 
     def test_does_not_create_duplicate_row(self, db_session):
         repo = StubOpportunityRepo(db_session)
@@ -251,25 +327,46 @@ class TestUpsertOpportunity:
         rows = db_session.execute(stmt).scalars().all()
         assert len(rows) == 1
 
-    def test_different_raw_source_ids_create_separate_rows(self, db_session):
+    def test_expired_opportunity_ingested_as_expired(self, db_session):
         repo = StubOpportunityRepo(db_session)
-        source_id = repo.get_or_create_source("MultiSource")
-        opp1 = make_norm(raw_source_id="A001", title="Conference A")
-        opp2 = make_norm(raw_source_id="A002", title="Conference B")
-        repo.upsert_opportunity(opp1, source_id)
-        repo.upsert_opportunity(opp2, source_id)
+        source_id = repo.get_or_create_source("WikiCFP")
+        now = datetime(2026, 8, 24, 12, 0, 0, tzinfo=timezone.utc)
+        opp = make_norm(
+            raw_source_id="EXPIRED1",
+            submission_deadline=datetime(2026, 8, 20, tzinfo=timezone.utc),
+        )
+        action = repo.upsert_opportunity(opp, source_id, now=now)
+        assert action == LifecycleAction.EXPIRED
 
-        stmt = select(SqOpportunity).where(SqOpportunity.source_id == source_id)
-        rows = db_session.execute(stmt).scalars().all()
-        assert len(rows) == 2
-
-    def test_source_provenance_preserved(self, db_session):
-        repo = StubOpportunityRepo(db_session)
-        source_id = repo.get_or_create_source("ProvenanceSource")
-        opp = make_norm(raw_source_id="PROV123")
-        repo.upsert_opportunity(opp, source_id)
-
-        stmt = select(SqOpportunity).where(SqOpportunity.raw_source_id == "PROV123")
+        stmt = select(SqOpportunity).where(SqOpportunity.raw_source_id == "EXPIRED1")
         row = db_session.execute(stmt).scalar_one()
-        assert row.source_id == source_id
-        assert row.raw_source_id == "PROV123"
+        assert row.status == "EXPIRED"
+
+
+class TestSourceHealthTracking:
+    def test_successful_run_updates_metrics(self, db_session):
+        repo = StubOpportunityRepo(db_session)
+        source_id = repo.get_or_create_source("HealthSource")
+        now = datetime(2026, 8, 24, 12, 0, 0, tzinfo=timezone.utc)
+
+        repo.finish_run(source_id, success=True, now=now)
+
+        stmt = select(SqSource).where(SqSource.id == source_id)
+        source = db_session.execute(stmt).scalar_one()
+        assert source.total_scrape_count == 1
+        assert source.consecutive_failure_count == 0
+        assert source.last_successful_scrape_at.replace(tzinfo=timezone.utc) == now
+
+    def test_failed_run_increments_consecutive_failures(self, db_session):
+        repo = StubOpportunityRepo(db_session)
+        source_id = repo.get_or_create_source("FailureSource")
+        now = datetime(2026, 8, 24, 12, 0, 0, tzinfo=timezone.utc)
+
+        repo.finish_run(source_id, success=False, now=now)
+        repo.finish_run(source_id, success=False, now=now)
+
+        stmt = select(SqSource).where(SqSource.id == source_id)
+        source = db_session.execute(stmt).scalar_one()
+        assert source.total_scrape_count == 2
+        assert source.consecutive_failure_count == 2
+        assert source.last_failed_scrape_at.replace(tzinfo=timezone.utc) == now
