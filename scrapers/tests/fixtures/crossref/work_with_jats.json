@@ -1,0 +1,40 @@
+{
+  "DOI": "10.1007/s10462-021-10082-x",
+  "title": [
+    "Deep learning for sentiment analysis: a survey"
+  ],
+  "type": "journal-article",
+  "publisher": "Springer Science and Business Media LLC",
+  "container-title": [
+    "Artificial Intelligence Review"
+  ],
+  "volume": "55",
+  "issue": "4",
+  "page": "2493-2546",
+  "ISSN": [
+    "0269-2821",
+    "1573-7462"
+  ],
+  "URL": "https://doi.org/10.1007/s10462-021-10082-x",
+  "published-online": {
+    "date-parts": [
+      [2021, 10, 19]
+    ]
+  },
+  "abstract": "<jats:title>Abstract</jats:title><jats:p>Sentiment analysis is an active research area in Natural Language Processing (&amp; NLP). This paper reviews <jats:italic>deep learning</jats:italic> techniques.</jats:p>",
+  "author": [
+    {
+      "given": "Wanda",
+      "family": "Santos",
+      "sequence": "first",
+      "ORCID": "0000-0002-1825-0097",
+      "affiliation": [
+        {
+          "name": "University of Sao Paulo"
+        }
+      ]
+    }
+  ],
+  "is-referenced-by-count": 145,
+  "reference-count": 80
+}

@@ -1,0 +1,60 @@
+{
+  "status": "ok",
+  "message-type": "work-list",
+  "message-version": "1.0.0",
+  "message": {
+    "total-results": 2,
+    "next-cursor": "cursor_token_12345",
+    "items": [
+      {
+        "DOI": "10.7717/peerj.4375",
+        "title": [
+          "The state of OA: a large-scale analysis of the prevalence and impact of Open Access articles"
+        ],
+        "type": "journal-article",
+        "publisher": "PeerJ",
+        "container-title": [
+          "PeerJ"
+        ],
+        "ISSN": [
+          "2167-8359"
+        ],
+        "published-online": {
+          "date-parts": [
+            [2018, 2, 13]
+          ]
+        },
+        "author": [
+          {
+            "given": "Heather",
+            "family": "Piwowar",
+            "sequence": "first"
+          }
+        ]
+      },
+      {
+        "DOI": "10.1007/s10462-021-10082-x",
+        "title": [
+          "Deep learning for sentiment analysis: a survey"
+        ],
+        "type": "journal-article",
+        "publisher": "Springer",
+        "container-title": [
+          "Artificial Intelligence Review"
+        ],
+        "published-online": {
+          "date-parts": [
+            [2021, 10, 19]
+          ]
+        },
+        "author": [
+          {
+            "given": "Wanda",
+            "family": "Santos",
+            "sequence": "first"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "status": "ok",
+  "message-type": "work",
+  "message-version": "1.0.0",
+  "message": {
+    "DOI": "10.7717/peerj.4375",
+    "title": [
+      "The state of OA: a large-scale analysis of the prevalence and impact of Open Access articles"
+    ],
+    "type": "journal-article",
+    "publisher": "PeerJ",
+    "container-title": [
+      "PeerJ"
+    ],
+    "volume": "6",
+    "page": "e4375",
+    "ISSN": [
+      "2167-8359"
+    ],
+    "URL": "https://doi.org/10.7717/peerj.4375",
+    "published-online": {
+      "date-parts": [
+        [2018, 2, 13]
+      ]
+    },
+    "abstract": "<jats:p>Despite growing interest in Open Access (OA) to scholarly literature, there is an unmet need for large-scale studies.</jats:p>",
+    "author": [
+      {
+        "given": "Heather",
+        "family": "Piwowar",
+        "sequence": "first",
+        "ORCID": "http://orcid.org/0000-0003-1613-5981",
+        "affiliation": [
+          {
+            "name": "Impactstory, Sanford, NC, USA"
+          }
+        ]
+      },
+      {
+        "given": "Jason",
+        "family": "Priem",
+        "sequence": "additional",
+        "ORCID": "https://orcid.org/0000-0001-6187-6610",
+        "affiliation": [
+          {
+            "name": "Impactstory, Sanford, NC, USA"
+          }
+        ]
+      }
+    ],
+    "license": [
+      {
+        "URL": "http://creativecommons.org/licenses/by/4.0/",
+        "content-version": "vor"
+      }
+    ],
+    "is-referenced-by-count": 824,
+    "reference-count": 52
+  }
+}

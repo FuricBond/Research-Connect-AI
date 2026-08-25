@@ -36,10 +36,12 @@ import logging
 import sys
 from pathlib import Path
 
-# Ensure the project root is on sys.path when running as __main__
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
-if str(_PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(_PROJECT_ROOT))
+# Ensure the project root and backend directory are on sys.path when running as __main__
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_BACKEND_ROOT = _PROJECT_ROOT / "backend"
+for _path in (_PROJECT_ROOT, _BACKEND_ROOT):
+    if str(_path) not in sys.path:
+        sys.path.insert(0, str(_path))
 
 from scrapers.openalex.normalizer import normalize_work
 from scrapers.openalex.validator import validate_work

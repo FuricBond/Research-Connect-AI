@@ -14,6 +14,13 @@ class Settings(BaseSettings):
     openalex_api_base_url: str = "https://api.openalex.org"
     openalex_email: str = ""  # Optional: enables polite pool access
 
+    # Phase 2.2B — Crossref API configuration
+    crossref_api_base_url: str = "https://api.crossref.org"
+    crossref_email: str = ""  # Optional: for polite pool access
+    crossref_user_agent: str = (
+        "ResearchConnect-AI/1.0 (https://researchconnect.ai; mailto:info@researchconnect.ai)"
+    )
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

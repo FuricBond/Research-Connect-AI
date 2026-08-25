@@ -2,6 +2,12 @@
 
 This document outlines the planned architecture and modular development roadmap for **ResearchConnect AI**. The project follows a clean, maintainable modular structure designed for a collaborative final-year project team, avoiding unnecessary distributed systems or MLOps overhead while maintaining high code quality and clear separation of concerns.
 
+### Implementation Status:
+- **Phase 1 (Foundation)**: COMPLETE (PostgreSQL + pgvector, core models, opportunity API)
+- **Phase 2.1 (Ingestion Hardening)**: COMPLETE (WikiCFP source, validation, deduplication, change detection, audit tracking)
+- **Phase 2.2A (Research Knowledge - OpenAlex)**: COMPLETE (OpenAlex API, research_works, researchers, research_sources, institutions)
+- **Phase 2.2B (Research Knowledge - Crossref)**: COMPLETE (Crossref API, DOI canonicalization, non-destructive matching & enrichment, citation fields)
+
 ---
 
 ## 1. Data & Discovery

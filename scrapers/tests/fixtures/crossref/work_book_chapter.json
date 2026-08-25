@@ -1,0 +1,26 @@
+{
+  "DOI": "10.1093/oso/9780198828044.003.0003",
+  "title": [
+    "Machine learning with sklearn"
+  ],
+  "type": "book-chapter",
+  "publisher": "Oxford University Press",
+  "container-title": [
+    "Machine Learning Foundations"
+  ],
+  "page": "38-65",
+  "published-print": {
+    "date-parts": [
+      [2019, 11, 28]
+    ]
+  },
+  "author": [
+    {
+      "given": "Thomas P.",
+      "family": "Smith",
+      "sequence": "first"
+    }
+  ],
+  "is-referenced-by-count": 19,
+  "reference-count": 10
+}

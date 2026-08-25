@@ -58,7 +58,7 @@ if TYPE_CHECKING:
 
 
 class ResearcherModel(Base, TimestampMixin):
-    """Individual researcher / author, normalised from OpenAlex author objects."""
+    """Individual researcher / author, normalised from OpenAlex/Crossref author objects."""
 
     __tablename__ = "researchers"
     __table_args__ = (
@@ -74,10 +74,10 @@ class ResearcherModel(Base, TimestampMixin):
         default=uuid.uuid4,
     )
 
-    # OpenAlex identity
-    openalex_id: Mapped[str] = mapped_column(
+    # OpenAlex identity (optional if sourced first via Crossref/ORCID)
+    openalex_id: Mapped[str | None] = mapped_column(
         String(50),
-        nullable=False,
+        nullable=True,
         unique=True,
         comment="Compact OpenAlex author ID, e.g. 'A5048491430'",
     )
@@ -114,12 +114,10 @@ class ResearcherModel(Base, TimestampMixin):
 
 class ResearchSourceModel(Base, TimestampMixin):
     """
-    Publication venue from OpenAlex (journal, repository, conference series …).
+    Publication venue from OpenAlex / Crossref (journal, repository, conference series …).
 
     This is NOT automatically converted into an ``OpportunityModel``.
     It acts as reference metadata about where research works are published.
-    A future phase may use it to enrich JOURNAL opportunities in the
-    ``opportunities`` table.
     """
 
     __tablename__ = "research_sources"
@@ -141,10 +139,10 @@ class ResearchSourceModel(Base, TimestampMixin):
         default=uuid.uuid4,
     )
 
-    # OpenAlex identity
-    openalex_id: Mapped[str] = mapped_column(
+    # OpenAlex identity (optional if sourced first via Crossref)
+    openalex_id: Mapped[str | None] = mapped_column(
         String(50),
-        nullable=False,
+        nullable=True,
         unique=True,
         comment="Compact OpenAlex source ID, e.g. 'S1983995261'",
     )
@@ -154,7 +152,7 @@ class ResearchSourceModel(Base, TimestampMixin):
     source_type: Mapped[str | None] = mapped_column(
         String(50),
         nullable=True,
-        comment="OpenAlex source type: journal, repository, conference, …",
+        comment="source type: journal, repository, conference, …",
     )
 
     # Publisher / journal identifiers
@@ -206,7 +204,7 @@ class ResearchSourceModel(Base, TimestampMixin):
 
 
 class InstitutionModel(Base, TimestampMixin):
-    """Research institution (university, lab, company, …), normalised from OpenAlex."""
+    """Research institution (university, lab, company, …), normalised from OpenAlex/Crossref."""
 
     __tablename__ = "institutions"
     __table_args__ = (
@@ -223,10 +221,10 @@ class InstitutionModel(Base, TimestampMixin):
         default=uuid.uuid4,
     )
 
-    # OpenAlex identity
-    openalex_id: Mapped[str] = mapped_column(
+    # OpenAlex identity (optional if sourced via Crossref)
+    openalex_id: Mapped[str | None] = mapped_column(
         String(50),
-        nullable=False,
+        nullable=True,
         unique=True,
         comment="Compact OpenAlex institution ID, e.g. 'I18014758'",
     )
@@ -271,11 +269,9 @@ class InstitutionModel(Base, TimestampMixin):
 class ResearchWorkModel(Base, TimestampMixin):
     """
     Individual scholarly work (article, preprint, dataset, book chapter, …)
-    normalised from OpenAlex.
+    normalised from OpenAlex and enriched via Crossref.
 
-    OpenAlex topics/keywords are stored inside ``raw_metadata`` JSONB so they
-    can be accessed without a separate query and without altering the existing
-    ``topics`` taxonomy.
+    OpenAlex topics/keywords and Crossref metadata are stored inside ``raw_metadata`` JSONB.
     """
 
     __tablename__ = "research_works"
@@ -299,19 +295,19 @@ class ResearchWorkModel(Base, TimestampMixin):
         default=uuid.uuid4,
     )
 
-    # OpenAlex identity
-    openalex_id: Mapped[str] = mapped_column(
+    # OpenAlex identity (optional if created via Crossref first)
+    openalex_id: Mapped[str | None] = mapped_column(
         String(50),
-        nullable=False,
+        nullable=True,
         unique=True,
         comment="Compact OpenAlex work ID, e.g. 'W2741809807'",
     )
 
-    # Bibliographic identifiers
+    # Bibliographic identifiers (primary identity for Crossref matching)
     doi: Mapped[str | None] = mapped_column(
         String(255),
         nullable=True,
-        comment="DOI without resolver prefix, e.g. '10.7717/peerj.4375'",
+        comment="Canonical DOI without resolver prefix, e.g. '10.7717/peerj.4375'",
     )
 
     # Core content
@@ -319,7 +315,7 @@ class ResearchWorkModel(Base, TimestampMixin):
     abstract: Mapped[str | None] = mapped_column(
         Text,
         nullable=True,
-        comment="Reconstructed from OpenAlex inverted index, or None",
+        comment="Reconstructed from OpenAlex or JATS-cleaned from Crossref",
     )
 
     # Dates
@@ -349,8 +345,13 @@ class ResearchWorkModel(Base, TimestampMixin):
         comment="gold, green, bronze, hybrid, closed",
     )
 
-    # Primary location
+    # Primary location & bibliographic citation details (enriched via Crossref)
     landing_page_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    volume: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    issue: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    page: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    article_number: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    license_url: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # FK to primary publication venue
     primary_source_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -359,15 +360,15 @@ class ResearchWorkModel(Base, TimestampMixin):
         nullable=True,
     )
 
-    # FK to source (provenance) — points to the "OpenAlex" entry in sources table
+    # FK to source (provenance) — points to the "OpenAlex" or "Crossref" entry in sources table
     ingestion_source_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("sources.id", ondelete="SET NULL"),
         nullable=True,
-        comment="Points to the OpenAlex entry in the sources table",
+        comment="Points to the origin entry in the sources table",
     )
 
-    # Raw API payload — bounded subset of useful fields
+    # Raw API payload — bounded subset of useful fields (enriched across sources)
     raw_metadata: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
     # Freshness tracking
