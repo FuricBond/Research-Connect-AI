@@ -1,0 +1,15 @@
+{
+  "id": "https://openalex.org/S1983995261",
+  "display_name": "PeerJ",
+  "issn_l": "2167-8359",
+  "issn": ["2167-8359"],
+  "is_oa": true,
+  "is_in_doaj": true,
+  "type": "journal",
+  "host_organization": "https://openalex.org/P4310320104",
+  "host_organization_name": "PeerJ, Inc.",
+  "works_count": 25000,
+  "cited_by_count": 500000,
+  "homepage_url": "https://peerj.com",
+  "updated_date": "2026-08-01T00:00:00"
+}

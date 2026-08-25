@@ -1,0 +1,27 @@
+{
+  "id": "https://openalex.org/W9999999002",
+  "title": "Work with inverted index abstract",
+  "display_name": "Work with inverted index abstract",
+  "publication_year": 2022,
+  "publication_date": "2022-03-15",
+  "type": "preprint",
+  "language": "en",
+  "cited_by_count": 10,
+  "primary_location": null,
+  "open_access": {"is_oa": true, "oa_status": "green", "oa_url": null},
+  "authorships": [],
+  "abstract_inverted_index": {
+    "Machine": [0],
+    "learning": [1],
+    "is": [2],
+    "transforming": [3],
+    "research.": [4]
+  },
+  "topics": [],
+  "keywords": [],
+  "concepts": [],
+  "counts_by_year": [],
+  "updated_date": "2026-01-01T00:00:00",
+  "indexed_in": [],
+  "ids": {"openalex": "https://openalex.org/W9999999002"}
+}

@@ -1,0 +1,42 @@
+{
+  "id": "https://openalex.org/W9999999001",
+  "doi": null,
+  "title": "A survey of deep learning without abstract",
+  "display_name": "A survey of deep learning without abstract",
+  "publication_year": 2023,
+  "publication_date": "2023-05-10",
+  "type": "article",
+  "language": "en",
+  "cited_by_count": 42,
+  "primary_location": {
+    "is_oa": false,
+    "landing_page_url": null,
+    "source": null
+  },
+  "open_access": {
+    "is_oa": false,
+    "oa_status": "closed",
+    "oa_url": null
+  },
+  "authorships": [
+    {
+      "author_position": "first",
+      "author": {
+        "id": "https://openalex.org/A5099000001",
+        "display_name": "Jane Smith",
+        "orcid": null
+      },
+      "institutions": [],
+      "is_corresponding": true
+    }
+  ],
+  "abstract_inverted_index": null,
+  "topics": [],
+  "keywords": [],
+  "concepts": [],
+  "counts_by_year": [],
+  "updated_date": "2026-01-01T00:00:00",
+  "indexed_in": ["crossref"],
+  "biblio": null,
+  "ids": {"openalex": "https://openalex.org/W9999999001"}
+}

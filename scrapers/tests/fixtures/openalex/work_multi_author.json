@@ -1,0 +1,89 @@
+{
+  "id": "https://openalex.org/W9999999003",
+  "title": "Multi-author collaboration on neural networks",
+  "display_name": "Multi-author collaboration on neural networks",
+  "publication_year": 2024,
+  "publication_date": "2024-06-01",
+  "type": "article",
+  "language": "en",
+  "cited_by_count": 7,
+  "primary_location": {
+    "is_oa": false,
+    "landing_page_url": "https://example.com/paper",
+    "source": {
+      "id": "https://openalex.org/S9999990001",
+      "display_name": "Journal of Artificial Intelligence",
+      "issn_l": "1234-5678",
+      "issn": ["1234-5678", "8765-4321"],
+      "is_oa": false,
+      "is_in_doaj": false,
+      "host_organization_name": "Example Publisher",
+      "type": "journal"
+    }
+  },
+  "open_access": {"is_oa": false, "oa_status": "closed"},
+  "authorships": [
+    {
+      "author_position": "first",
+      "author": {
+        "id": "https://openalex.org/A5099000002",
+        "display_name": "Alice Johnson",
+        "orcid": "https://orcid.org/0000-0001-2345-6789"
+      },
+      "institutions": [
+        {
+          "id": "https://openalex.org/I9999990001",
+          "display_name": "MIT",
+          "ror": "https://ror.org/042nb2s44",
+          "country_code": "US",
+          "type": "education"
+        }
+      ],
+      "is_corresponding": true
+    },
+    {
+      "author_position": "middle",
+      "author": {
+        "id": "https://openalex.org/A5099000003",
+        "display_name": "Bob Williams",
+        "orcid": null
+      },
+      "institutions": [
+        {
+          "id": "https://openalex.org/I9999990002",
+          "display_name": "Stanford University",
+          "ror": "https://ror.org/00f54p054",
+          "country_code": "US",
+          "type": "education"
+        }
+      ],
+      "is_corresponding": false
+    },
+    {
+      "author_position": "last",
+      "author": {
+        "id": "https://openalex.org/A5099000004",
+        "display_name": "Carol Davis",
+        "orcid": "https://orcid.org/0000-0002-9876-5432"
+      },
+      "institutions": [
+        {
+          "id": "https://openalex.org/I9999990001",
+          "display_name": "MIT",
+          "ror": "https://ror.org/042nb2s44",
+          "country_code": "US",
+          "type": "education"
+        }
+      ],
+      "is_corresponding": false
+    }
+  ],
+  "abstract_inverted_index": {"Neural": [0], "networks": [1]},
+  "topics": [],
+  "keywords": [],
+  "concepts": [],
+  "counts_by_year": [],
+  "updated_date": "2026-01-01T00:00:00",
+  "indexed_in": ["crossref"],
+  "ids": {"openalex": "https://openalex.org/W9999999003"}
+}

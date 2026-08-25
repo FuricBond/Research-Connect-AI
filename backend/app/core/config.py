@@ -10,6 +10,10 @@ class Settings(BaseSettings):
     )
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
+    # Phase 2.2A — OpenAlex API configuration
+    openalex_api_base_url: str = "https://api.openalex.org"
+    openalex_email: str = ""  # Optional: enables polite pool access
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

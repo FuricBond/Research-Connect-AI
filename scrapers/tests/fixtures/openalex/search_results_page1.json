@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "count": 2,
+    "db_response_time_ms": 50,
+    "page": 1,
+    "per_page": 25,
+    "next_cursor": "cursor_page_2_abc123"
+  },
+  "results": [
+    {
+      "id": "https://openalex.org/W2741809807",
+      "doi": "https://doi.org/10.7717/peerj.4375",
+      "title": "The state of OA: a large-scale analysis of the prevalence and impact of Open Access articles",
+      "display_name": "The state of OA: a large-scale analysis of the prevalence and impact of Open Access articles",
+      "publication_year": 2018,
+      "publication_date": "2018-02-13",
+      "type": "article",
+      "language": "en",
+      "cited_by_count": 1245,
+      "primary_location": {
+        "is_oa": true,
+        "landing_page_url": "https://doi.org/10.7717/peerj.4375",
+        "source": {
+          "id": "https://openalex.org/S1983995261",
+          "display_name": "PeerJ",
+          "issn_l": "2167-8359",
+          "issn": ["2167-8359"],
+          "is_oa": true,
+          "is_in_doaj": true,
+          "host_organization_name": "PeerJ, Inc.",
+          "type": "journal"
+        }
+      },
+      "open_access": {"is_oa": true, "oa_status": "gold"},
+      "authorships": [
+        {
+          "author_position": "first",
+          "author": {
+            "id": "https://openalex.org/A5048491430",
+            "display_name": "Heather Piwowar",
+            "orcid": "https://orcid.org/0000-0003-1613-5981"
+          },
+          "institutions": [],
+          "is_corresponding": false
+        }
+      ],
+      "abstract_inverted_index": {"Open": [0], "Access": [1]},
+      "topics": [],
+      "keywords": [],
+      "concepts": [],
+      "counts_by_year": [],
+      "updated_date": "2026-08-01T00:00:00",
+      "indexed_in": ["crossref"],
+      "ids": {"openalex": "https://openalex.org/W2741809807"}
+    },
+    {
+      "id": "https://openalex.org/W9999999002",
+      "doi": null,
+      "title": "Second work on page 1",
+      "display_name": "Second work on page 1",
+      "publication_year": 2020,
+      "publication_date": "2020-01-01",
+      "type": "preprint",
+      "language": "en",
+      "cited_by_count": 5,
+      "primary_location": null,
+      "open_access": {"is_oa": false, "oa_status": "closed"},
+      "authorships": [],
+      "abstract_inverted_index": null,
+      "topics": [],
+      "keywords": [],
+      "concepts": [],
+      "counts_by_year": [],
+      "updated_date": "2026-01-01T00:00:00",
+      "indexed_in": [],
+      "ids": {"openalex": "https://openalex.org/W9999999002"}
+    }
+  ]
+}

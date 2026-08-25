@@ -122,6 +122,33 @@ class HttpClient:
         logger.info("Fetched %s [%d] (%d bytes)", url, response.status_code, len(response.content))
         return response.text
 
+    def get_json(
+        self,
+        url: str,
+        *,
+        timeout: tuple[int, int] = DEFAULT_TIMEOUT,
+        params: dict | None = None,
+    ) -> dict:
+        """
+        Perform a GET request and return the parsed JSON response body.
+
+        Identical transport behaviour to ``get()`` (retries, timeouts, logging)
+        but parses the response body as JSON.
+
+        Raises:
+            requests.HTTPError: On non-2xx responses.
+            requests.RequestException: On network/timeout errors.
+            ValueError: If the response body is not valid JSON.
+        """
+        import json as _json
+
+        text = self.get(url, timeout=timeout, params=params)
+        try:
+            return _json.loads(text)
+        except _json.JSONDecodeError as exc:
+            logger.error("JSON decode error for %s: %s", url, exc)
+            raise ValueError(f"Invalid JSON response from {url}: {exc}") from exc
+
     def close(self) -> None:
         """Release the underlying connection pool."""
         self._session.close()

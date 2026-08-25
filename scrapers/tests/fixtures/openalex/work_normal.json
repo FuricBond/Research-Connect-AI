@@ -1,0 +1,87 @@
+{
+  "id": "https://openalex.org/W2741809807",
+  "doi": "https://doi.org/10.7717/peerj.4375",
+  "title": "The state of OA: a large-scale analysis of the prevalence and impact of Open Access articles",
+  "display_name": "The state of OA: a large-scale analysis of the prevalence and impact of Open Access articles",
+  "publication_year": 2018,
+  "publication_date": "2018-02-13",
+  "type": "article",
+  "language": "en",
+  "cited_by_count": 1245,
+  "primary_location": {
+    "is_oa": true,
+    "landing_page_url": "https://doi.org/10.7717/peerj.4375",
+    "source": {
+      "id": "https://openalex.org/S1983995261",
+      "display_name": "PeerJ",
+      "issn_l": "2167-8359",
+      "issn": ["2167-8359"],
+      "is_oa": true,
+      "is_in_doaj": true,
+      "host_organization_name": "PeerJ, Inc.",
+      "type": "journal"
+    }
+  },
+  "open_access": {
+    "is_oa": true,
+    "oa_status": "gold",
+    "oa_url": "https://doi.org/10.7717/peerj.4375"
+  },
+  "authorships": [
+    {
+      "author_position": "first",
+      "author": {
+        "id": "https://openalex.org/A5048491430",
+        "display_name": "Heather Piwowar",
+        "orcid": "https://orcid.org/0000-0003-1613-5981"
+      },
+      "institutions": [
+        {
+          "id": "https://openalex.org/I18014758",
+          "display_name": "Simon Fraser University",
+          "ror": "https://ror.org/0213rcc28",
+          "country_code": "CA",
+          "type": "education"
+        }
+      ],
+      "is_corresponding": false
+    }
+  ],
+  "abstract_inverted_index": {
+    "Open": [0],
+    "Access": [1],
+    "articles": [2],
+    "are": [3],
+    "growing": [4]
+  },
+  "topics": [
+    {
+      "id": "https://openalex.org/T10102",
+      "display_name": "scientometrics and bibliometrics research",
+      "score": 0.9969
+    }
+  ],
+  "keywords": [
+    {
+      "id": "https://openalex.org/keywords/citation",
+      "display_name": "Citation",
+      "score": 0.688
+    }
+  ],
+  "concepts": [
+    {
+      "id": "https://openalex.org/C2778805511",
+      "display_name": "Citation",
+      "level": 2,
+      "score": 0.688
+    }
+  ],
+  "counts_by_year": [
+    {"year": 2024, "cited_by_count": 135},
+    {"year": 2023, "cited_by_count": 152}
+  ],
+  "updated_date": "2026-08-22T07:34:49.880490",
+  "indexed_in": ["crossref", "doaj", "pubmed"],
+  "biblio": {"volume": "6", "issue": null, "first_page": "e4375", "last_page": "e4375"},
+  "ids": {"openalex": "https://openalex.org/W2741809807", "doi": "https://doi.org/10.7717/peerj.4375"}
+}
