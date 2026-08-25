@@ -7,6 +7,7 @@ This document outlines the planned architecture and modular development roadmap 
 - **Phase 2.1 (Ingestion Hardening)**: COMPLETE (WikiCFP source, validation, deduplication, change detection, audit tracking)
 - **Phase 2.2A (Research Knowledge - OpenAlex)**: COMPLETE (OpenAlex API, research_works, researchers, research_sources, institutions)
 - **Phase 2.2B (Research Knowledge - Crossref)**: COMPLETE (Crossref API, DOI canonicalization, non-destructive matching & enrichment, citation fields)
+- **Phase 2.3A (Topic & Taxonomy Intelligence)**: COMPLETE (Canonical taxonomy DAG, aliases, OpenAlex/Crossref mapping, deterministic keyword extraction, multi-evidence scoring)
 
 ---
 

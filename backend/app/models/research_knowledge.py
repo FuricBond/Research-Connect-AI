@@ -40,6 +40,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -52,6 +53,7 @@ from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.source import SourceModel
+    from app.models.topic import TopicModel
 
 
 # ── Researcher / Author ───────────────────────────────────────────────────────
@@ -392,6 +394,10 @@ class ResearchWorkModel(Base, TimestampMixin):
         back_populates="work",
         cascade="all, delete-orphan",
     )
+    topic_associations: Mapped[list["ResearchWorkTopicModel"]] = relationship(
+        back_populates="work",
+        cascade="all, delete-orphan",
+    )
 
 
 # ── Junction: Work ↔ Researcher ───────────────────────────────────────────────
@@ -470,3 +476,79 @@ class ResearchWorkInstitutionModel(Base):
     institution: Mapped["InstitutionModel"] = relationship(
         back_populates="work_institution_links"
     )
+
+
+# ── Junction: Work ↔ Topic (Phase 2.3A) ───────────────────────────────────────
+
+
+class ResearchWorkTopicModel(Base):
+    """
+    Many-to-many junction linking Research Works to Canonical Topics with
+    confidence, provenance, and assignment method tracking.
+    """
+
+    __tablename__ = "research_work_topics"
+    __table_args__ = (
+        UniqueConstraint(
+            "work_id", "topic_id", name="uq_research_work_topics_work_topic"
+        ),
+        CheckConstraint(
+            "confidence_score >= 0.0 AND confidence_score <= 1.0",
+            name="chk_research_work_topics_confidence",
+        ),
+        CheckConstraint(
+            "assignment_method IN ('SOURCE_EXPLICIT', 'ALIAS_MATCH', 'RULE_INFERRED', 'MANUAL')",
+            name="chk_research_work_topics_method",
+        ),
+        Index("idx_rwt_work_id", "work_id"),
+        Index("idx_rwt_topic_id", "topic_id"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
+    )
+    work_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("research_works.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    topic_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("topics.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    confidence_score: Mapped[float] = mapped_column(
+        Numeric(3, 2),
+        default=1.00,
+        nullable=False,
+        comment="Topic assignment confidence / relevance score in [0.0, 1.0]",
+    )
+    is_primary: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+        comment="Flag indicating primary / highest-relevance topic",
+    )
+    assignment_method: Mapped[str] = mapped_column(
+        String(50),
+        default="RULE_INFERRED",
+        nullable=False,
+        comment="SOURCE_EXPLICIT, ALIAS_MATCH, RULE_INFERRED, or MANUAL",
+    )
+    source: Mapped[str] = mapped_column(
+        String(50),
+        default="System",
+        nullable=False,
+        comment="Provenance source: OpenAlex, Crossref, RuleBased, Manual",
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+    # Relationships
+    work: Mapped["ResearchWorkModel"] = relationship(back_populates="topic_associations")
+    topic: Mapped["TopicModel"] = relationship(back_populates="research_work_associations")
