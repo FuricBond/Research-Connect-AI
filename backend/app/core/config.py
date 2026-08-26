@@ -27,6 +27,12 @@ class Settings(BaseSettings):
     embedding_batch_size: int = 32
     embedding_device: str = "cpu"  # cpu | cuda | mps
 
+    # Phase 2.4B — Hybrid Search & Candidate Fusion configuration
+    hybrid_search_default_limit: int = 20
+    hybrid_search_max_limit: int = 100
+    hybrid_search_candidate_multiplier: float = 2.5
+    hybrid_search_rrf_k: int = 60
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

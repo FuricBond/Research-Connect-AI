@@ -3,6 +3,14 @@ Repositories layer for ResearchConnect AI.
 
 Exports database-level retrieval mechanisms independent of HTTP/API concerns.
 """
+from app.repositories.lexical_repository import (
+    DEFAULT_FTS_CONFIG,
+    LexicalRepository,
+    LexicalSearchResult,
+    build_opportunity_tsvector,
+    build_research_work_tsvector,
+    lexical_repository,
+)
 from app.repositories.vector_repository import (
     DEFAULT_CANDIDATE_LIMIT,
     DEFAULT_EMBEDDING_DIM,
@@ -17,6 +25,7 @@ from app.repositories.vector_repository import (
 )
 
 __all__ = [
+    # Vector Retrieval
     "VectorRepository",
     "VectorSearchResult",
     "VectorValidationError",
@@ -27,4 +36,11 @@ __all__ = [
     "MAX_CANDIDATE_LIMIT",
     "DEFAULT_EMBEDDING_DIM",
     "vector_repository",
+    # Lexical Retrieval
+    "LexicalRepository",
+    "LexicalSearchResult",
+    "DEFAULT_FTS_CONFIG",
+    "build_research_work_tsvector",
+    "build_opportunity_tsvector",
+    "lexical_repository",
 ]
