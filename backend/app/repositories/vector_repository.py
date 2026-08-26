@@ -427,12 +427,12 @@ class VectorRepository:
             )
 
         if status is not None:
-            if isinstance(status, (list, tuple, set)):
+            if isinstance(status, str):
+                stmt = stmt.where(OpportunityModel.status == status.upper().strip())
+            else:
                 stmt = stmt.where(
                     OpportunityModel.status.in_([s.upper().strip() for s in status])
                 )
-            else:
-                stmt = stmt.where(OpportunityModel.status == status.upper().strip())
 
         if delivery_mode is not None:
             stmt = stmt.where(

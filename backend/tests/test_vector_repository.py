@@ -412,6 +412,31 @@ class TestVectorRepositoryMockExecution:
         assert results[0].entity_type == "opportunity"
         assert results[0].entity == opp
 
+    def test_search_opportunities_status_sequence(self, repo_384, valid_vector_384):
+        from collections.abc import Sequence as AbcSequence
+
+        class CustomStatusSequence(AbcSequence):
+            def __init__(self, items):
+                self._items = items
+            def __getitem__(self, idx):
+                return self._items[idx]
+            def __len__(self):
+                return len(self._items)
+
+        mock_session = MagicMock(spec=Session)
+        mock_execute_result = MagicMock()
+        mock_execute_result.all.return_value = []
+        mock_session.execute.return_value = mock_execute_result
+
+        # Single string status
+        repo_384.search_opportunities(mock_session, valid_vector_384, status="ACTIVE")
+        assert mock_session.execute.called
+
+        # Custom Sequence status (not a built-in list/tuple/set)
+        custom_seq = CustomStatusSequence(["ACTIVE", "UNVERIFIED"])
+        repo_384.search_opportunities(mock_session, valid_vector_384, status=custom_seq)
+        assert mock_session.execute.call_count == 2
+
     def test_find_similar_opportunities_not_found(self, repo_384):
         mock_session = MagicMock(spec=Session)
         mock_session.get.return_value = None

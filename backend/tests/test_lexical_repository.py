@@ -208,6 +208,31 @@ class TestLexicalRepositoryMockExecution:
         assert results[0].entity_type == "opportunity"
         assert results[0].entity == opp_1
 
+    def test_search_opportunities_status_sequence(self, lex_repo):
+        from collections.abc import Sequence as AbcSequence
+
+        class CustomStatusSequence(AbcSequence):
+            def __init__(self, items):
+                self._items = items
+            def __getitem__(self, idx):
+                return self._items[idx]
+            def __len__(self):
+                return len(self._items)
+
+        mock_session = MagicMock(spec=Session)
+        mock_result = MagicMock()
+        mock_result.all.return_value = []
+        mock_session.execute.return_value = mock_result
+
+        # Single string status
+        lex_repo.search_opportunities(mock_session, "ECCV", status="ACTIVE")
+        assert mock_session.execute.called
+
+        # Custom Sequence status (not a built-in list/tuple/set)
+        custom_seq = CustomStatusSequence(["ACTIVE", "UNVERIFIED"])
+        lex_repo.search_opportunities(mock_session, "ECCV", status=custom_seq)
+        assert mock_session.execute.call_count == 2
+
 
 # ── B. POSTGRESQL INTEGRATION TESTS ───────────────────────────────────────────
 
