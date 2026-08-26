@@ -21,6 +21,12 @@ class Settings(BaseSettings):
         "ResearchConnect-AI/1.0 (https://researchconnect.ai; mailto:info@researchconnect.ai)"
     )
 
+    # Phase 2.3B — Semantic Embedding configuration
+    embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_dim: int = 384
+    embedding_batch_size: int = 32
+    embedding_device: str = "cpu"  # cpu | cuda | mps
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

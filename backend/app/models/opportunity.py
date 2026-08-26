@@ -116,6 +116,23 @@ class OpportunityModel(Base, TimestampMixin):
 
     # AI / Embedding (384-dimensional for all-MiniLM-L6-v2, optional)
     embedding: Mapped[list[float] | None] = mapped_column(Vector(384), nullable=True)
+    # Phase 2.3B — embedding metadata (mirrors ResearchWorkModel)
+    content_hash: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+        index=True,
+        comment="SHA-256 of the semantic text used to generate this embedding",
+    )
+    embedding_model: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        comment="Model name, e.g. 'all-MiniLM-L6-v2'",
+    )
+    embedded_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="When this embedding was last generated or refreshed",
+    )
 
     # Relationships
     source: Mapped[Optional["SourceModel"]] = relationship(

@@ -49,6 +49,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.db.types import Vector
 from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
@@ -376,6 +377,34 @@ class ResearchWorkModel(Base, TimestampMixin):
     # Freshness tracking
     last_seen_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
+    )
+
+    # ── Phase 2.3B — Semantic Embedding ──────────────────────────────────────
+    # 384-dimensional vector for all-MiniLM-L6-v2 (L2-normalised)
+    embedding: Mapped[list[float] | None] = mapped_column(
+        Vector(384),
+        nullable=True,
+        comment="384-dim sentence embedding (all-MiniLM-L6-v2, L2-normalised)",
+    )
+    # SHA-256 hex digest of the semantic text that produced this embedding.
+    # Used to detect whether re-embedding is needed on content change.
+    content_hash: Mapped[str | None] = mapped_column(
+        String(64),
+        nullable=True,
+        index=True,
+        comment="SHA-256 of the semantic text used to generate this embedding",
+    )
+    # Name of the model that generated the embedding.
+    embedding_model: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        comment="Model name, e.g. 'all-MiniLM-L6-v2'",
+    )
+    # Timestamp of the last embedding generation.
+    embedded_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="When this embedding was last generated or refreshed",
     )
 
     # Relationships
