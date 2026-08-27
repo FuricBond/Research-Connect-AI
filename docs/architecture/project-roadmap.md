@@ -8,6 +8,11 @@ This document outlines the planned architecture and modular development roadmap 
 - **Phase 2.2A (Research Knowledge - OpenAlex)**: COMPLETE (OpenAlex API, research_works, researchers, research_sources, institutions)
 - **Phase 2.2B (Research Knowledge - Crossref)**: COMPLETE (Crossref API, DOI canonicalization, non-destructive matching & enrichment, citation fields)
 - **Phase 2.3A (Topic & Taxonomy Intelligence)**: COMPLETE (Canonical taxonomy DAG, aliases, OpenAlex/Crossref mapping, deterministic keyword extraction, multi-evidence scoring)
+- **Phase 2.3B (Semantic Embeddings + pgvector)**: COMPLETE (384-dim all-MiniLM-L6-v2 embeddings, content hashing, HNSW vector indexes)
+- **Phase 2.4A (Vector Retrieval Foundation)**: COMPLETE (pgvector cosine retrieval, candidate limits, metadata filtering, entity exclusion)
+- **Phase 2.4B (Hybrid Search & Candidate Fusion)**: COMPLETE (PostgreSQL weighted FTS, Reciprocal Rank Fusion, dual-path candidate merging)
+- **Phase 2.4C (Similar Research Retrieval)**: COMPLETE (Multi-signal similarity, topic overlap, taxonomy DAG proximity, deterministic ranking, self-exclusion)
+- **Phase 2.4D (Research ↔ Opportunity Matching)**: COMPLETE (Multi-signal matching, publication type compatibility, taxonomy DAG proximity, deterministic ranking, filter propagation)
 
 ---
 

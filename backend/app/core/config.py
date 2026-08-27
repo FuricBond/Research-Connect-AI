@@ -33,6 +33,23 @@ class Settings(BaseSettings):
     hybrid_search_candidate_multiplier: float = 2.5
     hybrid_search_rrf_k: int = 60
 
+    # Phase 2.4C — Similar Research Retrieval configuration
+    similar_research_default_limit: int = 20
+    similar_research_max_limit: int = 100
+    similar_research_candidate_multiplier: float = 2.5
+    similar_research_semantic_weight: float = 0.60
+    similar_research_lexical_weight: float = 0.20
+    similar_research_topic_weight: float = 0.20
+
+    # Phase 2.4D — Research ↔ Opportunity Matching configuration
+    research_opportunity_default_limit: int = 20
+    research_opportunity_max_limit: int = 100
+    research_opportunity_candidate_multiplier: float = 2.5
+    research_opportunity_semantic_weight: float = 0.50
+    research_opportunity_lexical_weight: float = 0.20
+    research_opportunity_topic_weight: float = 0.20
+    research_opportunity_type_weight: float = 0.10
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
