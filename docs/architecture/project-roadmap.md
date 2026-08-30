@@ -16,6 +16,9 @@ This document outlines the planned architecture and modular development roadmap 
 - **Phase 2.4E (Hybrid Ranking Engine)**: COMPLETE (Reusable multi-signal ranker, publication recency freshness, deadline urgency, weight validation, deterministic tie-breaking)
 - **Phase 2.4F (Explainable Results)**: COMPLETE (Structured machine-readable signal attributions, qualitative summaries, strengths and limitations, deterministic zero-LLM reasoning)
 - **Phase 2.4G (FastAPI Discovery Layer)**: COMPLETE (Versioned REST API, Pydantic schemas, parameter validation, error mapping, hybrid ranking & explainability integration)
+- **Phase 2.4H (Testing, Benchmarking & Documentation)**: COMPLETE (IR metrics, 16-scenario benchmark dataset, Vector vs Lexical vs Hybrid evaluation, latency & concurrency profiling, discovery architecture documentation)
+- **Phase 2.4 (Discovery & Intelligent Search)**: **COMPLETE** (All 8 subphases 2.4A–2.4H implemented, tested with 573 passing tests, and documented)
+- **Next Stage (Phase 3)**: **Personalized Researcher Intelligence & Recommendations**
 
 ---
 

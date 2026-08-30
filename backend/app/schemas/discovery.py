@@ -35,8 +35,8 @@ class ResearchWorkRead(BaseModel):
     publication_date: str | None = None
     work_type: str | None = None
     language: str | None = None
-    cited_by_count: int = 0
-    is_oa: bool = False
+    cited_by_count: int | None = 0
+    is_oa: bool | None = False
     oa_status: str | None = None
     landing_page_url: str | None = None
     volume: str | None = None
@@ -46,8 +46,8 @@ class ResearchWorkRead(BaseModel):
     license_url: str | None = None
     primary_source_id: uuid.UUID | None = None
     ingestion_source_id: uuid.UUID | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 # ── Explainability Schemas ────────────────────────────────────────────────────

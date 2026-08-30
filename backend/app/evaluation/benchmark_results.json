@@ -1,0 +1,160 @@
+{
+  "benchmark_phase": "Phase 2.4H \u2014 Testing, Benchmarking & Documentation",
+  "timestamp": "2026-08-30T18:34:31.714123+00:00",
+  "environment": {
+    "os": "Windows",
+    "os_release": "11",
+    "python_version": "3.13.5",
+    "embedding_dimension": 384,
+    "vector_index_type": "HNSW (cosine)",
+    "lexical_index_type": "PostgreSQL tsvector (english)"
+  },
+  "retrieval_evaluation": {
+    "vector_only": {
+      "mean_precision_at_5": 0.24,
+      "mean_recall_at_5": 1.0,
+      "mean_hit_rate_at_5": 1.0,
+      "mean_ndcg_at_5": 0.9333,
+      "mrr": 1.0
+    },
+    "lexical_only": {
+      "mean_precision_at_5": 0.24,
+      "mean_recall_at_5": 1.0,
+      "mean_hit_rate_at_5": 1.0,
+      "mean_ndcg_at_5": 0.911,
+      "mrr": 0.9667
+    },
+    "hybrid": {
+      "mean_precision_at_5": 0.24,
+      "mean_recall_at_5": 1.0,
+      "mean_hit_rate_at_5": 1.0,
+      "mean_ndcg_at_5": 0.9333,
+      "mrr": 1.0
+    }
+  },
+  "ranking_evaluation": {
+    "is_deterministic_across_iterations": true,
+    "tie_breaking_order": [
+      "16161616-0016-0000-0000-000000000001",
+      "16161616-0016-0000-0000-000000000002"
+    ],
+    "mode_evaluations": {
+      "research_similarity": {
+        "active_weights": {
+          "semantic_weight": 0.5,
+          "lexical_weight": 0.2,
+          "topic_weight": 0.2,
+          "type_weight": 0.0,
+          "freshness_weight": 0.1,
+          "urgency_weight": 0.0
+        },
+        "num_ranked": 2,
+        "scores": [
+          0.6,
+          0.6
+        ],
+        "all_scores_valid": true
+      },
+      "research_opportunity": {
+        "active_weights": {
+          "semantic_weight": 0.45,
+          "lexical_weight": 0.15,
+          "topic_weight": 0.2,
+          "type_weight": 0.1,
+          "freshness_weight": 0.0,
+          "urgency_weight": 0.1
+        },
+        "num_ranked": 2,
+        "scores": [
+          0.51,
+          0.51
+        ],
+        "all_scores_valid": true
+      },
+      "general": {
+        "active_weights": {
+          "semantic_weight": 0.5,
+          "lexical_weight": 0.25,
+          "topic_weight": 0.25,
+          "type_weight": 0.0,
+          "freshness_weight": 0.0,
+          "urgency_weight": 0.0
+        },
+        "num_ranked": 2,
+        "scores": [
+          0.65,
+          0.65
+        ],
+        "all_scores_valid": true
+      }
+    }
+  },
+  "explainability_evaluation": {
+    "total_signal_attributions_checked": 106,
+    "mathematical_alignments_verified": 106,
+    "attribution_accuracy_rate": 1.0
+  },
+  "api_latencies": {
+    "research_search": {
+      "iterations": 30,
+      "p50_ms": 2.039,
+      "p95_ms": 2.573,
+      "p99_ms": 2.867,
+      "mean_ms": 2.12,
+      "min_ms": 1.898,
+      "max_ms": 2.867
+    },
+    "similar_research": {
+      "iterations": 30,
+      "p50_ms": 2.004,
+      "p95_ms": 2.534,
+      "p99_ms": 2.647,
+      "mean_ms": 2.052,
+      "min_ms": 1.916,
+      "max_ms": 2.647
+    },
+    "opportunity_matching": {
+      "iterations": 30,
+      "p50_ms": 1.931,
+      "p95_ms": 2.305,
+      "p99_ms": 2.487,
+      "mean_ms": 1.977,
+      "min_ms": 1.854,
+      "max_ms": 2.487
+    }
+  },
+  "concurrency_profile": {
+    "concurrency_1": {
+      "concurrent_virtual_clients": 1,
+      "total_requests": 4,
+      "successful_requests": 4,
+      "error_rate": 0.0,
+      "total_duration_sec": 0.0227,
+      "throughput_qps": 176.5
+    },
+    "concurrency_5": {
+      "concurrent_virtual_clients": 5,
+      "total_requests": 20,
+      "successful_requests": 20,
+      "error_rate": 0.0,
+      "total_duration_sec": 0.0414,
+      "throughput_qps": 482.6
+    },
+    "concurrency_10": {
+      "concurrent_virtual_clients": 10,
+      "total_requests": 40,
+      "successful_requests": 40,
+      "error_rate": 0.0,
+      "total_duration_sec": 0.0835,
+      "throughput_qps": 479.0
+    },
+    "concurrency_25": {
+      "concurrent_virtual_clients": 25,
+      "total_requests": 100,
+      "successful_requests": 100,
+      "error_rate": 0.0,
+      "total_duration_sec": 0.2182,
+      "throughput_qps": 458.4
+    }
+  }
+}
