@@ -15,6 +15,7 @@ This document outlines the planned architecture and modular development roadmap 
 - **Phase 2.4D (Research ↔ Opportunity Matching)**: COMPLETE (Multi-signal matching, publication type compatibility, taxonomy DAG proximity, deterministic ranking, filter propagation)
 - **Phase 2.4E (Hybrid Ranking Engine)**: COMPLETE (Reusable multi-signal ranker, publication recency freshness, deadline urgency, weight validation, deterministic tie-breaking)
 - **Phase 2.4F (Explainable Results)**: COMPLETE (Structured machine-readable signal attributions, qualitative summaries, strengths and limitations, deterministic zero-LLM reasoning)
+- **Phase 2.4G (FastAPI Discovery Layer)**: COMPLETE (Versioned REST API, Pydantic schemas, parameter validation, error mapping, hybrid ranking & explainability integration)
 
 ---
 

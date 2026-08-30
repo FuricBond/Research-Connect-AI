@@ -1,3 +1,16 @@
+from app.schemas.discovery import (
+    ExplanationSchema,
+    OpportunityMatchItem,
+    OpportunityMatchResponse,
+    ProvenanceEvidenceSchema,
+    ResearchSearchResponse,
+    ResearchSearchResultItem,
+    ResearchWorkRead,
+    SignalContributionSchema,
+    SimilarResearchItem,
+    SimilarResearchResponse,
+    TopicEvidenceSchema,
+)
 from app.schemas.opportunity import (
     IngestionRunRead,
     IngestionRunStatus,
@@ -14,4 +27,15 @@ __all__ = [
     "OpportunityRead",
     "IngestionRunRead",
     "IngestionRunStatus",
+    "ResearchWorkRead",
+    "SignalContributionSchema",
+    "TopicEvidenceSchema",
+    "ProvenanceEvidenceSchema",
+    "ExplanationSchema",
+    "ResearchSearchResultItem",
+    "ResearchSearchResponse",
+    "SimilarResearchItem",
+    "SimilarResearchResponse",
+    "OpportunityMatchItem",
+    "OpportunityMatchResponse",
 ]
