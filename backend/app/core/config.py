@@ -50,6 +50,21 @@ class Settings(BaseSettings):
     research_opportunity_topic_weight: float = 0.20
     research_opportunity_type_weight: float = 0.10
 
+    # Phase 2.4E — Hybrid Ranking Engine configuration
+    hybrid_ranking_default_limit: int = 20
+    hybrid_ranking_max_limit: int = 100
+    hybrid_ranking_research_similarity_semantic_weight: float = 0.50
+    hybrid_ranking_research_similarity_lexical_weight: float = 0.20
+    hybrid_ranking_research_similarity_topic_weight: float = 0.20
+    hybrid_ranking_research_similarity_freshness_weight: float = 0.10
+    hybrid_ranking_opportunity_semantic_weight: float = 0.45
+    hybrid_ranking_opportunity_lexical_weight: float = 0.15
+    hybrid_ranking_opportunity_topic_weight: float = 0.20
+    hybrid_ranking_opportunity_type_weight: float = 0.10
+    hybrid_ranking_opportunity_urgency_weight: float = 0.10
+    hybrid_ranking_freshness_half_life_years: float = 5.0
+    hybrid_ranking_urgency_window_days: float = 90.0
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

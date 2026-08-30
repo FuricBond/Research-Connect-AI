@@ -13,6 +13,7 @@ This document outlines the planned architecture and modular development roadmap 
 - **Phase 2.4B (Hybrid Search & Candidate Fusion)**: COMPLETE (PostgreSQL weighted FTS, Reciprocal Rank Fusion, dual-path candidate merging)
 - **Phase 2.4C (Similar Research Retrieval)**: COMPLETE (Multi-signal similarity, topic overlap, taxonomy DAG proximity, deterministic ranking, self-exclusion)
 - **Phase 2.4D (Research ↔ Opportunity Matching)**: COMPLETE (Multi-signal matching, publication type compatibility, taxonomy DAG proximity, deterministic ranking, filter propagation)
+- **Phase 2.4E (Hybrid Ranking Engine)**: COMPLETE (Reusable multi-signal ranker, publication recency freshness, deadline urgency, weight validation, deterministic tie-breaking)
 
 ---
 

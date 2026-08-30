@@ -75,3 +75,8 @@ outputs/
 work/
 scratch/
 tmp/
+
+# Agent & Knowledge Graph outputs
+.agents/
+graphify-out/
+
