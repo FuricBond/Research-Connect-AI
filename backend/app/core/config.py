@@ -65,6 +65,12 @@ class Settings(BaseSettings):
     hybrid_ranking_freshness_half_life_years: float = 5.0
     hybrid_ranking_urgency_window_days: float = 90.0
 
+    # Phase 2.4F — Explainable Results configuration
+    explainability_high_threshold: float = 0.75
+    explainability_positive_threshold: float = 0.50
+    explainability_weak_threshold: float = 0.25
+    explainability_max_reasons: int = 6
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
