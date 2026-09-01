@@ -331,9 +331,13 @@ class BenchmarkRunner:
                 latencies_ms: list[float] = []
                 for _ in range(iterations):
                     t0 = time.perf_counter()
-                    resp = client.get(path, params=params)
+                    resp = client.get(
+                        path,
+                        params=params,
+                        headers={"X-Bypass-Rate-Limit": "true", "Cache-Control": "no-cache"},
+                    )
                     elapsed_ms = (time.perf_counter() - t0) * 1000.0
-                    assert resp.status_code == 200
+                    assert resp.status_code == 200, f"Benchmark request failed: {resp.text}"
                     latencies_ms.append(elapsed_ms)
 
                 latencies_ms.sort()

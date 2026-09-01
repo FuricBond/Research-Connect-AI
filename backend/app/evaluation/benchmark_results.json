@@ -1,6 +1,6 @@
 {
   "benchmark_phase": "Phase 2.4H \u2014 Testing, Benchmarking & Documentation",
-  "timestamp": "2026-09-01T15:53:49.238273+00:00",
+  "timestamp": "2026-09-01T17:03:11.599916+00:00",
   "environment": {
     "os": "Windows",
     "os_release": "11",
@@ -100,30 +100,30 @@
   "api_latencies": {
     "research_search": {
       "iterations": 30,
-      "p50_ms": 3.981,
-      "p95_ms": 5.106,
-      "p99_ms": 18.028,
-      "mean_ms": 4.489,
-      "min_ms": 3.501,
-      "max_ms": 18.028
+      "p50_ms": 3.029,
+      "p95_ms": 3.693,
+      "p99_ms": 20.725,
+      "mean_ms": 3.603,
+      "min_ms": 2.62,
+      "max_ms": 20.725
     },
     "similar_research": {
       "iterations": 30,
-      "p50_ms": 3.698,
-      "p95_ms": 4.246,
-      "p99_ms": 4.54,
-      "mean_ms": 3.817,
-      "min_ms": 3.526,
-      "max_ms": 4.54
+      "p50_ms": 3.494,
+      "p95_ms": 6.81,
+      "p99_ms": 6.852,
+      "mean_ms": 4.117,
+      "min_ms": 2.796,
+      "max_ms": 6.852
     },
     "opportunity_matching": {
       "iterations": 30,
-      "p50_ms": 3.966,
-      "p95_ms": 5.021,
-      "p99_ms": 17.71,
-      "mean_ms": 4.488,
-      "min_ms": 3.498,
-      "max_ms": 17.71
+      "p50_ms": 2.729,
+      "p95_ms": 3.202,
+      "p99_ms": 3.204,
+      "mean_ms": 2.777,
+      "min_ms": 2.409,
+      "max_ms": 3.204
     }
   },
   "concurrency_profile": {
@@ -132,32 +132,32 @@
       "total_requests": 4,
       "successful_requests": 4,
       "error_rate": 0.0,
-      "total_duration_sec": 0.0151,
-      "throughput_qps": 264.2
+      "total_duration_sec": 0.0081,
+      "throughput_qps": 496.3
     },
     "concurrency_5": {
       "concurrent_virtual_clients": 5,
       "total_requests": 20,
       "successful_requests": 20,
       "error_rate": 0.0,
-      "total_duration_sec": 0.0798,
-      "throughput_qps": 250.7
+      "total_duration_sec": 0.0272,
+      "throughput_qps": 734.3
     },
     "concurrency_10": {
       "concurrent_virtual_clients": 10,
       "total_requests": 40,
-      "successful_requests": 40,
+      "successful_requests": 36,
       "error_rate": 0.0,
-      "total_duration_sec": 0.1689,
-      "throughput_qps": 236.8
+      "total_duration_sec": 0.0973,
+      "throughput_qps": 370.1
     },
     "concurrency_25": {
       "concurrent_virtual_clients": 25,
       "total_requests": 100,
-      "successful_requests": 100,
+      "successful_requests": 0,
       "error_rate": 0.0,
-      "total_duration_sec": 0.4814,
-      "throughput_qps": 207.7
+      "total_duration_sec": 0.2159,
+      "throughput_qps": 0.0
     }
   }
 }

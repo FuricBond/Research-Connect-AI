@@ -21,10 +21,10 @@ from typing import Mapping
 
 logger = logging.getLogger(__name__)
 
-# ── Academic Acronym Seed Registry ─────────────────────────────────────────────
+# ── Academic Acronym Seed Registry (100+ Acronyms across 9 Disciplines) ─────────
 
 SEED_ACADEMIC_ACRONYMS: dict[str, str] = {
-    # Artificial Intelligence / Machine Learning
+    # ── Computer Science & Artificial Intelligence ───────────────────────────
     "GNN": "Graph Neural Networks",
     "CNN": "Convolutional Neural Networks",
     "RNN": "Recurrent Neural Networks",
@@ -62,25 +62,159 @@ SEED_ACADEMIC_ACRONYMS: dict[str, str] = {
     "HNSW": "Hierarchical Navigable Small World",
     "FTS": "Full-Text Search",
     "RRF": "Reciprocal Rank Fusion",
-    # Systems, Networks & IoT
     "IOT": "Internet of Things",
     "CPS": "Cyber-Physical Systems",
     "SDN": "Software-Defined Networking",
     "WSN": "Wireless Sensor Networks",
     "P2P": "Peer-to-Peer",
-    # Extended Disciplines & Graphics
     "AR": "Augmented Reality",
     "VR": "Virtual Reality",
     "XR": "Extended Reality",
     "GIS": "Geographic Information Systems",
     "BCI": "Brain-Computer Interface",
+
+    # ── Medicine & Healthcare ─────────────────────────────────────────────────
+    "MRI": "Magnetic Resonance Imaging",
+    "FMRI": "Functional Magnetic Resonance Imaging",
+    "CT": "Computed Tomography",
+    "PET": "Positron Emission Tomography",
+    "EEG": "Electroencephalography",
+    "ECG": "Electrocardiography",
+    "EMG": "Electromyography",
+    "EHR": "Electronic Health Records",
+    "EMR": "Electronic Medical Records",
+    "RCT": "Randomized Controlled Trial",
+    "FDA": "Food and Drug Administration",
+    "WHO": "World Health Organization",
+    "ICU": "Intensive Care Unit",
+    "NICU": "Neonatal Intensive Care Unit",
+    "ADHD": "Attention Deficit Hyperactivity Disorder",
+    "ASD": "Autism Spectrum Disorder",
+    "COPD": "Chronic Obstructive Pulmonary Disease",
+    "CVD": "Cardiovascular Disease",
+
+    # ── Biology & Genetics ────────────────────────────────────────────────────
+    "CRISPR": "Clustered Regularly Interspaced Short Palindromic Repeats",
+    "GWAS": "Genome-Wide Association Studies",
+    "NGS": "Next-Generation Sequencing",
+    "PCR": "Polymerase Chain Reaction",
+    "RT-PCR": "Reverse Transcription Polymerase Chain Reaction",
+    "RNA-SEQ": "RNA Sequencing",
+    "SCRNA-SEQ": "Single-Cell RNA Sequencing",
+    "MS": "Mass Spectrometry",
+    "NMR": "Nuclear Magnetic Resonance",
+    "PDB": "Protein Data Bank",
+    "BLAST": "Basic Local Alignment Search Tool",
+
+    # ── Mathematics & Statistics ──────────────────────────────────────────────
+    "ODE": "Ordinary Differential Equations",
+    "PDE": "Partial Differential Equations",
+    "SDE": "Stochastic Differential Equations",
+    "MCMC": "Markov Chain Monte Carlo",
+    "HMC": "Hamiltonian Monte Carlo",
+    "SVD": "Singular Value Decomposition",
+    "PCA": "Principal Component Analysis",
+    "MLE": "Maximum Likelihood Estimation",
+    "MAP": "Maximum A Posteriori",
+    "CDF": "Cumulative Distribution Function",
+    "PDF": "Probability Density Function",
+
+    # ── Physics & Astronomy ───────────────────────────────────────────────────
+    "QED": "Quantum Electrodynamics",
+    "QCD": "Quantum Chromodynamics",
+    "QFT": "Quantum Field Theory",
+    "GR": "General Relativity",
+    "SR": "Special Relativity",
+    "LIGO": "Laser Interferometer Gravitational-Wave Observatory",
+    "CERN": "European Organization for Nuclear Research",
+    "LHC": "Large Hadron Collider",
+    "JWST": "James Webb Space Telescope",
+    "CMB": "Cosmic Microwave Background",
+
+    # ── Engineering & Materials ───────────────────────────────────────────────
+    "CFD": "Computational Fluid Dynamics",
+    "FEM": "Finite Element Method",
+    "FEA": "Finite Element Analysis",
+    "MEMS": "Microelectromechanical Systems",
+    "NEMS": "Nanoelectromechanical Systems",
+    "VLSI": "Very Large Scale Integration",
+    "FPGA": "Field-Programmable Gate Array",
+    "ASIC": "Application-Specific Integrated Circuit",
+    "CAD": "Computer-Aided Design",
+    "CAM": "Computer-Aided Manufacturing",
+    "PLC": "Programmable Logic Controller",
+    "SCADA": "Supervisory Control and Data Acquisition",
+
+    # ── Economics & Finance ───────────────────────────────────────────────────
+    "DSGE": "Dynamic Stochastic General Equilibrium",
+    "VAR": "Vector Autoregression",
+    "GARCH": "Generalized Autoregressive Conditional Heteroskedasticity",
+    "CAPM": "Capital Asset Pricing Model",
+    "ESG": "Environmental, Social, and Governance",
+    "GDP": "Gross Domestic Product",
+    "CPI": "Consumer Price Index",
+    "IV": "Instrumental Variables",
+    "DID": "Difference-in-Differences",
+    "RDD": "Regression Discontinuity Design",
+
+    # ── Environmental Science & Climate ───────────────────────────────────────
+    "GHG": "Greenhouse Gases",
+    "IPCC": "Intergovernmental Panel on Climate Change",
+    "NDVI": "Normalized Difference Vegetation Index",
+    "LCA": "Life Cycle Assessment",
+    "VOC": "Volatile Organic Compounds",
+    "CCS": "Carbon Capture and Storage",
+    "ENSO": "El Niño-Southern Oscillation",
+
+    # ── Social Sciences & Psychology ──────────────────────────────────────────
+    "SEM": "Structural Equation Modeling",
+    "CBT": "Cognitive Behavioral Therapy",
+    "SES": "Socioeconomic Status",
+    "WEIRD": "Western, Educated, Industrialized, Rich, and Democratic",
 }
 
-# Protected words that should NEVER be treated as acronyms even if capitalized
+# Contextual Disambiguation Rules for Polysemous Academic Acronyms
+CONTEXTUAL_DISAMBIGUATION_RULES: dict[str, list[tuple[set[str], str]]] = {
+    "SEM": [
+        (
+            {"regression", "latent", "psychology", "social", "survey", "equation", "factor", "covariance", "model", "path"},
+            "Structural Equation Modeling",
+        ),
+        (
+            {"microscopy", "electron", "nanoscale", "surface", "imaging", "resolution", "material", "sample", "beam"},
+            "Scanning Electron Microscopy",
+        ),
+    ],
+    "IV": [
+        (
+            {"endogeneity", "instrument", "econometrics", "causal", "regression", "economics", "estimator", "identification"},
+            "Instrumental Variables",
+        ),
+        (
+            {"dose", "injection", "infusion", "patient", "blood", "drug", "clinical", "therapy", "intravenous", "pharmacology"},
+            "Intravenous",
+        ),
+    ],
+    "PCA": [
+        (
+            {"analgesia", "patient", "pain", "opioid", "anesthesia", "dosage", "infusion", "postoperative"},
+            "Patient-Controlled Analgesia",
+        ),
+        (
+            {"dimension", "variance", "component", "eigenvalue", "decomposition", "features", "clustering", "dimensionality"},
+            "Principal Component Analysis",
+        ),
+    ],
+}
+
+# Protected common English words that should NEVER be treated as acronyms
 STOPWORDS: set[str] = {
     "A", "AN", "THE", "AND", "OR", "BUT", "IF", "BE", "BY", "FOR", "IN",
     "OF", "ON", "TO", "AT", "IT", "IS", "AS", "DO", "NO", "SO", "UP",
     "WE", "HE", "ME", "MY", "US", "GO", "WITH", "FROM", "THAT", "THIS",
+    "WAS", "CAN", "MAY", "ARE", "OUT", "ALL", "SET", "HAS", "HAD", "NOT",
+    "ITS", "NEW", "ONE", "TWO", "GET", "USE", "SEE", "HOW", "WHY", "WHO",
+    "THEIR", "WHICH", "WHEN", "WHERE", "WHAT", "SOME", "MORE", "MOST", "VERY",
 }
 
 
@@ -221,6 +355,8 @@ class QueryIntelligenceService:
         detected_terms: list[str] = []
         seen_acronyms: set[str] = set()
 
+        query_token_set = {t.lower() for t in tokens}
+
         for token in tokens:
             upper_token = token.upper()
 
@@ -230,16 +366,31 @@ class QueryIntelligenceService:
 
             # Must match registry
             if upper_token in self._registry:
-                # Require token to be mostly uppercase or exact match to prevent false positives
-                # on common lowercase english words that coincide with acronyms
+                # Require uppercase or length >= 3 to prevent false positives on short lowercase words
                 if token.isupper() or len(token) >= 3:
                     seen_acronyms.add(upper_token)
                     detected_acronyms.append(upper_token)
+
+                    # Contextual Disambiguation
                     expansion = self._registry[upper_token]
+                    disambiguated = False
+                    if upper_token in CONTEXTUAL_DISAMBIGUATION_RULES:
+                        for hint_keywords, candidate_expansion in CONTEXTUAL_DISAMBIGUATION_RULES[upper_token]:
+                            # If any hint keyword appears in the query (outside the acronym itself)
+                            if any(hint in query_token_set for hint in hint_keywords):
+                                expansion = candidate_expansion
+                                disambiguated = True
+                                break
+
                     detected_terms.append(expansion)
-                    transformations.append(
-                        f"Detected academic acronym '{upper_token}' -> expanded to '{expansion}'"
-                    )
+                    if disambiguated:
+                        transformations.append(
+                            f"Detected academic acronym '{upper_token}' (contextually resolved) -> expanded to '{expansion}'"
+                        )
+                    else:
+                        transformations.append(
+                            f"Detected academic acronym '{upper_token}' -> expanded to '{expansion}'"
+                        )
 
         was_expanded = len(detected_terms) > 0
 

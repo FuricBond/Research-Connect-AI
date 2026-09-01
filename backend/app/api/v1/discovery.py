@@ -533,6 +533,21 @@ def match_opportunities_for_research_route(
         datetime | None,
         Query(description="Filter deadlines after datetime"),
     ] = None,
+    max_apc_usd: Annotated[
+        float | None,
+        Query(
+            ge=0.0,
+            description="Maximum acceptable Article Processing Charge or registration fee in USD",
+        ),
+    ] = None,
+    require_known_apc: Annotated[
+        bool,
+        Query(description="If True, exclude opportunities with unknown/missing APC metadata"),
+    ] = False,
+    location: Annotated[
+        str | None,
+        Query(description="Filter opportunities by city, country, or location keyword"),
+    ] = None,
     ranking_mode: Annotated[
         RankingMode,
         Query(description="Hybrid ranking mode"),
@@ -559,6 +574,9 @@ def match_opportunities_for_research_route(
             source_id=source_id,
             upcoming_only=upcoming_only,
             submission_deadline_after=submission_deadline_after,
+            max_apc_usd=max_apc_usd,
+            require_known_apc=require_known_apc,
+            location=location,
             require_embedding=require_embedding,
         )
 

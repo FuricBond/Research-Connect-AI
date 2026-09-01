@@ -250,6 +250,57 @@ def calculate_type_compatibility(
     return DEFAULT_TYPE_COMPATIBILITY
 
 
+def extract_apc_amount(apc_or_fee: Any) -> float | None:
+    """
+    Extract numeric USD fee amount from opportunity apc_or_fee metadata.
+
+    Returns:
+        float if fee is explicitly known (0.0 if explicitly free/no fee),
+        or None if unknown/unspecified.
+    """
+    if apc_or_fee is None:
+        return None
+    if isinstance(apc_or_fee, (int, float)):
+        return max(0.0, float(apc_or_fee))
+    if isinstance(apc_or_fee, dict):
+        # Explicit free check
+        if apc_or_fee.get("has_fee") is False:
+            return 0.0
+        for key in ("amount", "fee", "apc", "price", "usd", "cost"):
+            val = apc_or_fee.get(key)
+            if val is not None:
+                try:
+                    num_val = float(val)
+                    if num_val >= 0.0:
+                        return num_val
+                except (ValueError, TypeError):
+                    continue
+    return None
+
+
+def calculate_delivery_mode_alignment(
+    actual_mode: str | None,
+    preferred_mode: str | None,
+) -> float:
+    """
+    Calculate soft alignment score in [0.0, 1.0] for preferred delivery mode.
+
+    - Exact match -> 1.0
+    - HYBRID with ONLINE/OFFLINE preference -> 0.85
+    - Divergent (ONLINE vs OFFLINE) -> 0.50
+    - No preference specified or unknown -> 1.0 (Neutral missing-data policy)
+    """
+    if not preferred_mode or not actual_mode:
+        return 1.0
+    act = actual_mode.upper().strip()
+    pref = preferred_mode.upper().strip()
+    if act == pref:
+        return 1.0
+    if act == "HYBRID" or pref == "HYBRID":
+        return 0.85
+    return 0.50
+
+
 # ── Topic Compatibility Function ──────────────────────────────────────────────
 
 
@@ -423,9 +474,13 @@ class ResearchOpportunityMatchingService:
         opportunity_type: str | None = None,
         status: str | Sequence[str] | None = None,
         delivery_mode: str | None = None,
+        preferred_delivery_mode: str | None = None,
         source_id: uuid.UUID | None = None,
         upcoming_only: bool = False,
         submission_deadline_after: datetime | None = None,
+        max_apc_usd: float | None = None,
+        require_known_apc: bool = False,
+        location: str | None = None,
         require_embedding: bool = False,
     ) -> list[ResearchOpportunityMatch]:
         """
@@ -445,12 +500,21 @@ class ResearchOpportunityMatchingService:
             Filter by status (e.g. 'ACTIVE').
         delivery_mode:
             Filter by delivery mode ('ONLINE', 'OFFLINE', 'HYBRID').
+        preferred_delivery_mode:
+            Optional delivery mode preference for soft ranking alignment.
         source_id:
             Filter by origin source ID.
         upcoming_only:
             If True, only return opportunities with submission_deadline >= now.
         submission_deadline_after:
             Filter submission_deadline >= specified datetime.
+        max_apc_usd:
+            Maximum acceptable APC / fee in USD (non-negative).
+        require_known_apc:
+            If True, reject opportunities with unknown/missing APC metadata.
+            If False (default), preserves neutral missing-data policy (unknown != bad).
+        location:
+            Substring match filter against opportunity location or ONLINE status.
         require_embedding:
             If True and source work has no embedding, raises MissingEmbeddingError.
             If False, degrades gracefully to lexical and topic channels.
@@ -469,6 +533,11 @@ class ResearchOpportunityMatchingService:
         VectorValidationError:
             If source work embedding fails validation.
         """
+        # 0. Validate input parameters
+        if max_apc_usd is not None:
+            if max_apc_usd < 0:
+                raise ValueError(f"max_apc_usd must be a non-negative number, got {max_apc_usd}.")
+
         # 1. Fetch source work
         source_work = session.get(ResearchWorkModel, work_id)
         if source_work is None:
@@ -625,6 +694,30 @@ class ResearchOpportunityMatchingService:
         matches: list[ResearchOpportunityMatch] = []
 
         for oid, odata in candidates_data.items():
+            opp_entity = odata.get("entity")
+
+            # 7a. Venue Intelligence Hard Filter: APC / Fee Constraint
+            if max_apc_usd is not None:
+                if max_apc_usd < 0:
+                    raise ValueError(f"max_apc_usd must be non-negative, got {max_apc_usd}")
+                apc_amount = extract_apc_amount(getattr(opp_entity, "apc_or_fee", None))
+                if apc_amount is None:
+                    if require_known_apc:
+                        continue  # Exclude unknown fee only when strict known requirement is set
+                elif apc_amount > max_apc_usd:
+                    continue  # Exclude because known fee exceeds budget limit
+
+            # 7b. Venue Intelligence Filter: Location Substring Constraint
+            if location and location.strip():
+                clean_loc_filter = location.strip().lower()
+                opp_loc = (getattr(opp_entity, "location", None) or "").lower()
+                opp_mode = (getattr(opp_entity, "delivery_mode", None) or "").upper()
+                is_loc_matched = (clean_loc_filter in opp_loc) or (
+                    opp_mode == "ONLINE" and "online" in clean_loc_filter
+                )
+                if not is_loc_matched:
+                    continue
+
             sem_sim = odata["semantic_similarity"]
             raw_lex = odata["lexical_score"]
             lex_sim = normalize_lexical_score(raw_lex)
@@ -641,18 +734,27 @@ class ResearchOpportunityMatchingService:
             if top_sim > 0.0 and "topic" not in sources:
                 sources.append("topic")
 
-            opp_entity = odata.get("entity")
             opp_type = getattr(opp_entity, "opportunity_type", None) if opp_entity else None
             type_comp = calculate_type_compatibility(source_work.work_type, opp_type)
 
-            # Composite match score
-            comp_score = round(
+            # Composite match score (relevance core)
+            base_relevance = (
                 w_sem * sem_sim
                 + w_lex * lex_sim
                 + w_top * top_sim
-                + w_typ * type_comp,
-                6,
+                + w_typ * type_comp
             )
+
+            # Soft delivery mode alignment factor if preference specified
+            if preferred_delivery_mode:
+                delivery_align = calculate_delivery_mode_alignment(
+                    getattr(opp_entity, "delivery_mode", None),
+                    preferred_delivery_mode,
+                )
+                # Keep 90% base relevance + 10% delivery alignment to preserve 85%+ dominance
+                comp_score = round(0.90 * base_relevance + 0.10 * (base_relevance * delivery_align), 6)
+            else:
+                comp_score = round(base_relevance, 6)
 
             matches.append(
                 ResearchOpportunityMatch(

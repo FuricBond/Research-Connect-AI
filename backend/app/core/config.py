@@ -75,6 +75,13 @@ class Settings(BaseSettings):
     explainability_weak_threshold: float = 0.25
     explainability_max_reasons: int = 8
 
+    # Phase 2.4K — Production Hardening (Rate Limiting & Response Caching)
+    discovery_rate_limiting_enabled: bool = True
+    discovery_rate_limit_per_minute: int = 60
+    discovery_cache_enabled: bool = True
+    discovery_cache_ttl_seconds: int = 60
+    discovery_cache_max_entries: int = 1000
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
