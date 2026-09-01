@@ -17,6 +17,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.db.session import get_db
 from app.explainability.result_explainer import (
     ResultExplanation,
@@ -28,6 +29,7 @@ from app.ranking.hybrid_ranker import (
     RankingMode,
     hybrid_ranker,
 )
+from app.ranking.reranker import cross_encoder_reranker
 from app.schemas.discovery import (
     ExplanationSchema,
     OpportunityMatchItem,
@@ -201,6 +203,10 @@ def search_research_works_route(
         bool,
         Query(description="Include deterministic query normalization and acronym expansion metadata"),
     ] = False,
+    rerank: Annotated[
+        bool,
+        Query(description="Apply optional lightweight cross-encoder reranking on top candidates"),
+    ] = False,
 ) -> ResearchSearchResponse:
     """Search research works using hybrid retrieval, ranking, and explainability."""
     try:
@@ -227,6 +233,14 @@ def search_research_works_route(
             mode=ranking_mode,
             limit=fetch_limit,
         )
+
+        # Optional Cross-Encoder Reranking
+        if rerank or getattr(settings, "reranker_enabled", False):
+            ranked = cross_encoder_reranker.rerank(
+                query=q,
+                candidates=ranked,
+                force_enabled=rerank,
+            )
 
         total = len(ranked)
         sliced = ranked[offset : offset + limit]

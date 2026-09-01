@@ -256,3 +256,157 @@ def normalized_discounted_cumulative_gain_at_k(
         return 0.0
 
     return min(1.0, actual_dcg / idcg)
+
+
+def average_precision(
+    retrieved_ids: Sequence[Any],
+    relevant_ids: Set[Any] | Sequence[Any],
+) -> float:
+    """
+    Calculate Average Precision (AP) for a single query ranking.
+    """
+    target_set = set(relevant_ids)
+    if not target_set or not retrieved_ids:
+        return 0.0
+
+    running_relevant = 0
+    precision_sum = 0.0
+
+    for idx, item_id in enumerate(retrieved_ids, start=1):
+        if item_id in target_set:
+            running_relevant += 1
+            precision_sum += float(running_relevant) / float(idx)
+
+    return precision_sum / float(len(target_set))
+
+
+def mean_average_precision(
+    query_evaluations: Sequence[tuple[Sequence[Any], Set[Any] | Sequence[Any]]],
+) -> float:
+    """
+    Calculate Mean Average Precision (MAP) across multiple queries.
+    """
+    if not query_evaluations:
+        return 0.0
+    total_ap = sum(average_precision(r, rel) for r, rel in query_evaluations)
+    return float(total_ap) / float(len(query_evaluations))
+
+
+def paired_bootstrap_test(
+    baseline_scores: Sequence[float],
+    treatment_scores: Sequence[float],
+    num_samples: int = 1000,
+    alpha: float = 0.05,
+    seed: int = 42,
+) -> dict[str, Any]:
+    """
+    Perform paired bootstrap hypothesis test and confidence interval estimation.
+
+    Parameters
+    ----------
+    baseline_scores:
+        List of per-query metric scores for baseline model.
+    treatment_scores:
+        List of per-query metric scores for treatment/reranked model.
+    num_samples:
+        Number of bootstrap iterations (default 1000).
+    alpha:
+        Significance level (default 0.05 for 95% CI).
+
+    Returns
+    -------
+    dict with mean delta, relative delta, confidence interval [ci_lower, ci_upper], p-value, and significance.
+    """
+    if len(baseline_scores) != len(treatment_scores):
+        raise ValueError("Baseline and treatment scores must have identical sample lengths.")
+    n = len(baseline_scores)
+    if n == 0:
+        return {"mean_delta": 0.0, "is_significant": False, "p_value": 1.0}
+
+    import random
+    rng = random.Random(seed)
+
+    deltas = [t - b for b, t in zip(baseline_scores, treatment_scores)]
+    observed_mean_delta = sum(deltas) / n
+    base_mean = sum(baseline_scores) / n
+    rel_delta = (observed_mean_delta / base_mean) if base_mean > 0 else 0.0
+
+    bootstrap_means: list[float] = []
+    for _ in range(num_samples):
+        sample = [rng.choice(deltas) for _ in range(n)]
+        bootstrap_means.append(sum(sample) / n)
+
+    bootstrap_means.sort()
+    lower_idx = int((alpha / 2.0) * num_samples)
+    upper_idx = int((1.0 - alpha / 2.0) * num_samples)
+
+    ci_lower = bootstrap_means[max(0, lower_idx)]
+    ci_upper = bootstrap_means[min(num_samples - 1, upper_idx)]
+
+    # Two-sided empirical p-value
+    if observed_mean_delta >= 0:
+        p_val = sum(1 for m in bootstrap_means if m <= 0.0) / float(num_samples)
+    else:
+        p_val = sum(1 for m in bootstrap_means if m >= 0.0) / float(num_samples)
+    two_sided_p = min(1.0, 2.0 * p_val)
+
+    is_significant = (ci_lower > 0.0 or ci_upper < 0.0) and two_sided_p < alpha
+
+    return {
+        "observed_mean_delta": round(observed_mean_delta, 4),
+        "relative_delta_pct": round(rel_delta * 100, 2),
+        "ci_lower": round(ci_lower, 4),
+        "ci_upper": round(ci_upper, 4),
+        "confidence_level": round((1.0 - alpha) * 100, 1),
+        "p_value": round(two_sided_p, 4),
+        "is_significant": is_significant,
+    }
+
+
+def wilcoxon_signed_rank_test(
+    baseline_scores: Sequence[float],
+    treatment_scores: Sequence[float],
+) -> dict[str, Any]:
+    """
+    Calculate Wilcoxon Signed-Rank Test for paired ordinal ranking scores.
+    """
+    if len(baseline_scores) != len(treatment_scores):
+        raise ValueError("Score lengths must match.")
+    
+    diffs = [t - b for b, t in zip(baseline_scores, treatment_scores)]
+    non_zero_diffs = [d for d in diffs if abs(d) > 1e-7]
+    n = len(non_zero_diffs)
+    if n == 0:
+        return {"w_statistic": 0.0, "p_value": 1.0, "is_significant": False}
+
+    # Sort absolute differences
+    ranked_diffs = sorted(non_zero_diffs, key=lambda d: abs(d))
+    w_plus = 0.0
+    w_minus = 0.0
+
+    for rank, d in enumerate(ranked_diffs, start=1):
+        if d > 0:
+            w_plus += rank
+        else:
+            w_minus += rank
+
+    w_stat = min(w_plus, w_minus)
+    # Normal approximation for n >= 10
+    mean_w = (n * (n + 1)) / 4.0
+    std_w = math.sqrt((n * (n + 1) * (2 * n + 1)) / 24.0)
+
+    if std_w > 0:
+        z = (w_stat - mean_w) / std_w
+        # Two-tailed normal cdf approximation
+        p_value = 2.0 * (0.5 * math.erfc(abs(z) / math.sqrt(2.0)))
+    else:
+        z = 0.0
+        p_value = 1.0
+
+    return {
+        "w_statistic": round(w_stat, 2),
+        "z_score": round(z, 3),
+        "p_value": round(p_value, 4),
+        "is_significant": p_value < 0.05,
+    }
+

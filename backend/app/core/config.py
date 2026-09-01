@@ -82,6 +82,14 @@ class Settings(BaseSettings):
     discovery_cache_ttl_seconds: int = 60
     discovery_cache_max_entries: int = 1000
 
+    # Phase 2.4M — Lightweight Cross-Encoder Reranking configuration
+    reranker_enabled: bool = False
+    reranker_model: str = "BAAI/bge-reranker-base"
+    reranker_top_k: int = 20
+    reranker_weight: float = 0.10
+    reranker_timeout_ms: int = 200
+    reranker_max_batch_size: int = 32
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

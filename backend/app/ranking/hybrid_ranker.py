@@ -199,6 +199,9 @@ class RankedCandidate:
     shared_topic_ids: list[uuid.UUID] = field(default_factory=list)
     shared_topic_names: list[str] = field(default_factory=list)
     candidate: Any | None = None
+    reranker_adjustment: float | None = None
+    raw_reranker_score: float | None = None
+
 
 
 # ── Hybrid Ranker Engine ──────────────────────────────────────────────────────
