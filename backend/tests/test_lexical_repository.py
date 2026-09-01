@@ -233,6 +233,29 @@ class TestLexicalRepositoryMockExecution:
         lex_repo.search_opportunities(mock_session, "ECCV", status=custom_seq)
         assert mock_session.execute.call_count == 2
 
+    def test_stored_tsvector_toggle_and_query_compilation(self):
+        # When use_stored_tsvector is True (default)
+        repo_stored = LexicalRepository(use_stored_tsvector=True)
+        assert repo_stored._get_research_work_tsvector() == ResearchWorkModel.fts_vector
+        assert repo_stored._get_opportunity_tsvector() == OpportunityModel.fts_vector
+
+        # Stored FTS expression SQL compilation for research_works
+        tsquery = func.websearch_to_tsquery("english", "quantum computing")
+        score_expr = func.ts_rank_cd(ResearchWorkModel.fts_vector, tsquery)
+        stmt = (
+            select(ResearchWorkModel, score_expr.label("lexical_score"))
+            .where(ResearchWorkModel.fts_vector.op("@@")(tsquery))
+        )
+        compiled = str(stmt.compile(dialect=postgresql.dialect()))
+        assert "research_works.fts_vector @@" in compiled
+        assert "ts_rank_cd(research_works.fts_vector," in compiled
+
+        # When use_stored_tsvector is False (fallback)
+        repo_dynamic = LexicalRepository(use_stored_tsvector=False)
+        dynamic_vec = repo_dynamic._get_research_work_tsvector()
+        compiled_dyn = str(dynamic_vec.compile(dialect=postgresql.dialect()))
+        assert "to_tsvector(" in compiled_dyn
+
 
 # ── B. POSTGRESQL INTEGRATION TESTS ───────────────────────────────────────────
 

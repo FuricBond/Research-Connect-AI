@@ -30,7 +30,7 @@ the reconciliation strategy is decided.
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, Optional
 import uuid
 
 from sqlalchemy import (
@@ -49,7 +49,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.db.types import Vector
+from app.db.types import TSVector, Vector
 from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
@@ -405,6 +405,14 @@ class ResearchWorkModel(Base, TimestampMixin):
         DateTime(timezone=True),
         nullable=True,
         comment="When this embedding was last generated or refreshed",
+    )
+
+    # ── Phase 2.4I — Full-Text Search Vector ─────────────────────────────────
+    fts_vector: Mapped[Any | None] = mapped_column(
+        TSVector,
+        nullable=True,
+        deferred=True,
+        comment="Generated stored tsvector for weighted full-text search",
     )
 
     # Relationships

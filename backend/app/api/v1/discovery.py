@@ -33,6 +33,7 @@ from app.schemas.discovery import (
     OpportunityMatchItem,
     OpportunityMatchResponse,
     ProvenanceEvidenceSchema,
+    QueryIntelligenceSchema,
     ResearchSearchResponse,
     ResearchSearchResultItem,
     ResearchWorkRead,
@@ -41,6 +42,7 @@ from app.schemas.discovery import (
     SimilarResearchResponse,
     TopicEvidenceSchema,
 )
+from app.search.query_intelligence import query_intelligence_service
 from app.schemas.opportunity import (
     OpportunityListItem,
     OpportunityRead,
@@ -195,6 +197,10 @@ def search_research_works_route(
         bool,
         Query(description="Include structured explainability rationale"),
     ] = False,
+    include_query_intelligence: Annotated[
+        bool,
+        Query(description="Include deterministic query normalization and acronym expansion metadata"),
+    ] = False,
 ) -> ResearchSearchResponse:
     """Search research works using hybrid retrieval, ranking, and explainability."""
     try:
@@ -236,6 +242,20 @@ def search_research_works_route(
             for item in explained_batch:
                 explanations_map[item.result.entity_id] = item.explanation
 
+        # Optional Query Intelligence Metadata
+        qi_schema: QueryIntelligenceSchema | None = None
+        if include_query_intelligence:
+            qi_res = query_intelligence_service.process(q)
+            qi_schema = QueryIntelligenceSchema(
+                original_query=qi_res.original_query,
+                normalized_query=qi_res.normalized_query,
+                expanded_query=qi_res.expanded_query,
+                was_expanded=qi_res.was_expanded,
+                detected_acronyms=qi_res.detected_acronyms,
+                detected_terms=qi_res.detected_terms,
+                transformations=qi_res.transformations,
+            )
+
         # Build output items
         items: list[ResearchSearchResultItem] = []
         for cand in sliced:
@@ -276,6 +296,7 @@ def search_research_works_route(
             offset=offset,
             has_more=has_more,
             ranking_mode=ranking_mode.value,
+            query_intelligence=qi_schema,
         )
 
     except HTTPException:

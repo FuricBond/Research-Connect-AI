@@ -43,6 +43,11 @@ from app.repositories.vector_repository import (
     sanitize_candidate_limit,
     vector_repository,
 )
+from app.search.query_intelligence import (
+    QueryIntelligenceResult,
+    QueryIntelligenceService,
+    query_intelligence_service,
+)
 from app.search.rrf import (
     DEFAULT_RRF_K,
     FusedCandidate,
@@ -151,6 +156,7 @@ class HybridSearchService:
         lex_repo: LexicalRepository | None = None,
         vec_repo: VectorRepository | None = None,
         embedding_service: EmbeddingService | None = None,
+        query_intelligence: QueryIntelligenceService | None = None,
         default_limit: int = getattr(settings, "hybrid_search_default_limit", DEFAULT_CANDIDATE_LIMIT),
         max_limit: int = getattr(settings, "hybrid_search_max_limit", MAX_CANDIDATE_LIMIT),
         candidate_multiplier: float = getattr(settings, "hybrid_search_candidate_multiplier", 2.5),
@@ -159,6 +165,7 @@ class HybridSearchService:
         self.lex_repo = lex_repo or lexical_repository
         self.vec_repo = vec_repo or vector_repository
         self._embedding_service = embedding_service
+        self.query_intelligence = query_intelligence or query_intelligence_service
         self.default_limit = default_limit
         self.max_limit = max_limit
         self.candidate_multiplier = candidate_multiplier
@@ -192,6 +199,10 @@ class HybridSearchService:
         """
         Execute hybrid search (lexical + vector + RRF) over research_works.
 
+        Applies deterministic query intelligence:
+        - Lexical search receives the expanded query (acronyms expanded to phrases).
+        - Vector search receives the normalized query (clean natural semantics).
+
         Parameters
         ----------
         session:
@@ -213,18 +224,24 @@ class HybridSearchService:
         if not query or not query.strip():
             return []
 
-        clean_query = query.strip()
+        qi_res = self.query_intelligence.process(query)
+        if not qi_res.normalized_query:
+            return []
+
+        semantic_query = qi_res.normalized_query
+        lexical_query = qi_res.expanded_query
+
         safe_limit = sanitize_candidate_limit(limit, self.default_limit, self.max_limit)
         candidate_limit = calculate_candidate_limit(
             safe_limit, self.candidate_multiplier, max_limit=self.max_limit
         )
 
-        # 1. Lexical Retrieval
+        # 1. Lexical Retrieval (uses expanded query for higher term hit rate)
         lexical_results: list[LexicalSearchResult] = []
         try:
             lexical_results = self.lex_repo.search_research_works(
                 session,
-                clean_query,
+                lexical_query,
                 limit=candidate_limit,
                 exclude_work_id=exclude_work_id,
                 publication_year=publication_year,
@@ -239,10 +256,10 @@ class HybridSearchService:
         except Exception as exc:
             logger.warning("Lexical search for research works failed: %s", exc)
 
-        # 2. Semantic Vector Retrieval
+        # 2. Semantic Vector Retrieval (uses normalized query for clean embeddings)
         vector_results: list[VectorSearchResult] = []
         try:
-            query_embedding = self.embedding_service.encode_one(clean_query)
+            query_embedding = self.embedding_service.encode_one(semantic_query)
             vector_results = self.vec_repo.search_research_works(
                 session,
                 query_embedding,
@@ -288,6 +305,10 @@ class HybridSearchService:
         """
         Execute hybrid search (lexical + vector + RRF) over opportunities.
 
+        Applies deterministic query intelligence:
+        - Lexical search receives the expanded query (acronyms expanded to phrases).
+        - Vector search receives the normalized query (clean natural semantics).
+
         Parameters
         ----------
         session:
@@ -309,18 +330,24 @@ class HybridSearchService:
         if not query or not query.strip():
             return []
 
-        clean_query = query.strip()
+        qi_res = self.query_intelligence.process(query)
+        if not qi_res.normalized_query:
+            return []
+
+        semantic_query = qi_res.normalized_query
+        lexical_query = qi_res.expanded_query
+
         safe_limit = sanitize_candidate_limit(limit, self.default_limit, self.max_limit)
         candidate_limit = calculate_candidate_limit(
             safe_limit, self.candidate_multiplier, max_limit=self.max_limit
         )
 
-        # 1. Lexical Retrieval
+        # 1. Lexical Retrieval (uses expanded query)
         lexical_results: list[LexicalSearchResult] = []
         try:
             lexical_results = self.lex_repo.search_opportunities(
                 session,
-                clean_query,
+                lexical_query,
                 limit=candidate_limit,
                 exclude_opportunity_id=exclude_opportunity_id,
                 opportunity_type=opportunity_type,
@@ -333,10 +360,10 @@ class HybridSearchService:
         except Exception as exc:
             logger.warning("Lexical search for opportunities failed: %s", exc)
 
-        # 2. Semantic Vector Retrieval
+        # 2. Semantic Vector Retrieval (uses normalized query)
         vector_results: list[VectorSearchResult] = []
         try:
-            query_embedding = self.embedding_service.encode_one(clean_query)
+            query_embedding = self.embedding_service.encode_one(semantic_query)
             vector_results = self.vec_repo.search_opportunities(
                 session,
                 query_embedding,

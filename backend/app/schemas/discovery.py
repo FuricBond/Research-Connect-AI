@@ -110,6 +110,20 @@ class ExplanationSchema(BaseModel):
 # ── 1. Research Search Response Models ────────────────────────────────────────
 
 
+class QueryIntelligenceSchema(BaseModel):
+    """Structured academic query intelligence metadata."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    original_query: str
+    normalized_query: str
+    expanded_query: str
+    was_expanded: bool = False
+    detected_acronyms: list[str] = Field(default_factory=list)
+    detected_terms: list[str] = Field(default_factory=list)
+    transformations: list[str] = Field(default_factory=list)
+
+
 class ResearchSearchResultItem(BaseModel):
     """Individual item in research search results."""
 
@@ -138,6 +152,7 @@ class ResearchSearchResponse(BaseModel):
     offset: int
     has_more: bool
     ranking_mode: str
+    query_intelligence: QueryIntelligenceSchema | None = None
 
 
 # ── 2. Similar Research Response Models ───────────────────────────────────────

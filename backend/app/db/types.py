@@ -1,11 +1,11 @@
 from typing import Any
 
+from sqlalchemy.types import UserDefinedType
+
 try:
     from pgvector.sqlalchemy import Vector as _Vector
     Vector = _Vector
 except ImportError:
-    from sqlalchemy.types import UserDefinedType
-
     class Vector(UserDefinedType):  # type: ignore[no-redef]
         """PostgreSQL pgvector column type for SQLAlchemy (fallback)."""
 
@@ -16,3 +16,12 @@ except ImportError:
 
         def get_col_spec(self, **kw: Any) -> str:
             return f"vector({self.dim})"
+
+
+class TSVector(UserDefinedType):
+    """PostgreSQL tsvector column type for SQLAlchemy (portable across dialects)."""
+
+    cache_ok = True
+
+    def get_col_spec(self, **kw: Any) -> str:
+        return "tsvector"

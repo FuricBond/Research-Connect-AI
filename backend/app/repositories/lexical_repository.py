@@ -166,7 +166,7 @@ class LexicalRepository:
     PostgreSQL full-text lexical search repository.
 
     Provides database-level lexical candidate searches for Research Works and
-    Opportunities using Cover Density ranking (`ts_rank_cd`).
+    Opportunities using Cover Density ranking (`ts_rank_cd`) over indexed GIN tsvectors.
     """
 
     def __init__(
@@ -174,10 +174,24 @@ class LexicalRepository:
         default_limit: int = DEFAULT_CANDIDATE_LIMIT,
         max_limit: int = MAX_CANDIDATE_LIMIT,
         fts_config: str = DEFAULT_FTS_CONFIG,
+        use_stored_tsvector: bool = True,
     ) -> None:
         self.default_limit = default_limit
         self.max_limit = max_limit
         self.fts_config = fts_config
+        self.use_stored_tsvector = use_stored_tsvector
+
+    def _get_research_work_tsvector(self):
+        """Return the tsvector expression: stored fts_vector column when enabled, or dynamic expression."""
+        if self.use_stored_tsvector and hasattr(ResearchWorkModel, "fts_vector"):
+            return ResearchWorkModel.fts_vector
+        return build_research_work_tsvector(self.fts_config)
+
+    def _get_opportunity_tsvector(self):
+        """Return the tsvector expression: stored fts_vector column when enabled, or dynamic expression."""
+        if self.use_stored_tsvector and hasattr(OpportunityModel, "fts_vector"):
+            return OpportunityModel.fts_vector
+        return build_opportunity_tsvector(self.fts_config)
 
     # ── Research Works Retrieval ──────────────────────────────────────────────
 
@@ -238,7 +252,7 @@ class LexicalRepository:
         safe_query = query.strip()
         safe_limit = sanitize_candidate_limit(limit, self.default_limit, self.max_limit)
 
-        tsvector = build_research_work_tsvector(self.fts_config)
+        tsvector = self._get_research_work_tsvector()
         tsquery = func.websearch_to_tsquery(self.fts_config, safe_query)
         score_expr = func.ts_rank_cd(tsvector, tsquery)
 
@@ -340,7 +354,7 @@ class LexicalRepository:
         safe_query = query.strip()
         safe_limit = sanitize_candidate_limit(limit, self.default_limit, self.max_limit)
 
-        tsvector = build_opportunity_tsvector(self.fts_config)
+        tsvector = self._get_opportunity_tsvector()
         tsquery = func.websearch_to_tsquery(self.fts_config, safe_query)
         score_expr = func.ts_rank_cd(tsvector, tsquery)
 
