@@ -1,6 +1,6 @@
 {
   "benchmark_phase": "Phase 2.4H \u2014 Testing, Benchmarking & Documentation",
-  "timestamp": "2026-09-01T08:04:31.561089+00:00",
+  "timestamp": "2026-09-01T15:53:49.238273+00:00",
   "environment": {
     "os": "Windows",
     "os_release": "11",
@@ -11,24 +11,24 @@
   },
   "retrieval_evaluation": {
     "vector_only": {
-      "mean_precision_at_5": 0.24,
+      "mean_precision_at_5": 0.2421,
       "mean_recall_at_5": 1.0,
       "mean_hit_rate_at_5": 1.0,
-      "mean_ndcg_at_5": 0.9333,
-      "mrr": 1.0
+      "mean_ndcg_at_5": 0.9279,
+      "mrr": 0.9737
     },
     "lexical_only": {
-      "mean_precision_at_5": 0.24,
+      "mean_precision_at_5": 0.2421,
       "mean_recall_at_5": 1.0,
       "mean_hit_rate_at_5": 1.0,
-      "mean_ndcg_at_5": 0.911,
-      "mrr": 0.9667
+      "mean_ndcg_at_5": 0.9103,
+      "mrr": 0.9474
     },
     "hybrid": {
-      "mean_precision_at_5": 0.24,
+      "mean_precision_at_5": 0.2421,
       "mean_recall_at_5": 1.0,
       "mean_hit_rate_at_5": 1.0,
-      "mean_ndcg_at_5": 0.9333,
+      "mean_ndcg_at_5": 0.9474,
       "mrr": 1.0
     }
   },
@@ -46,7 +46,8 @@
           "topic_weight": 0.2,
           "type_weight": 0.0,
           "freshness_weight": 0.1,
-          "urgency_weight": 0.0
+          "urgency_weight": 0.0,
+          "quality_weight": 0.0
         },
         "num_ranked": 2,
         "scores": [
@@ -57,17 +58,18 @@
       },
       "research_opportunity": {
         "active_weights": {
-          "semantic_weight": 0.45,
+          "semantic_weight": 0.4,
           "lexical_weight": 0.15,
           "topic_weight": 0.2,
           "type_weight": 0.1,
           "freshness_weight": 0.0,
-          "urgency_weight": 0.1
+          "urgency_weight": 0.05,
+          "quality_weight": 0.1
         },
         "num_ranked": 2,
         "scores": [
-          0.51,
-          0.51
+          0.47,
+          0.47
         ],
         "all_scores_valid": true
       },
@@ -78,7 +80,8 @@
           "topic_weight": 0.25,
           "type_weight": 0.0,
           "freshness_weight": 0.0,
-          "urgency_weight": 0.0
+          "urgency_weight": 0.0,
+          "quality_weight": 0.0
         },
         "num_ranked": 2,
         "scores": [
@@ -90,37 +93,37 @@
     }
   },
   "explainability_evaluation": {
-    "total_signal_attributions_checked": 106,
-    "mathematical_alignments_verified": 106,
+    "total_signal_attributions_checked": 171,
+    "mathematical_alignments_verified": 171,
     "attribution_accuracy_rate": 1.0
   },
   "api_latencies": {
     "research_search": {
       "iterations": 30,
-      "p50_ms": 4.808,
-      "p95_ms": 27.158,
-      "p99_ms": 28.594,
-      "mean_ms": 9.887,
-      "min_ms": 2.427,
-      "max_ms": 28.594
+      "p50_ms": 3.981,
+      "p95_ms": 5.106,
+      "p99_ms": 18.028,
+      "mean_ms": 4.489,
+      "min_ms": 3.501,
+      "max_ms": 18.028
     },
     "similar_research": {
       "iterations": 30,
-      "p50_ms": 5.075,
-      "p95_ms": 23.181,
-      "p99_ms": 25.795,
-      "mean_ms": 8.835,
-      "min_ms": 2.304,
-      "max_ms": 25.795
+      "p50_ms": 3.698,
+      "p95_ms": 4.246,
+      "p99_ms": 4.54,
+      "mean_ms": 3.817,
+      "min_ms": 3.526,
+      "max_ms": 4.54
     },
     "opportunity_matching": {
       "iterations": 30,
-      "p50_ms": 4.942,
-      "p95_ms": 28.662,
-      "p99_ms": 31.569,
-      "mean_ms": 9.6,
-      "min_ms": 2.438,
-      "max_ms": 31.569
+      "p50_ms": 3.966,
+      "p95_ms": 5.021,
+      "p99_ms": 17.71,
+      "mean_ms": 4.488,
+      "min_ms": 3.498,
+      "max_ms": 17.71
     }
   },
   "concurrency_profile": {
@@ -129,32 +132,32 @@
       "total_requests": 4,
       "successful_requests": 4,
       "error_rate": 0.0,
-      "total_duration_sec": 0.0689,
-      "throughput_qps": 58.1
+      "total_duration_sec": 0.0151,
+      "throughput_qps": 264.2
     },
     "concurrency_5": {
       "concurrent_virtual_clients": 5,
       "total_requests": 20,
       "successful_requests": 20,
       "error_rate": 0.0,
-      "total_duration_sec": 0.172,
-      "throughput_qps": 116.3
+      "total_duration_sec": 0.0798,
+      "throughput_qps": 250.7
     },
     "concurrency_10": {
       "concurrent_virtual_clients": 10,
       "total_requests": 40,
       "successful_requests": 40,
       "error_rate": 0.0,
-      "total_duration_sec": 0.2251,
-      "throughput_qps": 177.7
+      "total_duration_sec": 0.1689,
+      "throughput_qps": 236.8
     },
     "concurrency_25": {
       "concurrent_virtual_clients": 25,
       "total_requests": 100,
       "successful_requests": 100,
       "error_rate": 0.0,
-      "total_duration_sec": 0.9824,
-      "throughput_qps": 101.8
+      "total_duration_sec": 0.4814,
+      "throughput_qps": 207.7
     }
   }
 }

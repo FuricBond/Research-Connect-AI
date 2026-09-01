@@ -167,9 +167,10 @@ class TestHybridRanker:
             opportunity=opp_model,
         )
 
-        # Default opportunity weights: sem 0.45, lex 0.15, top 0.20, type 0.10, urgency 0.10 (sum 1.0)
-        # final = 0.45*0.80 + 0.15*0.50 + 0.20*0.70 + 0.10*1.00 + 0.10*0.90
-        # final = 0.36 + 0.075 + 0.14 + 0.10 + 0.09 = 0.765
+        # Default opportunity weights (Phase 2.4J): sem 0.40, lex 0.15, top 0.20, type 0.10, urg 0.05, qual 0.10 (sum 1.0)
+        # quality for active status + neutral indexing = 0.56
+        # final = 0.40*0.80 + 0.15*0.50 + 0.20*0.70 + 0.10*1.00 + 0.05*0.90 + 0.10*0.56
+        # final = 0.32 + 0.075 + 0.14 + 0.10 + 0.045 + 0.056 = 0.736
         results = ranker.rank(
             [match_cand],
             mode=RankingMode.RESEARCH_OPPORTUNITY,
@@ -181,7 +182,7 @@ class TestHybridRanker:
         res = results[0]
         assert res.entity_id == opp_id
         assert res.entity_type == "opportunity"
-        assert math.isclose(res.final_score, 0.765, abs_tol=1e-4)
+        assert math.isclose(res.final_score, 0.736, abs_tol=1e-4)
         assert res.semantic_score == 0.80
         assert res.lexical_score == 0.50
         assert res.topic_score == 0.70

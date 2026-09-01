@@ -228,6 +228,254 @@ def calculate_urgency(
     return round(min(1.0, max(0.0, urgency)), 6)
 
 
+# ── Opportunity Quality Scoring (Phase 2.4J) ──────────────────────────────────
+
+INDEXING_TIER_SCORES: dict[str, float] = {
+    # Tier 1: Highly prestigious / Gold standard indexers
+    "SCOPUS": 1.00,
+    "SCI": 1.00,
+    "SCIE": 1.00,
+    "SSCI": 1.00,
+    "AHCI": 1.00,
+    "WEB OF SCIENCE": 1.00,
+    "WOS": 1.00,
+    "IEEE": 1.00,
+    "IEEE XPLORE": 1.00,
+    "ACM": 1.00,
+    "ACM DIGITAL LIBRARY": 1.00,
+    "MEDLINE": 1.00,
+    "PUBMED": 1.00,
+    # Tier 2: Recognized secondary & major domain-specific indexers
+    "DBLP": 0.75,
+    "EI COMPENDEX": 0.75,
+    "COMPENDEX": 0.75,
+    "DOAJ": 0.75,
+    "SPRINGER": 0.75,
+    "ELSEVIER": 0.75,
+    "INSPEC": 0.75,
+    "EMBASE": 0.75,
+    "ERIC": 0.75,
+    "CORE A*": 0.90,
+    "CORE A": 0.80,
+    # Tier 3: Standard / General citation aggregators & directories
+    "GOOGLE SCHOLAR": 0.50,
+    "CROSSREF": 0.50,
+    "SEMANTIC SCHOLAR": 0.50,
+    "WIKICFP": 0.50,
+    "CORE B": 0.65,
+    "CORE C": 0.50,
+    "INDEX COPERNICUS": 0.50,
+}
+
+DEFAULT_NEUTRAL_INDEXING_SCORE = 0.50
+UNKNOWN_INDEXING_SCORE = 0.40
+
+
+def calculate_indexing_quality(indexing: list[str] | None) -> float:
+    """
+    Calculate deterministic quality score from opportunity indexing list.
+
+    Hierarchy:
+      - Tier 1 (Scopus, Web of Science, IEEE, ACM, PubMed) -> 1.00
+      - Tier 2 (DBLP, EI Compendex, DOAJ, Springer, etc.) -> 0.75
+      - Tier 3 (Google Scholar, Crossref, WikiCFP) -> 0.50
+      - Unrecognized non-empty indexing -> 0.40
+      - Missing or empty indexing -> 0.50 (neutral default; no false negative)
+
+    Parameters
+    ----------
+    indexing:
+        List of indexing provider names.
+
+    Returns
+    -------
+    float
+        Normalized score in [0.0, 1.0].
+    """
+    if indexing is None or len(indexing) == 0:
+        return DEFAULT_NEUTRAL_INDEXING_SCORE
+
+    if not isinstance(indexing, (list, set, tuple)):
+        return DEFAULT_NEUTRAL_INDEXING_SCORE
+
+    best_score = 0.0
+    has_valid_entry = False
+
+    for item in indexing:
+        if item is None or not isinstance(item, str) or not item.strip():
+            continue
+        has_valid_entry = True
+        key = item.strip().upper()
+        score = INDEXING_TIER_SCORES.get(key, UNKNOWN_INDEXING_SCORE)
+        if score > best_score:
+            best_score = score
+
+    if not has_valid_entry:
+        return DEFAULT_NEUTRAL_INDEXING_SCORE
+
+    return round(min(1.0, max(0.0, best_score)), 6)
+
+
+def calculate_predatory_penalty(
+    is_predatory_flag: bool | None = None,
+    risk_score: float | None = None,
+    penalty_factor: float | None = None,
+) -> float:
+    """
+    Calculate multiplicative quality penalty for predatory risk.
+
+    Returns a multiplier in range [0.0, 1.0]:
+      - 1.00: Clean, zero verified predatory risk.
+      - penalty_factor (default 0.20): Flagged as predatory or risk_score >= 0.70.
+      - 1.0 - (risk_score * 0.50): Intermediate cautionary risk.
+      - Missing/None: 1.00 (neutral default; no penalty without evidence).
+
+    Parameters
+    ----------
+    is_predatory_flag:
+        Boolean flag indicating suspected or confirmed predatory venue.
+    risk_score:
+        Numerical risk score in [0.00, 1.00].
+    penalty_factor:
+        Penalty multiplier for flagged predatory venues (default from config: 0.20).
+    """
+    factor = (
+        penalty_factor
+        if penalty_factor is not None
+        else getattr(settings, "hybrid_ranking_predatory_penalty_factor", 0.20)
+    )
+    factor = max(0.0, min(1.0, float(factor)))
+
+    if is_predatory_flag is True:
+        return factor
+
+    if risk_score is not None:
+        try:
+            f_risk = float(risk_score)
+            if not math.isnan(f_risk) and not math.isinf(f_risk):
+                if f_risk >= 0.70:
+                    return factor
+                elif f_risk > 0.0:
+                    return round(max(factor, 1.0 - (f_risk * 0.50)), 6)
+        except (ValueError, TypeError):
+            pass
+
+    return 1.00
+
+
+def calculate_status_reliability(status: str | None) -> float:
+    """
+    Calculate venue status reliability score.
+
+    Parameters
+    ----------
+    status:
+        Opportunity lifecycle status (e.g. 'VERIFIED', 'ACTIVE', 'UNVERIFIED', 'ARCHIVED', 'CANCELLED').
+    """
+    if not status or not isinstance(status, str):
+        return 0.70
+
+    upper_status = status.strip().upper()
+    if upper_status in ("VERIFIED", "ACTIVE"):
+        return 1.00
+    elif upper_status == "UNVERIFIED":
+        return 0.70
+    elif upper_status == "ARCHIVED":
+        return 0.30
+    elif upper_status == "CANCELLED":
+        return 0.00
+    else:
+        return 0.70
+
+
+def calculate_opportunity_quality(
+    opportunity: Any | None = None,
+    *,
+    is_predatory_flag: bool | None = None,
+    risk_score: float | None = None,
+    indexing: list[str] | None = None,
+    status: str | None = None,
+    indexing_weight: float | None = None,
+    status_weight: float | None = None,
+    predatory_penalty_factor: float | None = None,
+) -> float:
+    """
+    Calculate composite opportunity quality score in range [0.0, 1.0].
+
+    Integrates:
+      1. Indexing quality (e.g. Scopus, IEEE, ACM, DBLP).
+      2. Status & reliability (VERIFIED, ACTIVE vs UNVERIFIED vs CANCELLED).
+      3. Multiplicative predatory risk penalty.
+
+    Parameters
+    ----------
+    opportunity:
+        Optional OpportunityModel ORM instance or candidate dict.
+    is_predatory_flag ... status:
+        Explicit metadata overrides.
+
+    Returns
+    -------
+    float
+        Normalized quality score in [0.0, 1.0].
+    """
+    # Extract from opportunity instance if provided
+    eff_predatory = is_predatory_flag
+    eff_risk = risk_score
+    eff_indexing = indexing
+    eff_status = status
+
+    if opportunity is not None:
+        if eff_predatory is None:
+            eff_predatory = getattr(opportunity, "is_predatory_flag", None)
+            if isinstance(opportunity, dict) and eff_predatory is None:
+                eff_predatory = opportunity.get("is_predatory_flag", opportunity.get("is_predatory"))
+
+        if eff_risk is None:
+            eff_risk = getattr(opportunity, "risk_score", None)
+            if isinstance(opportunity, dict) and eff_risk is None:
+                eff_risk = opportunity.get("risk_score")
+
+        if eff_indexing is None:
+            eff_indexing = getattr(opportunity, "indexing", None)
+            if isinstance(opportunity, dict) and eff_indexing is None:
+                eff_indexing = opportunity.get("indexing")
+
+        if eff_status is None:
+            eff_status = getattr(opportunity, "status", None)
+            if isinstance(opportunity, dict) and eff_status is None:
+                eff_status = opportunity.get("status")
+
+    w_indexing = (
+        indexing_weight
+        if indexing_weight is not None
+        else getattr(settings, "opportunity_quality_indexing_weight", 0.70)
+    )
+    w_status = (
+        status_weight
+        if status_weight is not None
+        else getattr(settings, "opportunity_quality_status_weight", 0.30)
+    )
+
+    score_indexing = calculate_indexing_quality(eff_indexing)
+    score_status = calculate_status_reliability(eff_status)
+
+    total_weight = w_indexing + w_status
+    if total_weight <= 0.0:
+        base_quality = score_indexing
+    else:
+        base_quality = (w_indexing * score_indexing + w_status * score_status) / total_weight
+
+    penalty = calculate_predatory_penalty(
+        is_predatory_flag=eff_predatory,
+        risk_score=eff_risk,
+        penalty_factor=predatory_penalty_factor,
+    )
+
+    quality = base_quality * penalty
+    return round(min(1.0, max(0.0, quality)), 6)
+
+
 # ── Signals Container ─────────────────────────────────────────────────────────
 
 
@@ -245,4 +493,6 @@ class RankingSignals:
     type_compatibility: float = 0.0
     freshness: float = 0.0
     urgency: float = 0.0
+    opportunity_quality: float = 0.0
     retrieval_sources: list[str] = field(default_factory=list)
+

@@ -283,6 +283,7 @@ def search_research_works_route(
                     lexical_score=cand.lexical_score,
                     topic_score=cand.topic_score,
                     freshness_score=cand.freshness_score,
+                    quality_score=cand.quality_score,
                     retrieval_sources=cand.retrieval_sources,
                     explanation=expl_schema,
                 )
@@ -609,6 +610,7 @@ def match_opportunities_for_research_route(
                     topic_similarity=cand.topic_score,
                     type_compatibility=cand.type_score,
                     urgency=cand.urgency_score,
+                    quality_score=cand.quality_score,
                     shared_topic_ids=cand.shared_topic_ids,
                     shared_topic_names=cand.shared_topic_names,
                     retrieval_sources=cand.retrieval_sources,

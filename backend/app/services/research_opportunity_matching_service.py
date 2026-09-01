@@ -138,7 +138,8 @@ class ResearchOpportunityMatch:
     lexical_similarity: float
     topic_similarity: float
     type_compatibility: float
-    rank: int
+    rank: int = 0
+    quality_score: float = 0.0
     shared_topic_ids: list[uuid.UUID] = field(default_factory=list)
     shared_topic_names: list[str] = field(default_factory=list)
     retrieval_sources: list[str] = field(default_factory=list)

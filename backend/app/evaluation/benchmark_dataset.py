@@ -580,4 +580,185 @@ def get_benchmark_dataset() -> list[BenchmarkQueryScenario]:
         )
     )
 
+    # ─────────────────────────────────────────────────────────────────────────
+    # 17. Opportunity Quality & Indexing Tier Prioritization (Phase 2.4J)
+    # ─────────────────────────────────────────────────────────────────────────
+    id_17_src = "17171717-0017-0000-0000-000000000000"
+    id_17_c1 = "17171717-0017-0000-0000-000000000001"
+    id_17_c2 = "17171717-0017-0000-0000-000000000002"
+    scenarios.append(
+        BenchmarkQueryScenario(
+            scenario_id="SCENARIO_17_QUALITY_INDEXING_PRIORITIZATION",
+            name="Opportunity Quality & Indexing Tier Prioritization",
+            category=GroundTruthCategory.HEURISTIC_METADATA,
+            description="Two opportunities with identical semantic and lexical relevance are differentiated by Tier 1 Scopus/IEEE indexing quality vs unindexed venue.",
+            query_type="OPPORTUNITY_MATCH",
+            query_payload={"work_id": id_17_src, "work_type": "article"},
+            candidate_fixtures=[
+                {
+                    "id": id_17_c1,
+                    "title": "IEEE International Conference on Machine Learning Applications",
+                    "entity_type": "opportunity",
+                    "semantic_similarity": 0.85,
+                    "lexical_score": 1.5,
+                    "topic_similarity": 0.80,
+                    "type_compatibility": 0.85,
+                    "indexing": ["IEEE", "Scopus"],
+                    "status": "VERIFIED",
+                    "is_predatory_flag": False,
+                },
+                {
+                    "id": id_17_c2,
+                    "title": "Unindexed Generic Computer Science Symposium",
+                    "entity_type": "opportunity",
+                    "semantic_similarity": 0.85,
+                    "lexical_score": 1.5,
+                    "topic_similarity": 0.80,
+                    "type_compatibility": 0.85,
+                    "indexing": [],
+                    "status": "UNVERIFIED",
+                    "is_predatory_flag": False,
+                },
+            ],
+            expected_top_ids=[id_17_c1],
+            graded_relevance={id_17_c1: 3.0, id_17_c2: 2.0},
+        )
+    )
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 18. Predatory Risk Penalty Downranking (Phase 2.4J)
+    # ─────────────────────────────────────────────────────────────────────────
+    id_18_src = "18181818-0018-0000-0000-000000000000"
+    id_18_c1 = "18181818-0018-0000-0000-000000000001"
+    id_18_c2 = "18181818-0018-0000-0000-000000000002"
+    scenarios.append(
+        BenchmarkQueryScenario(
+            scenario_id="SCENARIO_18_PREDATORY_DOWNRANKING",
+            name="Predatory Risk Penalty Downranking",
+            category=GroundTruthCategory.SYNTHETIC_FIXTURE,
+            description="Opportunity flagged as predatory is severely penalized and downranked below a legitimate verified venue.",
+            query_type="OPPORTUNITY_MATCH",
+            query_payload={"work_id": id_18_src, "work_type": "article"},
+            candidate_fixtures=[
+                {
+                    "id": id_18_c1,
+                    "title": "ACM Conference on Computer and Communications Security",
+                    "entity_type": "opportunity",
+                    "semantic_similarity": 0.80,
+                    "lexical_score": 1.2,
+                    "topic_similarity": 0.75,
+                    "type_compatibility": 0.85,
+                    "indexing": ["ACM", "Scopus"],
+                    "status": "VERIFIED",
+                    "is_predatory_flag": False,
+                },
+                {
+                    "id": id_18_c2,
+                    "title": "Predatory Fast-Publish International Journal of Everything",
+                    "entity_type": "opportunity",
+                    "semantic_similarity": 0.90,
+                    "lexical_score": 1.8,
+                    "topic_similarity": 0.85,
+                    "type_compatibility": 0.85,
+                    "indexing": ["Google Scholar"],
+                    "status": "ACTIVE",
+                    "is_predatory_flag": True,
+                    "risk_score": 0.95,
+                },
+            ],
+            expected_top_ids=[id_18_c1],
+            graded_relevance={id_18_c1: 3.0, id_18_c2: 0.0},
+        )
+    )
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 19. Missing Metadata Neutrality (Phase 2.4J)
+    # ─────────────────────────────────────────────────────────────────────────
+    id_19_src = "19191919-0019-0000-0000-000000000000"
+    id_19_c1 = "19191919-0019-0000-0000-000000000001"
+    id_19_c2 = "19191919-0019-0000-0000-000000000002"
+    scenarios.append(
+        BenchmarkQueryScenario(
+            scenario_id="SCENARIO_19_MISSING_METADATA_NEUTRALITY",
+            name="Missing Metadata Neutrality Policy",
+            category=GroundTruthCategory.SYNTHETIC_FIXTURE,
+            description="Opportunity with missing indexing and predatory metadata receives neutral baseline score without false penalty.",
+            query_type="OPPORTUNITY_MATCH",
+            query_payload={"work_id": id_19_src, "work_type": "article"},
+            candidate_fixtures=[
+                {
+                    "id": id_19_c1,
+                    "title": "Newly Scraped Workshop with Incomplete Metadata",
+                    "entity_type": "opportunity",
+                    "semantic_similarity": 0.88,
+                    "lexical_score": 1.5,
+                    "topic_similarity": 0.85,
+                    "type_compatibility": 0.80,
+                    "indexing": None,
+                    "status": None,
+                    "is_predatory_flag": None,
+                },
+                {
+                    "id": id_19_c2,
+                    "title": "Distant Unrelated Conference with Known Indexing",
+                    "entity_type": "opportunity",
+                    "semantic_similarity": 0.30,
+                    "lexical_score": 0.2,
+                    "topic_similarity": 0.20,
+                    "type_compatibility": 0.50,
+                    "indexing": ["Scopus"],
+                    "status": "VERIFIED",
+                    "is_predatory_flag": False,
+                },
+            ],
+            expected_top_ids=[id_19_c1],
+            graded_relevance={id_19_c1: 3.0, id_19_c2: 0.0},
+        )
+    )
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 20. Relevance Dominance Over Quality (Phase 2.4J)
+    # ─────────────────────────────────────────────────────────────────────────
+    id_20_src = "20202020-0020-0000-0000-000000000000"
+    id_20_c1 = "20202020-0020-0000-0000-000000000001"
+    id_20_c2 = "20202020-0020-0000-0000-000000000002"
+    scenarios.append(
+        BenchmarkQueryScenario(
+            scenario_id="SCENARIO_20_RELEVANCE_VS_QUALITY_TRADEOFF",
+            name="Relevance Dominance Over Quality",
+            category=GroundTruthCategory.SYNTHETIC_FIXTURE,
+            description="High relevance venue with standard quality outranks an irrelevant venue with gold-standard Scopus indexing.",
+            query_type="OPPORTUNITY_MATCH",
+            query_payload={"work_id": id_20_src, "work_type": "article"},
+            candidate_fixtures=[
+                {
+                    "id": id_20_c1,
+                    "title": "Specialized Workshop on Quantum Error Correction",
+                    "entity_type": "opportunity",
+                    "semantic_similarity": 0.92,
+                    "lexical_score": 2.0,
+                    "topic_similarity": 0.90,
+                    "type_compatibility": 0.90,
+                    "indexing": ["Google Scholar", "WikiCFP"],
+                    "status": "ACTIVE",
+                    "is_predatory_flag": False,
+                },
+                {
+                    "id": id_20_c2,
+                    "title": "Top-Ranked Global Oncology & Cancer Congress",
+                    "entity_type": "opportunity",
+                    "semantic_similarity": 0.15,
+                    "lexical_score": 0.0,
+                    "topic_similarity": 0.05,
+                    "type_compatibility": 0.70,
+                    "indexing": ["Scopus", "SCI", "Web of Science"],
+                    "status": "VERIFIED",
+                    "is_predatory_flag": False,
+                },
+            ],
+            expected_top_ids=[id_20_c1],
+            graded_relevance={id_20_c1: 3.0, id_20_c2: 0.0},
+        )
+    )
+
     return scenarios

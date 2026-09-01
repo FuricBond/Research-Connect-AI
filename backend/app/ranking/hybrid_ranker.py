@@ -23,6 +23,7 @@ from app.core.config import settings
 from app.ranking.signals import (
     RankingSignals,
     calculate_freshness,
+    calculate_opportunity_quality,
     calculate_urgency,
     normalize_lexical_score,
     validate_signal,
@@ -69,6 +70,8 @@ class RankerWeights:
         Weight for publication date recency decay.
     urgency_weight:
         Weight for submission deadline proximity.
+    quality_weight:
+        Weight for opportunity quality signals (indexing, reliability, predatory penalty).
     """
 
     semantic_weight: float = 0.0
@@ -77,6 +80,7 @@ class RankerWeights:
     type_weight: float = 0.0
     freshness_weight: float = 0.0
     urgency_weight: float = 0.0
+    quality_weight: float = 0.0
 
     def validate(self) -> None:
         """
@@ -94,6 +98,7 @@ class RankerWeights:
             ("type_weight", self.type_weight),
             ("freshness_weight", self.freshness_weight),
             ("urgency_weight", self.urgency_weight),
+            ("quality_weight", self.quality_weight),
         ]
         for name, val in fields:
             if isinstance(val, bool) or not isinstance(val, (int, float)):
@@ -122,6 +127,7 @@ class RankerWeights:
             + self.type_weight
             + self.freshness_weight
             + self.urgency_weight
+            + self.quality_weight
         )
         if total <= 0.0:
             return self
@@ -132,6 +138,7 @@ class RankerWeights:
             type_weight=round(self.type_weight / total, 6),
             freshness_weight=round(self.freshness_weight / total, 6),
             urgency_weight=round(self.urgency_weight / total, 6),
+            quality_weight=round(self.quality_weight / total, 6),
         )
 
 
@@ -165,6 +172,8 @@ class RankedCandidate:
         Recency freshness decay component in range [0.0, 1.0].
     urgency_score:
         Deadline urgency component in range [0.0, 1.0].
+    quality_score:
+        Opportunity quality component in range [0.0, 1.0].
     retrieval_sources:
         Retrieval channels that discovered this candidate (e.g. ['semantic', 'lexical']).
     shared_topic_ids:
@@ -185,6 +194,7 @@ class RankedCandidate:
     type_score: float
     freshness_score: float
     urgency_score: float
+    quality_score: float = 0.0
     retrieval_sources: list[str] = field(default_factory=list)
     shared_topic_ids: list[uuid.UUID] = field(default_factory=list)
     shared_topic_names: list[str] = field(default_factory=list)
@@ -239,7 +249,7 @@ class HybridRanker:
             research_opportunity_weights
             or RankerWeights(
                 semantic_weight=getattr(
-                    settings, "hybrid_ranking_opportunity_semantic_weight", 0.45
+                    settings, "hybrid_ranking_opportunity_semantic_weight", 0.40
                 ),
                 lexical_weight=getattr(
                     settings, "hybrid_ranking_opportunity_lexical_weight", 0.15
@@ -251,7 +261,10 @@ class HybridRanker:
                     settings, "hybrid_ranking_opportunity_type_weight", 0.10
                 ),
                 urgency_weight=getattr(
-                    settings, "hybrid_ranking_opportunity_urgency_weight", 0.10
+                    settings, "hybrid_ranking_opportunity_urgency_weight", 0.05
+                ),
+                quality_weight=getattr(
+                    settings, "hybrid_ranking_opportunity_quality_weight", 0.10
                 ),
                 freshness_weight=0.0,
             )
@@ -264,6 +277,7 @@ class HybridRanker:
             type_weight=0.0,
             freshness_weight=0.0,
             urgency_weight=0.0,
+            quality_weight=0.0,
         )
 
     def resolve_weights(
@@ -319,6 +333,7 @@ class HybridRanker:
         typ_comp: float = 0.0
         freshness: float = 0.0
         urgency: float = 0.0
+        opp_quality: float = 0.0
         retrieval_sources: list[str] = []
         shared_topic_ids: list[uuid.UUID] = []
         shared_topic_names: list[str] = []
@@ -371,6 +386,18 @@ class HybridRanker:
                     submission_deadline=deadline,
                     reference_time=reference_time,
                     window_days=urgency_window_days,
+                )
+
+            # Compute opportunity quality (Phase 2.4J)
+            if hasattr(candidate, "quality_score") and getattr(candidate, "quality_score") is not None and getattr(candidate, "quality_score") > 0.0:
+                opp_quality = validate_signal(getattr(candidate, "quality_score"), "quality_score")
+            else:
+                opp_quality = calculate_opportunity_quality(
+                    attached_entity,
+                    is_predatory_flag=getattr(candidate, "is_predatory_flag", getattr(candidate, "is_predatory", None)),
+                    risk_score=getattr(candidate, "risk_score", None),
+                    indexing=getattr(candidate, "indexing", None),
+                    status=getattr(candidate, "status", None),
                 )
 
         elif raw_entity_id is not None:
@@ -427,6 +454,13 @@ class HybridRanker:
                     window_days=urgency_window_days,
                 )
 
+            if hasattr(candidate, "quality_score"):
+                opp_quality = validate_signal(getattr(candidate, "quality_score"), "quality_score")
+            elif hasattr(candidate, "opportunity_quality"):
+                opp_quality = validate_signal(getattr(candidate, "opportunity_quality"), "opportunity_quality")
+            elif entity_type == "opportunity" or (attached_entity is not None and (hasattr(attached_entity, "indexing") or hasattr(attached_entity, "is_predatory_flag"))):
+                opp_quality = calculate_opportunity_quality(attached_entity)
+
             retrieval_sources = list(getattr(candidate, "retrieval_sources", []))
             shared_topic_ids = list(getattr(candidate, "shared_topic_ids", []))
             shared_topic_names = list(getattr(candidate, "shared_topic_names", []))
@@ -441,6 +475,10 @@ class HybridRanker:
             typ_comp = validate_signal(candidate.get("type_compatibility", candidate.get("type_score", 0.0)), "type")
             freshness = validate_signal(candidate.get("freshness", candidate.get("freshness_score", 0.0)), "freshness")
             urgency = validate_signal(candidate.get("urgency", candidate.get("urgency_score", 0.0)), "urgency")
+            if candidate.get("opportunity_quality") is not None or candidate.get("quality_score") is not None:
+                opp_quality = validate_signal(candidate.get("opportunity_quality", candidate.get("quality_score")), "quality")
+            elif entity_type == "opportunity" or "indexing" in candidate or "is_predatory_flag" in candidate:
+                opp_quality = calculate_opportunity_quality(candidate)
             retrieval_sources = list(candidate.get("retrieval_sources", []))
             shared_topic_ids = list(candidate.get("shared_topic_ids", []))
             shared_topic_names = list(candidate.get("shared_topic_names", []))
@@ -455,6 +493,7 @@ class HybridRanker:
             type_compatibility=typ_comp,
             freshness=freshness,
             urgency=urgency,
+            opportunity_quality=opp_quality,
             retrieval_sources=sorted(retrieval_sources),
         )
 
@@ -538,6 +577,7 @@ class HybridRanker:
                 + active_weights.type_weight * signals.type_compatibility
                 + active_weights.freshness_weight * signals.freshness
                 + active_weights.urgency_weight * signals.urgency
+                + active_weights.quality_weight * signals.opportunity_quality
             )
 
             final_score = round(min(1.0, max(0.0, raw_final)), 6)
@@ -554,6 +594,7 @@ class HybridRanker:
                     type_score=signals.type_compatibility,
                     freshness_score=signals.freshness,
                     urgency_score=signals.urgency,
+                    quality_score=signals.opportunity_quality,
                     retrieval_sources=signals.retrieval_sources,
                     shared_topic_ids=shared_ids,
                     shared_topic_names=shared_names,
@@ -566,9 +607,10 @@ class HybridRanker:
         # Secondary: semantic_score DESC
         # Tertiary: topic_score DESC
         # Quaternary: lexical_score DESC
-        # Quinary: type_score DESC
-        # Senary: freshness_score DESC
-        # Septenary: urgency_score DESC
+        # Quinary: quality_score DESC
+        # Senary: type_score DESC
+        # Septenary: freshness_score DESC
+        # Octonary: urgency_score DESC
         # Tie-breaker: entity_id ASC (lexicographical UUID)
         scored_candidates.sort(
             key=lambda c: (
@@ -576,6 +618,7 @@ class HybridRanker:
                 -c.semantic_score,
                 -c.topic_score,
                 -c.lexical_score,
+                -c.quality_score,
                 -c.type_score,
                 -c.freshness_score,
                 -c.urgency_score,
@@ -599,6 +642,7 @@ class HybridRanker:
                     type_score=item.type_score,
                     freshness_score=item.freshness_score,
                     urgency_score=item.urgency_score,
+                    quality_score=item.quality_score,
                     retrieval_sources=item.retrieval_sources,
                     shared_topic_ids=item.shared_topic_ids,
                     shared_topic_names=item.shared_topic_names,

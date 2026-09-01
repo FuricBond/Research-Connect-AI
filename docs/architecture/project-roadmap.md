@@ -20,7 +20,7 @@ This document outlines the planned architecture and modular development roadmap 
 - **Phase 2.4 (Discovery & Intelligent Search)**: **COMPLETE** (All 8 subphases 2.4A–2.4H implemented, tested with 573 passing tests, and documented)
 - **Phase 2.4+ Advancement**:
   - **Phase 2.4I (Full-Text GIN Indexing & Query Intelligence)**: COMPLETE (Stored tsvectors, GIN indexes, academic acronym expansion, 589 tests)
-  - **Phase 2.4J (Ranking Hardening & Opportunity Quality Signals)**: PLANNED (Predatory risk penalties, indexing tier boosts)
+  - **Phase 2.4J (Ranking Hardening & Opportunity Quality Signals)**: COMPLETE (Indexing tier evaluation, predatory risk penalties, status reliability, relevance dominance, 630 tests)
   - **Phase 2.4K (Frontend Discovery Experience & Production Hardening)**: PLANNED (React discovery UI, rate limiting)
 - **Next Stage (Phase 3)**: **Personalized Researcher Intelligence & Recommendations** (Following completion of Phase 2.4+ targeted advancements)
 

@@ -171,7 +171,7 @@ class ResultExplainer:
         self.max_reasons = (
             max_reasons
             if max_reasons is not None
-            else getattr(settings, "explainability_max_reasons", 6)
+            else getattr(settings, "explainability_max_reasons", 8)
         )
         self.ranker = ranker or hybrid_ranker
 
@@ -348,6 +348,14 @@ class ResultExplainer:
             or hasattr(candidate, "type_score")
         )
 
+        has_quality = (
+            signals.opportunity_quality > 0.0
+            or (attached_entity is not None and hasattr(attached_entity, "indexing"))
+            or hasattr(candidate, "quality_score")
+            or hasattr(candidate, "opportunity_quality")
+            or entity_type == "opportunity"
+        )
+
         # 4. Build Structured Signal Contributions
         contributions: dict[str, SignalContribution] = {}
 
@@ -375,6 +383,12 @@ class ResultExplainer:
                 signals.type_compatibility,
                 active_weights.type_weight,
                 has_type,
+            ),
+            (
+                "opportunity_quality",
+                signals.opportunity_quality,
+                active_weights.quality_weight,
+                has_quality,
             ),
             (
                 "publication_freshness",
@@ -478,6 +492,45 @@ class ResultExplainer:
                 "Publication type is moderately compatible with this opportunity category."
             )
 
+        # Opportunity Quality metadata extraction
+        is_pred: bool | None = None
+        risk_sc: float | None = None
+        indexing_list: list[str] | None = None
+
+        if attached_entity is not None:
+            if isinstance(attached_entity, dict):
+                is_pred = attached_entity.get("is_predatory_flag", attached_entity.get("is_predatory"))
+                risk_sc = attached_entity.get("risk_score")
+                indexing_list = attached_entity.get("indexing")
+            else:
+                is_pred = getattr(attached_entity, "is_predatory_flag", getattr(attached_entity, "is_predatory", None))
+                risk_sc = getattr(attached_entity, "risk_score", None)
+                indexing_list = getattr(attached_entity, "indexing", None)
+
+        if is_pred is None and candidate is not None:
+            if isinstance(candidate, dict):
+                is_pred = candidate.get("is_predatory_flag", candidate.get("is_predatory"))
+                if risk_sc is None:
+                    risk_sc = candidate.get("risk_score")
+                if indexing_list is None:
+                    indexing_list = candidate.get("indexing")
+            else:
+                is_pred = getattr(candidate, "is_predatory_flag", getattr(candidate, "is_predatory", None))
+                if risk_sc is None:
+                    risk_sc = getattr(candidate, "risk_score", None)
+                if indexing_list is None:
+                    indexing_list = getattr(candidate, "indexing", None)
+
+        # Opportunity Quality strength
+        if has_quality and signals.opportunity_quality >= self.high_threshold:
+            if indexing_list and any(isinstance(x, str) and x.upper() in {"SCOPUS", "SCI", "SCIE", "WEB OF SCIENCE", "WOS", "IEEE", "ACM", "PUBMED"} for x in indexing_list):
+                top_indexers = [x for x in indexing_list if isinstance(x, str) and x.upper() in {"SCOPUS", "SCI", "SCIE", "WEB OF SCIENCE", "WOS", "IEEE", "ACM", "PUBMED"}]
+                strengths.append(f"High venue quality indexed in recognized academic databases ({', '.join(top_indexers[:2])}).")
+            else:
+                strengths.append("High venue quality and verified status reliability.")
+        elif has_quality and signals.opportunity_quality >= self.positive_threshold and active_weights.quality_weight > 0.0:
+            strengths.append("Verified venue status with standard academic indexing.")
+
         # Freshness strength
         if has_freshness and signals.freshness >= self.high_threshold:
             strengths.append("Recent publication reflecting contemporary research.")
@@ -497,6 +550,12 @@ class ResultExplainer:
 
         # 6. Extract Limitations (Weaknesses / Limiting Factors)
         limitations: list[str] = []
+
+        # Predatory risk penalty limitation / warning
+        if is_pred is True or (risk_sc is not None and float(risk_sc) >= 0.70):
+            limitations.append("Flagged for potential predatory publication risk; ranking significantly penalized.")
+        elif has_quality and active_weights.quality_weight > 0.0 and signals.opportunity_quality < self.weak_threshold:
+            limitations.append("Lower verified venue quality or incomplete indexing status.")
 
         # Weak semantic similarity
         if (

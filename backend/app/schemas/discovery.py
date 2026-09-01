@@ -136,6 +136,7 @@ class ResearchSearchResultItem(BaseModel):
     lexical_score: float | None = None
     topic_score: float | None = None
     freshness_score: float | None = None
+    quality_score: float | None = None
     retrieval_sources: list[str] = Field(default_factory=list)
     explanation: ExplanationSchema | None = None
 
@@ -206,6 +207,7 @@ class OpportunityMatchItem(BaseModel):
     topic_similarity: float
     type_compatibility: float
     urgency: float | None = None
+    quality_score: float | None = None
     shared_topic_ids: list[uuid.UUID] = Field(default_factory=list)
     shared_topic_names: list[str] = Field(default_factory=list)
     retrieval_sources: list[str] = Field(default_factory=list)
