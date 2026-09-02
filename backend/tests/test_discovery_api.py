@@ -176,6 +176,48 @@ class TestResearchSearchEndpoint:
         assert len(data["items"]) == 1
         assert data["items"][0]["work"]["id"] == str(work_id)
 
+    def test_search_with_diversity(self, client):
+        work_id = uuid.uuid4()
+        now = datetime.now(timezone.utc)
+        mock_work = ResearchWorkModel(
+            id=work_id,
+            title="Graph Neural Networks in Molecular Discovery",
+            abstract="We evaluate graph convolutional architectures...",
+            publication_year=2023,
+            work_type="article",
+            cited_by_count=120,
+            is_oa=True,
+            created_at=now,
+            updated_at=now,
+        )
+
+        mock_candidate = HybridSearchResult(
+            entity_id=work_id,
+            entity_type="research_work",
+            hybrid_score=0.033,
+            vector_similarity=0.91,
+            lexical_score=2.2,
+            retrieval_sources=["vector", "lexical"],
+            entity=mock_work,
+        )
+
+        with patch("app.api.v1.discovery.hybrid_search_service.search_research_works") as mock_search:
+            mock_search.return_value = [mock_candidate]
+
+            response = client.get(
+                "/api/v1/discovery/research/search",
+                params={"q": "graph neural networks", "diversity": "true"},
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert len(data["items"]) == 1
+        item = data["items"][0]
+        assert "diversity_adjustment" in item
+        assert "novelty_score" in item
+        assert "redundancy_score" in item
+        assert item["novelty_score"] is not None
+
     def test_search_validation_errors(self, client):
         # Empty query
         res_empty = client.get("/api/v1/discovery/research/search", params={"q": ""})

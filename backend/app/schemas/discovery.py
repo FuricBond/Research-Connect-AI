@@ -139,6 +139,9 @@ class ResearchSearchResultItem(BaseModel):
     quality_score: float | None = None
     retrieval_sources: list[str] = Field(default_factory=list)
     explanation: ExplanationSchema | None = None
+    diversity_adjustment: float | None = None
+    novelty_score: float | None = None
+    redundancy_score: float | None = None
 
 
 class ResearchSearchResponse(BaseModel):
@@ -175,6 +178,9 @@ class SimilarResearchItem(BaseModel):
     shared_topic_names: list[str] = Field(default_factory=list)
     retrieval_sources: list[str] = Field(default_factory=list)
     explanation: ExplanationSchema | None = None
+    diversity_adjustment: float | None = None
+    novelty_score: float | None = None
+    redundancy_score: float | None = None
 
 
 class SimilarResearchResponse(BaseModel):
@@ -212,6 +218,9 @@ class OpportunityMatchItem(BaseModel):
     shared_topic_names: list[str] = Field(default_factory=list)
     retrieval_sources: list[str] = Field(default_factory=list)
     explanation: ExplanationSchema | None = None
+    diversity_adjustment: float | None = None
+    novelty_score: float | None = None
+    redundancy_score: float | None = None
 
 
 class OpportunityMatchResponse(BaseModel):

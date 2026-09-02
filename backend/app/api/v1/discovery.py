@@ -23,6 +23,7 @@ from app.explainability.result_explainer import (
     ResultExplanation,
     result_explainer,
 )
+from app.ranking.diversity import diversity_reranker
 from app.ranking.hybrid_ranker import (
     HybridRanker,
     RankedCandidate,
@@ -207,6 +208,10 @@ def search_research_works_route(
         bool,
         Query(description="Apply optional lightweight cross-encoder reranking on top candidates"),
     ] = False,
+    diversity: Annotated[
+        bool,
+        Query(description="Apply deterministic list-aware diversity and novelty reranking (Phase 2.5E)"),
+    ] = False,
 ) -> ResearchSearchResponse:
     """Search research works using hybrid retrieval, ranking, and explainability."""
     try:
@@ -241,6 +246,14 @@ def search_research_works_route(
                 query=q,
                 candidates=ranked,
                 force_enabled=rerank,
+            )
+
+        # Optional Diversity & Novelty Reranking (Phase 2.5E)
+        if diversity:
+            ranked = diversity_reranker.rerank(
+                candidates=ranked,
+                mode=ranking_mode,
+                force_enabled=True,
             )
 
         total = len(ranked)
@@ -301,6 +314,9 @@ def search_research_works_route(
                     quality_score=cand.quality_score,
                     retrieval_sources=cand.retrieval_sources,
                     explanation=expl_schema,
+                    diversity_adjustment=cand.diversity_adjustment,
+                    novelty_score=cand.novelty_score,
+                    redundancy_score=cand.redundancy_score,
                 )
             )
 
@@ -396,6 +412,10 @@ def get_similar_research_route(
         bool,
         Query(description="Fail with 422 if source work has no embedding"),
     ] = False,
+    diversity: Annotated[
+        bool,
+        Query(description="Apply deterministic list-aware diversity and novelty reranking (Phase 2.5E)"),
+    ] = False,
 ) -> SimilarResearchResponse:
     """Retrieve similar research works with multi-signal similarity and explainability."""
     try:
@@ -421,6 +441,14 @@ def get_similar_research_route(
             limit=fetch_limit,
             session=db,
         )
+
+        # Optional Diversity & Novelty Reranking (Phase 2.5E)
+        if diversity:
+            ranked = diversity_reranker.rerank(
+                candidates=ranked,
+                mode=ranking_mode,
+                force_enabled=True,
+            )
 
         total = len(ranked)
         sliced = ranked[offset : offset + limit]
@@ -465,6 +493,9 @@ def get_similar_research_route(
                     shared_topic_names=cand.shared_topic_names,
                     retrieval_sources=cand.retrieval_sources,
                     explanation=expl_schema,
+                    diversity_adjustment=cand.diversity_adjustment,
+                    novelty_score=cand.novelty_score,
+                    redundancy_score=cand.redundancy_score,
                 )
             )
 
@@ -576,6 +607,10 @@ def match_opportunities_for_research_route(
         bool,
         Query(description="Fail with 422 if source work has no embedding"),
     ] = False,
+    diversity: Annotated[
+        bool,
+        Query(description="Apply deterministic list-aware diversity and novelty reranking (Phase 2.5E)"),
+    ] = False,
 ) -> OpportunityMatchResponse:
     """Match academic opportunities to a research work with multi-signal ranking and explainability."""
     try:
@@ -602,6 +637,14 @@ def match_opportunities_for_research_route(
             limit=fetch_limit,
             session=db,
         )
+
+        # Optional Diversity & Novelty Reranking (Phase 2.5E)
+        if diversity:
+            ranked = diversity_reranker.rerank(
+                candidates=ranked,
+                mode=ranking_mode,
+                force_enabled=True,
+            )
 
         total = len(ranked)
         sliced = ranked[offset : offset + limit]
@@ -650,6 +693,9 @@ def match_opportunities_for_research_route(
                     shared_topic_names=cand.shared_topic_names,
                     retrieval_sources=cand.retrieval_sources,
                     explanation=expl_schema,
+                    diversity_adjustment=cand.diversity_adjustment,
+                    novelty_score=cand.novelty_score,
+                    redundancy_score=cand.redundancy_score,
                 )
             )
 

@@ -356,11 +356,12 @@ class TestEndToEndResilienceAndDegradedSignals:
         runner = BenchmarkRunner()
         report = runner.run_full_benchmark()
 
-        assert report["benchmark_phase"].startswith("Phase 2.4")
+        assert report["benchmark_phase"].startswith("Phase 2.")
         assert "retrieval_evaluation" in report
         assert "ranking_evaluation" in report
         assert "explainability_evaluation" in report
         assert "empirical_evaluation" in report
+        assert "diversity_novelty_evaluation" in report
         assert "api_latencies" in report
         assert "concurrency_profile" in report
 

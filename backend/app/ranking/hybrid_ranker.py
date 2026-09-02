@@ -377,9 +377,17 @@ class RankedCandidate:
     shared_topic_ids: list[uuid.UUID] = field(default_factory=list)
     shared_topic_names: list[str] = field(default_factory=list)
     candidate: Any | None = None
+    academic_features: AcademicFeatures | None = None
     reranker_adjustment: float | None = None
     raw_reranker_score: float | None = None
-    academic_features: AcademicFeatures | None = None
+    # Phase 2.5E Diversity & Novelty Mechanics
+    diversity_adjustment: float | None = None
+    novelty_score: float | None = None
+    redundancy_score: float | None = None
+    redundancy_reasons: list[str] = field(default_factory=list)
+    novelty_reasons: list[str] = field(default_factory=list)
+
+
 
 
 # ── Hybrid Ranker Engine ──────────────────────────────────────────────────────
@@ -681,7 +689,7 @@ class HybridRanker:
             retrieval_sources = list(candidate.get("retrieval_sources", []))
             shared_topic_ids = list(candidate.get("shared_topic_ids", []))
             shared_topic_names = list(candidate.get("shared_topic_names", []))
-            attached_entity = candidate.get("entity", candidate.get("candidate"))
+            attached_entity = candidate.get("entity", candidate.get("candidate", candidate))
         else:
             raise ValueError(f"Unsupported candidate object type: {type(candidate).__name__}.")
 

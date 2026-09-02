@@ -198,22 +198,9 @@ class CrossEncoderReranker:
             adjustment = round(combined_score - baseline_score, 6)
 
             reranked_pool.append(
-                RankedCandidate(
-                    entity_id=cand.entity_id,
-                    entity_type=cand.entity_type,
-                    rank=cand.rank,
+                replace(
+                    cand,
                     final_score=combined_score,
-                    semantic_score=cand.semantic_score,
-                    lexical_score=cand.lexical_score,
-                    topic_score=cand.topic_score,
-                    type_score=cand.type_score,
-                    freshness_score=cand.freshness_score,
-                    urgency_score=cand.urgency_score,
-                    quality_score=cand.quality_score,
-                    retrieval_sources=cand.retrieval_sources,
-                    shared_topic_ids=cand.shared_topic_ids,
-                    shared_topic_names=cand.shared_topic_names,
-                    candidate=cand.candidate,
                     reranker_adjustment=adjustment,
                     raw_reranker_score=round(raw_s, 4),
                 )
@@ -245,25 +232,7 @@ class CrossEncoderReranker:
 
         # Reassign 1-indexed ranks
         return [
-            RankedCandidate(
-                entity_id=c.entity_id,
-                entity_type=c.entity_type,
-                rank=new_rank,
-                final_score=c.final_score,
-                semantic_score=c.semantic_score,
-                lexical_score=c.lexical_score,
-                topic_score=c.topic_score,
-                type_score=c.type_score,
-                freshness_score=c.freshness_score,
-                urgency_score=c.urgency_score,
-                quality_score=c.quality_score,
-                retrieval_sources=c.retrieval_sources,
-                shared_topic_ids=c.shared_topic_ids,
-                shared_topic_names=c.shared_topic_names,
-                candidate=c.candidate,
-                reranker_adjustment=c.reranker_adjustment,
-                raw_reranker_score=c.raw_reranker_score,
-            )
+            replace(c, rank=new_rank)
             for new_rank, c in enumerate(final_list, start=1)
         ]
 

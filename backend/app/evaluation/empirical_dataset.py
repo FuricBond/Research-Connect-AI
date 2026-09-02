@@ -82,6 +82,16 @@ def _make_candidate(
     except (ValueError, TypeError):
         valid_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, cand_id))
 
+    default_venue = venue or f"Journal of Research ({cand_id[:8]})"
+    author_ids = [
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, f"author_{cand_id}_0")),
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, f"author_{cand_id}_1")),
+    ]
+    topic_ids = [
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, f"topic_{cand_id}_0")),
+        str(uuid.uuid5(uuid.NAMESPACE_DNS, f"topic_{cand_id}_1")),
+    ]
+
     return {
         "id": valid_id,
         "title": title,
@@ -91,7 +101,10 @@ def _make_candidate(
         "topic_similarity": topic_sim,
         "work_type": work_type,
         "publication_year": publication_year,
-        "venue": venue,
+        "venue": default_venue,
+        "author_ids": author_ids,
+        "topic_ids": topic_ids,
+        "shared_topic_ids": topic_ids,
     }
 
 

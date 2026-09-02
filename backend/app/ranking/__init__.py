@@ -19,6 +19,19 @@ Exports:
   - hybrid_ranker: Singleton default ranker instance.
 """
 from app.ranking.diagnostics import AcademicCoverageDiagnostics
+from app.ranking.diversity import (
+    DEFAULT_DIVERSITY_LAMBDA,
+    MAX_DIVERSITY_LAMBDA,
+    CandidateDiversityProfile,
+    DiversityConfig,
+    DiversityReranker,
+    calculate_author_overlap,
+    calculate_institution_overlap,
+    calculate_semantic_similarity,
+    calculate_topic_overlap,
+    calculate_venue_overlap,
+    diversity_reranker,
+)
 from app.ranking.features import (
     AcademicFeatureExtractor,
     AcademicFeatures,
@@ -56,21 +69,32 @@ __all__ = [
     "AcademicCoverageDiagnostics",
     "AcademicFeatureExtractor",
     "AcademicFeatures",
+    "CandidateDiversityProfile",
+    "DEFAULT_DIVERSITY_LAMBDA",
+    "DiversityConfig",
+    "DiversityReranker",
     "HybridRanker",
+    "MAX_DIVERSITY_LAMBDA",
     "RankedCandidate",
     "RankerWeights",
     "RankingMode",
     "RankingSignals",
     "VenueResolver",
     "academic_feature_extractor",
+    "calculate_author_overlap",
     "calculate_author_position_score",
     "calculate_author_prominence",
     "calculate_citation_impact",
     "calculate_freshness",
+    "calculate_institution_overlap",
     "calculate_institution_prestige",
     "calculate_open_access_tier",
+    "calculate_semantic_similarity",
+    "calculate_topic_overlap",
     "calculate_urgency",
+    "calculate_venue_overlap",
     "calculate_venue_prestige",
+    "diversity_reranker",
     "get_canonical_venue_key",
     "hybrid_ranker",
     "normalize_issn",
@@ -79,3 +103,4 @@ __all__ = [
     "validate_signal",
     "venue_resolver",
 ]
+
