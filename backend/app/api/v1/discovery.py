@@ -227,11 +227,12 @@ def search_research_works_route(
             min_citations=min_citations,
         )
 
-        # Rank candidates via HybridRanker
+        # Rank candidates via HybridRanker with eager relational batch preloading
         ranked = hybrid_ranker.rank(
             candidates=candidates,
             mode=ranking_mode,
             limit=fetch_limit,
+            session=db,
         )
 
         # Optional Cross-Encoder Reranking
@@ -418,6 +419,7 @@ def get_similar_research_route(
             candidates=candidates,
             mode=ranking_mode,
             limit=fetch_limit,
+            session=db,
         )
 
         total = len(ranked)
@@ -598,6 +600,7 @@ def match_opportunities_for_research_route(
             candidates=candidates,
             mode=ranking_mode,
             limit=fetch_limit,
+            session=db,
         )
 
         total = len(ranked)

@@ -509,6 +509,7 @@ class HybridRanker:
         reference_time: datetime | None = None,
         half_life_years: float | None = None,
         urgency_window_days: float | None = None,
+        precomputed_academic_features: AcademicFeatures | None = None,
     ) -> tuple[
         uuid.UUID,
         str,
@@ -687,7 +688,14 @@ class HybridRanker:
         # 2. Extract Phase 2.5 Academic Features (Defensive Fallback)
         try:
             target_obj = attached_entity if attached_entity is not None else candidate
-            if hasattr(target_obj, "academic_features") and getattr(target_obj, "academic_features") is not None:
+            if precomputed_academic_features is not None:
+                cit_impact = precomputed_academic_features.citation_impact
+                auth_prominence = precomputed_academic_features.author_prominence
+                auth_pos = precomputed_academic_features.author_position
+                inst_prestige = precomputed_academic_features.institution_prestige
+                venue_prestige = precomputed_academic_features.venue_prestige
+                oa_tier = precomputed_academic_features.open_access_tier
+            elif hasattr(target_obj, "academic_features") and getattr(target_obj, "academic_features") is not None:
                 af = getattr(target_obj, "academic_features")
                 if isinstance(af, AcademicFeatures):
                     cit_impact = af.citation_impact
@@ -809,6 +817,7 @@ class HybridRanker:
         reference_time: datetime | None = None,
         half_life_years: float | None = None,
         urgency_window_days: float | None = None,
+        session: Session | None = None,
     ) -> list[RankedCandidate]:
         """
         Rank a sequence of candidate results using normalized multi-signal weighting.
@@ -829,6 +838,8 @@ class HybridRanker:
             Half-life decay in years for publication freshness.
         urgency_window_days:
             Urgency window in days for opportunity submission deadlines.
+        session:
+            Optional active SQLAlchemy Session for batch eager relational loading.
 
         Returns
         -------
@@ -844,9 +855,19 @@ class HybridRanker:
         active_weights = self.resolve_weights(mode, weights)
         active_weights.validate(enforce_relevance_dominance=False)
 
+        # Batch extract academic features upfront to eliminate N+1 database queries
+        batch_academic_features = academic_feature_extractor.extract_batch(
+            candidates, session=session
+        )
+
         scored_candidates: list[RankedCandidate] = []
 
-        for cand in candidates:
+        for idx, cand in enumerate(candidates):
+            precomputed_af = (
+                batch_academic_features[idx]
+                if idx < len(batch_academic_features)
+                else None
+            )
             (
                 entity_id,
                 entity_type,
@@ -860,6 +881,7 @@ class HybridRanker:
                 reference_time=reference_time,
                 half_life_years=half_life_years,
                 urgency_window_days=urgency_window_days,
+                precomputed_academic_features=precomputed_af,
             )
 
             # Compute weighted composite final score across relevance, contextual, and academic features

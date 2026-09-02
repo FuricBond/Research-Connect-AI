@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.core.config import settings
 from app.ranking.signals import validate_signal
+from app.ranking.venue_intelligence import venue_resolver
 
 logger = logging.getLogger(__name__)
 
@@ -41,12 +42,22 @@ DEFAULT_DOAJ_VENUE_BONUS: float = 0.10
 # Author position priority weights
 AUTHOR_POSITION_SCORES: dict[str, float] = {
     "CORRESPONDING": 1.00,
+    "CORRESPONDING_AUTHOR": 1.00,
+    "SINGLE": 1.00,
+    "SOLE": 1.00,
     "FIRST": 0.90,
+    "FIRST_AUTHOR": 0.90,
+    "CO-FIRST": 0.90,
+    "CO_FIRST": 0.90,
+    "LEAD": 0.90,
+    "PRIMARY": 0.90,
     "LAST": 0.80,
     "SENIOR": 0.80,
-    "SINGLE": 1.00,
-    "CO-FIRST": 0.90,
+    "SENIOR_AUTHOR": 0.80,
+    "PI": 0.80,
+    "SUPERVISOR": 0.80,
     "MIDDLE": 0.50,
+    "CONTRIBUTOR": 0.50,
     "UNKNOWN": 0.50,
 }
 
@@ -54,10 +65,14 @@ AUTHOR_POSITION_SCORES: dict[str, float] = {
 OA_STATUS_SCORES: dict[str, float] = {
     "GOLD": 1.00,
     "DIAMOND": 1.00,
+    "PLATINUM": 1.00,
     "HYBRID": 0.85,
     "GREEN": 0.70,
     "BRONZE": 0.55,
     "CLOSED": 0.20,
+    "RESTRICTED": 0.20,
+    "SUBSCRIPTION": 0.20,
+    "PAYWALLED": 0.20,
     "UNKNOWN": 0.35,
 }
 
@@ -111,7 +126,7 @@ def calculate_citation_impact(
 
 
 def calculate_author_prominence(
-    authors: Sequence[Any] | None = None,
+    authors: Sequence[Any] | Any | None = None,
     max_author_citations: float = DEFAULT_MAX_AUTHOR_CITATIONS,
 ) -> float:
     """
@@ -130,7 +145,7 @@ def calculate_author_prominence(
     ----------
     authors:
         Sequence of author links (ResearchWorkAuthorModel), researcher models (ResearcherModel),
-        or author dictionaries with 'cited_by_count' or 'researcher' attributes.
+        parent ResearchWorkModel, or author dictionaries with 'cited_by_count' or 'researcher' attributes.
     max_author_citations:
         Saturation denominator for author citations (default 50,000 citations).
 
@@ -142,13 +157,22 @@ def calculate_author_prominence(
     if max_author_citations <= 0.0:
         raise ValueError(f"max_author_citations must be positive, got {max_author_citations}")
 
+    if authors is None:
+        return 0.0
+
+    if hasattr(authors, "author_links"):
+        authors = getattr(authors, "author_links")
+
     if not authors:
         return 0.0
 
     denom = math.log10(1.0 + max_author_citations)
     best_score = 0.0
 
-    for author_item in authors:
+    # Ensure iterable
+    author_list = authors if isinstance(authors, (list, tuple, set)) else [authors]
+
+    for author_item in author_list:
         if author_item is None:
             continue
 
@@ -190,60 +214,77 @@ def calculate_author_prominence(
 def calculate_author_position_score(
     author_position: str | None = None,
     is_corresponding: bool = False,
-    authors: Sequence[Any] | None = None,
+    authors: Sequence[Any] | Any | None = None,
 ) -> float:
     """
-    Calculate deterministic author position and contribution leadership score.
+    Calculate normalized author contribution weight based on authorship position.
 
     Hierarchy:
-        - Corresponding Author: 1.00 (primary scientific accountability)
-        - First Author: 0.90 (primary investigation & execution lead)
-        - Last / Senior Author: 0.80 (supervising principal investigator)
-        - Middle Author: 0.50 (contributing co-author)
-        - Unknown / Missing: 0.50 (neutral default; no unwarranted penalty)
+      1. Corresponding author -> 1.00
+      2. Single / Sole author -> 1.00
+      3. First / Lead author -> 0.90
+      4. Last / Senior author / PI -> 0.80
+      5. Middle / Contributing author -> 0.50
+      6. Unknown / Missing -> 0.50 (Neutral missing-data policy)
 
     Parameters
     ----------
     author_position:
-        Position string: 'first', 'last', 'middle', 'corresponding', etc.
+        Position string (e.g. 'first', 'middle', 'last', 'corresponding') or work/authors object if passed positionally.
     is_corresponding:
         Boolean indicating whether the author is corresponding author.
     authors:
-        Optional sequence of author items to resolve highest position if individual position is omitted.
+        Optional sequence of ResearchWorkAuthorModel items, parent work, or author dicts.
 
     Returns
     -------
     float
-        Normalized position score in [0.0, 1.0].
+        Normalized position weight in [0.0, 1.0].
     """
+    # 1. Direct corresponding flag takes top priority
     if is_corresponding:
         return AUTHOR_POSITION_SCORES["CORRESPONDING"]
 
-    if author_position is not None and isinstance(author_position, str) and author_position.strip():
-        pos_key = author_position.strip().upper()
-        return AUTHOR_POSITION_SCORES.get(pos_key, AUTHOR_POSITION_SCORES["UNKNOWN"])
+    # 2. String position check
+    if author_position is not None:
+        if isinstance(author_position, str) and author_position.strip():
+            pos_key = author_position.strip().upper()
+            return AUTHOR_POSITION_SCORES.get(pos_key, AUTHOR_POSITION_SCORES["UNKNOWN"])
+        elif not isinstance(author_position, str):
+            # Positional argument was actually an authors collection or parent work
+            authors = author_position
 
-    # If authors list provided, check if any is corresponding or first
-    if authors:
-        best_pos_score = 0.50
-        for auth in authors:
-            if auth is None:
+    # 3. Resolve from author list / links
+    if authors is not None:
+        if hasattr(authors, "author_links"):
+            authors = getattr(authors, "author_links")
+
+        if not authors:
+            return AUTHOR_POSITION_SCORES["UNKNOWN"]
+
+        author_list = authors if isinstance(authors, (list, tuple, set)) else [authors]
+        best_score = AUTHOR_POSITION_SCORES["UNKNOWN"]
+
+        for a in author_list:
+            if a is None:
                 continue
-            is_corr = getattr(auth, "is_corresponding", False)
-            if isinstance(auth, dict):
-                is_corr = auth.get("is_corresponding", False)
-            if is_corr:
+            if getattr(a, "is_corresponding", False) or (
+                isinstance(a, dict) and a.get("is_corresponding")
+            ):
                 return AUTHOR_POSITION_SCORES["CORRESPONDING"]
 
-            pos = getattr(auth, "author_position", None)
-            if isinstance(auth, dict) and pos is None:
-                pos = auth.get("author_position")
+            pos = getattr(a, "author_position", None)
+            if isinstance(a, dict) and pos is None:
+                pos = a.get("author_position")
 
             if pos and isinstance(pos, str):
-                score = AUTHOR_POSITION_SCORES.get(pos.strip().upper(), 0.50)
-                if score > best_pos_score:
-                    best_pos_score = score
-        return best_pos_score
+                score = AUTHOR_POSITION_SCORES.get(
+                    pos.strip().upper(), AUTHOR_POSITION_SCORES["UNKNOWN"]
+                )
+                if score > best_score:
+                    best_score = score
+
+        return best_score
 
     return AUTHOR_POSITION_SCORES["UNKNOWN"]
 
@@ -252,31 +293,37 @@ def calculate_author_position_score(
 
 
 def calculate_institution_prestige(
-    institutions: Sequence[Any] | None = None,
+    institutions: Sequence[Any] | Any | None = None,
     max_inst_citations: float = DEFAULT_MAX_INST_CITATIONS,
 ) -> float:
     """
     Calculate normalized institution prestige based on affiliated institution citation metrics.
 
     Multi-Institution Policy:
-        Takes the maximum citation impact across affiliated institutions:
-            inst_prestige = max_{i in institutions} [ log10(1 + c_i) / log10(1 + max_inst_cit) ]
+        Derives prestige from the maximum institution citation score among affiliated institutions:
+            institution_prestige = max_{i in institutions} [ log10(1 + c_i) / log10(1 + max_inst_cit) ]
 
     Parameters
     ----------
     institutions:
         Sequence of institution links (ResearchWorkInstitutionModel), institution models (InstitutionModel),
-        or institution dictionaries.
+        parent ResearchWorkModel, or institution dictionaries.
     max_inst_citations:
         Saturation denominator for institution citations (default 500,000 citations).
 
     Returns
     -------
     float
-        Normalized institution prestige score in [0.0, 1.0].
+        Normalized institution prestige in [0.0, 1.0].
     """
     if max_inst_citations <= 0.0:
         raise ValueError(f"max_inst_citations must be positive, got {max_inst_citations}")
+
+    if institutions is None:
+        return 0.0
+
+    if hasattr(institutions, "institution_links"):
+        institutions = getattr(institutions, "institution_links")
 
     if not institutions:
         return 0.0
@@ -284,7 +331,9 @@ def calculate_institution_prestige(
     denom = math.log10(1.0 + max_inst_citations)
     best_score = 0.0
 
-    for inst_item in institutions:
+    inst_list = institutions if isinstance(institutions, (list, tuple, set)) else [institutions]
+
+    for inst_item in inst_list:
         if inst_item is None:
             continue
 
@@ -344,7 +393,7 @@ def calculate_venue_prestige(
     Parameters
     ----------
     venue:
-        Optional ResearchSourceModel ORM instance or venue dictionary.
+        Optional ResearchSourceModel ORM instance, parent ResearchWorkModel, or venue dictionary.
     cited_by_count:
         Direct citation override for venue.
     is_in_doaj:
@@ -366,6 +415,9 @@ def calculate_venue_prestige(
     eff_doaj = is_in_doaj
 
     if venue is not None:
+        if hasattr(venue, "primary_source"):
+            venue = getattr(venue, "primary_source")
+
         if eff_cits is None:
             eff_cits = getattr(venue, "cited_by_count", None)
             if isinstance(venue, dict) and eff_cits is None:
@@ -550,6 +602,58 @@ class AcademicFeatureExtractor:
         # Unwrap candidate envelope if necessary
         target = getattr(work, "entity", work)
         target = getattr(target, "candidate", target)
+        target = getattr(target, "candidate_work", target)
+
+        if isinstance(target, AcademicFeatures):
+            return target
+
+        if hasattr(target, "academic_features") and getattr(target, "academic_features") is not None:
+            af = getattr(target, "academic_features")
+            if isinstance(af, AcademicFeatures):
+                return af
+            elif isinstance(af, dict):
+                return AcademicFeatures(
+                    citation_impact=validate_signal(af.get("citation_impact", 0.0), "citation_impact"),
+                    author_prominence=validate_signal(af.get("author_prominence", 0.0), "author_prominence"),
+                    author_position=validate_signal(af.get("author_position", 0.50), "author_position", default=0.50),
+                    institution_prestige=validate_signal(af.get("institution_prestige", 0.0), "institution_prestige"),
+                    venue_prestige=validate_signal(af.get("venue_prestige", 0.0), "venue_prestige"),
+                    open_access_tier=validate_signal(af.get("open_access_tier", 0.35), "open_access_tier", default=0.35),
+                )
+
+        if isinstance(target, dict) and "academic_features" in target and target["academic_features"] is not None:
+            af = target["academic_features"]
+            if isinstance(af, AcademicFeatures):
+                return af
+            elif isinstance(af, dict):
+                return AcademicFeatures(
+                    citation_impact=validate_signal(af.get("citation_impact", 0.0), "citation_impact"),
+                    author_prominence=validate_signal(af.get("author_prominence", 0.0), "author_prominence"),
+                    author_position=validate_signal(af.get("author_position", 0.50), "author_position", default=0.50),
+                    institution_prestige=validate_signal(af.get("institution_prestige", 0.0), "institution_prestige"),
+                    venue_prestige=validate_signal(af.get("venue_prestige", 0.0), "venue_prestige"),
+                    open_access_tier=validate_signal(af.get("open_access_tier", 0.35), "open_access_tier", default=0.35),
+                )
+
+        if isinstance(target, dict) and any(
+            k in target
+            for k in (
+                "citation_impact",
+                "author_prominence",
+                "author_position",
+                "institution_prestige",
+                "venue_prestige",
+                "open_access_tier",
+            )
+        ):
+            return AcademicFeatures(
+                citation_impact=validate_signal(target.get("citation_impact", 0.0), "citation_impact"),
+                author_prominence=validate_signal(target.get("author_prominence", 0.0), "author_prominence"),
+                author_position=validate_signal(target.get("author_position", 0.50), "author_position", default=0.50),
+                institution_prestige=validate_signal(target.get("institution_prestige", 0.0), "institution_prestige"),
+                venue_prestige=validate_signal(target.get("venue_prestige", 0.0), "venue_prestige"),
+                open_access_tier=validate_signal(target.get("open_access_tier", 0.35), "open_access_tier", default=0.35),
+            )
 
         # 1. Citation Impact
         cits = getattr(target, "cited_by_count", None)
@@ -627,16 +731,29 @@ class AcademicFeatureExtractor:
         if not works:
             return []
 
-        # If session provided and works are ORM instances with unpopulated relationships,
-        # perform single-pass eager join to eliminate N+1 queries.
+        # If session provided, perform single-pass eager join to eliminate N+1 queries.
         if session is not None:
             work_ids: list[uuid.UUID] = []
             for w in works:
                 target = getattr(w, "entity", w)
                 target = getattr(target, "candidate", target)
+                target = getattr(target, "candidate_work", target)
                 w_id = getattr(target, "id", None)
-                if isinstance(w_id, uuid.UUID):
-                    work_ids.append(w_id)
+                if w_id is None:
+                    w_id = getattr(w, "candidate_work_id", None)
+                if w_id is None:
+                    w_id = getattr(w, "entity_id", None)
+                if isinstance(target, dict) and w_id is None:
+                    w_id = target.get("id", target.get("entity_id", target.get("candidate_work_id")))
+
+                if w_id is not None:
+                    try:
+                        if isinstance(w_id, str):
+                            w_id = uuid.UUID(w_id)
+                        if isinstance(w_id, uuid.UUID):
+                            work_ids.append(w_id)
+                    except (ValueError, TypeError):
+                        pass
 
             if work_ids:
                 try:
@@ -666,8 +783,27 @@ class AcademicFeatureExtractor:
                     for w in works:
                         target = getattr(w, "entity", w)
                         target = getattr(target, "candidate", target)
+                        target = getattr(target, "candidate_work", target)
                         w_id = getattr(target, "id", None)
-                        populated_work = loaded_map.get(w_id, target)
+                        if w_id is None:
+                            w_id = getattr(w, "candidate_work_id", None)
+                        if w_id is None:
+                            w_id = getattr(w, "entity_id", None)
+                        if isinstance(target, dict) and w_id is None:
+                            w_id = target.get("id", target.get("entity_id", target.get("candidate_work_id")))
+
+                        resolved_id: uuid.UUID | None = None
+                        if w_id is not None:
+                            try:
+                                resolved_id = uuid.UUID(str(w_id))
+                            except (ValueError, TypeError):
+                                resolved_id = None
+
+                        populated_work = (
+                            loaded_map.get(resolved_id, target)
+                            if resolved_id is not None
+                            else target
+                        )
                         results.append(self.extract_from_work(populated_work))
                     return results
                 except Exception as exc:
