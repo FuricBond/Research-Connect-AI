@@ -402,6 +402,42 @@ class ResultExplainer:
                 active_weights.urgency_weight,
                 has_urgency,
             ),
+            (
+                "citation_impact",
+                signals.citation_impact,
+                active_weights.citation_weight,
+                signals.citation_impact > 0.0,
+            ),
+            (
+                "author_prominence",
+                signals.author_prominence,
+                active_weights.author_prominence_weight,
+                signals.author_prominence > 0.0,
+            ),
+            (
+                "author_position",
+                signals.author_position,
+                active_weights.author_position_weight,
+                signals.author_position > 0.50,
+            ),
+            (
+                "institution_prestige",
+                signals.institution_prestige,
+                active_weights.institution_weight,
+                signals.institution_prestige > 0.0,
+            ),
+            (
+                "venue_prestige",
+                signals.venue_prestige,
+                active_weights.venue_weight,
+                signals.venue_prestige > 0.0,
+            ),
+            (
+                "open_access_tier",
+                signals.open_access_tier,
+                active_weights.open_access_weight,
+                signals.open_access_tier > 0.35,
+            ),
         ]
 
         active_contributions: list[tuple[str, float, float]] = []
@@ -458,12 +494,10 @@ class ResultExplainer:
             if shared_names:
                 topic_str = ", ".join(shared_names[:3])
                 strengths.append(
-                    f"Strong topical alignment in shared fields ({topic_str})."
+                    f"Direct alignment on core academic topics: {topic_str}."
                 )
             else:
-                strengths.append(
-                    "Strong topical alignment across shared canonical research areas."
-                )
+                strengths.append("High topic alignment across domain taxonomy.")
         elif has_topics and signals.topic_similarity >= self.positive_threshold:
             if shared_names:
                 strengths.append(
@@ -473,6 +507,20 @@ class ResultExplainer:
                 strengths.append("Moderate topical overlap in shared research areas.")
         elif has_topics and signals.topic_similarity > 0.0:
             strengths.append("Related through hierarchical academic taxonomy DAG proximity.")
+
+        # Academic quality strengths
+        if signals.citation_impact >= self.high_threshold:
+            strengths.append(
+                "High scholarly impact supported by significant academic citation volume."
+            )
+        if signals.venue_prestige >= self.high_threshold:
+            strengths.append(
+                "Published in a prestigious, highly-cited academic venue or verified DOAJ journal."
+            )
+        if signals.open_access_tier >= 0.85:
+            strengths.append(
+                "Freely accessible under an open-access publishing model."
+            )
 
         # Lexical strength
         if has_lexical and signals.lexical_similarity >= self.high_threshold:

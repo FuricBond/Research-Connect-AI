@@ -13,6 +13,17 @@ Exports:
   - validate_signal: Finite number validation and clamping.
   - hybrid_ranker: Singleton default ranker instance.
 """
+from app.ranking.features import (
+    AcademicFeatureExtractor,
+    AcademicFeatures,
+    academic_feature_extractor,
+    calculate_author_position_score,
+    calculate_author_prominence,
+    calculate_citation_impact,
+    calculate_institution_prestige,
+    calculate_open_access_tier,
+    calculate_venue_prestige,
+)
 from app.ranking.hybrid_ranker import (
     HybridRanker,
     RankedCandidate,
@@ -29,13 +40,22 @@ from app.ranking.signals import (
 )
 
 __all__ = [
+    "AcademicFeatureExtractor",
+    "AcademicFeatures",
     "HybridRanker",
     "RankedCandidate",
     "RankerWeights",
     "RankingMode",
     "RankingSignals",
+    "academic_feature_extractor",
+    "calculate_author_position_score",
+    "calculate_author_prominence",
+    "calculate_citation_impact",
     "calculate_freshness",
+    "calculate_institution_prestige",
+    "calculate_open_access_tier",
     "calculate_urgency",
+    "calculate_venue_prestige",
     "hybrid_ranker",
     "normalize_lexical_score",
     "validate_signal",

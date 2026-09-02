@@ -494,5 +494,14 @@ class RankingSignals:
     freshness: float = 0.0
     urgency: float = 0.0
     opportunity_quality: float = 0.0
+
+    # Phase 2.5 Academic Features (normalized in [0.0, 1.0])
+    citation_impact: float = 0.0
+    author_prominence: float = 0.0
+    author_position: float = 0.50
+    institution_prestige: float = 0.0
+    venue_prestige: float = 0.0
+    open_access_tier: float = 0.35
+
     retrieval_sources: list[str] = field(default_factory=list)
 
