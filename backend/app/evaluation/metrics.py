@@ -410,3 +410,219 @@ def wilcoxon_signed_rank_test(
         "is_significant": p_value < 0.05,
     }
 
+
+# ── List Quality, Diversity, Novelty & Stability Metrics (Phase 2.5G) ─────────
+
+
+def unique_elements_at_k(
+    items_list: Sequence[Any],
+    k: int,
+) -> int:
+    """
+    Count the number of unique elements present in top-k items.
+
+    Each item in items_list may be an atomic element (e.g. venue key)
+    or an iterable of elements (e.g. author IDs, topic IDs).
+    """
+    if k <= 0 or not items_list:
+        return 0
+
+    unique_set: set[Any] = set()
+    for item in items_list[:k]:
+        if item is None:
+            continue
+        if isinstance(item, (list, tuple, set, frozenset)):
+            for sub in item:
+                if sub is not None:
+                    unique_set.add(sub)
+        else:
+            unique_set.add(item)
+    return len(unique_set)
+
+
+def concentration_hhi(
+    items_list: Sequence[Any],
+    k: int,
+) -> float:
+    """
+    Calculate Herfindahl-Hirschman Index (HHI) for element concentration in top-k.
+
+    Returns a value in [0.0, 1.0], where 1.0 represents a monopoly / complete concentration,
+    and 1/N represents perfect diversity across N distinct items.
+    """
+    if k <= 0 or not items_list:
+        return 0.0
+
+    counts: dict[Any, int] = {}
+    total = 0
+    for item in items_list[:k]:
+        if item is None:
+            continue
+        if isinstance(item, (list, tuple, set, frozenset)):
+            for sub in item:
+                if sub is not None:
+                    counts[sub] = counts.get(sub, 0) + 1
+                    total += 1
+        else:
+            counts[item] = counts.get(item, 0) + 1
+            total += 1
+
+    if total == 0:
+        return 0.0
+
+    hhi = sum((count / float(total)) ** 2 for count in counts.values())
+    return round(hhi, 4)
+
+
+def mean_pairwise_jaccard(
+    sets_list: Sequence[Set[Any] | Sequence[Any]],
+    k: int,
+) -> float:
+    """
+    Calculate mean pairwise Jaccard similarity between sets in top-k.
+    """
+    if k <= 1 or not sets_list:
+        return 0.0
+
+    slice_sets = [set(s) for s in sets_list[:k] if s is not None and len(s) > 0]
+    n = len(slice_sets)
+    if n < 2:
+        return 0.0
+
+    total_jaccard = 0.0
+    pair_count = 0
+    for i in range(n):
+        for j in range(i + 1, n):
+            s1, s2 = slice_sets[i], slice_sets[j]
+            union = len(s1 | s2)
+            if union > 0:
+                total_jaccard += len(s1 & s2) / float(union)
+            pair_count += 1
+
+    return round(total_jaccard / pair_count, 4) if pair_count > 0 else 0.0
+
+
+def mean_pairwise_cosine(
+    vectors_list: Sequence[Sequence[float] | None],
+    k: int,
+) -> float:
+    """
+    Calculate mean pairwise cosine similarity between normalized dense vectors in top-k.
+    """
+    if k <= 1 or not vectors_list:
+        return 0.0
+
+    valid_vectors = [v for v in vectors_list[:k] if v is not None and len(v) > 0]
+    n = len(valid_vectors)
+    if n < 2:
+        return 0.0
+
+    total_sim = 0.0
+    pair_count = 0
+    for i in range(n):
+        v1 = valid_vectors[i]
+        for j in range(i + 1, n):
+            v2 = valid_vectors[j]
+            if len(v1) == len(v2):
+                dot = sum(a * b for a, b in zip(v1, v2))
+                total_sim += max(0.0, min(1.0, dot))
+                pair_count += 1
+
+    return round(total_sim / pair_count, 4) if pair_count > 0 else 0.0
+
+
+def mean_novelty_at_k(
+    novelty_scores: Sequence[float],
+    k: int,
+) -> float:
+    """
+    Calculate mean novelty score across candidates in top-k.
+    """
+    if k <= 0 or not novelty_scores:
+        return 0.0
+    top = [float(s) for s in novelty_scores[:k]]
+    return round(sum(top) / len(top), 4) if top else 0.0
+
+
+def min_novelty_at_k(
+    novelty_scores: Sequence[float],
+    k: int,
+) -> float:
+    """
+    Calculate minimum novelty score across candidates in top-k.
+    """
+    if k <= 0 or not novelty_scores:
+        return 0.0
+    top = [float(s) for s in novelty_scores[:k]]
+    return round(min(top), 4) if top else 0.0
+
+
+def kendall_tau_correlation(
+    rank_a: Sequence[Any],
+    rank_b: Sequence[Any],
+) -> float:
+    """
+    Calculate Kendall's rank correlation coefficient (tau) on common items.
+    Returns 1.0 if identical, -1.0 if completely inverted.
+    """
+    common = [item for item in rank_a if item in rank_b]
+    n = len(common)
+    if n < 2:
+        return 1.0 if list(rank_a) == list(rank_b) else 0.0
+
+    pos_b = {item: idx for idx, item in enumerate(rank_b)}
+    concordant = 0
+    discordant = 0
+
+    for i in range(n):
+        for j in range(i + 1, n):
+            item_i = common[i]
+            item_j = common[j]
+            diff_a = i - j
+            diff_b = pos_b[item_i] - pos_b[item_j]
+            if (diff_a * diff_b) > 0:
+                concordant += 1
+            elif (diff_a * diff_b) < 0:
+                discordant += 1
+
+    total_pairs = (n * (n - 1)) / 2.0
+    tau = (concordant - discordant) / total_pairs
+    return round(tau, 4)
+
+
+def top_k_overlap_ratio(
+    rank_a: Sequence[Any],
+    rank_b: Sequence[Any],
+    k: int,
+) -> float:
+    """
+    Calculate Jaccard overlap ratio between top-k elements of two rankings.
+    """
+    if k <= 0:
+        return 0.0
+    set_a = set(rank_a[:k])
+    set_b = set(rank_b[:k])
+    union = len(set_a | set_b)
+    if union == 0:
+        return 0.0
+    return round(len(set_a & set_b) / float(union), 4)
+
+
+def mean_rank_displacement(
+    rank_a: Sequence[Any],
+    rank_b: Sequence[Any],
+) -> float:
+    """
+    Calculate mean absolute positional shift for common items between two rankings.
+    """
+    pos_b = {item: idx for idx, item in enumerate(rank_b)}
+    displacements = [
+        abs(idx_a - pos_b[item])
+        for idx_a, item in enumerate(rank_a)
+        if item in pos_b
+    ]
+    if not displacements:
+        return 0.0
+    return round(sum(displacements) / float(len(displacements)), 4)
+
+
