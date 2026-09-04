@@ -102,5 +102,16 @@ __all__ = [
     "normalize_venue_name",
     "validate_signal",
     "venue_resolver",
+    "RiskEvidence",
+    "RiskEvidenceCollection",
+    "RiskEvidenceExtractor",
+    "risk_evidence_extractor",
 ]
+
+from app.ranking.risk import (
+    RiskEvidence,
+    RiskEvidenceCollection,
+    RiskEvidenceExtractor,
+    risk_evidence_extractor,
+)
 

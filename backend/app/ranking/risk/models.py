@@ -1,0 +1,212 @@
+"""
+Evidence Data Models for Phase 2.6B — Risk Evidence Extraction & Pattern Matchers.
+
+Provides typed, structured, machine-readable containers for observable trust,
+suspicious, and neutral signals.
+"""
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any
+
+
+class EvidenceCategory(str, Enum):
+    """Classification of the nature of the evidence."""
+
+    POSITIVE_TRUST = "POSITIVE_TRUST"
+    NEGATIVE_SUSPICIOUS = "NEGATIVE_SUSPICIOUS"
+    NEUTRAL_UNKNOWN = "NEUTRAL_UNKNOWN"
+
+
+class EvidenceStrength(str, Enum):
+    """Weight or impact level of an individual evidence signal."""
+
+    NONE = "NONE"
+    WEAK = "WEAK"
+    MODERATE = "MODERATE"
+    STRONG = "STRONG"
+
+
+class EvidenceConfidence(str, Enum):
+    """Reliability of the observation based on provenance and metadata quality."""
+
+    LOW = "LOW"
+    MEDIUM = "MEDIUM"
+    HIGH = "HIGH"
+
+
+class EvidenceProvenance(str, Enum):
+    """Origin of the extracted evidence."""
+
+    SCRAPED_METADATA = "SCRAPED_METADATA"
+    NORMALIZED_METADATA = "NORMALIZED_METADATA"
+    STATIC_TRUST_REGISTRY = "STATIC_TRUST_REGISTRY"
+    EXTERNAL_VERIFICATION = "EXTERNAL_VERIFICATION"
+    DERIVED = "DERIVED"
+    UNKNOWN = "UNKNOWN"
+
+
+class EvidenceSignal(str, Enum):
+    """Controlled vocabulary of standardized evidence signals."""
+
+    # ── Positive Trust Signals ────────────────────────────────────────────────
+    VERIFIED_PUBLISHER = "VERIFIED_PUBLISHER"
+    VERIFIED_SOCIETY = "VERIFIED_SOCIETY"
+    VERIFIED_VENUE = "VERIFIED_VENUE"
+    DOAJ_INDEXED = "DOAJ_INDEXED"
+    VALID_ISSN = "VALID_ISSN"
+    VALID_DOI = "VALID_DOI"
+    VERIFIED_INDEXING = "VERIFIED_INDEXING"
+    TRANSPARENT_PEER_REVIEW = "TRANSPARENT_PEER_REVIEW"
+    TRANSPARENT_FEE_STRUCTURE = "TRANSPARENT_FEE_STRUCTURE"
+
+    # ── Negative / Suspicious Signals ─────────────────────────────────────────
+    SUSPICIOUS_PAYMENT_LANGUAGE = "SUSPICIOUS_PAYMENT_LANGUAGE"
+    SUSPICIOUS_REVIEW_CLAIM = "SUSPICIOUS_REVIEW_CLAIM"
+    SUSPICIOUS_EDITORIAL_CLAIM = "SUSPICIOUS_EDITORIAL_CLAIM"
+    SUSPICIOUS_DOMAIN = "SUSPICIOUS_DOMAIN"
+    SUSPICIOUS_PUBLISHER_PATTERN = "SUSPICIOUS_PUBLISHER_PATTERN"
+    SUSPICIOUS_CONTACT_PATTERN = "SUSPICIOUS_CONTACT_PATTERN"
+    UNVERIFIABLE_CLAIM = "UNVERIFIABLE_CLAIM"
+
+    # ── Neutral / Unknown Signals ─────────────────────────────────────────────
+    UNKNOWN_PUBLISHER = "UNKNOWN_PUBLISHER"
+    UNKNOWN_INDEXING = "UNKNOWN_INDEXING"
+    UNKNOWN_EDITORIAL_PROCESS = "UNKNOWN_EDITORIAL_PROCESS"
+    UNKNOWN_DOMAIN_REPUTATION = "UNKNOWN_DOMAIN_REPUTATION"
+    MISSING_METADATA = "MISSING_METADATA"
+
+
+@dataclass(frozen=True)
+class RiskEvidence:
+    """
+    A single atomic piece of observable evidence extracted from opportunity metadata.
+
+    Attributes
+    ----------
+    signal:
+        Standardized identifier of the signal (from EvidenceSignal or string).
+    category:
+        Nature of the evidence (POSITIVE_TRUST, NEGATIVE_SUSPICIOUS, NEUTRAL_UNKNOWN).
+    strength:
+        Impact level of this signal (NONE, WEAK, MODERATE, STRONG).
+    confidence:
+        Reliability of the observation (LOW, MEDIUM, HIGH).
+    provenance:
+        Source origin of the evidence (e.g. STATIC_TRUST_REGISTRY, SCRAPED_METADATA).
+    source_field:
+        Opportunity field or origin where evidence was detected (e.g. 'publisher').
+    matched_value:
+        Exact or normalized token/phrase matched.
+    explanation:
+        Clear human-readable description of why this evidence matters.
+    is_present:
+        True if signal was affirmatively observed. False if representing missing metadata.
+    metadata:
+        Additional arbitrary structured attributes (e.g. matched pattern, tier).
+    """
+
+    signal: str
+    category: EvidenceCategory
+    strength: EvidenceStrength
+    confidence: EvidenceConfidence
+    provenance: EvidenceProvenance
+    source_field: str
+    matched_value: str | None = None
+    explanation: str = ""
+    is_present: bool = True
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to JSON-serializable dictionary."""
+        return {
+            "signal": self.signal,
+            "category": self.category.value,
+            "strength": self.strength.value,
+            "confidence": self.confidence.value,
+            "provenance": self.provenance.value,
+            "source_field": self.source_field,
+            "matched_value": self.matched_value,
+            "explanation": self.explanation,
+            "is_present": self.is_present,
+            "metadata": dict(self.metadata),
+        }
+
+
+@dataclass
+class RiskEvidenceCollection:
+    """
+    Aggregated container of all extracted evidence for a single opportunity.
+    """
+
+    opportunity_id: str | None = None
+    items: list[RiskEvidence] = field(default_factory=list)
+    metadata_completeness_score: float = 0.0
+
+    @property
+    def positive_evidence(self) -> list[RiskEvidence]:
+        """All positive trust evidence items."""
+        return [
+            item for item in self.items
+            if item.category == EvidenceCategory.POSITIVE_TRUST and item.is_present
+        ]
+
+    @property
+    def negative_evidence(self) -> list[RiskEvidence]:
+        """All negative suspicious evidence items."""
+        return [
+            item for item in self.items
+            if item.category == EvidenceCategory.NEGATIVE_SUSPICIOUS and item.is_present
+        ]
+
+    @property
+    def neutral_evidence(self) -> list[RiskEvidence]:
+        """All neutral or unknown evidence items (including missing metadata records)."""
+        return [
+            item for item in self.items
+            if item.category == EvidenceCategory.NEUTRAL_UNKNOWN
+        ]
+
+    @property
+    def has_suspicious_evidence(self) -> bool:
+        """True if any affirmative negative/suspicious evidence exists."""
+        return len(self.negative_evidence) > 0
+
+    @property
+    def has_trust_evidence(self) -> bool:
+        """True if any affirmative positive trust evidence exists."""
+        return len(self.positive_evidence) > 0
+
+    @property
+    def strong_suspicious_signals(self) -> list[RiskEvidence]:
+        """Affirmative suspicious signals with STRONG strength."""
+        return [
+            item for item in self.negative_evidence
+            if item.strength == EvidenceStrength.STRONG
+        ]
+
+    def add(self, evidence: RiskEvidence) -> None:
+        """Add an evidence item to the collection."""
+        self.items.append(evidence)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert entire collection to JSON-serializable dictionary."""
+        return {
+            "opportunity_id": self.opportunity_id,
+            "items": [item.to_dict() for item in self.items],
+            "metadata_completeness_score": round(self.metadata_completeness_score, 4),
+            "summary": self.summary(),
+        }
+
+    def summary(self) -> dict[str, Any]:
+        """Generate high-level counts and status for explainability and diagnostics."""
+        return {
+            "total_signals": len(self.items),
+            "positive_count": len(self.positive_evidence),
+            "negative_count": len(self.negative_evidence),
+            "neutral_count": len(self.neutral_evidence),
+            "has_suspicious_evidence": self.has_suspicious_evidence,
+            "has_trust_evidence": self.has_trust_evidence,
+            "metadata_completeness_score": round(self.metadata_completeness_score, 4),
+        }
