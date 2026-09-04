@@ -1,0 +1,503 @@
+{
+  "phase": "2.6G",
+  "timestamp": "2026-09-04T10:54:43Z",
+  "dataset_summary": {
+    "total_fixtures": 108,
+    "label_distribution": {
+      "TRUSTED": 80,
+      "SUSPICIOUS": 23,
+      "INSUFFICIENT_EVIDENCE": 5
+    },
+    "category_distribution": {
+      "TRUSTED_MAJOR_PUBLISHER": 7,
+      "TRUSTED_SCIENTIFIC_SOCIETY": 4,
+      "TRUSTED_INDEPENDENT_OPEN_ACCESS": 2,
+      "SUSPICIOUS_FAST_REVIEW": 2,
+      "SUSPICIOUS_PAYMENT": 3,
+      "SUSPICIOUS_ORGANIZER_REUSE": 6,
+      "SUSPICIOUS_DOMAIN_REUSE": 5,
+      "SUSPICIOUS_IDENTITY_COLLISION": 3,
+      "SUSPICIOUS_FRAUD_CLUSTER": 3,
+      "SUSPICIOUS_VANITY_METRICS": 1,
+      "INSUFFICIENT_SPARSE_METADATA": 4,
+      "INSUFFICIENT_ISOLATED_NODE": 2,
+      "INSUFFICIENT_APC_ONLY": 1,
+      "INSUFFICIENT_LOW_CITATIONS": 1,
+      "ADVERSARIAL_HIGH_DEGREE_PUBLISHER": 50,
+      "ADVERSARIAL_SHARED_HOSTING_PLATFORM": 10,
+      "ADVERSARIAL_LEGITIMATE_APC": 2,
+      "ADVERSARIAL_ORGANIZER_DIFFERS_FROM_PUBLISHER": 2
+    },
+    "synthetic_count": 108,
+    "curated_count": 0
+  },
+  "core_metrics": {
+    "total_evaluated": 108,
+    "overall_accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0,
+    "false_positive_rate": 0.0,
+    "false_negative_rate": 0.0,
+    "trusted_entity_false_positive_rate": 0.0,
+    "high_risk_precision": 1.0,
+    "insufficient_evidence_accuracy": 1.0,
+    "confusion_matrix": {
+      "TRUSTED": {
+        "LOW_RISK": 80,
+        "MODERATE_RISK": 0,
+        "HIGH_RISK": 0,
+        "INSUFFICIENT_EVIDENCE": 0
+      },
+      "SUSPICIOUS": {
+        "LOW_RISK": 0,
+        "MODERATE_RISK": 18,
+        "HIGH_RISK": 5,
+        "INSUFFICIENT_EVIDENCE": 0
+      },
+      "INSUFFICIENT_EVIDENCE": {
+        "LOW_RISK": 0,
+        "MODERATE_RISK": 0,
+        "HIGH_RISK": 0,
+        "INSUFFICIENT_EVIDENCE": 5
+      }
+    },
+    "binary_counts": {
+      "tp": 23,
+      "fp": 0,
+      "tn": 85,
+      "fn": 0
+    },
+    "score_distributions": {
+      "TRUSTED": {
+        "mean": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "SUSPICIOUS": {
+        "mean": 0.6113,
+        "min": 0.35,
+        "max": 1.0
+      },
+      "INSUFFICIENT_EVIDENCE": {
+        "mean": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      }
+    },
+    "confidence_distributions": {
+      "TRUSTED": {
+        "mean": 0.8696,
+        "min": 0.61,
+        "max": 0.92
+      },
+      "SUSPICIOUS": {
+        "mean": 0.7196,
+        "min": 0.63,
+        "max": 0.77
+      },
+      "INSUFFICIENT_EVIDENCE": {
+        "mean": 0.22,
+        "min": 0.17,
+        "max": 0.3
+      }
+    }
+  },
+  "confusion_matrix": {
+    "TRUSTED": {
+      "LOW_RISK": 80,
+      "MODERATE_RISK": 0,
+      "HIGH_RISK": 0,
+      "INSUFFICIENT_EVIDENCE": 0
+    },
+    "SUSPICIOUS": {
+      "LOW_RISK": 0,
+      "MODERATE_RISK": 18,
+      "HIGH_RISK": 5,
+      "INSUFFICIENT_EVIDENCE": 0
+    },
+    "INSUFFICIENT_EVIDENCE": {
+      "LOW_RISK": 0,
+      "MODERATE_RISK": 0,
+      "HIGH_RISK": 0,
+      "INSUFFICIENT_EVIDENCE": 5
+    }
+  },
+  "false_positive_analysis": {
+    "trusted_entity_false_positive_rate": 0.0,
+    "high_risk_precision": 1.0,
+    "zero_false_positive_invariant_met": true
+  },
+  "false_negative_analysis": {
+    "false_negative_rate": 0.0,
+    "recall": 1.0
+  },
+  "safety_rules": [
+    {
+      "rule_number": 1,
+      "rule_name": "High graph degree alone does NOT imply risk",
+      "passed": true,
+      "details": "Evaluated 30 high-degree IEEE conferences. All classified LOW_RISK with score < 0.20."
+    },
+    {
+      "rule_number": 2,
+      "rule_name": "Large publishers are not suspicious for having many venues",
+      "passed": true,
+      "details": "Evaluated 20 Springer Nature journals. All classified LOW_RISK."
+    },
+    {
+      "rule_number": 3,
+      "rule_name": "Scientific societies are not suspicious for organizing many events",
+      "passed": true,
+      "details": "Evaluated 4 society fixtures (AAAI, ACL, USENIX, SIAM). All protected."
+    },
+    {
+      "rule_number": 4,
+      "rule_name": "Shared academic platforms are not suspicious for hosting many events",
+      "passed": true,
+      "details": "Evaluated 10 conferences hosted on easychair.org / openreview.net. Domain reuse bypassed."
+    },
+    {
+      "rule_number": 5,
+      "rule_name": "APC/fees alone do not imply predatory behavior",
+      "passed": true,
+      "details": "Verified legitimate APCs (BMC, ACM, Finnish Forestry) never trigger suspicious payment signals."
+    },
+    {
+      "rule_number": 6,
+      "rule_name": "Low citation counts alone do not imply predatory behavior",
+      "passed": true,
+      "details": "Journal with zero/low citations remains non-predatory and non-high-risk."
+    },
+    {
+      "rule_number": 7,
+      "rule_name": "Missing metadata does not imply predatory behavior (UNKNOWN != PREDATORY)",
+      "passed": true,
+      "details": "Verified sparse metadata produces risk_score = 0.00 and INSUFFICIENT_EVIDENCE without predatory flag."
+    },
+    {
+      "rule_number": 8,
+      "rule_name": "A new venue is not automatically suspicious",
+      "passed": true,
+      "details": "Inaugural workshop on GitHub Pages evaluates to neutral INSUFFICIENT_EVIDENCE."
+    },
+    {
+      "rule_number": 9,
+      "rule_name": "A small organizer is not automatically suspicious",
+      "passed": true,
+      "details": "Small Nordic consortium evaluates to neutral INSUFFICIENT_EVIDENCE."
+    },
+    {
+      "rule_number": 10,
+      "rule_name": "Domain reuse alone must not imply high risk for trusted infrastructure",
+      "passed": true,
+      "details": "Conferences sharing easychair.org / openreview.net maintain LOW_RISK."
+    },
+    {
+      "rule_number": 11,
+      "rule_name": "Organizer != publisher is not suspicious for conferences",
+      "passed": true,
+      "details": "University organizer + society proceedings publisher evaluates to clean LOW_RISK."
+    },
+    {
+      "rule_number": 12,
+      "rule_name": "Identity conflicts must be explained conservatively",
+      "passed": true,
+      "details": "Identity conflicts and raw IP hosts explained with non-defamatory, objective terminology."
+    },
+    {
+      "rule_number": 13,
+      "rule_name": "Isolated graph nodes must remain neutral",
+      "passed": true,
+      "details": "Degree 0 isolated graph node receives risk_score = 0.00 and INSUFFICIENT_EVIDENCE."
+    }
+  ],
+  "evidence_ablation": {
+    "R0_base_text_patterns_only": {
+      "accuracy": 0.1852,
+      "precision": 1.0,
+      "recall": 0.4783,
+      "f1_score": 0.6471,
+      "false_positive_rate": 0.0,
+      "trusted_entity_fpr": 0.0,
+      "high_risk_precision": 1.0,
+      "mean_trusted_score": 0.0,
+      "mean_suspicious_score": 0.4265,
+      "score_separation": 0.4265
+    },
+    "R1_plus_venue_publisher_intelligence": {
+      "accuracy": 0.8889,
+      "precision": 1.0,
+      "recall": 0.4783,
+      "f1_score": 0.6471,
+      "false_positive_rate": 0.0,
+      "trusted_entity_fpr": 0.0,
+      "high_risk_precision": 1.0,
+      "mean_trusted_score": 0.0,
+      "mean_suspicious_score": 0.4083,
+      "score_separation": 0.4083
+    },
+    "R2_plus_graph_topology_reuse": {
+      "accuracy": 0.9907,
+      "precision": 1.0,
+      "recall": 0.9565,
+      "f1_score": 0.9778,
+      "false_positive_rate": 0.0,
+      "trusted_entity_fpr": 0.0,
+      "high_risk_precision": 1.0,
+      "mean_trusted_score": 0.0,
+      "mean_suspicious_score": 0.5226,
+      "score_separation": 0.5226
+    },
+    "R3_plus_corroborated_fraud_clusters": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "false_positive_rate": 0.0,
+      "trusted_entity_fpr": 0.0,
+      "high_risk_precision": 1.0,
+      "mean_trusted_score": 0.0,
+      "mean_suspicious_score": 0.6113,
+      "score_separation": 0.6113
+    },
+    "R4_full_production_configuration": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "false_positive_rate": 0.0,
+      "trusted_entity_fpr": 0.0,
+      "high_risk_precision": 1.0,
+      "mean_trusted_score": 0.0,
+      "mean_suspicious_score": 0.6113,
+      "score_separation": 0.6113
+    }
+  },
+  "graph_ablation": {
+    "without_graph_evidence": {
+      "accuracy": 0.8889,
+      "precision": 1.0,
+      "recall": 0.4783,
+      "f1_score": 0.6471,
+      "trusted_entity_fpr": 0.0,
+      "mean_syndicate_score": 0.2786
+    },
+    "with_graph_evidence": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "trusted_entity_fpr": 0.0,
+      "mean_syndicate_score": 0.6021
+    },
+    "graph_impact_delta": {
+      "delta_recall": 0.5217,
+      "delta_f1": 0.3529,
+      "delta_syndicate_score": 0.3235,
+      "false_positive_inflation_detected": false
+    }
+  },
+  "threshold_sensitivity": {
+    "current_production_thresholds": {
+      "high_risk_threshold": 0.7,
+      "moderate_risk_threshold": 0.3,
+      "confidence_sufficient_threshold": 0.4
+    },
+    "high_risk_threshold_sweep": {
+      "thr_0.60": {
+        "high_risk_precision": 1.0,
+        "recall": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.65": {
+        "high_risk_precision": 1.0,
+        "recall": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.70": {
+        "high_risk_precision": 1.0,
+        "recall": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.75": {
+        "high_risk_precision": 1.0,
+        "recall": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.80": {
+        "high_risk_precision": 1.0,
+        "recall": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      }
+    },
+    "moderate_risk_threshold_sweep": {
+      "thr_0.20": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.25": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.30": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.35": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.40": {
+        "precision": 1.0,
+        "recall": 0.7391,
+        "overall_accuracy": 0.9444,
+        "trusted_entity_fpr": 0.0
+      }
+    },
+    "confidence_sufficient_threshold_sweep": {
+      "thr_0.30": {
+        "insufficient_evidence_accuracy": 0.8,
+        "overall_accuracy": 0.9907,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.35": {
+        "insufficient_evidence_accuracy": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.40": {
+        "insufficient_evidence_accuracy": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.45": {
+        "insufficient_evidence_accuracy": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      },
+      "thr_0.50": {
+        "insufficient_evidence_accuracy": 1.0,
+        "overall_accuracy": 1.0,
+        "trusted_entity_fpr": 0.0
+      }
+    },
+    "threshold_stability_verdict": "STABLE_AND_CALIBRATED"
+  },
+  "confidence_calibration": {
+    "calibration_by_evidence_depth": {
+      "abundant_evidence_ge_4_signals": {
+        "count": 75,
+        "mean_confidence": 0.8673,
+        "min_confidence": 0.75,
+        "max_confidence": 0.92
+      },
+      "moderate_evidence_2_to_3_signals": {
+        "count": 27,
+        "mean_confidence": 0.7578,
+        "min_confidence": 0.63,
+        "max_confidence": 0.87
+      },
+      "sparse_evidence_1_signal": {
+        "count": 1,
+        "mean_confidence": 0.61,
+        "min_confidence": 0.61,
+        "max_confidence": 0.61
+      },
+      "zero_evidence_0_signals": {
+        "count": 5,
+        "mean_confidence": 0.22,
+        "min_confidence": 0.17,
+        "max_confidence": 0.3
+      }
+    },
+    "monotonic_confidence_growth": true,
+    "unknown_not_certain_safeguard_passed": true
+  },
+  "explainability_validation": {
+    "total_explanations_validated": 108,
+    "risk_level_accuracy": 1.0,
+    "risk_score_accuracy": 1.0,
+    "confidence_accuracy": 1.0,
+    "mathematical_decomposition_consistency": 1.0,
+    "provenance_preservation_rate": 1.0,
+    "verified_trust_signal_cleanliness": 1.0,
+    "suspicious_indicator_cleanliness": 1.0,
+    "all_invariants_satisfied": true
+  },
+  "determinism": {
+    "iterations_tested": 100,
+    "identical_iterations": 100,
+    "pass_rate": 1.0,
+    "strictly_deterministic": true
+  },
+  "performance": {
+    "batch_10": {
+      "candidate_count": 10,
+      "evidence_extraction_ms": 1.257,
+      "risk_scoring_ms": 0.114,
+      "explainability_ms": 0.631,
+      "total_pipeline_ms": 2.001,
+      "per_candidate_overhead_ms": 0.2001
+    },
+    "batch_50": {
+      "candidate_count": 50,
+      "evidence_extraction_ms": 7.168,
+      "risk_scoring_ms": 0.481,
+      "explainability_ms": 2.708,
+      "total_pipeline_ms": 10.357,
+      "per_candidate_overhead_ms": 0.2071
+    },
+    "batch_100": {
+      "candidate_count": 100,
+      "evidence_extraction_ms": 12.839,
+      "risk_scoring_ms": 0.919,
+      "explainability_ms": 5.38,
+      "total_pipeline_ms": 19.138,
+      "per_candidate_overhead_ms": 0.1914
+    },
+    "batch_200": {
+      "candidate_count": 200,
+      "evidence_extraction_ms": 24.749,
+      "risk_scoring_ms": 1.803,
+      "explainability_ms": 10.897,
+      "total_pipeline_ms": 37.448,
+      "per_candidate_overhead_ms": 0.1872
+    },
+    "batch_1000": {
+      "candidate_count": 1000,
+      "evidence_extraction_ms": 126.83,
+      "risk_scoring_ms": 9.838,
+      "explainability_ms": 55.684,
+      "total_pipeline_ms": 192.353,
+      "per_candidate_overhead_ms": 0.1924
+    }
+  },
+  "production_recommendation": {
+    "decision": "RETAIN_CURRENT_CONFIGURATION",
+    "rationale": "Phase 2.6 exhibits 0.0% false positive rate on trusted entities, 100.0% high-risk precision, strictly monotonic confidence growth, zero N+1 queries, sub-millisecond per-candidate execution, and 100.0% determinism across repeated runs.",
+    "retained_thresholds": {
+      "high_risk_threshold": 0.7,
+      "moderate_risk_threshold": 0.3,
+      "confidence_sufficient_threshold": 0.4
+    }
+  },
+  "limitations": [
+    "Offline evaluation dataset consists of curated and synthetic fixtures representing known academic patterns; real-world prevalence cannot be inferred directly from this sample.",
+    "External DOI/DOAJ cross-checks rely on local trust registries; runtime network calls remain disabled by design for sub-second ranking SLAs.",
+    "New independent journals without DOAJ indexing or academic society affiliation receive INSUFFICIENT_EVIDENCE; author verification is advised."
+  ]
+}

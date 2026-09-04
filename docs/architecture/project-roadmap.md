@@ -23,15 +23,16 @@ This document outlines the planned architecture and modular development roadmap 
   - **Phase 2.4J (Ranking Hardening & Opportunity Quality Signals)**: COMPLETE (Indexing tier evaluation, predatory risk penalties, status reliability, relevance dominance, 630 tests)
   - **Phase 2.4K (Frontend Discovery Experience & Production Hardening)**: COMPLETE (React discovery UI, similar research explorer, opportunity matcher, explainability drawer, rate limiting, caching, 634 tests)
 - **Phase 2.5 (Ranking & Recommendation Optimization)**: **COMPLETE** (All subphases 2.5A–2.5G implemented, tested, and empirically evaluated)
-- **Phase 2.6 (Predatory & Suspicious Detection)**:
+- **Phase 2.6 (Predatory & Suspicious Detection)**: **COMPLETE**
   - **Phase 2.6A (Architecture & Data Audit)**: COMPLETE
   - **Phase 2.6B (Risk Evidence Extraction & Pattern Matchers)**: COMPLETE
   - **Phase 2.6C (Deterministic Risk Scoring Engine)**: COMPLETE
   - **Phase 2.6D (Venue / Publisher Intelligence & Cross-Source Resolution)**: COMPLETE
   - **Phase 2.6E (Suspicious Pattern & Graph Signals)**: COMPLETE
-  - **Phase 2.6F (Explainability & Discovery UI Integration)**: NEXT PHASE
-  - **Phase 2.6G (Evaluation & False-Positive Hardening)**: PLANNED
-- **Next Stage (Phase 3)**: **Personalized Researcher Intelligence & Recommendations** (Following completion of Phase 2.6 predatory detection and Phase 2.7 deadline intelligence)
+  - **Phase 2.6F (Explainability & Discovery UI Integration)**: COMPLETE
+  - **Phase 2.6G (Evaluation & False-Positive Hardening)**: COMPLETE
+- **Next Stage (Phase 2.7)**: **Submission Deadline Intelligence, Feasibility & Notification Automation**
+- **Subsequent Stage (Phase 3)**: **Personalized Researcher Intelligence & Recommendations** (Following completion of Phase 2.6 trust/risk pipeline and Phase 2.7 deadline intelligence)
 
 
 ---
