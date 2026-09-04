@@ -190,6 +190,16 @@ FREE_EMAIL_DOMAINS: set[str] = {
 
 _WORD_BOUNDARY_RE = re.compile(r"\b[a-z0-9&/.-]+\b")
 
+_COMPILED_TRUSTED_PUBLISHERS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(rf"\b{re.escape(k)}\b"), canon)
+    for k, canon in TRUSTED_ACADEMIC_PUBLISHERS.items()
+]
+
+_COMPILED_TRUSTED_SOCIETIES: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(rf"\b{re.escape(k)}\b"), canon)
+    for k, canon in TRUSTED_ACADEMIC_SOCIETIES.items()
+]
+
 
 def match_trusted_publisher(name: str | None) -> tuple[bool, str | None]:
     """
@@ -208,9 +218,8 @@ def match_trusted_publisher(name: str | None) -> tuple[bool, str | None]:
         return True, TRUSTED_ACADEMIC_PUBLISHERS[clean]
 
     # Substring / token matching for prefix/suffixes (e.g. "IEEE Computer Society", "Springer Verlag Berlin")
-    for key, canonical in TRUSTED_ACADEMIC_PUBLISHERS.items():
-        pattern = rf"\b{re.escape(key)}\b"
-        if re.search(pattern, clean):
+    for pattern, canonical in _COMPILED_TRUSTED_PUBLISHERS:
+        if pattern.search(clean):
             return True, canonical
 
     return False, None
@@ -232,9 +241,8 @@ def match_trusted_society(name: str | None) -> tuple[bool, str | None]:
     if clean in TRUSTED_ACADEMIC_SOCIETIES:
         return True, TRUSTED_ACADEMIC_SOCIETIES[clean]
 
-    for key, canonical in TRUSTED_ACADEMIC_SOCIETIES.items():
-        pattern = rf"\b{re.escape(key)}\b"
-        if re.search(pattern, clean):
+    for pattern, canonical in _COMPILED_TRUSTED_SOCIETIES:
+        if pattern.search(clean):
             return True, canonical
 
     return False, None

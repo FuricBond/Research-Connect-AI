@@ -63,10 +63,16 @@ class EvidenceSignal(str, Enum):
     VERIFIED_PUBLISHER = "VERIFIED_PUBLISHER"
     VERIFIED_SOCIETY = "VERIFIED_SOCIETY"
     VERIFIED_VENUE = "VERIFIED_VENUE"
+    VERIFIED_VENUE_IDENTITY = "VERIFIED_VENUE_IDENTITY"
+    VERIFIED_PUBLISHER_IDENTITY = "VERIFIED_PUBLISHER_IDENTITY"
+    VERIFIED_ISSN_L = "VERIFIED_ISSN_L"
     DOAJ_INDEXED = "DOAJ_INDEXED"
     VALID_ISSN = "VALID_ISSN"
     VALID_DOI = "VALID_DOI"
     VERIFIED_INDEXING = "VERIFIED_INDEXING"
+    OPENALEX_METADATA_MATCH = "OPENALEX_METADATA_MATCH"
+    CROSSREF_METADATA_MATCH = "CROSSREF_METADATA_MATCH"
+    PUBLISHER_DOMAIN_MATCH = "PUBLISHER_DOMAIN_MATCH"
     TRANSPARENT_PEER_REVIEW = "TRANSPARENT_PEER_REVIEW"
     TRANSPARENT_FEE_STRUCTURE = "TRANSPARENT_FEE_STRUCTURE"
 
@@ -78,6 +84,7 @@ class EvidenceSignal(str, Enum):
     SUSPICIOUS_PUBLISHER_PATTERN = "SUSPICIOUS_PUBLISHER_PATTERN"
     SUSPICIOUS_CONTACT_PATTERN = "SUSPICIOUS_CONTACT_PATTERN"
     UNVERIFIABLE_CLAIM = "UNVERIFIABLE_CLAIM"
+    CONFLICTING_METADATA = "CONFLICTING_METADATA"
 
     # ── Neutral / Unknown Signals ─────────────────────────────────────────────
     UNKNOWN_PUBLISHER = "UNKNOWN_PUBLISHER"
@@ -85,6 +92,64 @@ class EvidenceSignal(str, Enum):
     UNKNOWN_EDITORIAL_PROCESS = "UNKNOWN_EDITORIAL_PROCESS"
     UNKNOWN_DOMAIN_REPUTATION = "UNKNOWN_DOMAIN_REPUTATION"
     MISSING_METADATA = "MISSING_METADATA"
+
+
+class ResolutionStatus(str, Enum):
+    """Categorical entity resolution status for Phase 2.6D."""
+
+    RESOLVED = "RESOLVED"
+    PARTIALLY_RESOLVED = "PARTIALLY_RESOLVED"
+    UNRESOLVED = "UNRESOLVED"
+
+
+@dataclass
+class ResolvedAcademicEntity:
+    """
+    Structured cross-source resolution result for a venue and its associated publisher/organizer.
+    Phase 2.6D entity representation.
+    """
+
+    entity_type: str = "UNKNOWN"  # e.g. "JOURNAL", "CONFERENCE", "BOOK_SERIES", "REPOSITORY", "UNKNOWN"
+    canonical_name: str | None = None
+    publisher: str | None = None
+    organizer: str | None = None
+    domain: str | None = None
+    issn: str | None = None
+    issn_l: str | None = None
+    doi_prefix: str | None = None
+    openalex_id: str | None = None
+    is_in_doaj: bool | None = None
+    is_oa: bool | None = None
+    works_count: int = 0
+    cited_by_count: int = 0
+    resolution_status: ResolutionStatus = ResolutionStatus.UNRESOLVED
+    resolution_confidence: float = 0.0
+    matched_sources: list[str] = field(default_factory=list)
+    conflicts: list[str] = field(default_factory=list)
+    provenance: str = "DERIVED"
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to JSON-serializable dictionary."""
+        return {
+            "entity_type": self.entity_type,
+            "canonical_name": self.canonical_name,
+            "publisher": self.publisher,
+            "organizer": self.organizer,
+            "domain": self.domain,
+            "issn": self.issn,
+            "issn_l": self.issn_l,
+            "doi_prefix": self.doi_prefix,
+            "openalex_id": self.openalex_id,
+            "is_in_doaj": self.is_in_doaj,
+            "is_oa": self.is_oa,
+            "works_count": self.works_count,
+            "cited_by_count": self.cited_by_count,
+            "resolution_status": self.resolution_status.value,
+            "resolution_confidence": round(self.resolution_confidence, 4),
+            "matched_sources": list(self.matched_sources),
+            "conflicts": list(self.conflicts),
+            "provenance": self.provenance,
+        }
 
 
 @dataclass(frozen=True)
@@ -152,6 +217,7 @@ class RiskEvidenceCollection:
     opportunity_id: str | None = None
     items: list[RiskEvidence] = field(default_factory=list)
     metadata_completeness_score: float = 0.0
+    resolved_entity: ResolvedAcademicEntity | None = None
 
     @property
     def positive_evidence(self) -> list[RiskEvidence]:
@@ -205,11 +271,14 @@ class RiskEvidenceCollection:
             "opportunity_id": self.opportunity_id,
             "items": [item.to_dict() for item in self.items],
             "metadata_completeness_score": round(self.metadata_completeness_score, 4),
+            "resolved_entity": self.resolved_entity.to_dict() if self.resolved_entity else None,
             "summary": self.summary(),
         }
 
     def summary(self) -> dict[str, Any]:
         """Generate high-level counts and status for explainability and diagnostics."""
+        res_status = self.resolved_entity.resolution_status.value if self.resolved_entity else None
+        res_conf = round(self.resolved_entity.resolution_confidence, 4) if self.resolved_entity else 0.0
         return {
             "total_signals": len(self.items),
             "positive_count": len(self.positive_evidence),
@@ -218,6 +287,8 @@ class RiskEvidenceCollection:
             "has_suspicious_evidence": self.has_suspicious_evidence,
             "has_trust_evidence": self.has_trust_evidence,
             "metadata_completeness_score": round(self.metadata_completeness_score, 4),
+            "resolution_status": res_status,
+            "resolution_confidence": res_conf,
         }
 
 

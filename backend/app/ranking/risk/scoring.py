@@ -78,6 +78,7 @@ class RiskScoringConfig:
             EvidenceSignal.SUSPICIOUS_PUBLISHER_PATTERN.value: 0.50,
             EvidenceSignal.SUSPICIOUS_CONTACT_PATTERN.value: 0.35,
             EvidenceSignal.UNVERIFIABLE_CLAIM.value: 0.30,
+            EvidenceSignal.CONFLICTING_METADATA.value: 0.20,
         }
     )
 
@@ -85,12 +86,18 @@ class RiskScoringConfig:
     positive_signal_weights: dict[str, float] = field(
         default_factory=lambda: {
             EvidenceSignal.VERIFIED_PUBLISHER.value: 0.40,
+            EvidenceSignal.VERIFIED_PUBLISHER_IDENTITY.value: 0.40,
             EvidenceSignal.VERIFIED_SOCIETY.value: 0.35,
             EvidenceSignal.VERIFIED_VENUE.value: 0.35,
+            EvidenceSignal.VERIFIED_VENUE_IDENTITY.value: 0.40,
             EvidenceSignal.VERIFIED_INDEXING.value: 0.35,
             EvidenceSignal.DOAJ_INDEXED.value: 0.30,
             EvidenceSignal.VALID_ISSN.value: 0.15,
+            EvidenceSignal.VERIFIED_ISSN_L.value: 0.20,
             EvidenceSignal.VALID_DOI.value: 0.15,
+            EvidenceSignal.PUBLISHER_DOMAIN_MATCH.value: 0.25,
+            EvidenceSignal.OPENALEX_METADATA_MATCH.value: 0.20,
+            EvidenceSignal.CROSSREF_METADATA_MATCH.value: 0.15,
             EvidenceSignal.TRANSPARENT_PEER_REVIEW.value: 0.10,
             EvidenceSignal.TRANSPARENT_FEE_STRUCTURE.value: 0.10,
         }
@@ -106,6 +113,7 @@ class RiskScoringConfig:
             EvidenceSignal.SUSPICIOUS_PUBLISHER_PATTERN.value: "PUBLISHER",
             EvidenceSignal.SUSPICIOUS_CONTACT_PATTERN.value: "CONTACT",
             EvidenceSignal.UNVERIFIABLE_CLAIM.value: "GENERAL",
+            EvidenceSignal.CONFLICTING_METADATA.value: "EDITORIAL",
         }
     )
 

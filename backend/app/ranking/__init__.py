@@ -111,17 +111,26 @@ __all__ = [
     "DeterministicRiskScoringEngine",
     "risk_scoring_engine",
     "assess_opportunity_risk",
+    "ResolutionStatus",
+    "ResolvedAcademicEntity",
+    "VenuePublisherIntelligenceService",
+    "venue_publisher_intelligence_service",
 ]
 
 from app.ranking.risk import (
     DeterministicRiskScoringEngine,
+    ResolutionStatus,
+    ResolvedAcademicEntity,
     RiskAssessment,
     RiskEvidence,
     RiskEvidenceCollection,
     RiskEvidenceExtractor,
     RiskLevel,
+    VenuePublisherIntelligenceService,
     assess_opportunity_risk,
     risk_evidence_extractor,
     risk_scoring_engine,
+    venue_publisher_intelligence_service,
 )
+
 

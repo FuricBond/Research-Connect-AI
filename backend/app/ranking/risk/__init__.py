@@ -11,6 +11,8 @@ from app.ranking.risk.models import (
     EvidenceProvenance,
     EvidenceSignal,
     EvidenceStrength,
+    ResolutionStatus,
+    ResolvedAcademicEntity,
     RiskAssessment,
     RiskEvidence,
     RiskEvidenceCollection,
@@ -22,6 +24,12 @@ from app.ranking.risk.scoring import (
     assess_opportunity_risk,
     risk_scoring_engine,
 )
+from app.ranking.risk.venue_intelligence import (
+    KNOWN_DOI_PREFIXES,
+    PUBLISHER_DOMAINS,
+    VenuePublisherIntelligenceService,
+    venue_publisher_intelligence_service,
+)
 
 __all__ = [
     "DeterministicRiskScoringEngine",
@@ -30,13 +38,20 @@ __all__ = [
     "EvidenceProvenance",
     "EvidenceSignal",
     "EvidenceStrength",
+    "KNOWN_DOI_PREFIXES",
+    "PUBLISHER_DOMAINS",
+    "ResolutionStatus",
+    "ResolvedAcademicEntity",
     "RiskAssessment",
     "RiskEvidence",
     "RiskEvidenceCollection",
     "RiskEvidenceExtractor",
     "RiskLevel",
     "RiskScoringConfig",
+    "VenuePublisherIntelligenceService",
     "assess_opportunity_risk",
     "risk_evidence_extractor",
     "risk_scoring_engine",
+    "venue_publisher_intelligence_service",
 ]
+
