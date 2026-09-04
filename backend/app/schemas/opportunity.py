@@ -6,6 +6,8 @@ import uuid
 from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.deadline import OpportunityDeadlineSchema
+
 
 class OpportunityFee(BaseModel):
     """Fee/APC information for an opportunity."""
@@ -104,6 +106,7 @@ class OpportunityBase(BaseModel):
     risk_level: str | None = None
     risk_confidence: float | None = None
     risk_explanation: RiskExplanationSchema | None = None
+    deadline_intelligence: OpportunityDeadlineSchema | None = None
 
     # Status & Lifecycle
     status: str
@@ -141,6 +144,7 @@ class OpportunityListItem(BaseModel):
     risk_score: Decimal | None = None
     risk_level: str | None = None
     risk_confidence: float | None = None
+    deadline_intelligence: OpportunityDeadlineSchema | None = None
     status: str
     last_seen_at: datetime | None = None
     created_at: datetime

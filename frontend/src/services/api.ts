@@ -1,4 +1,5 @@
 import type {
+  OpportunityDeadline,
   OpportunityListResponse,
   OpportunityRead,
   RiskExplanation,
@@ -106,6 +107,16 @@ export async function fetchOpportunityRiskExplanation(
   signal?: AbortSignal
 ): Promise<RiskExplanation> {
   return fetchJson<RiskExplanation>(`/api/opportunities/${id}/risk-explanation`, { signal });
+}
+
+/**
+ * Fetch canonical deadline intelligence and multi-milestone timeline for an academic opportunity (Phase 2.7F).
+ */
+export async function fetchOpportunityDeadlines(
+  id: string,
+  signal?: AbortSignal
+): Promise<OpportunityDeadline> {
+  return fetchJson<OpportunityDeadline>(`/api/opportunities/${id}/deadlines`, { signal });
 }
 
 // ── Phase 2.4 Discovery APIs ──────────────────────────────────────────────────

@@ -240,6 +240,24 @@ class NormalizedDeadline:
 
         return False
 
+    @property
+    def is_valid(self) -> bool:
+        """Return True if deadline normalized to a valid temporal state without error or ambiguity."""
+        return self.normalization_status not in (
+            NormalizationStatus.INVALID,
+            NormalizationStatus.MISSING,
+            NormalizationStatus.AMBIGUOUS,
+        )
+
+    @property
+    def is_aoe(self) -> bool:
+        """Return True if deadline operates under academic Anywhere on Earth (AoE) convention."""
+        return (
+            self.timezone_name == "AoE"
+            or self.timezone_offset == "-12:00"
+            or self.is_end_of_day_inferred
+        )
+
     def to_dict(self) -> dict[str, Any]:
         """Convert normalized deadline to serializable dictionary."""
         return {
@@ -289,4 +307,355 @@ class NormalizedDeadlineCollection:
     def to_dict(self) -> list[dict[str, Any]]:
         """Return serialized list of all normalized deadlines."""
         return [item.to_dict() for item in self.items]
+
+
+# ── Phase 2.7D Deadline Intelligence & Urgency Models ─────────────────────────
+
+
+class DeadlineTemporalStatus(str, Enum):
+    """
+    Lifecycle-independent temporal status of an academic deadline.
+
+    Distinguishes temporal states relative to a reference time without
+    conflating with OpportunityModel lifecycle state (e.g. ACTIVE vs EXPIRED).
+    """
+
+    UPCOMING = "UPCOMING"                      # Deadline is in the future (> 0 seconds remaining)
+    DUE_TODAY = "DUE_TODAY"                    # Deadline falls on reference calendar day (not yet expired)
+    EXPIRED = "EXPIRED"                        # Deadline instant has elapsed (< 0 seconds remaining)
+    MISSING = "MISSING"                        # No deadline information present (None, TBA, TBD, N/A)
+    INVALID = "INVALID"                        # Unparseable date or invalid/unrecognized timezone
+    AMBIGUOUS = "AMBIGUOUS"                    # Ambiguous calendar date (e.g. 04/05/2026)
+
+
+class UrgencyTier(str, Enum):
+    """
+    Discrete, human-explainable urgency categorization tiers.
+    """
+
+    CRITICAL = "CRITICAL"                      # Very short remaining window (<= 3 days)
+    URGENT = "URGENT"                          # Short remaining window (<= 14 days)
+    APPROACHING = "APPROACHING"                # Moderately close deadline (<= 30 days)
+    DISTANT = "DISTANT"                        # Well beyond near-term window (> 30 days)
+    DUE_TODAY = "DUE_TODAY"                    # Due on current calendar day (or <= 24 hours)
+    EXPIRED = "EXPIRED"                        # Past deadline; 0 urgency
+    UNKNOWN = "UNKNOWN"                        # Missing, invalid, or ambiguous deadline; no fabricated urgency
+
+
+@dataclass(frozen=True)
+class DeadlineAssessment:
+    """
+    Structured temporal assessment for a single academic milestone.
+
+    Provides exact elapsed time calculations, discrete urgency tiers,
+    bounded monotonic urgency scores, and human-readable deterministic explanations.
+    """
+
+    deadline_type: DeadlineType
+    reference_time: datetime
+    normalized_deadline: NormalizedDeadline | None = None
+    status: DeadlineTemporalStatus = DeadlineTemporalStatus.MISSING
+    urgency_tier: UrgencyTier = UrgencyTier.UNKNOWN
+    urgency_score: float = 0.0
+    seconds_remaining: float | None = None
+    minutes_remaining: float | None = None
+    hours_remaining: float | None = None
+    days_remaining: float | None = None
+    confidence: float = 0.0
+    explanation: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def is_expired(self, reference_time: datetime | None = None) -> bool:
+        """
+        Check if assessment represents an elapsed deadline.
+
+        Provides duck-typing compatibility with expiration managers.
+        """
+        if self.status == DeadlineTemporalStatus.EXPIRED:
+            return True
+        if self.seconds_remaining is not None:
+            return self.seconds_remaining < 0.0
+        if self.normalized_deadline is not None:
+            return self.normalized_deadline.is_expired(reference_time or self.reference_time)
+        return False
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert assessment to serializable dictionary."""
+        return {
+            "deadline_type": self.deadline_type.value,
+            "reference_time": self.reference_time.isoformat(),
+            "status": self.status.value,
+            "urgency_tier": self.urgency_tier.value,
+            "urgency_score": round(self.urgency_score, 6),
+            "seconds_remaining": self.seconds_remaining,
+            "minutes_remaining": self.minutes_remaining,
+            "hours_remaining": self.hours_remaining,
+            "days_remaining": self.days_remaining,
+            "confidence": round(self.confidence, 4),
+            "explanation": self.explanation,
+            "normalized_deadline": (
+                self.normalized_deadline.to_dict()
+                if self.normalized_deadline is not None
+                else None
+            ),
+            "metadata": self.metadata,
+        }
+
+
+@dataclass
+class OpportunityDeadlineAssessment:
+    """
+    Composite deadline intelligence assessment for an opportunity across all milestones.
+    """
+
+    reference_time: datetime
+    opportunity_id: str | None = None
+    primary_assessment: DeadlineAssessment | None = None
+    milestone_assessments: list[DeadlineAssessment] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def get_by_type(self, deadline_type: DeadlineType) -> list[DeadlineAssessment]:
+        """Return all assessments for the specified milestone type."""
+        return [a for a in self.milestone_assessments if a.deadline_type == deadline_type]
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert composite assessment to serializable dictionary."""
+        return {
+            "opportunity_id": self.opportunity_id,
+            "reference_time": self.reference_time.isoformat(),
+            "primary_assessment": (
+                self.primary_assessment.to_dict()
+                if self.primary_assessment is not None
+                else None
+            ),
+            "milestone_assessments": [a.to_dict() for a in self.milestone_assessments],
+            "metadata": self.metadata,
+        }
+
+
+# ── Phase 2.7E Conflict, Extension & Revision Models ─────────────────────────
+
+
+class RevisionClassification(str, Enum):
+    """
+    Classification of successive deadline observations over time.
+    """
+
+    INITIAL = "INITIAL"                        # First observed deadline for this milestone
+    UNCHANGED = "UNCHANGED"                    # Identical deadline instant reported
+    EXTENDED = "EXTENDED"                      # Deadline postponed to a later date/time
+    MOVED_EARLIER = "MOVED_EARLIER"            # Deadline moved earlier
+    REPLACED = "REPLACED"                      # Format change or replacement where direction is indeterminate
+    RETRACTED = "RETRACTED"                    # Explicitly withdrawn or cancelled deadline
+    CONFLICTING = "CONFLICTING"                # Concurrent incompatible source observation
+    EQUIVALENT = "EQUIVALENT"                  # Different syntax/tz expressing the same instant
+
+
+class ConflictState(str, Enum):
+    """
+    Multi-source agreement status for a specific milestone.
+    """
+
+    NO_CONFLICT = "NO_CONFLICT"                # Single source or all sources in unison
+    EQUIVALENT_SOURCES = "EQUIVALENT_SOURCES"  # Multiple sources reporting equivalent instant via different encodings
+    SOURCE_CONFLICT = "SOURCE_CONFLICT"        # Multiple credible sources reporting genuinely conflicting deadlines
+    SUPERSEDED = "SUPERSEDED"                  # Disagreement resolved by authoritative source precedence
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"  # Zero or missing observations
+
+
+class SourceAuthorityTier(int, Enum):
+    """
+    Evidentiary authority hierarchy used solely for deadline conflict resolution.
+
+    CRITICAL INVARIANT:
+    This hierarchy determines evidentiary source reliability for dates.
+    It must NEVER be confused with Phase 2.5 academic ranking or Phase 2.6 predatory risk.
+    """
+
+    OFFICIAL_CFP = 4                           # Official conference portal or organizer domain
+    DETAIL_PAGE = 3                            # Comprehensive detail page (e.g. WikiCFP event.showcfp)
+    LIST_PAGE = 2                              # Aggregator list / summary row (e.g. WikiCFP /cfp/call)
+    GENERAL_AGGREGATOR = 1                     # General scholarly indexers (OpenAlex, Crossref)
+    UNKNOWN = 0                                # Unspecified or unverified origin
+
+
+@dataclass(frozen=True)
+class DeadlineObservation:
+    """
+    Atomic observation of an academic milestone from a specific source at a specific time.
+
+    Preserves provenance and raw evidence without overwriting historical records.
+    """
+
+    deadline_type: DeadlineType
+    opportunity_id: str | None = None
+    raw_value: str | None = None
+    normalized_deadline: NormalizedDeadline | None = None
+    source: str = "unknown"
+    source_url: str | None = None
+    observation_time: datetime | None = None
+    provenance: DeadlineProvenance = DeadlineProvenance.UNKNOWN
+    extraction_method: ExtractionMethod = ExtractionMethod.DIRECT_FIELD
+    authority_tier: SourceAuthorityTier = SourceAuthorityTier.UNKNOWN
+    normalization_confidence: float = 1.0
+    source_confidence: float = 1.0
+    is_current: bool = True
+    is_retracted: bool = False
+    retraction_evidence: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert observation to serializable dictionary."""
+        return {
+            "opportunity_id": self.opportunity_id,
+            "deadline_type": self.deadline_type.value,
+            "raw_value": self.raw_value,
+            "normalized_deadline": (
+                self.normalized_deadline.to_dict()
+                if self.normalized_deadline is not None
+                else None
+            ),
+            "source": self.source,
+            "source_url": self.source_url,
+            "observation_time": (
+                self.observation_time.isoformat()
+                if self.observation_time is not None
+                else None
+            ),
+            "provenance": self.provenance.value,
+            "extraction_method": self.extraction_method.value,
+            "authority_tier": self.authority_tier.value,
+            "normalization_confidence": round(self.normalization_confidence, 4),
+            "source_confidence": round(self.source_confidence, 4),
+            "is_current": self.is_current,
+            "is_retracted": self.is_retracted,
+            "retraction_evidence": self.retraction_evidence,
+            "metadata": self.metadata,
+        }
+
+
+@dataclass(frozen=True)
+class DeadlineRevision:
+    """
+    Temporal delta and classification between successive deadline observations.
+    """
+
+    deadline_type: DeadlineType
+    current_observation: DeadlineObservation
+    previous_observation: DeadlineObservation | None = None
+    classification: RevisionClassification = RevisionClassification.INITIAL
+    days_diff: float | None = None
+    hours_diff: float | None = None
+    explanation: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert revision to serializable dictionary."""
+        return {
+            "deadline_type": self.deadline_type.value,
+            "classification": self.classification.value,
+            "days_diff": self.days_diff,
+            "hours_diff": self.hours_diff,
+            "explanation": self.explanation,
+            "previous_observation": (
+                self.previous_observation.to_dict()
+                if self.previous_observation is not None
+                else None
+            ),
+            "current_observation": self.current_observation.to_dict(),
+            "metadata": self.metadata,
+        }
+
+
+@dataclass
+class CanonicalDeadlineView:
+    """
+    Synthesized authoritative view for a single milestone, resolving multi-source
+    observations or transparently preserving genuine conflicts.
+    """
+
+    deadline_type: DeadlineType
+    canonical_deadline: NormalizedDeadline | None = None
+    canonical_assessment: DeadlineAssessment | None = None
+    selected_source: str | None = None
+    selected_observation: DeadlineObservation | None = None
+    all_observations: list[DeadlineObservation] = field(default_factory=list)
+    revision_history: list[DeadlineRevision] = field(default_factory=list)
+    latest_revision: DeadlineRevision | None = None
+    conflict_state: ConflictState = ConflictState.NO_CONFLICT
+    confidence: float = 0.0
+    explanation: str = ""
+    unresolved_alternatives: list[DeadlineObservation] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert canonical view to serializable dictionary."""
+        return {
+            "deadline_type": self.deadline_type.value,
+            "canonical_deadline": (
+                self.canonical_deadline.to_dict()
+                if self.canonical_deadline is not None
+                else None
+            ),
+            "canonical_assessment": (
+                self.canonical_assessment.to_dict()
+                if self.canonical_assessment is not None
+                else None
+            ),
+            "selected_source": self.selected_source,
+            "selected_observation": (
+                self.selected_observation.to_dict()
+                if self.selected_observation is not None
+                else None
+            ),
+            "all_observations": [obs.to_dict() for obs in self.all_observations],
+            "revision_history": [rev.to_dict() for rev in self.revision_history],
+            "latest_revision": (
+                self.latest_revision.to_dict()
+                if self.latest_revision is not None
+                else None
+            ),
+            "conflict_state": self.conflict_state.value,
+            "confidence": round(self.confidence, 4),
+            "explanation": self.explanation,
+            "unresolved_alternatives": [alt.to_dict() for alt in self.unresolved_alternatives],
+            "metadata": self.metadata,
+        }
+
+
+@dataclass
+class OpportunityCanonicalView:
+    """
+    Composite canonical deadline view across all academic milestones for an opportunity.
+    """
+
+    reference_time: datetime
+    opportunity_id: str | None = None
+    primary_milestone: DeadlineType = DeadlineType.SUBMISSION
+    primary_view: CanonicalDeadlineView | None = None
+    milestone_views: dict[DeadlineType, CanonicalDeadlineView] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def get_view(self, deadline_type: DeadlineType) -> CanonicalDeadlineView | None:
+        """Return the canonical view for a specific milestone type."""
+        return self.milestone_views.get(deadline_type)
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert opportunity canonical view to serializable dictionary."""
+        return {
+            "opportunity_id": self.opportunity_id,
+            "reference_time": self.reference_time.isoformat(),
+            "primary_milestone": self.primary_milestone.value,
+            "primary_view": (
+                self.primary_view.to_dict()
+                if self.primary_view is not None
+                else None
+            ),
+            "milestone_views": {
+                k.value: v.to_dict() for k, v in self.milestone_views.items()
+            },
+            "metadata": self.metadata,
+        }
+
+
 

@@ -161,7 +161,7 @@ def calculate_freshness(
 
 
 def calculate_urgency(
-    submission_deadline: datetime | str | None = None,
+    submission_deadline: Any = None,
     reference_time: datetime | None = None,
     window_days: float | None = None,
 ) -> float:
@@ -171,10 +171,16 @@ def calculate_urgency(
     Urgency increases linearly from 0.0 (at or beyond window_days) to 1.0 (due now/today).
     Expired deadlines (days_remaining < 0) return 0.0.
 
+    Accepts:
+      - DeadlineAssessment instance (returns its computed urgency_score)
+      - NormalizedDeadline instance (assessed via DeadlineIntelligence)
+      - datetime or ISO format string (backward compatible)
+      - None (returns 0.0)
+
     Parameters
     ----------
     submission_deadline:
-        Submission deadline datetime or ISO format string.
+        DeadlineAssessment, NormalizedDeadline, datetime, or ISO format string.
     reference_time:
         Current reference timestamp (defaults to now in UTC).
     window_days:
@@ -195,6 +201,24 @@ def calculate_urgency(
 
     if submission_deadline is None:
         return 0.0
+
+    # Duck-typing / instance check for DeadlineAssessment
+    if hasattr(submission_deadline, "urgency_score") and not isinstance(submission_deadline, (datetime, str)):
+        try:
+            return round(min(1.0, max(0.0, float(submission_deadline.urgency_score))), 6)
+        except (ValueError, TypeError):
+            return 0.0
+
+    # Duck-typing / instance check for NormalizedDeadline
+    if hasattr(submission_deadline, "normalization_status") and not isinstance(submission_deadline, (datetime, str)):
+        from app.ranking.deadline.intelligence import DeadlineIntelligence
+
+        assessment = DeadlineIntelligence.assess_deadline(
+            submission_deadline,
+            reference_time=reference_time,
+            window_days=max_window,
+        )
+        return assessment.urgency_score
 
     dt_deadline: datetime
     if isinstance(submission_deadline, str):

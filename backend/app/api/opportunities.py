@@ -5,7 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.ranking.deadline import deadline_explainability_service
 from app.ranking.risk import assess_opportunity_risk, risk_explainability_service
+from app.schemas.deadline import OpportunityDeadlineSchema
 from app.schemas.opportunity import (
     OpportunityListResponse,
     OpportunityRead,
@@ -58,11 +60,13 @@ def get_opportunity_route(
     opportunity_id: uuid.UUID,
     db: DbDep,
 ) -> OpportunityRead:
-    """Get a single opportunity by UUID."""
+    """Get a single opportunity by UUID with additive deadline intelligence."""
     opportunity = get_opportunity_by_id(db, opportunity_id)
     if opportunity is None:
         raise HTTPException(status_code=404, detail="Opportunity not found")
-    return opportunity
+    opp_read = OpportunityRead.model_validate(opportunity)
+    opp_read.deadline_intelligence = deadline_explainability_service.explain_opportunity_from_model(opportunity)
+    return opp_read
 
 
 @router.get(
@@ -83,3 +87,21 @@ def get_opportunity_risk_explanation_route(
     assessment = assess_opportunity_risk(opportunity)
     explanation = risk_explainability_service.explain(assessment, opportunity=opportunity)
     return RiskExplanationSchema.model_validate(explanation.to_dict())
+
+
+@router.get(
+    "/{opportunity_id}/deadlines",
+    response_model=OpportunityDeadlineSchema,
+    summary="Get Canonical Deadline Intelligence",
+    description="Retrieve structured, loss-aware canonical deadline views, revision history, multi-source conflict states, and deterministic explainability for an academic opportunity (Phase 2.7F).",
+)
+def get_opportunity_deadlines_route(
+    opportunity_id: uuid.UUID,
+    db: DbDep,
+) -> OpportunityDeadlineSchema:
+    """Get canonical deadline intelligence for an opportunity by UUID."""
+    opportunity = get_opportunity_by_id(db, opportunity_id)
+    if opportunity is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    return deadline_explainability_service.explain_opportunity_from_model(opportunity)

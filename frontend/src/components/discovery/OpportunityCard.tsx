@@ -1,53 +1,27 @@
 import React from "react";
 import {
-  Calendar,
-  Clock,
   DollarSign,
   ExternalLink,
   Globe,
   HelpCircle,
   MapPin,
-  Sparkles,
 } from "lucide-react";
 import type { OpportunityMatchItem } from "../../types/discovery";
 import { QualityBadge } from "./QualityBadge";
 import { RiskWarning } from "./RiskWarning";
-import { calculateRemainingDays, formatDeadlineDate } from "../../utils/date";
+import { DeadlineBadge } from "./DeadlineBadge";
+import { formatDeadlineDate } from "../../utils/date";
 
 interface OpportunityCardProps {
   item: OpportunityMatchItem;
-  onExplain: (item: OpportunityMatchItem) => void;
+  onExplain: (item: OpportunityMatchItem, tab?: "match" | "risk" | "deadline") => void;
 }
 
 export const OpportunityCard: React.FC<OpportunityCardProps> = ({ item, onExplain }) => {
   const { opportunity, rank, match_score, type_compatibility, topic_similarity, urgency, explanation } = item;
 
   const matchPct = (match_score * 100).toFixed(0);
-
-  // Format deadline and compute remaining days safely without timezone shifting
-  let deadlineText = "No deadline specified";
-  let isUrgent = false;
-  let isPast = false;
-
-  if (opportunity.submission_deadline) {
-    const diffDays = calculateRemainingDays(opportunity.submission_deadline);
-    const formattedDate = formatDeadlineDate(opportunity.submission_deadline);
-
-    if (diffDays !== null) {
-      if (diffDays < 0) {
-        deadlineText = `Deadline passed (${formattedDate})`;
-        isPast = true;
-      } else if (diffDays === 0) {
-        deadlineText = "Deadline today!";
-        isUrgent = true;
-      } else if (diffDays <= 14) {
-        deadlineText = `${diffDays} days remaining (${formattedDate})`;
-        isUrgent = true;
-      } else {
-        deadlineText = `Due ${formattedDate} (${diffDays} days)`;
-      }
-    }
-  }
+  const deadlineIntelligence = item.deadline_explanation || opportunity.deadline_intelligence;
 
   // APC Extraction
   const apcData = opportunity.apc_or_fee as Record<string, unknown> | null;
@@ -86,7 +60,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ item, onExplai
             <button
               type="button"
               className="explain-btn"
-              onClick={() => onExplain(item)}
+              onClick={() => onExplain(item, "match")}
               title="Explain opportunity matching breakdown"
             >
               <HelpCircle size={14} />
@@ -103,7 +77,7 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ item, onExplai
         riskReasons={opportunity.risk_reasons}
         riskLevel={opportunity.risk_level}
         riskConfidence={opportunity.risk_confidence}
-        onViewRiskDetails={() => onExplain(item)}
+        onViewRiskDetails={() => onExplain(item, "risk")}
       />
 
       {/* Title */}
@@ -201,12 +175,14 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ item, onExplai
         )}
       </div>
 
-      {/* Card Footer */}
+      {/* Card Footer with Accessible Deadline Badge & Timeline Inspection */}
       <footer className="opportunity-card-footer">
-        <div className={`deadline-chip ${isUrgent ? "urgent-deadline" : isPast ? "past-deadline" : ""}`}>
-          <Clock size={14} />
-          <span>{deadlineText}</span>
-        </div>
+        <DeadlineBadge
+          deadlineIntelligence={deadlineIntelligence}
+          fallbackDeadline={opportunity.submission_deadline}
+          onInspectDeadlines={() => onExplain(item, "deadline")}
+          showInspectButton={true}
+        />
 
         {opportunity.submission_url && (
           <a

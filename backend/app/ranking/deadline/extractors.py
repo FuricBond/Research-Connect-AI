@@ -200,6 +200,37 @@ class DeadlineEvidenceExtractor:
     """
 
     @classmethod
+    def extract_milestone_from_string(
+        cls,
+        raw: str | None,
+        deadline_type: DeadlineType = DeadlineType.SUBMISSION,
+        source: str = "unknown",
+        provenance: DeadlineProvenance = DeadlineProvenance.UNKNOWN,
+    ) -> DeadlineEvidence:
+        """
+        Extract a single deadline evidence item from a string.
+        """
+        yr, mo, dy, tm, prec, tz_ind, is_pres, is_ambig = parse_raw_date_components(raw)
+        return DeadlineEvidence(
+            deadline_type=deadline_type,
+            raw_value=raw,
+            raw_text=f"{deadline_type.value}: {raw}" if raw else "",
+            source=source,
+            source_field="",
+            extraction_method=ExtractionMethod.DIRECT_FIELD,
+            confidence=1.0 if is_pres else 0.0,
+            provenance=provenance,
+            is_present=is_pres,
+            precision=prec,
+            timezone_indicator=tz_ind,
+            parsed_year=yr,
+            parsed_month=mo,
+            parsed_day=dy,
+            parsed_time_str=tm,
+            is_ambiguous=is_ambig,
+        )
+
+    @classmethod
     def extract_from_raw_opportunity(
         cls,
         raw_opp: Any,
@@ -264,11 +295,21 @@ class DeadlineEvidenceExtractor:
         def _get(attr: str) -> Any:
             return opp.get(attr) if isinstance(opp, dict) else getattr(opp, attr, None)
 
+        def _parse_field_date(val: Any) -> tuple[str, int | None, int | None, int | None, str | None, DeadlinePrecision, TimezoneIndicator]:
+            if isinstance(val, (datetime, date)):
+                raw_v = val.isoformat()
+                tm = val.strftime("%H:%M:%S") if isinstance(val, datetime) else None
+                prec = DeadlinePrecision.EXACT_TIME if isinstance(val, datetime) else DeadlinePrecision.DATE_ONLY
+                tz_i = TimezoneIndicator.EXPLICIT_UTC if isinstance(val, datetime) and val.tzinfo else TimezoneIndicator.UNSPECIFIED
+                return raw_v, val.year, val.month, val.day, tm, prec, tz_i
+            raw_v = str(val)
+            yr, mo, dy, tm, prec, tz_i, _, _ = parse_raw_date_components(raw_v)
+            return raw_v, yr, mo, dy, tm, prec, tz_i
+
         # 1. Submission Deadline
         sub = _get("submission_deadline")
         if sub is not None:
-            raw_val = sub.isoformat() if isinstance(sub, (datetime, date)) else str(sub)
-            tz_ind = TimezoneIndicator.EXPLICIT_UTC if isinstance(sub, datetime) and sub.tzinfo else TimezoneIndicator.UNSPECIFIED
+            raw_val, yr, mo, dy, tm, prec, tz_ind = _parse_field_date(sub)
             ev = DeadlineEvidence(
                 deadline_type=DeadlineType.SUBMISSION,
                 raw_value=raw_val,
@@ -279,18 +320,19 @@ class DeadlineEvidenceExtractor:
                 confidence=1.0,
                 provenance=DeadlineProvenance.DATABASE_RECORD,
                 is_present=True,
-                precision=DeadlinePrecision.EXACT_TIME if isinstance(sub, datetime) else DeadlinePrecision.DATE_ONLY,
+                precision=prec,
                 timezone_indicator=tz_ind,
-                parsed_year=sub.year if hasattr(sub, "year") else None,
-                parsed_month=sub.month if hasattr(sub, "month") else None,
-                parsed_day=sub.day if hasattr(sub, "day") else None,
+                parsed_year=yr,
+                parsed_month=mo,
+                parsed_day=dy,
+                parsed_time_str=tm,
             )
             collection.add(ev)
 
         # 2. Notification Date
         notif = _get("notification_date")
         if notif is not None:
-            raw_val = notif.isoformat() if isinstance(notif, (datetime, date)) else str(notif)
+            raw_val, yr, mo, dy, tm, prec, tz_ind = _parse_field_date(notif)
             ev = DeadlineEvidence(
                 deadline_type=DeadlineType.NOTIFICATION,
                 raw_value=raw_val,
@@ -301,18 +343,19 @@ class DeadlineEvidenceExtractor:
                 confidence=1.0,
                 provenance=DeadlineProvenance.DATABASE_RECORD,
                 is_present=True,
-                precision=DeadlinePrecision.EXACT_TIME if isinstance(notif, datetime) else DeadlinePrecision.DATE_ONLY,
-                timezone_indicator=TimezoneIndicator.EXPLICIT_UTC if isinstance(notif, datetime) and notif.tzinfo else TimezoneIndicator.UNSPECIFIED,
-                parsed_year=notif.year if hasattr(notif, "year") else None,
-                parsed_month=notif.month if hasattr(notif, "month") else None,
-                parsed_day=notif.day if hasattr(notif, "day") else None,
+                precision=prec,
+                timezone_indicator=tz_ind,
+                parsed_year=yr,
+                parsed_month=mo,
+                parsed_day=dy,
+                parsed_time_str=tm,
             )
             collection.add(ev)
 
         # 3. Camera-Ready Deadline
         cam = _get("camera_ready_deadline")
         if cam is not None:
-            raw_val = cam.isoformat() if isinstance(cam, (datetime, date)) else str(cam)
+            raw_val, yr, mo, dy, tm, prec, tz_ind = _parse_field_date(cam)
             ev = DeadlineEvidence(
                 deadline_type=DeadlineType.CAMERA_READY,
                 raw_value=raw_val,
@@ -323,18 +366,19 @@ class DeadlineEvidenceExtractor:
                 confidence=1.0,
                 provenance=DeadlineProvenance.DATABASE_RECORD,
                 is_present=True,
-                precision=DeadlinePrecision.EXACT_TIME if isinstance(cam, datetime) else DeadlinePrecision.DATE_ONLY,
-                timezone_indicator=TimezoneIndicator.EXPLICIT_UTC if isinstance(cam, datetime) and cam.tzinfo else TimezoneIndicator.UNSPECIFIED,
-                parsed_year=cam.year if hasattr(cam, "year") else None,
-                parsed_month=cam.month if hasattr(cam, "month") else None,
-                parsed_day=cam.day if hasattr(cam, "day") else None,
+                precision=prec,
+                timezone_indicator=tz_ind,
+                parsed_year=yr,
+                parsed_month=mo,
+                parsed_day=dy,
+                parsed_time_str=tm,
             )
             collection.add(ev)
 
         # 4. Event Start Date
         ev_start = _get("event_start_date")
         if ev_start is not None:
-            raw_val = ev_start.isoformat() if isinstance(ev_start, (datetime, date)) else str(ev_start)
+            raw_val, yr, mo, dy, tm, prec, tz_ind = _parse_field_date(ev_start)
             collection.add(
                 DeadlineEvidence(
                     deadline_type=DeadlineType.EVENT_START,
@@ -346,17 +390,19 @@ class DeadlineEvidenceExtractor:
                     confidence=1.0,
                     provenance=DeadlineProvenance.DATABASE_RECORD,
                     is_present=True,
-                    precision=DeadlinePrecision.DATE_ONLY,
-                    parsed_year=ev_start.year if hasattr(ev_start, "year") else None,
-                    parsed_month=ev_start.month if hasattr(ev_start, "month") else None,
-                    parsed_day=ev_start.day if hasattr(ev_start, "day") else None,
+                    precision=prec,
+                    timezone_indicator=tz_ind,
+                    parsed_year=yr,
+                    parsed_month=mo,
+                    parsed_day=dy,
+                    parsed_time_str=tm,
                 )
             )
 
         # 5. Event End Date
         ev_end = _get("event_end_date")
         if ev_end is not None:
-            raw_val = ev_end.isoformat() if isinstance(ev_end, (datetime, date)) else str(ev_end)
+            raw_val, yr, mo, dy, tm, prec, tz_ind = _parse_field_date(ev_end)
             collection.add(
                 DeadlineEvidence(
                     deadline_type=DeadlineType.EVENT_END,
@@ -368,10 +414,12 @@ class DeadlineEvidenceExtractor:
                     confidence=1.0,
                     provenance=DeadlineProvenance.DATABASE_RECORD,
                     is_present=True,
-                    precision=DeadlinePrecision.DATE_ONLY,
-                    parsed_year=ev_end.year if hasattr(ev_end, "year") else None,
-                    parsed_month=ev_end.month if hasattr(ev_end, "month") else None,
-                    parsed_day=ev_end.day if hasattr(ev_end, "day") else None,
+                    precision=prec,
+                    timezone_indicator=tz_ind,
+                    parsed_year=yr,
+                    parsed_month=mo,
+                    parsed_day=dy,
+                    parsed_time_str=tm,
                 )
             )
 

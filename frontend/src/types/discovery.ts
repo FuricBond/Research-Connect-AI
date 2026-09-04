@@ -3,7 +3,7 @@
  *
  * Fully aligned with backend Pydantic models in `backend/app/schemas/discovery.py`.
  */
-import type { OpportunityRead, RiskExplanation } from "./opportunity";
+import type { OpportunityDeadline, OpportunityRead, RiskExplanation } from "./opportunity";
 
 export type RankingMode = "general" | "research_similarity" | "research_opportunity";
 
@@ -218,6 +218,7 @@ export interface OpportunityMatchItem {
   retrieval_sources: string[];
   explanation?: ExplanationSchema | null;
   risk_explanation?: RiskExplanation | null;
+  deadline_explanation?: OpportunityDeadline | null;
 }
 
 export interface OpportunityMatchResponse {

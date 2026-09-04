@@ -1,0 +1,186 @@
+{
+  "metadata": {
+    "phase": "2.7G",
+    "timestamp": "2026-09-04T15:04:10.734268+00:00",
+    "framework_version": "ResearchConnect AI 2.7",
+    "python_version": "3.13.5"
+  },
+  "dataset": {
+    "total_fixtures": 43,
+    "category_distribution": {
+      "BASIC_DATES": 7,
+      "ACADEMIC_CONVENTIONS": 5,
+      "TIMEZONE_DST": 7,
+      "INVALID_AMBIGUOUS": 8,
+      "MULTI_MILESTONE": 5,
+      "REVISIONS": 3,
+      "SOURCE_CONFLICTS": 3,
+      "SAFETY_INVARIANTS": 3,
+      "REAL_WORLD_FIXTURES": 2
+    }
+  },
+  "extraction": {
+    "total_evaluated": 43,
+    "deadline_type_accuracy": 1.0,
+    "presence_detection_accuracy": 1.0,
+    "precision_accuracy": 1.0,
+    "provenance_accuracy": 1.0
+  },
+  "normalization": {
+    "aoe_conversion_accuracy": 1.0,
+    "invalid_timezone_safety_rate": 1.0,
+    "ambiguous_date_safety_rate": 1.0,
+    "non_date_placeholder_safety_rate": 1.0
+  },
+  "timezone": {
+    "iana_timezone_accuracy": 1.0,
+    "dst_transition_accuracy": 1.0,
+    "fractional_offset_accuracy": 1.0,
+    "negative_offset_accuracy": 1.0
+  },
+  "intelligence": {
+    "total_evaluated": 7,
+    "temporal_status_accuracy": 1.0,
+    "urgency_tier_accuracy": 1.0,
+    "score_bounds_adherence": 1.0,
+    "due_today_detection_accuracy": 1.0,
+    "expired_accuracy": 1.0
+  },
+  "multi_milestone": {
+    "total_evaluated": 5,
+    "primary_milestone_precedence_accuracy": 1.0,
+    "milestone_isolation_accuracy": 1.0,
+    "event_start_separation_rate": 1.0,
+    "notification_camera_ready_separation_rate": 1.0
+  },
+  "revision_detection": {
+    "total_evaluated": 3,
+    "revision_classification_accuracy": 1.0,
+    "extension_detection_rate": 1.0,
+    "moved_earlier_detection_rate": 1.0,
+    "equivalent_detection_rate": 1.0
+  },
+  "conflict_resolution": {
+    "total_evaluated": 3,
+    "conflict_state_accuracy": 1.0,
+    "equal_authority_dispute_preservation": 1.0
+  },
+  "source_precedence": {
+    "authority_supersession_accuracy": 1.0,
+    "official_cfp_dominance": 1.0
+  },
+  "explainability": {
+    "deterministic_synthesis_rate": 1.0,
+    "zero_llm_runtime_calls_verified": true,
+    "extension_narrative_truthfulness": 1.0,
+    "conflict_narrative_truthfulness": 1.0,
+    "countdown_narrative_accuracy": 1.0
+  },
+  "api_parity": {
+    "schema_lossless_serialization_rate": 1.0,
+    "zero_null_ambiguity_rate": 1.0,
+    "milestone_dictionary_roundtrip_integrity": 1.0
+  },
+  "frontend_parity": {
+    "zero_client_side_urgency_math_verified": true,
+    "zero_client_side_timezone_conversion_verified": true,
+    "semantic_status_parity": 1.0
+  },
+  "safety_invariants": {
+    "all_invariants_passed": true,
+    "total_invariants": 20,
+    "passed_invariants": 20,
+    "details": {
+      "invariant_01_missing_not_expired": true,
+      "invariant_02_unknown_tz_not_utc": true,
+      "invariant_03_ambiguous_date_not_fabricated": true,
+      "invariant_04_invalid_tz_no_silent_fallback": true,
+      "invariant_05_date_only_submission_uses_aoe": true,
+      "invariant_06_non_submission_date_only_not_aoe": true,
+      "invariant_07_event_dates_never_substituted": true,
+      "invariant_08_notification_not_submission": true,
+      "invariant_09_camera_ready_not_submission": true,
+      "invariant_10_registration_not_submission": true,
+      "invariant_11_extension_is_revision_not_new_milestone": true,
+      "invariant_12_missing_observation_not_retraction": true,
+      "invariant_13_equal_authority_conflict_preserved": true,
+      "invariant_14_higher_authority_supersedes": true,
+      "invariant_15_risk_does_not_influence_urgency": true,
+      "invariant_16_urgency_does_not_influence_risk": true,
+      "invariant_17_urgency_respects_relevance_dominance": true,
+      "invariant_18_frontend_is_presentation_only": true,
+      "invariant_19_strict_determinism": true,
+      "invariant_20_backward_compatibility_preserved": true
+    }
+  },
+  "determinism": {
+    "total_runs": 100,
+    "identical_runs": 100,
+    "determinism_percentage": 100.0,
+    "is_fully_deterministic": true
+  },
+  "performance": {
+    "N=10": {
+      "batch_size": 10,
+      "total_time_ms": 4.323,
+      "p50_latency_ms": 0.4358,
+      "p95_latency_ms": 0.4564,
+      "avg_per_candidate_ms": 0.4323
+    },
+    "N=50": {
+      "batch_size": 50,
+      "total_time_ms": 21.263,
+      "p50_latency_ms": 0.4106,
+      "p95_latency_ms": 0.4756,
+      "avg_per_candidate_ms": 0.4253
+    },
+    "N=100": {
+      "batch_size": 100,
+      "total_time_ms": 42.957,
+      "p50_latency_ms": 0.419,
+      "p95_latency_ms": 0.4728,
+      "avg_per_candidate_ms": 0.4296
+    },
+    "N=200": {
+      "batch_size": 200,
+      "total_time_ms": 83.525,
+      "p50_latency_ms": 0.4115,
+      "p95_latency_ms": 0.4545,
+      "avg_per_candidate_ms": 0.4176
+    },
+    "N=1000": {
+      "batch_size": 1000,
+      "total_time_ms": 454.614,
+      "p50_latency_ms": 0.4286,
+      "p95_latency_ms": 0.6356,
+      "avg_per_candidate_ms": 0.4546
+    }
+  },
+  "database_safety": {
+    "runtime_db_queries_per_candidate": 0,
+    "runtime_network_requests": 0,
+    "n_plus_one_vulnerabilities": 0,
+    "in_memory_evaluation_verified": true
+  },
+  "regression": {
+    "all_deadline_suites_passing": true,
+    "total_deadline_unit_tests": 133,
+    "ranking_signals_invariant_preserved": true,
+    "phase2_5_relevance_dominance_preserved": true,
+    "phase2_6_risk_scoring_preserved": true
+  },
+  "real_world_fixture_validation": {
+    "wikicfp_detail_fixture_found": true,
+    "wikicfp_list_fixture_found": true,
+    "detail_milestones_extracted": 4,
+    "list_entries_extracted": 5,
+    "real_world_aoe_verified": true,
+    "real_world_multi_milestone_verified": true
+  },
+  "limitations": [
+    "Synthetic and curated fixtures establish strict deterministic correctness, but do not provide an empirical accuracy distribution across uncurated, live web scrapers.",
+    "Scraped pages without explicit timezone indicators rely on standard academic conventions (AoE for submissions, local context for event dates).",
+    "Complex unstructured free-text CFPs with contradictory embedded sentences may require future token-level LLM extraction (deferred to later offline indexing)."
+  ],
+  "production_recommendation": "RETAIN_CURRENT_CONFIGURATION"
+}

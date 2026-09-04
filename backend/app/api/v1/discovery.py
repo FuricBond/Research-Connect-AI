@@ -52,8 +52,10 @@ from app.schemas.discovery import (
     SimilarResearchResponse,
     TopicEvidenceSchema,
 )
+from app.ranking.deadline import deadline_explainability_service
 from app.ranking.risk import assess_opportunity_risk, risk_explainability_service
 from app.search.query_intelligence import query_intelligence_service
+from app.schemas.deadline import OpportunityDeadlineSchema
 from app.schemas.opportunity import (
     OpportunityListItem,
     OpportunityRead,
@@ -684,6 +686,7 @@ def match_opportunities_for_research_route(
 
         explanations_map: dict[uuid.UUID, ResultExplanation] = {}
         risk_explanations_map: dict[uuid.UUID, RiskExplanationSchema] = {}
+        deadline_explanations_map: dict[uuid.UUID, OpportunityDeadlineSchema] = {}
         if explain and sliced:
             explained_batch = result_explainer.explain_batch(
                 sliced,
@@ -698,6 +701,12 @@ def match_opportunities_for_research_route(
                     assessment = assess_opportunity_risk(cand.candidate)
                     risk_expl = risk_explainability_service.explain(assessment, opportunity=cand.candidate)
                     risk_explanations_map[cand.entity_id] = RiskExplanationSchema.model_validate(risk_expl.to_dict())
+
+            # Phase 2.7F: Generate Deterministic Deadline Explanations
+            for cand in sliced:
+                if cand.candidate is not None:
+                    deadline_expl = deadline_explainability_service.explain_opportunity_from_model(cand.candidate)
+                    deadline_explanations_map[cand.entity_id] = deadline_expl
 
         items: list[OpportunityMatchItem] = []
         for cand in sliced:
@@ -718,11 +727,15 @@ def match_opportunities_for_research_route(
 
             expl_schema = _to_explanation_schema(explanations_map.get(cand.entity_id))
             risk_expl_schema = risk_explanations_map.get(cand.entity_id)
+            deadline_expl_schema = deadline_explanations_map.get(cand.entity_id)
 
             if risk_expl_schema is not None:
                 opp_read.risk_level = risk_expl_schema.risk_level
                 opp_read.risk_confidence = risk_expl_schema.risk_confidence
                 opp_read.risk_explanation = risk_expl_schema
+
+            if deadline_expl_schema is not None:
+                opp_read.deadline_intelligence = deadline_expl_schema
 
             items.append(
                 OpportunityMatchItem(
@@ -740,6 +753,7 @@ def match_opportunities_for_research_route(
                     retrieval_sources=cand.retrieval_sources,
                     explanation=expl_schema,
                     risk_explanation=risk_expl_schema,
+                    deadline_explanation=deadline_expl_schema,
                     diversity_adjustment=cand.diversity_adjustment,
                     novelty_score=cand.novelty_score,
                     redundancy_score=cand.redundancy_score,

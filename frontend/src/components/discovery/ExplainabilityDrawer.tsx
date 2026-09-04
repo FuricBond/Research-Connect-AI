@@ -2,11 +2,15 @@ import React, { useEffect, useState } from "react";
 import {
   AlertCircle,
   AlertTriangle,
+  ArrowUpRight,
   Award,
+  Calendar,
   CheckCircle2,
+  Clock,
   Cpu,
   Database,
   HelpCircle,
+  History,
   Info,
   Scale,
   ShieldAlert,
@@ -17,7 +21,8 @@ import {
   X,
 } from "lucide-react";
 import type { ExplanationSchema } from "../../types/discovery";
-import type { RiskExplanation } from "../../types/opportunity";
+import type { DeadlineObservation, OpportunityDeadline, RiskExplanation } from "../../types/opportunity";
+import { DeadlineTimeline } from "./DeadlineTimeline";
 
 interface ExplainabilityDrawerProps {
   isOpen: boolean;
@@ -26,7 +31,8 @@ interface ExplainabilityDrawerProps {
   entityTitle: string;
   entityType?: "research_work" | "opportunity";
   riskExplanation?: RiskExplanation | null;
-  initialTab?: "match" | "risk";
+  deadlineExplanation?: OpportunityDeadline | null;
+  initialTab?: "match" | "risk" | "deadline";
 }
 
 const SIGNAL_LABELS: Record<string, string> = {
@@ -52,20 +58,23 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
   entityTitle,
   entityType = "research_work",
   riskExplanation,
+  deadlineExplanation,
   initialTab = "match",
 }) => {
-  const [activeTab, setActiveTab] = useState<"match" | "risk">("match");
+  const [activeTab, setActiveTab] = useState<"match" | "risk" | "deadline">("match");
 
   // Sync initial tab when drawer opens
   useEffect(() => {
     if (isOpen) {
-      if (initialTab === "risk" || (!explanation && riskExplanation)) {
+      if (initialTab === "deadline" && deadlineExplanation) {
+        setActiveTab("deadline");
+      } else if (initialTab === "risk" || (!explanation && riskExplanation)) {
         setActiveTab("risk");
       } else {
         setActiveTab("match");
       }
     }
-  }, [isOpen, initialTab, explanation, riskExplanation]);
+  }, [isOpen, initialTab, explanation, riskExplanation, deadlineExplanation]);
 
   // Handle ESC key to close drawer
   useEffect(() => {
@@ -88,7 +97,8 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
   const de = explanation?.diversity_explanation;
 
   const hasRisk = Boolean(riskExplanation);
-  const isOpp = entityType === "opportunity" || hasRisk;
+  const hasDeadline = Boolean(deadlineExplanation);
+  const isOpp = entityType === "opportunity" || hasRisk || hasDeadline;
 
   return (
     <div className="drawer-overlay" onClick={onClose} role="dialog" aria-modal="true">
@@ -103,7 +113,9 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
             <div className="drawer-eyebrow">
               <Sparkles size={14} />
               <span>
-                {activeTab === "risk"
+                {activeTab === "deadline"
+                  ? "Academic Deadlines & Milestone Intelligence (Phase 2.7F)"
+                  : activeTab === "risk"
                   ? "Trust & Publication Integrity (Phase 2.6F)"
                   : "Ranking Explainability & Evidence (Phase 2.5F)"}
               </span>
@@ -122,38 +134,75 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
           </button>
         </div>
 
-        {/* Tab Navigation (for opportunities with trust/risk data) */}
-        {isOpp && hasRisk && (
+        {/* Tab Navigation (for opportunities with trust/risk/deadline data) */}
+        {isOpp && (hasRisk || hasDeadline) && (
           <div className="drawer-tabs-bar" role="tablist">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === "match"}
-              className={`drawer-tab-btn ${activeTab === "match" ? "active" : ""}`}
-              onClick={() => setActiveTab("match")}
-            >
-              <Sparkles size={14} />
-              <span>Matching Relevance</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeTab === "risk"}
-              className={`drawer-tab-btn ${activeTab === "risk" ? "active" : ""}`}
-              onClick={() => setActiveTab("risk")}
-            >
-              {riskExplanation?.risk_level === "HIGH_RISK" ? (
-                <ShieldAlert size={14} className="tab-icon-high" />
-              ) : riskExplanation?.risk_level === "MODERATE_RISK" ? (
-                <AlertCircle size={14} className="tab-icon-med" />
-              ) : (
-                <ShieldCheck size={14} className="tab-icon-low" />
-              )}
-              <span>Trust & Publication Safety</span>
-              <span className={`drawer-tab-badge ${riskExplanation?.risk_level.toLowerCase()}`}>
-                {riskExplanation?.risk_level.replace(/_/g, " ")}
-              </span>
-            </button>
+            {explanation && (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "match"}
+                className={`drawer-tab-btn ${activeTab === "match" ? "active" : ""}`}
+                onClick={() => setActiveTab("match")}
+              >
+                <Sparkles size={14} />
+                <span>Matching Relevance</span>
+              </button>
+            )}
+            {hasRisk && (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "risk"}
+                className={`drawer-tab-btn ${activeTab === "risk" ? "active" : ""}`}
+                onClick={() => setActiveTab("risk")}
+              >
+                {riskExplanation?.risk_level === "HIGH_RISK" ? (
+                  <ShieldAlert size={14} className="tab-icon-high" />
+                ) : riskExplanation?.risk_level === "MODERATE_RISK" ? (
+                  <AlertCircle size={14} className="tab-icon-med" />
+                ) : (
+                  <ShieldCheck size={14} className="tab-icon-low" />
+                )}
+                <span>Trust & Safety</span>
+                <span className={`drawer-tab-badge ${riskExplanation?.risk_level.toLowerCase()}`}>
+                  {riskExplanation?.risk_level.replace(/_/g, " ")}
+                </span>
+              </button>
+            )}
+            {hasDeadline && (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "deadline"}
+                className={`drawer-tab-btn ${activeTab === "deadline" ? "active" : ""}`}
+                onClick={() => setActiveTab("deadline")}
+              >
+                <Calendar size={14} />
+                <span>Deadline Intelligence</span>
+                <span
+                  className={`drawer-tab-badge deadline ${
+                    deadlineExplanation?.has_extension
+                      ? "extended"
+                      : deadlineExplanation?.has_conflict
+                      ? "conflict"
+                      : (
+                          deadlineExplanation?.overall_urgency_tier ||
+                          deadlineExplanation?.primary_view?.canonical_assessment?.urgency_tier ||
+                          "unknown"
+                        ).toLowerCase()
+                  }`}
+                >
+                  {deadlineExplanation?.has_extension
+                    ? "EXTENDED"
+                    : deadlineExplanation?.has_conflict
+                    ? "DISPUTED"
+                    : deadlineExplanation?.overall_urgency_tier ||
+                      deadlineExplanation?.primary_view?.canonical_assessment?.urgency_tier ||
+                      "SCHEDULE"}
+                </span>
+              </button>
+            )}
           </div>
         )}
 
@@ -746,6 +795,275 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                   </div>
                 </section>
               )}
+            </div>
+          )}
+
+          {/* TAB 3: DEADLINE INTELLIGENCE & MILESTONES (Phase 2.7F) */}
+          {(activeTab === "deadline" || (!explanation && !riskExplanation)) && deadlineExplanation && (
+            <div className="deadline-tab-content">
+              {/* Metric Overview Card */}
+              <div className="drawer-metric-card deadline-metric-card">
+                <div className="metric-item">
+                  <span className="metric-label">Primary Milestone</span>
+                  <span className="metric-value-sm highlight">
+                    {deadlineExplanation.primary_milestone.replace(/_/g, " ")}
+                  </span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">Temporal Status</span>
+                  <span className={`metric-value-sm status-tag ${deadlineExplanation.primary_view?.canonical_assessment?.status.toLowerCase() || "unknown"}`}>
+                    {deadlineExplanation.primary_view?.canonical_assessment?.status.replace(/_/g, " ") || "UNKNOWN"}
+                  </span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">Urgency Tier</span>
+                  <span
+                    className={`metric-value-sm urgency-tag ${(
+                      deadlineExplanation.overall_urgency_tier ||
+                      deadlineExplanation.primary_view?.canonical_assessment?.urgency_tier ||
+                      "unknown"
+                    ).toLowerCase()}`}
+                  >
+                    {deadlineExplanation.overall_urgency_tier ||
+                      deadlineExplanation.primary_view?.canonical_assessment?.urgency_tier ||
+                      "UNKNOWN"}{" "}
+                    (
+                    {(
+                      (typeof deadlineExplanation.overall_urgency_score === "number"
+                        ? deadlineExplanation.overall_urgency_score
+                        : deadlineExplanation.primary_view?.canonical_assessment?.urgency_score || 0) * 100
+                    ).toFixed(0)}
+                    %)
+                  </span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">Remaining Time</span>
+                  <span className="metric-value-sm">
+                    {deadlineExplanation.primary_view?.canonical_assessment?.days_remaining !== null &&
+                    deadlineExplanation.primary_view?.canonical_assessment?.days_remaining !== undefined
+                      ? `${deadlineExplanation.primary_view.canonical_assessment.days_remaining.toFixed(1)} days`
+                      : deadlineExplanation.primary_view?.canonical_assessment?.hours_remaining !== null &&
+                        deadlineExplanation.primary_view?.canonical_assessment?.hours_remaining !== undefined
+                      ? `${deadlineExplanation.primary_view.canonical_assessment.hours_remaining.toFixed(1)} hours`
+                      : "Elapsed / N/A"}
+                  </span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">Confidence</span>
+                  <span className="metric-value-sm">
+                    {((deadlineExplanation.primary_view?.confidence || 0) * 100).toFixed(0)}% (
+                    {(deadlineExplanation.primary_view?.confidence || 0) >= 0.85
+                      ? "High"
+                      : (deadlineExplanation.primary_view?.confidence || 0) >= 0.50
+                      ? "Moderate"
+                      : "Low"}
+                    )
+                  </span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">Conflict / Extension</span>
+                  <span className="metric-value-sm">
+                    {deadlineExplanation.has_extension ? (
+                      <span className="text-extension">Extended</span>
+                    ) : deadlineExplanation.has_conflict ? (
+                      <span className="text-conflict">Disputed</span>
+                    ) : (
+                      "Resolved"
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Natural Language Deterministic Explanation */}
+              <section className="drawer-section">
+                <h3 className="section-title">
+                  <HelpCircle size={16} />
+                  <span>Deterministic Assessment Synthesis</span>
+                </h3>
+                <p className="explanation-summary deadline-summary-text">
+                  {deadlineExplanation.summary ||
+                    deadlineExplanation.explanation ||
+                    deadlineExplanation.primary_view?.explanation ||
+                    "No assessment explanation available."}
+                </p>
+              </section>
+
+              {/* Primary Milestone Focal Card */}
+              {deadlineExplanation.primary_view && (
+                <section className="drawer-section">
+                  <h3 className="section-title">
+                    <Calendar size={16} />
+                    <span>Primary Deadline Details</span>
+                  </h3>
+                  <div className="evidence-card">
+                    <div className="evidence-grid">
+                      <div className="evidence-stat">
+                        <span className="evidence-stat-label">Localized Deadline</span>
+                        <span className="evidence-stat-value">
+                          {deadlineExplanation.primary_view.canonical_deadline?.local_date || "Not specified"}{" "}
+                          {deadlineExplanation.primary_view.canonical_deadline?.timezone_name || ""}
+                          {deadlineExplanation.primary_view.canonical_deadline?.timezone_name === "AoE" &&
+                            " (Anywhere on Earth)"}
+                        </span>
+                      </div>
+                      <div className="evidence-stat">
+                        <span className="evidence-stat-label">UTC Normalized Cutoff</span>
+                        <span className="evidence-stat-value">
+                          {deadlineExplanation.primary_view.canonical_deadline?.normalized_utc
+                            ? new Date(
+                                deadlineExplanation.primary_view.canonical_deadline.normalized_utc
+                              ).toUTCString()
+                            : "None"}
+                        </span>
+                      </div>
+                      <div className="evidence-stat">
+                        <span className="evidence-stat-label">Selected Source</span>
+                        <span className="evidence-stat-value">
+                          {deadlineExplanation.primary_view.selected_source || "Unspecified"}
+                        </span>
+                      </div>
+                      <div className="evidence-stat">
+                        <span className="evidence-stat-label">Reference Time</span>
+                        <span className="evidence-stat-value">
+                          {deadlineExplanation.reference_time}
+                        </span>
+                      </div>
+                    </div>
+
+                    {deadlineExplanation.primary_view.source_selection_reason && (
+                      <p className="topic-evidence-desc" style={{ marginTop: "4px" }}>
+                        <strong>Source Selection:</strong> {deadlineExplanation.primary_view.source_selection_reason}
+                      </p>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* Extension Card (Phase 2.7E) */}
+              {(deadlineExplanation.has_extension ||
+                deadlineExplanation.primary_view?.latest_revision?.classification === "EXTENDED") && (
+                <section className="drawer-section">
+                  <h3 className="section-title extension-header">
+                    <ArrowUpRight size={16} />
+                    <span>Deadline Extension Information</span>
+                  </h3>
+                  <div className="evidence-card extension-evidence-card">
+                    <div className="adjustments-row" style={{ borderTop: "none", paddingTop: 0 }}>
+                      <span>Classification: <strong>EXTENDED</strong></span>
+                      {deadlineExplanation.primary_view?.latest_revision?.days_diff !== null &&
+                        deadlineExplanation.primary_view?.latest_revision?.days_diff !== undefined && (
+                          <span className="adjustment-badge positive">
+                            Shift: +{Math.round(deadlineExplanation.primary_view.latest_revision.days_diff)} days
+                          </span>
+                        )}
+                    </div>
+                    <div className="evidence-grid" style={{ marginTop: "8px" }}>
+                      <div className="evidence-stat">
+                        <span className="evidence-stat-label">Previous Deadline</span>
+                        <span className="evidence-stat-value">
+                          {(
+                            deadlineExplanation.primary_view?.latest_revision?.previous_deadline ||
+                            deadlineExplanation.primary_view?.latest_revision?.previous_observation
+                              ?.normalized_deadline
+                          )?.local_date || "Unknown"}{" "}
+                          {(
+                            deadlineExplanation.primary_view?.latest_revision?.previous_deadline ||
+                            deadlineExplanation.primary_view?.latest_revision?.previous_observation
+                              ?.normalized_deadline
+                          )?.timezone_name || ""}
+                        </span>
+                      </div>
+                      <div className="evidence-stat">
+                        <span className="evidence-stat-label">Extended Current Deadline</span>
+                        <span className="evidence-stat-value">
+                          {(
+                            deadlineExplanation.primary_view?.latest_revision?.current_deadline ||
+                            deadlineExplanation.primary_view?.latest_revision?.current_observation
+                              ?.normalized_deadline
+                          )?.local_date || "Unknown"}{" "}
+                          {(
+                            deadlineExplanation.primary_view?.latest_revision?.current_deadline ||
+                            deadlineExplanation.primary_view?.latest_revision?.current_observation
+                              ?.normalized_deadline
+                          )?.timezone_name || ""}
+                        </span>
+                      </div>
+                    </div>
+                    {deadlineExplanation.primary_view?.extension_reason && (
+                      <p className="topic-evidence-desc" style={{ marginTop: "6px" }}>
+                        <strong>Extension Note:</strong> {deadlineExplanation.primary_view.extension_reason}
+                      </p>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* Multi-Source Conflict / Supersession Card (Phase 2.7E) */}
+              {(deadlineExplanation.has_conflict ||
+                deadlineExplanation.primary_view?.conflict_state === "SOURCE_CONFLICT" ||
+                deadlineExplanation.primary_view?.conflict_state === "SUPERSEDED") && (
+                <section className="drawer-section">
+                  <h3 className="section-title conflict-header">
+                    <AlertTriangle size={16} />
+                    <span>Source Conflict & Precedence Attribution</span>
+                  </h3>
+                  <div className="evidence-card conflict-evidence-card">
+                    <div className="adjustments-row" style={{ borderTop: "none", paddingTop: 0 }}>
+                      <span>
+                        Resolution State:{" "}
+                        <strong>
+                          {deadlineExplanation.primary_view?.conflict_state.replace(/_/g, " ")}
+                        </strong>
+                      </span>
+                      <span>
+                        Authoritative Source:{" "}
+                        <strong>{deadlineExplanation.primary_view?.selected_source || "None selected"}</strong>
+                      </span>
+                    </div>
+
+                    {deadlineExplanation.primary_view?.conflict_reason && (
+                      <p className="topic-evidence-desc" style={{ marginTop: "6px" }}>
+                        <strong>Conflict Analysis:</strong> {deadlineExplanation.primary_view.conflict_reason}
+                      </p>
+                    )}
+
+                    {(deadlineExplanation.primary_view?.all_observations?.length || 0) > 0 && (
+                      <div style={{ marginTop: "8px" }}>
+                        <span className="evidence-stat-label">Extracted Source Observations:</span>
+                        <div className="observations-list" style={{ marginTop: "4px" }}>
+                          {(
+                            deadlineExplanation.primary_view?.all_observations ||
+                            deadlineExplanation.primary_view?.observations ||
+                            []
+                          ).map((obs: DeadlineObservation, idx: number) => (
+                            <div key={idx} className="observation-item-chip">
+                              <span className="obs-source">
+                                {obs.source} ({obs.authority_tier})
+                              </span>
+                              <span className="obs-raw">"{obs.raw_value || obs.normalized_deadline?.local_date}"</span>
+                              <span className="obs-parsed">
+                                {obs.normalized_deadline?.local_date} {obs.normalized_deadline?.timezone_name}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
+              {/* Multi-Milestone Publication Timeline (Phase 2.7F) */}
+              <section className="drawer-section">
+                <h3 className="section-title">
+                  <Calendar size={16} />
+                  <span>Academic Publication Timeline</span>
+                </h3>
+                <DeadlineTimeline
+                  milestoneViews={deadlineExplanation.milestone_views}
+                  primaryMilestone={deadlineExplanation.primary_milestone}
+                />
+              </section>
             </div>
           )}
         </div>

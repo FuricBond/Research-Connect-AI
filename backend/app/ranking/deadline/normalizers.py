@@ -244,6 +244,15 @@ class DeadlineNormalizer:
     """
 
     @classmethod
+    def normalize_deadline(
+        cls,
+        evidence: DeadlineEvidence,
+        policy: DefaultTimezonePolicy = DefaultTimezonePolicy.INFERRED_AOE,
+    ) -> NormalizedDeadline:
+        """Alias for normalize_evidence."""
+        return cls.normalize_evidence(evidence, policy=policy)
+
+    @classmethod
     def normalize_evidence(
         cls,
         evidence: DeadlineEvidence,

@@ -15,6 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.deadline import OpportunityDeadlineSchema
 from app.schemas.opportunity import OpportunityListItem, OpportunityRead, RiskExplanationSchema
 
 
@@ -320,6 +321,7 @@ class OpportunityMatchItem(BaseModel):
     retrieval_sources: list[str] = Field(default_factory=list)
     explanation: ExplanationSchema | None = None
     risk_explanation: RiskExplanationSchema | None = None
+    deadline_explanation: OpportunityDeadlineSchema | None = None
     diversity_adjustment: float | None = None
     novelty_score: float | None = None
     redundancy_score: float | None = None
