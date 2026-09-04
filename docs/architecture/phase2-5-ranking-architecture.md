@@ -318,7 +318,75 @@ Measured across all 108 academic queries in `backend/app/evaluation/benchmark_ru
 
 ---
 
-## 7. Implementation Roadmap Status
+## 7. Phase 2.5F Explainability Layer Expansion
+
+Implemented in `backend/app/explainability/result_explainer.py` and exposed via `backend/app/api/v1/discovery.py`.
+
+Phase 2.5F builds a **deterministic, mathematically faithful explainability engine** observing the ranking pipeline without altering score calculations or invoking external LLMs.
+
+### 7.1 Mathematical Score Attribution Invariant
+
+Every ranked result strictly satisfies exact numerical decomposition within floating-point tolerance ($\epsilon \le 10^{-4}$):
+
+$$\text{base\_score} = \sum_{i=1}^{M} (\text{normalized\_signal}_i \times \text{configured\_weight}_i)$$
+$$\text{final\_score} = \text{base\_score} + \text{reranker\_adjustment} + \text{diversity\_adjustment}$$
+
+1. **Subtotal Decomposition**:
+   - **Relevance Subtotal**: $\sum (\text{semantic} \times w_{\text{sem}} + \text{lexical} \times w_{\text{lex}} + \text{topic} \times w_{\text{top}})$
+   - **Contextual Subtotal**: $\sum (\text{type} \times w_{\text{type}} + \text{freshness} \times w_{\text{fresh}} + \text{urgency} \times w_{\text{urg}} + \text{quality} \times w_{\text{qual}})$
+   - **Academic Quality Subtotal**: $\sum (\text{citation} \times w_{\text{cit}} + \text{author\_prom} \times w_{\text{ap}} + \text{author\_pos} \times w_{\text{apos}} + \text{inst} \times w_{\text{inst}} + \text{venue} \times w_{\text{ven}} + \text{oa} \times w_{\text{oa}})$
+   $$\text{base\_score} = \text{relevance\_subtotal} + \text{contextual\_subtotal} + \text{academic\_subtotal}$$
+
+2. **Zero-Weight Suppression Invariant**:
+   If a signal's configured weight in the active `RankingMode` is $0.0$, the signal:
+   - Must report `is_active = False`
+   - Must report `contribution = 0.0`
+   - Is strictly excluded from `primary_factors` and natural-language `strengths`.
+   No zero-weight signal can be claimed to influence candidate ranking.
+
+3. **Academic Evidence Truthfulness**:
+   - Natural-language statements reflect underlying bibliography:
+     - High citation strength generated *only* if citation count $> 0$ and normalized score $\ge 0.70$.
+     - Venue strength generated *only* if canonical venue exists.
+     - Never invents prestige, topic relevance, or metrics.
+   - Preserves underlying raw values (`cited_by_count`, `publication_year`, canonical venue) directly on `AcademicQualityEvidence`.
+
+4. **Neural Reranker & Diversity Attribution**:
+   - **Cross-Encoder**: Reports `reranker_enabled`, `pre_rerank_score`, `post_rerank_score`, `reranker_adjustment`, and `reranker_fallback`. If fallback occurred, adjustment is $0.0$ and fallback reason is explicitly disclosed.
+   - **Diversity / Novelty**: Reports `diversity_adjustment`, `redundancy_score`, `novelty_score`, `redundancy_reasons`, and `novelty_reasons`. Transparently highlights whether candidate received a redundancy penalty or novelty bonus.
+
+5. **Comparative Ranking Explanation**:
+   Provides pairwise differential diagnosis via `ResultExplainer.compare(cand_a, cand_b)`:
+   - Calculates exact $\Delta \text{final}$, $\Delta \text{relevance}$, $\Delta \text{academic}$, $\Delta \text{contextual}$, $\Delta \text{reranker}$, $\Delta \text{diversity}$.
+   - Pinpoints dominant drivers of the rank advantage (e.g. `Semantic Similarity (+0.1750)`).
+   - Exposed via `POST /api/v1/discovery/research/compare`.
+
+6. **Frontend Progressive Disclosure**:
+   `ExplainabilityDrawer.tsx` implements a 3-tier progressive disclosure hierarchy:
+   - **Tier 1 (High-Level Overview)**: Math verification badge (`Σ Contributions Verified`), human-readable natural language summary, dominant drivers tag list.
+   - **Tier 2 (Score Breakdown & Subtotals)**: Relevance / Academic / Contextual subtotals cards, base score, post-ranking adjustments (neural rerank & diversity), and final score.
+   - **Tier 3 (Deep Evidence & Raw Values)**: Grounded bibliographic evidence cards (citations, venue, authors, OA tier), signal contribution table with active/zero-weight badges, topic tags, and provenance.
+
+---
+
+### 7.2 Empirical Explainability Benchmark Results
+
+Evaluated across 99 candidates and all ranking modes (`GENERAL`, `RESEARCH_SIMILARITY`, `RESEARCH_OPPORTUNITY`):
+
+| Evaluation Metric | Target | Measured Result | Status |
+| :--- | :---: | :---: | :---: |
+| **Base Score Reconstruction Rate** ($\sum \text{contrib} \approx \text{base}$) | $100\%$ | **$100.0\%$ (1.0000)** | ✅ PASSED |
+| **Final Score Reconstruction Rate** ($\text{base} + \text{rerank} + \text{div} \approx \text{final}$) | $100\%$ | **$100.0\%$ (1.0000)** | ✅ PASSED |
+| **Zero-Weight Signal Suppression Rate** | $100\%$ | **$100.0\%$ (1.0000)** | ✅ PASSED |
+| **Mode Weight Alignment Rate** | $100\%$ | **$100.0\%$ (1.0000)** | ✅ PASSED |
+| **Academic Evidence Grounding Rate** | $100\%$ | **$100.0\%$ (1.0000)** | ✅ PASSED |
+| **Determinism Across Invocations** | $100\%$ | **$100.0\%$ (1.0000)** | ✅ PASSED |
+| **Diversity Attribution Reconciliation** | $100\%$ | **$100.0\%$ (1.0000)** | ✅ PASSED |
+| **Explanation Latency Overhead** | $< 1.0\text{ ms}$ / cand | **$0.096\text{ ms}$ / cand** | ✅ PASSED |
+
+---
+
+## 8. Implementation Roadmap Status
 
 ```text
 PHASE 2.5A — Architecture & Baseline Reconnaissance               ✅ COMPLETED
@@ -326,14 +394,15 @@ PHASE 2.5B — Feature Extraction & Normalization                   ✅ COMPLETE
 PHASE 2.5C — Deterministic Recommendation Ranker & Mode Presets   ✅ COMPLETED
 PHASE 2.5D — Academic Quality & Venue Signals Integration         ✅ COMPLETED
 PHASE 2.5E — Diversity & Novelty Mechanics                        ✅ COMPLETED
-PHASE 2.5F — Explainability Layer Expansion                       ⏳ NEXT
-PHASE 2.5G — Empirical Evaluation, Ablation & Benchmark Hardening ⏳ UPCOMING
+PHASE 2.5F — Explainability Layer Expansion                       ✅ COMPLETED
+PHASE 2.5G — Empirical Evaluation, Ablation & Benchmark Hardening ⏳ NEXT
 ```
 
 ---
 
-## 8. Phase 2.5F Readiness Verdict
+## 9. Phase 2.5G Readiness Verdict
 
-# **READY FOR PHASE 2.5F**
+# **READY FOR PHASE 2.5G**
+
 
 

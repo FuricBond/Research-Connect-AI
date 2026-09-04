@@ -65,6 +65,8 @@ class SignalContributionSchema(BaseModel):
     qualitative_assessment: str
     is_available: bool = True
     is_primary_driver: bool = False
+    raw_value: Any | None = None
+    is_active: bool = True
 
 
 class TopicEvidenceSchema(BaseModel):
@@ -87,6 +89,100 @@ class ProvenanceEvidenceSchema(BaseModel):
     description: str = ""
 
 
+class ScoreBreakdownSchema(BaseModel):
+    """Detailed mathematical breakdown of subtotals and score reconciliation."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    base_score: float = 0.0
+    relevance_subtotal: float = 0.0
+    contextual_subtotal: float = 0.0
+    academic_subtotal: float = 0.0
+    reranker_adjustment: float = 0.0
+    diversity_adjustment: float = 0.0
+    final_score: float = 0.0
+    reconciliation_gap: float = 0.0
+    is_reconciled: bool = True
+
+
+class AcademicEvidenceSchema(BaseModel):
+    """Structured bibliographic, researcher prominence, and venue intelligence evidence."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    citation_count: int | None = None
+    citation_impact_score: float = 0.0
+    author_prominence_score: float = 0.0
+    lead_author_citations: int | None = None
+    author_position: str | None = None
+    author_position_score: float = 0.50
+    institution_names: list[str] = Field(default_factory=list)
+    institution_prestige_score: float = 0.0
+    canonical_venue_name: str | None = None
+    venue_prestige_score: float = 0.0
+    is_in_doaj: bool = False
+    oa_status: str | None = None
+    open_access_tier_score: float = 0.35
+    description: str = ""
+
+
+class RerankerExplanationSchema(BaseModel):
+    """Structured attribution for neural cross-encoder reranking."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    enabled: bool = False
+    applied: bool = False
+    weight: float = 0.0
+    pre_rerank_score: float | None = None
+    post_rerank_score: float | None = None
+    adjustment: float = 0.0
+    raw_score: float | None = None
+    fallback: bool = False
+    description: str = ""
+
+
+class DiversityExplanationSchema(BaseModel):
+    """Structured attribution for Phase 2.5E diversity and novelty mechanics."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    enabled: bool = False
+    applied: bool = False
+    adjustment: float = 0.0
+    redundancy_score: float | None = None
+    novelty_score: float | None = None
+    redundancy_reasons: list[str] = Field(default_factory=list)
+    novelty_reasons: list[str] = Field(default_factory=list)
+    description: str = ""
+
+
+class RankingComparisonResponse(BaseModel):
+    """Deterministic comparison between two ranked candidates."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    winner_id: uuid.UUID
+    loser_id: uuid.UUID
+    score_difference: float = 0.0
+    relevance_difference: float = 0.0
+    academic_difference: float = 0.0
+    contextual_difference: float = 0.0
+    reranker_difference: float = 0.0
+    diversity_difference: float = 0.0
+    dominant_factors: list[str] = Field(default_factory=list)
+    summary: str = ""
+
+
+class RankingComparisonRequest(BaseModel):
+    """Request payload for comparing two ranked items."""
+
+    candidate_a_id: uuid.UUID
+    candidate_b_id: uuid.UUID
+    candidate_type: str = "research_work"
+    ranking_mode: str = "general"
+
+
 class ExplanationSchema(BaseModel):
     """Complete machine- and human-readable explanation container."""
 
@@ -105,6 +201,11 @@ class ExplanationSchema(BaseModel):
     primary_factors: list[str] = Field(default_factory=list)
     final_score: float = 0.0
     rank: int = 0
+    base_score: float = 0.0
+    score_breakdown: ScoreBreakdownSchema | None = None
+    academic_evidence: AcademicEvidenceSchema | None = None
+    reranker_explanation: RerankerExplanationSchema | None = None
+    diversity_explanation: DiversityExplanationSchema | None = None
 
 
 # ── 1. Research Search Response Models ────────────────────────────────────────

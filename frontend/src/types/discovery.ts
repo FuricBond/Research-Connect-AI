@@ -40,6 +40,8 @@ export interface SignalContributionSchema {
   qualitative_assessment: string;
   is_available: boolean;
   is_primary_driver: boolean;
+  raw_value?: any | null;
+  is_active?: boolean;
 }
 
 export interface TopicEvidenceSchema {
@@ -54,6 +56,78 @@ export interface ProvenanceEvidenceSchema {
   description: string;
 }
 
+export interface ScoreBreakdownSchema {
+  base_score: number;
+  relevance_subtotal: number;
+  contextual_subtotal: number;
+  academic_subtotal: number;
+  reranker_adjustment: number;
+  diversity_adjustment: number;
+  final_score: number;
+  reconciliation_gap: number;
+  is_reconciled: boolean;
+}
+
+export interface AcademicEvidenceSchema {
+  citation_count?: number | null;
+  citation_impact_score: number;
+  author_prominence_score: number;
+  lead_author_citations?: number | null;
+  author_position?: string | null;
+  author_position_score: number;
+  institution_names: string[];
+  institution_prestige_score: number;
+  canonical_venue_name?: string | null;
+  venue_prestige_score: number;
+  is_in_doaj: boolean;
+  oa_status?: string | null;
+  open_access_tier_score: number;
+  description: string;
+}
+
+export interface RerankerExplanationSchema {
+  enabled: boolean;
+  applied: boolean;
+  weight: number;
+  pre_rerank_score?: number | null;
+  post_rerank_score?: number | null;
+  adjustment: number;
+  raw_score?: number | null;
+  fallback: boolean;
+  description: string;
+}
+
+export interface DiversityExplanationSchema {
+  enabled: boolean;
+  applied: boolean;
+  adjustment: number;
+  redundancy_score?: number | null;
+  novelty_score?: number | null;
+  redundancy_reasons: string[];
+  novelty_reasons: string[];
+  description: string;
+}
+
+export interface RankingComparisonResponse {
+  winner_id: string;
+  loser_id: string;
+  score_difference: number;
+  relevance_difference: number;
+  academic_difference: number;
+  contextual_difference: number;
+  reranker_difference: number;
+  diversity_difference: number;
+  dominant_factors: string[];
+  summary: string;
+}
+
+export interface RankingComparisonRequest {
+  candidate_a_id: string;
+  candidate_b_id: string;
+  candidate_type?: string;
+  ranking_mode?: string;
+}
+
 export interface ExplanationSchema {
   summary: string;
   strengths: string[];
@@ -64,6 +138,11 @@ export interface ExplanationSchema {
   primary_factors: string[];
   final_score: number;
   rank: number;
+  base_score?: number | null;
+  score_breakdown?: ScoreBreakdownSchema | null;
+  academic_evidence?: AcademicEvidenceSchema | null;
+  reranker_explanation?: RerankerExplanationSchema | null;
+  diversity_explanation?: DiversityExplanationSchema | null;
 }
 
 export interface QueryIntelligenceSchema {

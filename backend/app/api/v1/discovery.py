@@ -31,15 +31,22 @@ from app.ranking.hybrid_ranker import (
     hybrid_ranker,
 )
 from app.ranking.reranker import cross_encoder_reranker
+from app.models.research_knowledge import ResearchWorkModel
 from app.schemas.discovery import (
+    AcademicEvidenceSchema,
+    DiversityExplanationSchema,
     ExplanationSchema,
     OpportunityMatchItem,
     OpportunityMatchResponse,
     ProvenanceEvidenceSchema,
     QueryIntelligenceSchema,
+    RankingComparisonRequest,
+    RankingComparisonResponse,
+    RerankerExplanationSchema,
     ResearchSearchResponse,
     ResearchSearchResultItem,
     ResearchWorkRead,
+    ScoreBreakdownSchema,
     SignalContributionSchema,
     SimilarResearchItem,
     SimilarResearchResponse,
@@ -95,6 +102,8 @@ def _to_explanation_schema(explanation: ResultExplanation | None) -> Explanation
             qualitative_assessment=sc.qualitative_assessment,
             is_available=sc.is_available,
             is_primary_driver=sc.is_primary_driver,
+            raw_value=sc.raw_value,
+            is_active=sc.is_active,
         )
 
     topic_schema = TopicEvidenceSchema(
@@ -109,6 +118,22 @@ def _to_explanation_schema(explanation: ResultExplanation | None) -> Explanation
         description=explanation.provenance_evidence.description,
     )
 
+    sb_schema: ScoreBreakdownSchema | None = None
+    if explanation.score_breakdown:
+        sb_schema = ScoreBreakdownSchema.model_validate(explanation.score_breakdown)
+
+    acad_schema: AcademicEvidenceSchema | None = None
+    if explanation.academic_evidence:
+        acad_schema = AcademicEvidenceSchema.model_validate(explanation.academic_evidence)
+
+    rerank_schema: RerankerExplanationSchema | None = None
+    if explanation.reranker_explanation:
+        rerank_schema = RerankerExplanationSchema.model_validate(explanation.reranker_explanation)
+
+    div_schema: DiversityExplanationSchema | None = None
+    if explanation.diversity_explanation:
+        div_schema = DiversityExplanationSchema.model_validate(explanation.diversity_explanation)
+
     return ExplanationSchema(
         summary=explanation.summary,
         strengths=explanation.strengths,
@@ -119,6 +144,11 @@ def _to_explanation_schema(explanation: ResultExplanation | None) -> Explanation
         primary_factors=explanation.primary_factors,
         final_score=explanation.final_score,
         rank=explanation.rank,
+        base_score=explanation.base_score,
+        score_breakdown=sb_schema,
+        academic_evidence=acad_schema,
+        reranker_explanation=rerank_schema,
+        diversity_explanation=div_schema,
     )
 
 
@@ -727,3 +757,62 @@ def match_opportunities_for_research_route(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An error occurred while matching opportunities.",
         ) from exc
+
+
+# ── 4. Comparative Ranking Explanation Endpoint (Phase 2.5F) ───────────────
+
+
+@router.post(
+    "/research/compare",
+    response_model=RankingComparisonResponse,
+    summary="Compare Two Ranked Research Works",
+    description="Deterministic comparative attribution explaining why Result A was ranked above Result B (Phase 2.5F).",
+)
+def compare_research_works_route(
+    db: DbDep,
+    request: RankingComparisonRequest,
+) -> RankingComparisonResponse:
+    """Compare two research works and attribute why one scored higher than the other."""
+    try:
+        work_a = db.get(ResearchWorkModel, request.candidate_a_id)
+        if not work_a:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Research work '{request.candidate_a_id}' was not found.",
+            )
+
+        work_b = db.get(ResearchWorkModel, request.candidate_b_id)
+        if not work_b:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Research work '{request.candidate_b_id}' was not found.",
+            )
+
+        try:
+            mode = RankingMode(request.ranking_mode.lower())
+        except ValueError:
+            mode = RankingMode.GENERAL
+
+        items_to_rank = [work_a, work_b]
+
+        ranked = hybrid_ranker.rank(
+            candidates=items_to_rank,
+            mode=mode,
+            session=db,
+        )
+
+        cand_a = next((c for c in ranked if c.entity_id == request.candidate_a_id), ranked[0])
+        cand_b = next((c for c in ranked if c.entity_id == request.candidate_b_id), ranked[1] if len(ranked) > 1 else ranked[0])
+
+        comp = result_explainer.compare(cand_a, cand_b, mode=mode)
+
+        return RankingComparisonResponse.model_validate(comp)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Error comparing research works %s and %s: %s", request.candidate_a_id, request.candidate_b_id, exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An error occurred while comparing research works.",
+        ) from exc
+

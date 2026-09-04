@@ -1,9 +1,14 @@
 import React, { useEffect } from "react";
 import {
   AlertCircle,
+  Award,
   CheckCircle2,
+  Cpu,
   Database,
   HelpCircle,
+  Scale,
+  ShieldCheck,
+  Shuffle,
   Sparkles,
   Tag,
   X,
@@ -26,6 +31,12 @@ const SIGNAL_LABELS: Record<string, string> = {
   opportunity_quality: "Venue Indexing & Quality",
   urgency: "Deadline Proximity / Urgency",
   freshness: "Publication Recency",
+  citation_impact: "Citation Impact",
+  author_prominence: "Author Prominence (h-index)",
+  author_position: "Author Lead Position",
+  institution_prestige: "Institutional Prestige",
+  venue_prestige: "Venue Prestige & Quality",
+  open_access_tier: "Open Access Availability",
 };
 
 export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
@@ -50,6 +61,10 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
 
   const contributions = Object.values(explanation.signal_contributions || {});
   const totalContribution = contributions.reduce((sum, c) => sum + c.contribution, 0) || 1.0;
+  const sb = explanation.score_breakdown;
+  const ae = explanation.academic_evidence;
+  const re = explanation.reranker_explanation;
+  const de = explanation.diversity_explanation;
 
   return (
     <div className="drawer-overlay" onClick={onClose} role="dialog" aria-modal="true">
@@ -63,7 +78,7 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
           <div>
             <div className="drawer-eyebrow">
               <Sparkles size={14} />
-              <span>Ranking Explainability & Evidence</span>
+              <span>Ranking Explainability & Evidence (Phase 2.5F)</span>
             </div>
             <h2 className="drawer-title" title={entityTitle}>
               {entityTitle}
@@ -93,8 +108,16 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
               </span>
             </div>
             <div className="metric-item">
-              <span className="metric-label">Evaluation Engine</span>
-              <span className="metric-value-sm">Deterministic Hybrid Ranker</span>
+              <span className="metric-label">Verification</span>
+              {sb?.is_reconciled ? (
+                <span className="math-verified-badge">
+                  <ShieldCheck size={12} /> Math Verified
+                </span>
+              ) : (
+                <span className="math-verified-badge gap-warning">
+                  <AlertCircle size={12} /> Gap: {sb?.reconciliation_gap.toFixed(4) || "0.0000"}
+                </span>
+              )}
             </div>
           </div>
 
@@ -122,6 +145,176 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
             </section>
           )}
 
+          {/* Exact Score Decomposition (Phase 2.5F) */}
+          {sb && (
+            <section className="drawer-section">
+              <h3 className="section-title">
+                <Scale size={16} />
+                <span>Exact Score Decomposition</span>
+              </h3>
+              <div className="score-breakdown-card">
+                <div className="subtotals-grid">
+                  <div className="subtotal-item">
+                    <span className="subtotal-label">Relevance Subtotal</span>
+                    <span className="subtotal-val">+{sb.relevance_subtotal.toFixed(4)}</span>
+                  </div>
+                  <div className="subtotal-item">
+                    <span className="subtotal-label">Contextual Subtotal</span>
+                    <span className="subtotal-val">+{sb.contextual_subtotal.toFixed(4)}</span>
+                  </div>
+                  <div className="subtotal-item">
+                    <span className="subtotal-label">Academic Subtotal</span>
+                    <span className="subtotal-val">+{sb.academic_subtotal.toFixed(4)}</span>
+                  </div>
+                </div>
+
+                <div className="adjustments-row">
+                  <span>Base Score: <strong>{sb.base_score.toFixed(4)}</strong></span>
+                  {sb.reranker_adjustment !== 0 && (
+                    <span className={`adjustment-badge ${sb.reranker_adjustment > 0 ? "positive" : "negative"}`}>
+                      Neural Rerank: {sb.reranker_adjustment > 0 ? "+" : ""}{sb.reranker_adjustment.toFixed(4)}
+                    </span>
+                  )}
+                  {sb.diversity_adjustment !== 0 && (
+                    <span className={`adjustment-badge ${sb.diversity_adjustment > 0 ? "positive" : "negative"}`}>
+                      Diversity/Novelty: {sb.diversity_adjustment > 0 ? "+" : ""}{sb.diversity_adjustment.toFixed(4)}
+                    </span>
+                  )}
+                  <span>= Final Score: <strong>{sb.final_score.toFixed(4)}</strong></span>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Academic Quality & Bibliographic Evidence (Phase 2.5D) */}
+          {ae && (
+            <section className="drawer-section">
+              <h3 className="section-title">
+                <Award size={16} />
+                <span>Academic Quality Evidence</span>
+              </h3>
+              <div className="evidence-card">
+                <div className="evidence-grid">
+                  <div className="evidence-stat">
+                    <span className="evidence-stat-label">Citations</span>
+                    <span className="evidence-stat-value">
+                      {ae.citation_count !== null && ae.citation_count !== undefined
+                        ? `${ae.citation_count.toLocaleString()} citations`
+                        : "Unspecified"}
+                    </span>
+                  </div>
+                  <div className="evidence-stat">
+                    <span className="evidence-stat-label">Author Prominence</span>
+                    <span className="evidence-stat-value">
+                      {(ae.author_prominence_score * 100).toFixed(0)}% (h-index proxy)
+                    </span>
+                  </div>
+                  <div className="evidence-stat">
+                    <span className="evidence-stat-label">Lead Author Role</span>
+                    <span className="evidence-stat-value">
+                      {ae.author_position || "Contributing author"}
+                    </span>
+                  </div>
+                  <div className="evidence-stat">
+                    <span className="evidence-stat-label">Open Access</span>
+                    <span className="evidence-stat-value">
+                      {ae.oa_status ? ae.oa_status.toUpperCase() : ae.open_access_tier_score > 0.35 ? "Open Access" : "Standard"}
+                    </span>
+                  </div>
+                </div>
+
+                {ae.canonical_venue_name && (
+                  <div className="evidence-stat">
+                    <span className="evidence-stat-label">Publication Venue</span>
+                    <span className="evidence-stat-value">{ae.canonical_venue_name}</span>
+                  </div>
+                )}
+
+                {ae.institution_names && ae.institution_names.length > 0 && (
+                  <div className="evidence-stat">
+                    <span className="evidence-stat-label">Affiliations</span>
+                    <span className="evidence-stat-value">{ae.institution_names.join(", ")}</span>
+                  </div>
+                )}
+
+                {ae.description && (
+                  <p className="topic-evidence-desc" style={{ marginTop: "4px" }}>
+                    {ae.description}
+                  </p>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* Neural Cross-Encoder Reranker Attribution */}
+          {re && re.enabled && (
+            <section className="drawer-section">
+              <h3 className="section-title">
+                <Cpu size={16} />
+                <span>Neural Cross-Encoder Attribution</span>
+              </h3>
+              <div className="evidence-card">
+                <div className="adjustments-row" style={{ borderTop: "none", paddingTop: 0 }}>
+                  <span>Status: <strong>{re.fallback ? "Fallback (Baseline Preserved)" : "Applied"}</strong></span>
+                  {typeof re.pre_rerank_score === "number" && typeof re.post_rerank_score === "number" && (
+                    <span>Score: {re.pre_rerank_score.toFixed(4)} &rarr; {re.post_rerank_score.toFixed(4)}</span>
+                  )}
+                  <span>Adjustment: <strong>{re.adjustment > 0 ? "+" : ""}{re.adjustment.toFixed(4)}</strong></span>
+                </div>
+                {re.description && (
+                  <p className="topic-evidence-desc">{re.description}</p>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* Diversity & Novelty Mechanics (Phase 2.5E) */}
+          {de && de.enabled && (
+            <section className="drawer-section">
+              <h3 className="section-title">
+                <Shuffle size={16} />
+                <span>Diversity & Novelty Mechanics</span>
+              </h3>
+              <div className="evidence-card">
+                <div className="adjustments-row" style={{ borderTop: "none", paddingTop: 0 }}>
+                  <span>Adjustment: <strong>{de.adjustment > 0 ? "+" : ""}{de.adjustment.toFixed(4)}</strong></span>
+                  {de.novelty_score !== null && de.novelty_score !== undefined && (
+                    <span>Novelty: {(de.novelty_score * 100).toFixed(0)}%</span>
+                  )}
+                  {de.redundancy_score !== null && de.redundancy_score !== undefined && (
+                    <span>Redundancy: {(de.redundancy_score * 100).toFixed(0)}%</span>
+                  )}
+                </div>
+
+                {de.novelty_reasons && de.novelty_reasons.length > 0 && (
+                  <div>
+                    <span className="evidence-stat-label">Novelty Factors:</span>
+                    <ul className="evidence-summary-list">
+                      {de.novelty_reasons.map((reason, idx) => (
+                        <li key={idx}>{reason}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {de.redundancy_reasons && de.redundancy_reasons.length > 0 && (
+                  <div>
+                    <span className="evidence-stat-label">Redundancy Factors:</span>
+                    <ul className="evidence-summary-list">
+                      {de.redundancy_reasons.map((reason, idx) => (
+                        <li key={idx}>{reason}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {de.description && (
+                  <p className="topic-evidence-desc">{de.description}</p>
+                )}
+              </div>
+            </section>
+          )}
+
           {/* Signal Contribution Breakdown */}
           {contributions.length > 0 && (
             <section className="drawer-section">
@@ -130,20 +323,30 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                 {contributions.map((sig) => {
                   const sharePct = ((sig.contribution / totalContribution) * 100).toFixed(0);
                   const label = SIGNAL_LABELS[sig.signal_name] || sig.signal_name.replace(/_/g, " ");
+                  const isZeroWeight = sig.weight === 0.0 || sig.is_active === false;
 
                   return (
-                    <div key={sig.signal_name} className="signal-row">
+                    <div
+                      key={sig.signal_name}
+                      className={`signal-row ${isZeroWeight ? "inactive" : ""}`}
+                    >
                       <div className="signal-meta">
                         <div className="signal-name-wrap">
                           <span className="signal-name">{label}</span>
                           {sig.is_primary_driver && (
                             <span className="primary-tag">Primary</span>
                           )}
+                          {isZeroWeight && (
+                            <span className="zero-weight-tag">Zero Weight</span>
+                          )}
                         </div>
                         <div className="signal-stats">
                           <span className="signal-assessment">{sig.qualitative_assessment}</span>
                           <span className="signal-score">
-                            Raw: {(sig.score * 100).toFixed(0)}% (Weight: {(sig.weight * 100).toFixed(0)}%)
+                            Score: {(sig.score * 100).toFixed(0)}% | W: {(sig.weight * 100).toFixed(0)}% | C: +{sig.contribution.toFixed(4)}
+                            {sig.raw_value !== null && sig.raw_value !== undefined && (
+                              <span> (Raw: {String(sig.raw_value)})</span>
+                            )}
                           </span>
                         </div>
                       </div>
@@ -154,7 +357,9 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                           style={{ width: `${Math.min(100, Math.max(0, sig.score * 100))}%` }}
                         />
                       </div>
-                      <span className="signal-share-text">{sharePct}% of final score</span>
+                      {!isZeroWeight && (
+                        <span className="signal-share-text">{sharePct}% of base score</span>
+                      )}
                     </div>
                   );
                 })}

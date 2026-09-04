@@ -934,6 +934,7 @@ class HybridRanker:
                     shared_topic_ids=shared_ids,
                     shared_topic_names=shared_names,
                     candidate=attached_entity,
+                    academic_features=precomputed_af,
                 )
             )
 
@@ -1000,6 +1001,7 @@ class HybridRanker:
                     shared_topic_ids=item.shared_topic_ids,
                     shared_topic_names=item.shared_topic_names,
                     candidate=item.candidate,
+                    academic_features=item.academic_features,
                 )
             )
 

@@ -1617,6 +1617,146 @@ h2 {
   text-transform: capitalize;
 }
 
+/* ── Phase 2.5F Explainability Layer Expansion ────────────────────────────── */
+
+.math-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+}
+
+.math-verified-badge.gap-warning {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.score-breakdown-card {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subtotals-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.subtotal-item {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
+
+.subtotal-label {
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.subtotal-val {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.adjustments-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-color);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.adjustment-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.adjustment-badge.positive {
+  color: #059669;
+}
+
+.adjustment-badge.negative {
+  color: #dc2626;
+}
+
+.evidence-card {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.evidence-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.evidence-stat-label {
+  font-size: 0.70rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.evidence-stat-value {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.evidence-summary-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.82rem;
+  color: var(--text-body);
+  line-height: 1.5;
+}
+
+.signal-row.inactive {
+  opacity: 0.55;
+}
+
+.zero-weight-tag {
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
 /* ── Responsive Breakpoints ────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {

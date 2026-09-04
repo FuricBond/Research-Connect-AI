@@ -23,6 +23,7 @@ from app.ranking.hybrid_ranker import (
     RankedCandidate,
     RankerWeights,
     RankingMode,
+    hybrid_ranker,
 )
 from app.repositories.lexical_repository import LexicalSearchResult
 from app.repositories.vector_repository import VectorSearchResult
@@ -397,3 +398,309 @@ class TestDeterminismAndBatching:
 
     def test_singleton_instance_available(self):
         assert isinstance(result_explainer, ResultExplainer)
+
+
+def make_ranked_candidate(
+    entity_id: uuid.UUID | None = None,
+    entity_type: str = "research_work",
+    rank: int = 1,
+    final_score: float = 0.80,
+    semantic_score: float = 0.80,
+    lexical_score: float = 0.50,
+    topic_score: float = 0.50,
+    type_score: float = 0.0,
+    freshness_score: float = 0.0,
+    urgency_score: float = 0.0,
+    quality_score: float = 0.0,
+    citation_score: float = 0.0,
+    author_prominence_score: float = 0.0,
+    author_position_score: float = 0.50,
+    institution_score: float = 0.0,
+    venue_score: float = 0.0,
+    open_access_score: float = 0.35,
+    retrieval_sources: list[str] | None = None,
+    diversity_adjustment: float = 0.0,
+    redundancy_score: float = 0.0,
+    novelty_score: float = 0.0,
+    reranker_adjustment: float = 0.0,
+    candidate: Any = None,
+    **kwargs: Any,
+) -> RankedCandidate:
+    return RankedCandidate(
+        entity_id=entity_id or uuid.uuid4(),
+        entity_type=entity_type,
+        rank=rank,
+        final_score=final_score,
+        semantic_score=semantic_score,
+        lexical_score=lexical_score,
+        topic_score=topic_score,
+        type_score=type_score,
+        freshness_score=freshness_score,
+        urgency_score=urgency_score,
+        quality_score=quality_score,
+        citation_score=citation_score,
+        author_prominence_score=author_prominence_score,
+        author_position_score=author_position_score,
+        institution_score=institution_score,
+        venue_score=venue_score,
+        open_access_score=open_access_score,
+        retrieval_sources=retrieval_sources or ["semantic"],
+        diversity_adjustment=diversity_adjustment,
+        redundancy_score=redundancy_score,
+        novelty_score=novelty_score,
+        reranker_adjustment=reranker_adjustment,
+        candidate=candidate,
+        **kwargs,
+    )
+
+
+# ── F. UNIT TESTS: PHASE 2.5F SCORE ATTRIBUTION & DECOMPOSITION ─────────────
+
+
+class TestPhase25FExactAttributionAndDecomposition:
+    """Rigorous mathematical tests for Phase 2.5F exact score attribution."""
+
+    @pytest.fixture
+    def explainer(self) -> ResultExplainer:
+        return ResultExplainer()
+
+    def test_mathematical_score_reconciliation_invariant(self, explainer):
+        raw_cand = {
+            "entity_id": uuid.uuid4(),
+            "semantic_similarity": 0.90,
+            "lexical_similarity": 0.60,
+            "topic_similarity": 0.80,
+            "type_compatibility": 0.50,
+            "freshness": 0.70,
+            "citation_impact": 0.85,
+            "author_prominence": 0.75,
+            "author_position": 0.90,
+            "institution_prestige": 0.65,
+            "venue_prestige": 0.80,
+            "open_access_tier": 0.70,
+            "retrieval_sources": ["semantic", "lexical"],
+        }
+
+        for mode in [RankingMode.GENERAL, RankingMode.RESEARCH_SIMILARITY, RankingMode.RESEARCH_OPPORTUNITY]:
+            ranked_list = hybrid_ranker.rank([raw_cand], mode=mode)
+            cand = ranked_list[0]
+            expl = explainer.explain(cand, mode=mode)
+            sb = expl.score_breakdown
+            assert sb is not None
+            assert sb.is_reconciled is True
+            assert sb.reconciliation_gap <= 1e-5
+
+            # Sum of all signal contributions == base_score
+            total_contributions = sum(sc.contribution for sc in expl.signal_contributions.values())
+            assert math.isclose(total_contributions, expl.base_score, abs_tol=1e-5)
+            assert math.isclose(total_contributions, sb.base_score, abs_tol=1e-5)
+
+            # Subtotals sum == base_score
+            subtotals_sum = sb.relevance_subtotal + sb.contextual_subtotal + sb.academic_subtotal
+            assert math.isclose(subtotals_sum, sb.base_score, abs_tol=1e-5)
+
+            # Base score + adjustments == final_score
+            reconstructed_final = sb.base_score + sb.reranker_adjustment + sb.diversity_adjustment
+            assert math.isclose(reconstructed_final, sb.final_score, abs_tol=1e-5)
+
+
+class TestPhase25FAcademicQualityEvidenceTruthfulness:
+    """Adversarial and boundary tests ensuring academic claims map strictly to truth."""
+
+    @pytest.fixture
+    def explainer(self) -> ResultExplainer:
+        return ResultExplainer()
+
+    def test_zero_citations_never_claims_high_impact(self, explainer):
+        work = ResearchWorkModel(
+            id=uuid.uuid4(),
+            title="Brand New Paper",
+            cited_by_count=0,
+        )
+        cand = make_ranked_candidate(
+            entity_id=work.id,
+            rank=1,
+            final_score=0.75,
+            semantic_score=0.95,
+            citation_score=0.0,
+            candidate=work,
+        )
+
+        expl = explainer.explain(cand, mode=RankingMode.GENERAL)
+        assert not any("citation" in s.lower() or "cited" in s.lower() for s in expl.strengths)
+        assert "citation_impact" not in expl.primary_factors
+        if expl.academic_evidence:
+            assert expl.academic_evidence.citation_count == 0
+
+    def test_missing_venue_produces_no_false_venue_claims(self, explainer):
+        work = ResearchWorkModel(
+            id=uuid.uuid4(),
+            title="Unpublished Manuscript",
+            primary_source_id=None,
+        )
+        cand = make_ranked_candidate(
+            entity_id=work.id,
+            rank=1,
+            final_score=0.60,
+            semantic_score=0.70,
+            venue_score=0.0,
+            candidate=work,
+        )
+
+        expl = explainer.explain(cand, mode=RankingMode.GENERAL)
+        assert not any("prestigious venue" in s.lower() or "top-tier venue" in s.lower() for s in expl.strengths)
+        assert "venue_prestige" not in expl.primary_factors
+
+    def test_high_academic_impact_with_real_metadata(self, explainer):
+        academic_weights = RankerWeights(
+            semantic_weight=0.70,
+            lexical_weight=0.10,
+            topic_weight=0.05,
+            citation_weight=0.05,
+            venue_weight=0.05,
+            open_access_weight=0.05,
+        )
+        cand = make_ranked_candidate(
+            rank=1,
+            final_score=0.92,
+            semantic_score=0.85,
+            citation_score=0.95,
+            author_prominence_score=0.90,
+            venue_score=0.92,
+            open_access_score=0.85,
+        )
+
+        expl = explainer.explain(cand, weights=academic_weights)
+        assert any("scholarly impact" in s.lower() or "citation" in s.lower() for s in expl.strengths)
+        assert any("venue" in s.lower() for s in expl.strengths)
+
+
+class TestPhase25FZeroWeightAndModeAwareness:
+    """Tests ensuring zero-weight signals are suppressed and active mode weights govern attribution."""
+
+    @pytest.fixture
+    def explainer(self) -> ResultExplainer:
+        return ResultExplainer()
+
+    def test_zero_weight_signal_suppression(self, explainer):
+        # In research similarity, urgency_weight is 0.0
+        cand = make_ranked_candidate(
+            rank=1,
+            final_score=0.80,
+            semantic_score=0.90,
+            urgency_score=1.00,  # Max urgency value, but weight is 0.0!
+        )
+
+        expl = explainer.explain(cand, mode=RankingMode.RESEARCH_SIMILARITY)
+        urg_contrib = expl.signal_contributions["deadline_urgency"]
+        assert urg_contrib.weight == 0.0
+        assert urg_contrib.contribution == 0.0
+        assert urg_contrib.is_active is False
+        assert urg_contrib.is_primary_driver is False
+        assert "deadline_urgency" not in expl.primary_factors
+        assert not any("deadline" in s.lower() or "urgency" in s.lower() for s in expl.strengths)
+
+    def test_mode_specific_weight_attribution(self, explainer):
+        cand = make_ranked_candidate(
+            rank=1,
+            final_score=0.85,
+            semantic_score=0.90,
+            type_score=1.00,
+        )
+
+        expl_gen = explainer.explain(cand, mode=RankingMode.GENERAL)
+        expl_opp = explainer.explain(cand, mode=RankingMode.RESEARCH_OPPORTUNITY)
+
+        w_gen = expl_gen.signal_contributions["type_compatibility"].weight
+        w_opp = expl_opp.signal_contributions["type_compatibility"].weight
+        assert w_opp > w_gen
+
+
+class TestPhase25FCrossEncoderAndDiversityReconciliation:
+    """Tests for neural cross-encoder and diversity adjustment honesty and attribution."""
+
+    @pytest.fixture
+    def explainer(self) -> ResultExplainer:
+        return ResultExplainer()
+
+    def test_diversity_penalty_attribution(self, explainer):
+        cand = make_ranked_candidate(
+            rank=3,
+            final_score=0.72,
+            semantic_score=0.85,
+            diversity_adjustment=-0.045,
+            redundancy_score=0.80,
+            novelty_score=0.10,
+        )
+
+        expl = explainer.explain(cand, mode=RankingMode.GENERAL)
+        assert expl.diversity_explanation is not None
+        assert expl.diversity_explanation.enabled is True
+        assert expl.diversity_explanation.adjustment == -0.045
+        assert expl.diversity_explanation.redundancy_score == 0.80
+        assert any("redundancy penalty" in lim.lower() for lim in expl.limitations)
+        assert expl.score_breakdown.diversity_adjustment == -0.045
+
+    def test_diversity_novelty_boost_attribution(self, explainer):
+        cand = make_ranked_candidate(
+            rank=2,
+            final_score=0.82,
+            semantic_score=0.80,
+            diversity_adjustment=0.020,
+            redundancy_score=0.05,
+            novelty_score=0.85,
+        )
+
+        expl = explainer.explain(cand, mode=RankingMode.GENERAL)
+        assert expl.diversity_explanation is not None
+        assert expl.diversity_explanation.adjustment == 0.020
+        assert expl.diversity_explanation.novelty_score == 0.85
+        assert any("novelty boost" in s.lower() for s in expl.strengths)
+
+    def test_cross_encoder_fallback_honesty(self, explainer):
+        cand = make_ranked_candidate(
+            rank=1,
+            final_score=0.80,
+            semantic_score=0.80,
+            reranker_adjustment=0.0,
+        )
+
+        expl = explainer.explain(cand, mode=RankingMode.GENERAL)
+        assert expl.score_breakdown.reranker_adjustment == 0.0
+
+
+class TestPhase25FComparativeExplanations:
+    """Tests for pairwise comparative ranking attribution."""
+
+    @pytest.fixture
+    def explainer(self) -> ResultExplainer:
+        return ResultExplainer()
+
+    def test_comparative_attribution_identifies_winner_and_dominant_dimension(self, explainer):
+        id_a = uuid.uuid4()
+        id_b = uuid.uuid4()
+
+        cand_a = make_ranked_candidate(
+            entity_id=id_a,
+            rank=1,
+            final_score=0.88,
+            semantic_score=0.95,
+            citation_score=0.50,
+        )
+        cand_b = make_ranked_candidate(
+            entity_id=id_b,
+            rank=2,
+            final_score=0.74,
+            semantic_score=0.60,
+            citation_score=0.55,
+        )
+
+        comp = explainer.compare(cand_a, cand_b, mode=RankingMode.GENERAL)
+        assert comp.winner_id == id_a
+        assert comp.loser_id == id_b
+        assert comp.score_difference > 0
+        assert comp.relevance_difference > 0
+        assert any("semantic" in f.lower() or "relevance" in f.lower() for f in comp.dominant_factors)
+        assert "outranked" in comp.summary.lower()
+
+

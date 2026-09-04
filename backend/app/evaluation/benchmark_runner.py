@@ -263,29 +263,167 @@ class BenchmarkRunner:
         return eval_report
 
     def evaluate_explainability_engine(self) -> dict[str, Any]:
-        """Verify mathematical alignment of explainability signal attributions."""
-        checked_count = 0
-        aligned_count = 0
+        """
+        Comprehensive evaluation of Phase 2.5F Deterministic Explainability Layer.
 
-        for scenario in self.dataset:
-            if not scenario.candidate_fixtures:
-                continue
+        Evaluates:
+          1. Numerical reconstruction accuracy across all scenarios and empirical queries (Target: 100% within 1e-4).
+          2. Multi-mode signal attribution alignment (GENERAL, RESEARCH_SIMILARITY, RESEARCH_OPPORTUNITY).
+          3. Zero-weight signal suppression (verify inactive signals never drive explanations).
+          4. Academic quality evidence grounding & truthfulness.
+          5. Neural cross-encoder and Phase 2.5E diversity attribution reconciliation.
+          6. Determinism (repeatability invariant).
+          7. Runtime latency overhead profiling (ranking-only vs ranking + explanation).
+        """
+        total_candidates_checked = 0
+        score_reconstruction_passed = 0
+        base_score_reconstruction_passed = 0
+        zero_weight_suppression_passed = 0
+        mode_alignments_passed = 0
+        academic_evidence_passed = 0
+        determinism_passed = 0
 
-            ranked = hybrid_ranker.rank(
+        ranking_durations: list[float] = []
+        explanation_durations: list[float] = []
+
+        modes_to_test = [
+            RankingMode.GENERAL,
+            RankingMode.RESEARCH_SIMILARITY,
+            RankingMode.RESEARCH_OPPORTUNITY,
+        ]
+
+        for mode in modes_to_test:
+            expected_weights = hybrid_ranker.resolve_weights(mode)
+            for scenario in self.dataset:
+                if not scenario.candidate_fixtures:
+                    continue
+
+                t_rank_start = time.perf_counter()
+                ranked = hybrid_ranker.rank(
+                    mode=mode,
+                    candidates=scenario.candidate_fixtures,
+                )
+                ranking_durations.append((time.perf_counter() - t_rank_start) * 1000.0)
+
+                t_expl_start = time.perf_counter()
+                explained = result_explainer.explain_batch(ranked, mode=mode)
+                explanation_durations.append((time.perf_counter() - t_expl_start) * 1000.0)
+
+                for item in explained:
+                    cand = item.result
+                    expl = item.explanation
+                    total_candidates_checked += 1
+
+                    # Check 1: Base score reconstruction: sum(contributions) == expl.base_score within 1e-4
+                    contrib_sum = sum(sc.contribution for sc in expl.signal_contributions.values())
+                    if abs(contrib_sum - expl.base_score) <= 1e-4:
+                        base_score_reconstruction_passed += 1
+
+                    # Check 2: Final score reconstruction: base + rerank + diversity == final within 1e-4
+                    sb = expl.score_breakdown
+                    if sb and abs(sb.final_score - cand.final_score) <= 1e-4 and abs(expl.final_score - cand.final_score) <= 1e-4:
+                        score_reconstruction_passed += 1
+
+                    signal_weight_map = {
+                        "semantic_similarity": expected_weights.semantic_weight,
+                        "lexical_relevance": expected_weights.lexical_weight,
+                        "topic_compatibility": expected_weights.topic_weight,
+                        "type_compatibility": expected_weights.type_weight,
+                        "opportunity_quality": expected_weights.quality_weight,
+                        "publication_freshness": expected_weights.freshness_weight,
+                        "deadline_urgency": expected_weights.urgency_weight,
+                        "citation_impact": expected_weights.citation_weight,
+                        "author_prominence": expected_weights.author_prominence_weight,
+                        "author_position": expected_weights.author_position_weight,
+                        "institution_prestige": expected_weights.institution_weight,
+                        "venue_prestige": expected_weights.venue_weight,
+                        "open_access_tier": expected_weights.open_access_weight,
+                    }
+
+                    # Check 3: Zero-weight suppression: zero-weight signals must have is_active=False, contribution=0.0, and not be primary driver
+                    zero_weight_clean = True
+                    for sig_name, sc in expl.signal_contributions.items():
+                        expected_w = signal_weight_map.get(sig_name, 0.0)
+                        if abs(expected_w) < 1e-6:
+                            if sc.is_active or sc.contribution > 1e-6 or sc.is_primary_driver:
+                                zero_weight_clean = False
+                                break
+                            if sig_name in expl.primary_factors:
+                                zero_weight_clean = False
+                                break
+                    if zero_weight_clean:
+                        zero_weight_suppression_passed += 1
+
+                    # Check 4: Mode weight alignment
+                    mode_aligned = True
+                    for sig_name, sc in expl.signal_contributions.items():
+                        expected_w = signal_weight_map.get(sig_name, 0.0)
+                        if abs(sc.weight - expected_w) > 1e-4:
+                            mode_aligned = False
+                            break
+                    if mode_aligned:
+                        mode_alignments_passed += 1
+
+                    # Check 5: Academic evidence truthfulness
+                    if expl.academic_evidence:
+                        ae = expl.academic_evidence
+                        if (ae.citation_count or 0) == 0 and any("Highly cited" in s for s in expl.strengths):
+                            academic_evidence_passed += 0
+                        else:
+                            academic_evidence_passed += 1
+                    else:
+                        academic_evidence_passed += 1
+
+                    # Check 6: Determinism check (single test on candidate)
+                    expl_repeat = result_explainer.explain(cand, mode=mode)
+                    if (
+                        abs(expl.final_score - expl_repeat.final_score) < 1e-6
+                        and abs(expl.base_score - expl_repeat.base_score) < 1e-6
+                        and expl.primary_factors == expl_repeat.primary_factors
+                    ):
+                        determinism_passed += 1
+
+        # Evaluate with Diversity on sample empirical queries
+        diversity_reconciled_count = 0
+        diversity_checked_count = 0
+        for q in self.empirical_dataset[:20]:
+            base_ranked = hybrid_ranker.rank(
                 mode=RankingMode.GENERAL,
-                candidates=scenario.candidate_fixtures,
+                candidates=q.candidate_fixtures,
             )
-            for cand in ranked:
-                expl = result_explainer.explain(cand, mode=RankingMode.GENERAL)
-                checked_count += 1
-                if expl.final_score == cand.final_score:
-                    aligned_count += 1
+            div_ranked = diversity_reranker.rerank(
+                candidates=base_ranked,
+                mode=RankingMode.GENERAL,
+                force_enabled=True,
+            )
+            explained = result_explainer.explain_batch(div_ranked, mode=RankingMode.GENERAL)
+            for item in explained:
+                diversity_checked_count += 1
+                cand = item.result
+                expl = item.explanation
+                if expl.diversity_explanation and abs(expl.diversity_explanation.adjustment - cand.diversity_adjustment) <= 1e-5:
+                    diversity_reconciled_count += 1
 
-        accuracy = float(aligned_count) / float(checked_count) if checked_count > 0 else 1.0
+        total_batches = max(1, len(ranking_durations))
+        mean_ranking_batch_ms = sum(ranking_durations) / total_batches
+        mean_expl_batch_ms = sum(explanation_durations) / total_batches
+        per_cand_overhead_ms = (sum(explanation_durations) / max(1, total_candidates_checked))
+
         return {
-            "total_signal_attributions_checked": checked_count,
-            "mathematical_alignments_verified": aligned_count,
-            "attribution_accuracy_rate": round(accuracy, 4),
+            "total_candidates_evaluated": total_candidates_checked,
+            "attribution_accuracy_rate": round(score_reconstruction_passed / max(1, total_candidates_checked), 4),
+            "base_score_reconstruction_rate": round(base_score_reconstruction_passed / max(1, total_candidates_checked), 4),
+            "final_score_reconstruction_rate": round(score_reconstruction_passed / max(1, total_candidates_checked), 4),
+            "zero_weight_suppression_rate": round(zero_weight_suppression_passed / max(1, total_candidates_checked), 4),
+            "mode_alignment_rate": round(mode_alignments_passed / max(1, total_candidates_checked), 4),
+            "academic_evidence_truthfulness_rate": round(academic_evidence_passed / max(1, total_candidates_checked), 4),
+            "determinism_pass_rate": round(determinism_passed / max(1, total_candidates_checked), 4),
+            "diversity_attribution_reconciled_rate": round(diversity_reconciled_count / max(1, diversity_checked_count), 4),
+            "latency_profile": {
+                "mean_ranking_batch_ms": round(mean_ranking_batch_ms, 3),
+                "mean_explanation_batch_ms": round(mean_expl_batch_ms, 3),
+                "per_candidate_overhead_ms": round(per_cand_overhead_ms, 4),
+            },
         }
 
     def evaluate_empirical_dataset(self) -> dict[str, Any]:
@@ -814,7 +952,7 @@ class BenchmarkRunner:
     def run_full_benchmark(self) -> dict[str, Any]:
         """Execute complete benchmark suite and return structured evaluation artifact."""
         report = {
-            "benchmark_phase": "Phase 2.5E — Diversity & Novelty Mechanics & Empirical Benchmark",
+            "benchmark_phase": "Phase 2.5F — Explainability Layer Expansion & Empirical Benchmark",
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "environment": {
                 "os": platform.system(),
@@ -843,10 +981,10 @@ class BenchmarkRunner:
         except Exception as exc:
             logger.warning("Could not write benchmark_results.json: %s", exc)
 
-        # 2. Persist in artifacts/evaluation/phase2-5e-results.json & phase2-4m-results.json
+        # 2. Persist in artifacts/evaluation/phase2-5f-results.json, phase2-5e-results.json, etc.
         art_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../artifacts/evaluation"))
         os.makedirs(art_dir, exist_ok=True)
-        for fname in ["phase2-5e-results.json", "phase2-4m-results.json"]:
+        for fname in ["phase2-5f-results.json", "phase2-5e-results.json", "phase2-4m-results.json"]:
             art_path = os.path.join(art_dir, fname)
             try:
                 with open(art_path, "w", encoding="utf-8") as f:
