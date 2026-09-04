@@ -106,12 +106,22 @@ __all__ = [
     "RiskEvidenceCollection",
     "RiskEvidenceExtractor",
     "risk_evidence_extractor",
+    "RiskLevel",
+    "RiskAssessment",
+    "DeterministicRiskScoringEngine",
+    "risk_scoring_engine",
+    "assess_opportunity_risk",
 ]
 
 from app.ranking.risk import (
+    DeterministicRiskScoringEngine,
+    RiskAssessment,
     RiskEvidence,
     RiskEvidenceCollection,
     RiskEvidenceExtractor,
+    RiskLevel,
+    assess_opportunity_risk,
     risk_evidence_extractor,
+    risk_scoring_engine,
 )
 

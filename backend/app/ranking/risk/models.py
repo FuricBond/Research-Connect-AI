@@ -19,6 +19,15 @@ class EvidenceCategory(str, Enum):
     NEUTRAL_UNKNOWN = "NEUTRAL_UNKNOWN"
 
 
+class RiskLevel(str, Enum):
+    """Categorical risk assessment level for Phase 2.6C."""
+
+    LOW_RISK = "LOW_RISK"
+    MODERATE_RISK = "MODERATE_RISK"
+    HIGH_RISK = "HIGH_RISK"
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+
+
 class EvidenceStrength(str, Enum):
     """Weight or impact level of an individual evidence signal."""
 
@@ -209,4 +218,60 @@ class RiskEvidenceCollection:
             "has_suspicious_evidence": self.has_suspicious_evidence,
             "has_trust_evidence": self.has_trust_evidence,
             "metadata_completeness_score": round(self.metadata_completeness_score, 4),
+        }
+
+
+@dataclass(frozen=True)
+class RiskAssessment:
+    """
+    Deterministic risk assessment produced by Phase 2.6C scoring engine.
+
+    Attributes
+    ----------
+    opportunity_id:
+        UUID string of the opportunity if present.
+    risk_score:
+        Calibrated numerical risk score in range [0.00, 1.00].
+    risk_level:
+        Categorical risk classification (LOW_RISK, MODERATE_RISK, HIGH_RISK, INSUFFICIENT_EVIDENCE).
+    risk_confidence:
+        Confidence in the assessment based on metadata availability and provenance in [0.00, 1.00].
+    is_predatory_flag:
+        Boolean flag indicating suspected predatory opportunity.
+    risk_reasons:
+        Deterministic, ordered human-readable justifications for the risk score.
+    dominant_signals:
+        Identifiers of top positive and negative signals driving the score.
+    gross_negative_score:
+        Gross suspicious score before trust mitigation.
+    trust_mitigation_score:
+        Positive trust score deducted from gross negative score.
+    evidence_collection:
+        Full underlying collection of extracted atomic evidence items.
+    """
+
+    opportunity_id: str | None
+    risk_score: float
+    risk_level: RiskLevel
+    risk_confidence: float
+    is_predatory_flag: bool
+    risk_reasons: list[str] = field(default_factory=list)
+    dominant_signals: list[str] = field(default_factory=list)
+    gross_negative_score: float = 0.0
+    trust_mitigation_score: float = 0.0
+    evidence_collection: RiskEvidenceCollection | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert assessment to JSON-serializable dictionary."""
+        return {
+            "opportunity_id": self.opportunity_id,
+            "risk_score": round(self.risk_score, 2),
+            "risk_level": self.risk_level.value,
+            "risk_confidence": round(self.risk_confidence, 2),
+            "is_predatory_flag": self.is_predatory_flag,
+            "risk_reasons": list(self.risk_reasons),
+            "dominant_signals": list(self.dominant_signals),
+            "gross_negative_score": round(self.gross_negative_score, 4),
+            "trust_mitigation_score": round(self.trust_mitigation_score, 4),
+            "evidence_summary": self.evidence_collection.summary() if self.evidence_collection else None,
         }
