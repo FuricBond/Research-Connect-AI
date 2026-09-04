@@ -86,10 +86,12 @@ Provides explainable, ranked recommendations matching research profiles to appro
 ## 4. Trust & Quality
 Ensures students and researchers avoid predatory or substandard publication venues through transparent risk analysis.
 
-- **Predatory/Suspicious Opportunity Detection**: Heuristic and pattern-based identification of predatory conferences and journals.
-- **Risk Scoring**: Composite risk ratings based on transparency indicators, editorial board checks, and domain reputation.
-- **Publisher/Indexing Verification**: Cross-referencing indexing claims (e.g., Scopus, Web of Science, IEEE, ACM, Springer, DOAJ).
-- **Explanation of Risk Signals**: Clear, actionable warnings detailing flagged concerns (e.g., suspiciously short review times, vanity metrics).
+- **Predatory/Suspicious Opportunity Detection**: Heuristic and pattern-based identification of predatory conferences and journals *(Phase 2.6B completed)*.
+- **Deterministic Risk Scoring**: Composite calibrated risk ratings and trust mitigation *(Phase 2.6C completed)*.
+- **Publisher/Indexing Verification & Resolution**: Cross-referencing indexing claims (DOAJ, Crossref, OpenAlex) and entity resolution *(Phase 2.6D completed)*.
+- **Suspicious Graph & Topology Intelligence**: Academic trust graph analysis detecting organizer/domain syndicates and identity collisions *(Phase 2.6E completed)*.
+- **Risk Explainability & API/UI Integration**: Deterministic, transparent, provenance-backed trust/risk explanations with progressive disclosure across API and frontend *(Phase 2.6F completed)*.
+- **Risk Model Evaluation & False-Positive Hardening**: Benchmarks and calibration against ground-truth sets *(Phase 2.6G - Pending)*.
 
 ---
 

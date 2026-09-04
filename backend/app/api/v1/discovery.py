@@ -52,10 +52,12 @@ from app.schemas.discovery import (
     SimilarResearchResponse,
     TopicEvidenceSchema,
 )
+from app.ranking.risk import assess_opportunity_risk, risk_explainability_service
 from app.search.query_intelligence import query_intelligence_service
 from app.schemas.opportunity import (
     OpportunityListItem,
     OpportunityRead,
+    RiskExplanationSchema,
 )
 from app.services.opportunity_service import (
     DeliveryMode,
@@ -681,6 +683,7 @@ def match_opportunities_for_research_route(
         has_more = (offset + limit) < total
 
         explanations_map: dict[uuid.UUID, ResultExplanation] = {}
+        risk_explanations_map: dict[uuid.UUID, RiskExplanationSchema] = {}
         if explain and sliced:
             explained_batch = result_explainer.explain_batch(
                 sliced,
@@ -688,6 +691,13 @@ def match_opportunities_for_research_route(
             )
             for item in explained_batch:
                 explanations_map[item.result.entity_id] = item.explanation
+
+            # Phase 2.6F: Generate Deterministic Risk & Trust Explanations
+            for cand in sliced:
+                if cand.candidate is not None:
+                    assessment = assess_opportunity_risk(cand.candidate)
+                    risk_expl = risk_explainability_service.explain(assessment, opportunity=cand.candidate)
+                    risk_explanations_map[cand.entity_id] = RiskExplanationSchema.model_validate(risk_expl.to_dict())
 
         items: list[OpportunityMatchItem] = []
         for cand in sliced:
@@ -707,6 +717,12 @@ def match_opportunities_for_research_route(
                 )
 
             expl_schema = _to_explanation_schema(explanations_map.get(cand.entity_id))
+            risk_expl_schema = risk_explanations_map.get(cand.entity_id)
+
+            if risk_expl_schema is not None:
+                opp_read.risk_level = risk_expl_schema.risk_level
+                opp_read.risk_confidence = risk_expl_schema.risk_confidence
+                opp_read.risk_explanation = risk_expl_schema
 
             items.append(
                 OpportunityMatchItem(
@@ -723,6 +739,7 @@ def match_opportunities_for_research_route(
                     shared_topic_names=cand.shared_topic_names,
                     retrieval_sources=cand.retrieval_sources,
                     explanation=expl_schema,
+                    risk_explanation=risk_expl_schema,
                     diversity_adjustment=cand.diversity_adjustment,
                     novelty_score=cand.novelty_score,
                     redundancy_score=cand.redundancy_score,

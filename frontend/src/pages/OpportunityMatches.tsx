@@ -18,6 +18,7 @@ import type {
   OpportunityMatchParams,
   ResearchWorkRead,
 } from "../types/discovery";
+import type { RiskExplanation } from "../types/opportunity";
 
 interface OpportunityMatchesProps {
   selectedWork: ResearchWorkRead | null;
@@ -48,7 +49,9 @@ export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
 
   // Explainability Drawer State
   const [selectedExplanation, setSelectedExplanation] = useState<ExplanationSchema | null>(null);
+  const [selectedRiskExplanation, setSelectedRiskExplanation] = useState<RiskExplanation | null>(null);
   const [drawerTitle, setDrawerTitle] = useState("");
+  const [drawerInitialTab, setDrawerInitialTab] = useState<"match" | "risk">("match");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -112,9 +115,11 @@ export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleOpenExplain = (item: OpportunityMatchItem) => {
+  const handleOpenExplain = (item: OpportunityMatchItem, initialTab: "match" | "risk" = "match") => {
     setSelectedExplanation(item.explanation || null);
+    setSelectedRiskExplanation(item.risk_explanation || item.opportunity.risk_explanation || null);
     setDrawerTitle(item.opportunity.title);
+    setDrawerInitialTab(initialTab);
     setIsDrawerOpen(true);
   };
 
@@ -299,13 +304,15 @@ export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
         </div>
       )}
 
-      {/* Slide-over Explainability Drawer */}
+      {/* Slide-over Explainability Drawer (Phase 2.5F + 2.6F) */}
       <ExplainabilityDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
         explanation={selectedExplanation}
         entityTitle={drawerTitle}
         entityType="opportunity"
+        riskExplanation={selectedRiskExplanation}
+        initialTab={drawerInitialTab}
       />
     </section>
   );

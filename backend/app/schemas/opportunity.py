@@ -3,7 +3,8 @@ from decimal import Decimal
 from enum import Enum
 import uuid
 
-from pydantic import BaseModel, ConfigDict
+from typing import Any
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class OpportunityFee(BaseModel):
@@ -12,6 +13,54 @@ class OpportunityFee(BaseModel):
     amount: float | None = None
     currency: str | None = None
     fee_type: str | None = None
+
+
+# ── Risk Explainability API Schemas (Phase 2.6F) ──────────────────────────────
+
+
+class RiskEvidenceItemSchema(BaseModel):
+    """Structured evidence item with provenance and contribution."""
+    model_config = ConfigDict(from_attributes=True)
+
+    signal: str
+    category: str
+    strength: str
+    confidence: str
+    provenance: str
+    source_field: str
+    matched_value: str | None = None
+    explanation: str = ""
+    is_present: bool = True
+    contribution: float = 0.0
+    severity: str = "NEUTRAL"
+    evidence_type: str = "DIRECT_METADATA"
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class RiskExplanationSchema(BaseModel):
+    """Complete machine- and human-readable risk explanation container."""
+    model_config = ConfigDict(from_attributes=True)
+
+    opportunity_id: str | None = None
+    risk_score: float = 0.0
+    risk_level: str = "LOW_RISK"
+    risk_confidence: float = 0.0
+    evidence_sufficiency: str = "SUFFICIENT"
+    is_predatory_flag: bool = False
+    summary: str = ""
+    positive_trust_signals: list[RiskEvidenceItemSchema] = Field(default_factory=list)
+    suspicious_signals: list[RiskEvidenceItemSchema] = Field(default_factory=list)
+    neutral_signals: list[RiskEvidenceItemSchema] = Field(default_factory=list)
+    graph_signals: list[RiskEvidenceItemSchema] = Field(default_factory=list)
+    venue_signals: list[RiskEvidenceItemSchema] = Field(default_factory=list)
+    publisher_signals: list[RiskEvidenceItemSchema] = Field(default_factory=list)
+    evidence_items: list[RiskEvidenceItemSchema] = Field(default_factory=list)
+    risk_reasons: list[str] = Field(default_factory=list)
+    provenance_summary: dict[str, int] = Field(default_factory=dict)
+    limitations: list[str] = Field(default_factory=list)
+    gross_negative_score: float = 0.0
+    trust_mitigation_score: float = 0.0
+    resolved_entity: dict[str, Any] | None = None
 
 
 class OpportunityBase(BaseModel):
@@ -52,6 +101,9 @@ class OpportunityBase(BaseModel):
     is_predatory_flag: bool
     risk_score: Decimal | None = None
     risk_reasons: list[str] | None = None
+    risk_level: str | None = None
+    risk_confidence: float | None = None
+    risk_explanation: RiskExplanationSchema | None = None
 
     # Status & Lifecycle
     status: str
@@ -87,6 +139,8 @@ class OpportunityListItem(BaseModel):
     submission_url: str | None = None
     is_predatory_flag: bool
     risk_score: Decimal | None = None
+    risk_level: str | None = None
+    risk_confidence: float | None = None
     status: str
     last_seen_at: datetime | None = None
     created_at: datetime

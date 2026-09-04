@@ -95,11 +95,14 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ item, onExplai
         </div>
       </div>
 
-      {/* Predatory Risk Warning Banner (if flagged) */}
+      {/* Risk & Trust Warning Banner (Phase 2.6F) */}
       <RiskWarning
         isPredatory={opportunity.is_predatory_flag}
         riskScore={opportunity.risk_score}
         riskReasons={opportunity.risk_reasons}
+        riskLevel={opportunity.risk_level}
+        riskConfidence={opportunity.risk_confidence}
+        onViewRiskDetails={() => onExplain(item)}
       />
 
       {/* Title */}

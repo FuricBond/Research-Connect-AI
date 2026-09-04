@@ -1,6 +1,7 @@
 import type {
   OpportunityListResponse,
   OpportunityRead,
+  RiskExplanation,
 } from "../types/opportunity";
 import type {
   OpportunityMatchParams,
@@ -95,6 +96,16 @@ export async function fetchOpportunity(
   signal?: AbortSignal
 ): Promise<OpportunityRead> {
   return fetchJson<OpportunityRead>(`/api/opportunities/${id}`, { signal });
+}
+
+/**
+ * Fetch deterministic trust & risk explanation for an academic opportunity (Phase 2.6F).
+ */
+export async function fetchOpportunityRiskExplanation(
+  id: string,
+  signal?: AbortSignal
+): Promise<RiskExplanation> {
+  return fetchJson<RiskExplanation>(`/api/opportunities/${id}/risk-explanation`, { signal });
 }
 
 // ── Phase 2.4 Discovery APIs ──────────────────────────────────────────────────

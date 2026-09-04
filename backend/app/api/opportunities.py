@@ -5,7 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.opportunity import OpportunityListResponse, OpportunityRead
+from app.ranking.risk import assess_opportunity_risk, risk_explainability_service
+from app.schemas.opportunity import (
+    OpportunityListResponse,
+    OpportunityRead,
+    RiskExplanationSchema,
+)
 from app.services.opportunity_service import (
     DeliveryMode,
     OpportunitySort,
@@ -58,3 +63,23 @@ def get_opportunity_route(
     if opportunity is None:
         raise HTTPException(status_code=404, detail="Opportunity not found")
     return opportunity
+
+
+@router.get(
+    "/{opportunity_id}/risk-explanation",
+    response_model=RiskExplanationSchema,
+    summary="Get Deterministic Risk & Trust Explanation",
+    description="Retrieve structured, provenance-backed trust and risk explanation for an academic opportunity (Phase 2.6F).",
+)
+def get_opportunity_risk_explanation_route(
+    opportunity_id: uuid.UUID,
+    db: DbDep,
+) -> RiskExplanationSchema:
+    """Get deterministic trust & risk explanation for an opportunity by UUID."""
+    opportunity = get_opportunity_by_id(db, opportunity_id)
+    if opportunity is None:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+
+    assessment = assess_opportunity_risk(opportunity)
+    explanation = risk_explainability_service.explain(assessment, opportunity=opportunity)
+    return RiskExplanationSchema.model_validate(explanation.to_dict())

@@ -36,6 +36,12 @@ from app.ranking.risk.scoring import (
     assess_opportunity_risk,
     risk_scoring_engine,
 )
+from app.ranking.risk.explainability import (
+    RiskEvidenceExplanation,
+    RiskExplanation,
+    RiskExplainabilityService,
+    risk_explainability_service,
+)
 from app.ranking.risk.venue_intelligence import (
     KNOWN_DOI_PREFIXES,
     PUBLISHER_DOMAINS,
@@ -59,7 +65,10 @@ __all__ = [
     "RiskAssessment",
     "RiskEvidence",
     "RiskEvidenceCollection",
+    "RiskEvidenceExplanation",
     "RiskEvidenceExtractor",
+    "RiskExplanation",
+    "RiskExplainabilityService",
     "RiskLevel",
     "RiskScoringConfig",
     "SuspiciousGraphAnalyzer",
@@ -72,6 +81,7 @@ __all__ = [
     "assess_opportunity_risk",
     "project_graph_evidence",
     "risk_evidence_extractor",
+    "risk_explainability_service",
     "risk_scoring_engine",
     "suspicious_graph_service",
     "venue_publisher_intelligence_service",

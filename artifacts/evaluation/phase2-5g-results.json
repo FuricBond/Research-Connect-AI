@@ -1,7 +1,7 @@
 {
   "phase": "2.5G",
   "benchmark_phase": "Phase 2.5G \u2014 Empirical Evaluation, Ablation & Benchmark Hardening",
-  "timestamp": "2026-09-04T05:53:11.914474+00:00",
+  "timestamp": "2026-09-04T09:49:42.370414+00:00",
   "dataset": {
     "total_queries": 108,
     "total_candidates": 324,
@@ -473,9 +473,9 @@
     "determinism_pass_rate": 1.0,
     "diversity_attribution_reconciled_rate": 1.0,
     "latency_profile": {
-      "mean_ranking_batch_ms": 0.052,
-      "mean_explanation_batch_ms": 0.092,
-      "per_candidate_overhead_ms": 0.0528
+      "mean_ranking_batch_ms": 0.067,
+      "mean_explanation_batch_ms": 0.117,
+      "per_candidate_overhead_ms": 0.0675
     }
   },
   "latency": {
@@ -483,96 +483,96 @@
       "candidate_count": 10,
       "hybrid_ranking_latency_ms": {
         "p50": 0.216,
-        "p95": 0.256,
-        "mean": 0.219
+        "p95": 0.229,
+        "mean": 0.218
       },
       "diversity_reranking_latency_ms": {
-        "p50": 0.933,
-        "p95": 0.975,
-        "mean": 0.938
+        "p50": 0.935,
+        "p95": 1.011,
+        "mean": 0.944
       },
       "explainability_latency_ms": {
-        "p50": 0.562,
-        "p95": 0.578,
-        "mean": 0.558,
-        "per_candidate_overhead_ms": 0.0558
+        "p50": 0.561,
+        "p95": 0.614,
+        "mean": 0.564,
+        "per_candidate_overhead_ms": 0.0564
       },
       "end_to_end_latency_ms": {
-        "p50": 1.712,
-        "p95": 1.772,
-        "mean": 1.716
+        "p50": 1.709,
+        "p95": 1.811,
+        "mean": 1.726
       }
     },
     "batch_50": {
       "candidate_count": 50,
       "hybrid_ranking_latency_ms": {
-        "p50": 0.882,
-        "p95": 1.003,
-        "mean": 0.896
+        "p50": 0.881,
+        "p95": 0.915,
+        "mean": 0.88
       },
       "diversity_reranking_latency_ms": {
-        "p50": 2.14,
-        "p95": 2.396,
-        "mean": 2.171
+        "p50": 2.171,
+        "p95": 2.977,
+        "mean": 2.238
       },
       "explainability_latency_ms": {
-        "p50": 1.092,
-        "p95": 1.225,
-        "mean": 1.099,
+        "p50": 1.106,
+        "p95": 1.164,
+        "mean": 1.101,
         "per_candidate_overhead_ms": 0.022
       },
       "end_to_end_latency_ms": {
-        "p50": 4.118,
-        "p95": 4.623,
-        "mean": 4.166
+        "p50": 4.169,
+        "p95": 4.957,
+        "mean": 4.22
       }
     },
     "batch_100": {
       "candidate_count": 100,
       "hybrid_ranking_latency_ms": {
-        "p50": 1.667,
-        "p95": 1.905,
-        "mean": 1.689
+        "p50": 1.763,
+        "p95": 3.482,
+        "mean": 1.901
       },
       "diversity_reranking_latency_ms": {
-        "p50": 2.163,
-        "p95": 2.211,
-        "mean": 2.167
+        "p50": 2.304,
+        "p95": 4.061,
+        "mean": 2.463
       },
       "explainability_latency_ms": {
-        "p50": 1.098,
-        "p95": 1.137,
-        "mean": 1.104,
-        "per_candidate_overhead_ms": 0.011
+        "p50": 1.185,
+        "p95": 2.034,
+        "mean": 1.306,
+        "per_candidate_overhead_ms": 0.0131
       },
       "end_to_end_latency_ms": {
-        "p50": 4.939,
-        "p95": 5.209,
-        "mean": 4.96
+        "p50": 5.43,
+        "p95": 9.055,
+        "mean": 5.67
       }
     },
     "batch_200": {
       "candidate_count": 200,
       "hybrid_ranking_latency_ms": {
-        "p50": 3.227,
-        "p95": 3.508,
-        "mean": 3.246
+        "p50": 3.329,
+        "p95": 3.649,
+        "mean": 3.361
       },
       "diversity_reranking_latency_ms": {
-        "p50": 2.151,
-        "p95": 2.175,
-        "mean": 2.146
+        "p50": 2.218,
+        "p95": 2.379,
+        "mean": 2.231
       },
       "explainability_latency_ms": {
-        "p50": 1.1,
-        "p95": 1.117,
-        "mean": 1.094,
-        "per_candidate_overhead_ms": 0.0055
+        "p50": 1.136,
+        "p95": 1.32,
+        "mean": 1.161,
+        "per_candidate_overhead_ms": 0.0058
       },
       "end_to_end_latency_ms": {
-        "p50": 6.481,
-        "p95": 6.766,
-        "mean": 6.486
+        "p50": 6.718,
+        "p95": 7.18,
+        "mean": 6.753
       }
     }
   },

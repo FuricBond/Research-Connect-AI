@@ -852,6 +852,320 @@ h2 {
   background: #fffafa;
 }
 
+.risk-warning-banner.neutral-risk {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+.neutral-title {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.neutral-text {
+  color: #64748b;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.risk-action-btn {
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  transition: all 0.15s ease;
+}
+
+.risk-action-btn:hover {
+  opacity: 0.85;
+  transform: translateX(1px);
+}
+
+.risk-action-high {
+  color: #991b1b;
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.risk-action-medium {
+  color: #92400e;
+  background: rgba(217, 119, 6, 0.08);
+}
+
+.risk-action-neutral {
+  color: #475569;
+  background: rgba(100, 116, 139, 0.08);
+}
+
+/* ── Phase 2.6F Drawer Tabs & Trust/Risk Styling ───────────────────────────── */
+
+.drawer-tabs-bar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 20px 0;
+  border-bottom: 1px solid var(--border-color);
+  background: #f8fafc;
+}
+
+.drawer-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.drawer-tab-btn:hover {
+  color: var(--text-color);
+}
+
+.drawer-tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  background: #ffffff;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.drawer-tab-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.drawer-tab-badge.high_risk {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.drawer-tab-badge.moderate_risk {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.drawer-tab-badge.insufficient_evidence {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.drawer-tab-badge.low_risk {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.tab-icon-high {
+  color: #dc2626;
+}
+
+.tab-icon-med {
+  color: #d97706;
+}
+
+.tab-icon-low {
+  color: #16a34a;
+}
+
+.trust-risk-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.risk-metric-card.high_risk {
+  border-left: 4px solid #ef4444;
+}
+
+.risk-metric-card.moderate_risk {
+  border-left: 4px solid #f59e0b;
+}
+
+.risk-metric-card.insufficient_evidence {
+  border-left: 4px solid #94a3b8;
+}
+
+.risk-metric-card.low_risk {
+  border-left: 4px solid #22c55e;
+}
+
+.risk-level-tag {
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.risk-level-tag.high_risk {
+  color: #dc2626;
+}
+
+.risk-level-tag.moderate_risk {
+  color: #d97706;
+}
+
+.risk-level-tag.insufficient_evidence {
+  color: #64748b;
+}
+
+.risk-level-tag.low_risk {
+  color: #16a34a;
+}
+
+.sufficiency-badge {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.sufficiency-badge.sufficient {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.sufficiency-badge.insufficient {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.sufficiency-badge.minimal {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.risk-summary-text {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-color);
+}
+
+.negative-color {
+  color: #b91c1c !important;
+  font-weight: 600;
+}
+
+.positive-color {
+  color: #15803d !important;
+  font-weight: 600;
+}
+
+.positive-header {
+  color: #15803d;
+}
+
+.suspicious-header {
+  color: #b91c1c;
+}
+
+.neutral-header {
+  color: #475569;
+}
+
+.evidence-signals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.evidence-signal-card {
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+}
+
+.evidence-signal-card.trust-card {
+  border-left: 3px solid #22c55e;
+  background: #f0fdf4;
+}
+
+.evidence-signal-card.high-card {
+  border-left: 3px solid #ef4444;
+  background: #fef2f2;
+}
+
+.evidence-signal-card.moderate-card {
+  border-left: 3px solid #f59e0b;
+  background: #fffbeb;
+}
+
+.evidence-signal-card.low-card {
+  border-left: 3px solid #eab308;
+  background: #fffdf5;
+}
+
+.evidence-signal-card.neutral-card {
+  border-left: 3px solid #94a3b8;
+  background: #f8fafc;
+}
+
+.signal-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.84rem;
+  margin-bottom: 4px;
+}
+
+.signal-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  align-items: center;
+}
+
+.severity-text.high {
+  color: #dc2626;
+}
+
+.severity-text.moderate {
+  color: #d97706;
+}
+
+.severity-text.low {
+  color: #ca8a04;
+}
+
+.provenance-pill {
+  font-size: 0.68rem;
+  font-family: monospace;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.neutral-note {
+  font-style: italic;
+  color: #64748b;
+}
+
+.risk-reasons-container {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-color);
+}
+
 /* ── Opportunity Card Elements ─────────────────────────────────────────────── */
 
 .opportunity-type-tag {

@@ -15,7 +15,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.schemas.opportunity import OpportunityListItem, OpportunityRead
+from app.schemas.opportunity import OpportunityListItem, OpportunityRead, RiskExplanationSchema
 
 
 # ── Research Work Read Schema ─────────────────────────────────────────────────
@@ -319,6 +319,7 @@ class OpportunityMatchItem(BaseModel):
     shared_topic_names: list[str] = Field(default_factory=list)
     retrieval_sources: list[str] = Field(default_factory=list)
     explanation: ExplanationSchema | None = None
+    risk_explanation: RiskExplanationSchema | None = None
     diversity_adjustment: float | None = None
     novelty_score: float | None = None
     redundancy_score: float | None = None
