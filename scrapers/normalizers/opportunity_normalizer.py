@@ -21,6 +21,7 @@ import re
 from datetime import date, datetime, timezone
 
 from scrapers.models import NormalizedOpportunity, RawOpportunity
+from app.ranking.deadline import DeadlineNormalizer, DeadlineType
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +183,16 @@ def normalize_opportunity(raw: RawOpportunity) -> NormalizedOpportunity:
 
     opportunity_type = _infer_opportunity_type(title, abbreviation)
     delivery_mode = _infer_delivery_mode(location_clean)
-    submission_deadline = _parse_date(raw.raw_submission_deadline)
+    
+    # Phase 2.7C: Route submission deadline through canonical deadline normalizer
+    norm_deadline = DeadlineNormalizer.normalize_raw_string(
+        raw.raw_submission_deadline,
+        deadline_type=DeadlineType.SUBMISSION,
+        source=raw.source_name,
+        source_field="raw_submission_deadline",
+    )
+    submission_deadline = norm_deadline.normalized_utc
+
     event_start, event_end = _parse_event_dates(raw.raw_event_dates)
     website_url = _normalize_url(raw.website_url)
     source_url = _normalize_url(raw.source_url) or raw.source_url

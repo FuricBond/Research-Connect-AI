@@ -3,6 +3,7 @@ import { AlertCircle, CalendarDays, ExternalLink, Loader2 } from "lucide-react";
 
 import { fetchOpportunities } from "../services/api";
 import type { OpportunityListItem } from "../types/opportunity";
+import { formatDeadlineDate } from "../utils/date";
 
 const TYPE_LABELS: Record<string, string> = {
   CONFERENCE: "Conference",
@@ -14,12 +15,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 function formatDeadline(iso: string | null): string | null {
   if (!iso) return null;
-  const d = new Date(iso);
-  return d.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  return formatDeadlineDate(iso);
 }
 
 export function OpportunityList() {

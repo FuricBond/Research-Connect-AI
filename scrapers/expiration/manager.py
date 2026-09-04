@@ -44,10 +44,27 @@ def is_opportunity_expired(
         event_end = getattr(opportunity, "event_end_date", None)
         event_start = getattr(opportunity, "event_start_date", None)
 
+    # Check if deadline is a NormalizedDeadline object
+    if hasattr(deadline, "is_expired"):
+        return deadline.is_expired(ref_time)
+
     # Primary check: submission deadline
     if deadline is not None:
+        if isinstance(deadline, date) and not isinstance(deadline, datetime):
+            return deadline < ref_time.date()
         if deadline.tzinfo is None:
             deadline = deadline.replace(tzinfo=timezone.utc)
+
+        # Legacy date-only protection: If deadline was stored at exact UTC midnight
+        # and current date is still on the deadline date, do not expire prematurely
+        if (
+            deadline.hour == 0
+            and deadline.minute == 0
+            and deadline.second == 0
+            and deadline.date() == ref_time.date()
+        ):
+            return False
+
         return deadline < ref_time
 
     # Secondary check: event end or start date if no submission deadline

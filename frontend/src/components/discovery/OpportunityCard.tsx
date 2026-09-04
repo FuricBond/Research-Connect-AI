@@ -12,6 +12,7 @@ import {
 import type { OpportunityMatchItem } from "../../types/discovery";
 import { QualityBadge } from "./QualityBadge";
 import { RiskWarning } from "./RiskWarning";
+import { calculateRemainingDays, formatDeadlineDate } from "../../utils/date";
 
 interface OpportunityCardProps {
   item: OpportunityMatchItem;
@@ -23,28 +24,28 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ item, onExplai
 
   const matchPct = (match_score * 100).toFixed(0);
 
-  // Format deadline and compute remaining days
+  // Format deadline and compute remaining days safely without timezone shifting
   let deadlineText = "No deadline specified";
   let isUrgent = false;
   let isPast = false;
 
   if (opportunity.submission_deadline) {
-    const deadlineDate = new Date(opportunity.submission_deadline);
-    const now = new Date();
-    const diffMs = deadlineDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    const diffDays = calculateRemainingDays(opportunity.submission_deadline);
+    const formattedDate = formatDeadlineDate(opportunity.submission_deadline);
 
-    if (diffDays < 0) {
-      deadlineText = `Deadline passed (${deadlineDate.toLocaleDateString()})`;
-      isPast = true;
-    } else if (diffDays === 0) {
-      deadlineText = "Deadline today!";
-      isUrgent = true;
-    } else if (diffDays <= 14) {
-      deadlineText = `${diffDays} days remaining (${deadlineDate.toLocaleDateString()})`;
-      isUrgent = true;
-    } else {
-      deadlineText = `Due ${deadlineDate.toLocaleDateString()} (${diffDays} days)`;
+    if (diffDays !== null) {
+      if (diffDays < 0) {
+        deadlineText = `Deadline passed (${formattedDate})`;
+        isPast = true;
+      } else if (diffDays === 0) {
+        deadlineText = "Deadline today!";
+        isUrgent = true;
+      } else if (diffDays <= 14) {
+        deadlineText = `${diffDays} days remaining (${formattedDate})`;
+        isUrgent = true;
+      } else {
+        deadlineText = `Due ${formattedDate} (${diffDays} days)`;
+      }
     }
   }
 
@@ -174,12 +175,12 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ item, onExplai
         <div className="milestones-row">
           {opportunity.notification_date && (
             <span className="milestone-item">
-              <strong>Notice:</strong> {new Date(opportunity.notification_date).toLocaleDateString()}
+              <strong>Notice:</strong> {formatDeadlineDate(opportunity.notification_date)}
             </span>
           )}
           {opportunity.camera_ready_deadline && (
             <span className="milestone-item">
-              <strong>Camera-Ready:</strong> {new Date(opportunity.camera_ready_deadline).toLocaleDateString()}
+              <strong>Camera-Ready:</strong> {formatDeadlineDate(opportunity.camera_ready_deadline)}
             </span>
           )}
         </div>
