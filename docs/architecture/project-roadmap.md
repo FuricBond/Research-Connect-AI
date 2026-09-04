@@ -28,8 +28,8 @@ This document outlines the planned architecture and modular development roadmap 
   - **Phase 2.6B (Risk Evidence Extraction & Pattern Matchers)**: COMPLETE
   - **Phase 2.6C (Deterministic Risk Scoring Engine)**: COMPLETE
   - **Phase 2.6D (Venue / Publisher Intelligence & Cross-Source Resolution)**: COMPLETE
-  - **Phase 2.6E (Suspicious Pattern & Graph Signals)**: NEXT PHASE
-  - **Phase 2.6F (Explainability & Discovery UI Integration)**: PLANNED
+  - **Phase 2.6E (Suspicious Pattern & Graph Signals)**: COMPLETE
+  - **Phase 2.6F (Explainability & Discovery UI Integration)**: NEXT PHASE
   - **Phase 2.6G (Evaluation & False-Positive Hardening)**: PLANNED
 - **Next Stage (Phase 3)**: **Personalized Researcher Intelligence & Recommendations** (Following completion of Phase 2.6 predatory detection and Phase 2.7 deadline intelligence)
 

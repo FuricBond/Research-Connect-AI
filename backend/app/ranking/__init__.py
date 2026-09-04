@@ -115,9 +115,13 @@ __all__ = [
     "ResolvedAcademicEntity",
     "VenuePublisherIntelligenceService",
     "venue_publisher_intelligence_service",
+    "AcademicTrustGraph",
+    "SuspiciousGraphService",
+    "suspicious_graph_service",
 ]
 
 from app.ranking.risk import (
+    AcademicTrustGraph,
     DeterministicRiskScoringEngine,
     ResolutionStatus,
     ResolvedAcademicEntity,
@@ -126,10 +130,12 @@ from app.ranking.risk import (
     RiskEvidenceCollection,
     RiskEvidenceExtractor,
     RiskLevel,
+    SuspiciousGraphService,
     VenuePublisherIntelligenceService,
     assess_opportunity_risk,
     risk_evidence_extractor,
     risk_scoring_engine,
+    suspicious_graph_service,
     venue_publisher_intelligence_service,
 )
 

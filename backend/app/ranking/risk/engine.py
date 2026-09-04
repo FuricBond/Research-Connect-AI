@@ -24,13 +24,15 @@ from app.ranking.risk.models import (
     RiskEvidence,
     RiskEvidenceCollection,
 )
+from app.ranking.risk.graph import suspicious_graph_service
 from app.ranking.risk.venue_intelligence import venue_publisher_intelligence_service
 
 
 class RiskEvidenceExtractor:
     """
     Orchestrates deterministic extraction of trust, risk, and neutral evidence
-    from academic opportunity metadata and resolves cross-source academic entities.
+    from academic opportunity metadata, resolves cross-source academic entities,
+    and analyzes structural academic trust graph patterns.
     """
 
     def __init__(self) -> None:
@@ -40,12 +42,14 @@ class RiskEvidenceExtractor:
         self.payment_extractor = PaymentFeeEvidenceExtractor()
         self.completeness_extractor = MetadataCompletenessExtractor()
         self.venue_service = venue_publisher_intelligence_service
+        self.graph_service = suspicious_graph_service
 
     def extract(
         self,
         opportunity: Any,
         source_record: Any | None = None,
         resolved_entity: ResolvedAcademicEntity | None = None,
+        include_graph: bool = True,
     ) -> RiskEvidenceCollection:
         """
         Extract all observable evidence for a single opportunity and resolve academic entity.
@@ -110,6 +114,18 @@ class RiskEvidenceExtractor:
                 collection.add(item)
 
         collection.metadata_completeness_score = completeness_score
+
+        # 4. Optional single-node graph intelligence (enforces isolated node neutrality)
+        if include_graph:
+            _, projected = self.graph_service.analyze_batch(
+                [opportunity],
+                resolved_entities=[entity],
+                existing_collections=[collection],
+            )
+            clean_opp_id = opp_id if opp_id is not None else "unknown"
+            for graph_item in projected.get(clean_opp_id, []):
+                collection.add(graph_item)
+
         return collection
 
     def extract_batch(
@@ -118,15 +134,37 @@ class RiskEvidenceExtractor:
         source_records: dict[str, Any] | None = None,
     ) -> list[RiskEvidenceCollection]:
         """
-        Extract evidence for a batch of opportunities in-memory with pre-fetched source records.
+        Extract evidence for a batch of opportunities in-memory with pre-fetched source records
+        and evaluate structural graph patterns across the candidate batch.
 
         Guarantees zero N+1 queries.
         """
+        if not opportunities:
+            return []
+
         resolved_entities = self.venue_service.resolve_batch(opportunities, source_records=source_records)
-        return [
-            self.extract(opp, resolved_entity=ent)
+
+        # 1. Base modular extractions without single-node graph pass
+        collections = [
+            self.extract(opp, resolved_entity=ent, include_graph=False)
             for opp, ent in zip(opportunities, resolved_entities)
         ]
+
+        # 2. Batch graph intelligence across all candidates
+        _, projected = self.graph_service.analyze_batch(
+            opportunities,
+            resolved_entities=resolved_entities,
+            existing_collections=collections,
+        )
+
+        # 3. Enrich collections with projected graph evidence
+        for opp, col in zip(opportunities, collections):
+            raw_id = _get_field(opp, "id")
+            clean_id = str(raw_id).strip() if raw_id is not None else "unknown"
+            for graph_item in projected.get(clean_id, []):
+                col.add(graph_item)
+
+        return collections
 
 
 # Global singleton

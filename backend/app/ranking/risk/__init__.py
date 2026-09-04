@@ -18,6 +18,18 @@ from app.ranking.risk.models import (
     RiskEvidenceCollection,
     RiskLevel,
 )
+from app.ranking.risk.graph import (
+    AcademicTrustGraph,
+    GraphBuilder,
+    SuspiciousGraphAnalyzer,
+    SuspiciousGraphService,
+    TrustEdge,
+    TrustEdgeType,
+    TrustNode,
+    TrustNodeType,
+    project_graph_evidence,
+    suspicious_graph_service,
+)
 from app.ranking.risk.scoring import (
     DeterministicRiskScoringEngine,
     RiskScoringConfig,
@@ -32,12 +44,14 @@ from app.ranking.risk.venue_intelligence import (
 )
 
 __all__ = [
+    "AcademicTrustGraph",
     "DeterministicRiskScoringEngine",
     "EvidenceCategory",
     "EvidenceConfidence",
     "EvidenceProvenance",
     "EvidenceSignal",
     "EvidenceStrength",
+    "GraphBuilder",
     "KNOWN_DOI_PREFIXES",
     "PUBLISHER_DOMAINS",
     "ResolutionStatus",
@@ -48,10 +62,18 @@ __all__ = [
     "RiskEvidenceExtractor",
     "RiskLevel",
     "RiskScoringConfig",
+    "SuspiciousGraphAnalyzer",
+    "SuspiciousGraphService",
+    "TrustEdge",
+    "TrustEdgeType",
+    "TrustNode",
+    "TrustNodeType",
     "VenuePublisherIntelligenceService",
     "assess_opportunity_risk",
+    "project_graph_evidence",
     "risk_evidence_extractor",
     "risk_scoring_engine",
+    "suspicious_graph_service",
     "venue_publisher_intelligence_service",
 ]
 
