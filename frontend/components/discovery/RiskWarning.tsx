@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { AlertTriangle, AlertCircle, HelpCircle, ShieldCheck, ChevronRight } from "lucide-react";
 
@@ -114,3 +116,4 @@ export const RiskWarning: React.FC<RiskWarningProps> = ({
 
   return null;
 };
+

@@ -1,28 +1,21 @@
-import React, { useEffect, useState, useRef } from "react";
+"use client";
+
+import { useEffect, useState, useRef } from "react";
 import { AlertCircle, BookOpen, Loader2, Sparkles } from "lucide-react";
-import { SearchBar } from "../components/discovery/SearchBar";
-import { SearchFilters } from "../components/discovery/SearchFilters";
-import { ResearchResultCard } from "../components/discovery/ResearchResultCard";
-import { PaginationControls } from "../components/discovery/PaginationControls";
-import { ExplainabilityDrawer } from "../components/discovery/ExplainabilityDrawer";
-import { searchResearchWorks, ApiError } from "../services/api";
+import { SearchBar } from "../discovery/SearchBar";
+import { SearchFilters } from "../discovery/SearchFilters";
+import { ResearchResultCard } from "../discovery/ResearchResultCard";
+import { PaginationControls } from "../discovery/PaginationControls";
+import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
+import { searchResearchWorks, ApiError } from "../../services/api";
 import type {
   ExplanationSchema,
   QueryIntelligenceSchema,
   ResearchSearchParams,
   ResearchSearchResultItem,
-  ResearchWorkRead,
-} from "../types/discovery";
+} from "../../types/discovery";
 
-interface DiscoverySearchProps {
-  onFindSimilar: (work: ResearchWorkRead) => void;
-  onMatchOpportunities: (work: ResearchWorkRead) => void;
-}
-
-export const DiscoverySearch: React.FC<DiscoverySearchProps> = ({
-  onFindSimilar,
-  onMatchOpportunities,
-}) => {
+export function DiscoverySearch() {
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Partial<ResearchSearchParams>>({
     limit: 20,
@@ -77,7 +70,7 @@ export const DiscoverySearch: React.FC<DiscoverySearchProps> = ({
       setQueryIntelligence(response.query_intelligence || null);
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") {
-        return; // Request was aborted by newer search
+        return;
       }
       if (err instanceof ApiError) {
         setError(err.detail || err.message);
@@ -220,8 +213,6 @@ export const DiscoverySearch: React.FC<DiscoverySearchProps> = ({
               <ResearchResultCard
                 key={item.work.id}
                 item={item}
-                onFindSimilar={onFindSimilar}
-                onMatchOpportunities={onMatchOpportunities}
                 onExplain={handleOpenExplain}
               />
             ))}
@@ -248,4 +239,4 @@ export const DiscoverySearch: React.FC<DiscoverySearchProps> = ({
       />
     </section>
   );
-};
+}

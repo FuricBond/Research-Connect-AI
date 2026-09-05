@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import {
   AlertCircle,
@@ -1071,3 +1073,4 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
     </div>
   );
 };
+

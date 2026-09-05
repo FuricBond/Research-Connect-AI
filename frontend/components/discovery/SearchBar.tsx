@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { ArrowRight, Loader2, Search, X } from "lucide-react";
 import type { QueryIntelligenceSchema } from "../../types/discovery";
@@ -113,3 +115,4 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     </div>
   );
 };
+

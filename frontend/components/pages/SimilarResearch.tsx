@@ -1,27 +1,24 @@
-import React, { useEffect, useState, useRef } from "react";
+"use client";
+
+import { useEffect, useState, useRef } from "react";
 import { AlertCircle, ArrowLeft, BookOpen, Compass, Loader2, Sparkles } from "lucide-react";
-import { SimilarResearchCard } from "../components/discovery/SimilarResearchCard";
-import { PaginationControls } from "../components/discovery/PaginationControls";
-import { ExplainabilityDrawer } from "../components/discovery/ExplainabilityDrawer";
-import { getSimilarResearch, ApiError } from "../services/api";
+import { useRouter } from "next/navigation";
+import { SimilarResearchCard } from "../discovery/SimilarResearchCard";
+import { PaginationControls } from "../discovery/PaginationControls";
+import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
+import { getSimilarResearch, ApiError } from "../../services/api";
+import { getSelectedWork, setSelectedWork } from "../../hooks/useSelectedWork";
 import type {
   ExplanationSchema,
   ResearchWorkRead,
   SimilarResearchItem,
   SimilarResearchParams,
-} from "../types/discovery";
+} from "../../types/discovery";
 
-interface SimilarResearchProps {
-  selectedWork: ResearchWorkRead | null;
-  onBackToSearch: () => void;
-  onMatchOpportunities: (work: ResearchWorkRead) => void;
-}
+export function SimilarResearchPage() {
+  const router = useRouter();
+  const [selectedWork, setSelectedWork] = useState<ResearchWorkRead | null>(null);
 
-export const SimilarResearch: React.FC<SimilarResearchProps> = ({
-  selectedWork,
-  onBackToSearch,
-  onMatchOpportunities,
-}) => {
   const [items, setItems] = useState<SimilarResearchItem[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,6 +36,15 @@ export const SimilarResearch: React.FC<SimilarResearchProps> = ({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Hydrate selectedWork from sessionStorage on mount
+  useEffect(() => {
+    const work = getSelectedWork();
+    setSelectedWork(work);
+    if (work) {
+      fetchSimilar(work.id, filters);
+    }
+  }, []);
 
   const fetchSimilar = async (workId: string, currentFilters: SimilarResearchParams) => {
     if (abortControllerRef.current) {
@@ -74,12 +80,6 @@ export const SimilarResearch: React.FC<SimilarResearchProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (selectedWork && selectedWork.id) {
-      fetchSimilar(selectedWork.id, filters);
-    }
-  }, [selectedWork?.id]);
-
   const handlePageChange = (newOffset: number) => {
     const updated = { ...filters, offset: newOffset };
     setFilters(updated);
@@ -95,6 +95,10 @@ export const SimilarResearch: React.FC<SimilarResearchProps> = ({
     setIsDrawerOpen(true);
   };
 
+  const handleBackToSearch = () => {
+    router.push("/");
+  };
+
   if (!selectedWork) {
     return (
       <section className="similar-research-page empty-selection">
@@ -103,9 +107,9 @@ export const SimilarResearch: React.FC<SimilarResearchProps> = ({
           <h3>No Research Paper Selected</h3>
           <p>
             Please search for an academic paper in the <strong>Literature Search</strong> tab and click{" "}
-            <em>"Find Similar Research"</em> to explore nearest semantic neighbors and topic proximity.
+            <em>&quot;Find Similar Research&quot;</em> to explore nearest semantic neighbors and topic proximity.
           </p>
-          <button type="button" className="action-btn primary-btn" onClick={onBackToSearch}>
+          <button type="button" className="action-btn primary-btn" onClick={handleBackToSearch}>
             <ArrowLeft size={16} />
             <span>Go to Literature Search</span>
           </button>
@@ -117,7 +121,7 @@ export const SimilarResearch: React.FC<SimilarResearchProps> = ({
   return (
     <section className="similar-research-page" aria-label="Similar Research Explorer">
       {/* Back to search link */}
-      <button type="button" className="back-link-btn" onClick={onBackToSearch}>
+      <button type="button" className="back-link-btn" onClick={handleBackToSearch}>
         <ArrowLeft size={16} />
         <span>Back to Literature Search</span>
       </button>
@@ -136,7 +140,10 @@ export const SimilarResearch: React.FC<SimilarResearchProps> = ({
           <button
             type="button"
             className="action-btn primary-btn"
-            onClick={() => onMatchOpportunities(selectedWork)}
+            onClick={() => {
+              setSelectedWork(selectedWork);
+              router.push("/opportunities");
+            }}
           >
             <Sparkles size={15} />
             <span>Match Calls for This Paper</span>
@@ -192,7 +199,6 @@ export const SimilarResearch: React.FC<SimilarResearchProps> = ({
               <SimilarResearchCard
                 key={item.work.id}
                 item={item}
-                onMatchOpportunities={onMatchOpportunities}
                 onExplain={handleOpenExplain}
               />
             ))}
@@ -218,4 +224,4 @@ export const SimilarResearch: React.FC<SimilarResearchProps> = ({
       />
     </section>
   );
-};
+}

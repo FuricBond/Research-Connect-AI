@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { Award, CheckCircle2, ShieldCheck } from "lucide-react";
 
@@ -87,3 +89,4 @@ export const QualityBadge: React.FC<QualityBadgeProps> = ({
     </span>
   );
 };
+

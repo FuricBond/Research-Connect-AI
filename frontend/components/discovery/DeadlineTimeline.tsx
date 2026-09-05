@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   AlertTriangle,
@@ -213,3 +215,4 @@ function renderMilestoneItem(
     </div>
   );
 }
+

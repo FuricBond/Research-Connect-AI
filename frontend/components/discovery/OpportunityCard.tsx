@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+
 import {
   DollarSign,
   ExternalLink,
@@ -17,7 +18,7 @@ interface OpportunityCardProps {
   onExplain: (item: OpportunityMatchItem, tab?: "match" | "risk" | "deadline") => void;
 }
 
-export const OpportunityCard: React.FC<OpportunityCardProps> = ({ item, onExplain }) => {
+export function OpportunityCard({ item, onExplain }: OpportunityCardProps) {
   const { opportunity, rank, match_score, type_compatibility, topic_similarity, urgency, explanation } = item;
 
   const matchPct = (match_score * 100).toFixed(0);
@@ -198,4 +199,4 @@ export const OpportunityCard: React.FC<OpportunityCardProps> = ({ item, onExplai
       </footer>
     </article>
   );
-};
+}

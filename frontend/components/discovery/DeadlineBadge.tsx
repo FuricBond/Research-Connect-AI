@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { AlertTriangle, ArrowUpRight, Calendar, Clock, History, Info } from "lucide-react";
 import type { OpportunityDeadline } from "../../types/opportunity";
@@ -175,3 +177,4 @@ export const DeadlineBadge: React.FC<DeadlineBadgeProps> = ({
     </div>
   );
 };
+

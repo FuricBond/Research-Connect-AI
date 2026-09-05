@@ -1,34 +1,32 @@
-import React, { useEffect, useState, useRef } from "react";
+"use client";
+
+import { useEffect, useState, useRef } from "react";
 import {
   AlertCircle,
   ArrowLeft,
   BookOpen,
   Calendar,
-  Filter,
   Loader2,
   Sparkles,
 } from "lucide-react";
-import { OpportunityCard } from "../components/discovery/OpportunityCard";
-import { PaginationControls } from "../components/discovery/PaginationControls";
-import { ExplainabilityDrawer } from "../components/discovery/ExplainabilityDrawer";
-import { matchOpportunitiesForResearch, ApiError } from "../services/api";
+import { useRouter } from "next/navigation";
+import { OpportunityCard } from "../discovery/OpportunityCard";
+import { PaginationControls } from "../discovery/PaginationControls";
+import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
+import { matchOpportunitiesForResearch, ApiError } from "../../services/api";
+import { getSelectedWork } from "../../hooks/useSelectedWork";
 import type {
   ExplanationSchema,
   OpportunityMatchItem,
   OpportunityMatchParams,
   ResearchWorkRead,
-} from "../types/discovery";
-import type { OpportunityDeadline, RiskExplanation } from "../types/opportunity";
+} from "../../types/discovery";
+import type { OpportunityDeadline, RiskExplanation } from "../../types/opportunity";
 
-interface OpportunityMatchesProps {
-  selectedWork: ResearchWorkRead | null;
-  onBackToSearch: () => void;
-}
+export function OpportunityMatchesPage() {
+  const router = useRouter();
+  const [selectedWork, setSelectedWork] = useState<ResearchWorkRead | null>(null);
 
-export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
-  selectedWork,
-  onBackToSearch,
-}) => {
   const [items, setItems] = useState<OpportunityMatchItem[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -56,6 +54,15 @@ export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Hydrate selectedWork from sessionStorage on mount
+  useEffect(() => {
+    const work = getSelectedWork();
+    setSelectedWork(work);
+    if (work) {
+      fetchMatches(work.id, filters);
+    }
+  }, []);
 
   const fetchMatches = async (workId: string, currentFilters: OpportunityMatchParams) => {
     if (abortControllerRef.current) {
@@ -101,11 +108,12 @@ export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
     }
   };
 
+  // Re-fetch when filters change (after work is loaded)
   useEffect(() => {
-    if (selectedWork && selectedWork.id) {
+    if (selectedWork?.id) {
       fetchMatches(selectedWork.id, filters);
     }
-  }, [selectedWork?.id, opportunityType, upcomingOnly, deliveryMode, maxApcUsd, requireKnownApc, locationFilter]);
+  }, [opportunityType, upcomingOnly, deliveryMode, maxApcUsd, requireKnownApc, locationFilter]);
 
   const handlePageChange = (newOffset: number) => {
     const updated = { ...filters, offset: newOffset };
@@ -128,6 +136,10 @@ export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
     setIsDrawerOpen(true);
   };
 
+  const handleBackToSearch = () => {
+    router.push("/");
+  };
+
   if (!selectedWork) {
     return (
       <section className="opportunity-matches-page empty-selection">
@@ -136,9 +148,9 @@ export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
           <h3>No Research Paper Selected</h3>
           <p>
             Please search for an academic paper in the <strong>Literature Search</strong> tab and click{" "}
-            <em>"Match Calls & Venues"</em> to evaluate venue quality, publication type compatibility, and upcoming deadlines.
+            <em>&quot;Match Calls &amp; Venues&quot;</em> to evaluate venue quality, publication type compatibility, and upcoming deadlines.
           </p>
-          <button type="button" className="action-btn primary-btn" onClick={onBackToSearch}>
+          <button type="button" className="action-btn primary-btn" onClick={handleBackToSearch}>
             <ArrowLeft size={16} />
             <span>Go to Literature Search</span>
           </button>
@@ -150,7 +162,7 @@ export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
   return (
     <section className="opportunity-matches-page" aria-label="Research Opportunity Matcher">
       {/* Back button */}
-      <button type="button" className="back-link-btn" onClick={onBackToSearch}>
+      <button type="button" className="back-link-btn" onClick={handleBackToSearch}>
         <ArrowLeft size={16} />
         <span>Back to Literature Search</span>
       </button>
@@ -277,7 +289,7 @@ export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
         <div className="state-container empty-state">
           <Calendar size={28} className="empty-icon" />
           <h4>No academic opportunities matched this paper</h4>
-          <p>Try broadening your filters or unchecking "Upcoming Deadlines Only".</p>
+          <p>Try broadening your filters or unchecking &quot;Upcoming Deadlines Only&quot;.</p>
         </div>
       )}
 
@@ -285,7 +297,7 @@ export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
       {!isLoading && items.length > 0 && (
         <div className="results-container">
           <div className="results-header">
-            <h3>Ranked Target Venues & Calls</h3>
+            <h3>Ranked Target Venues &amp; Calls</h3>
             <span className="results-count-text">{total} relevant venues identified</span>
           </div>
 
@@ -322,4 +334,4 @@ export const OpportunityMatches: React.FC<OpportunityMatchesProps> = ({
       />
     </section>
   );
-};
+}

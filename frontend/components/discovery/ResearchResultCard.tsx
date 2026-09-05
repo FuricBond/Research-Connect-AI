@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+"use client";
+
+import { useState } from "react";
 import {
   BookOpen,
   Calendar,
@@ -9,25 +11,36 @@ import {
   Sparkles,
   Unlock,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import type { ResearchSearchResultItem, ResearchWorkRead } from "../../types/discovery";
+import { setSelectedWork } from "../../hooks/useSelectedWork";
 
 interface ResearchResultCardProps {
   item: ResearchSearchResultItem;
-  onFindSimilar: (work: ResearchWorkRead) => void;
-  onMatchOpportunities: (work: ResearchWorkRead) => void;
   onExplain: (item: ResearchSearchResultItem) => void;
 }
 
-export const ResearchResultCard: React.FC<ResearchResultCardProps> = ({
+export function ResearchResultCard({
   item,
-  onFindSimilar,
-  onMatchOpportunities,
   onExplain,
-}) => {
+}: ResearchResultCardProps) {
   const [isAbstractExpanded, setIsAbstractExpanded] = useState(false);
   const { work, rank, final_score, semantic_score, lexical_score, topic_score, explanation } = item;
+  const router = useRouter();
 
   const scorePct = (final_score * 100).toFixed(0);
+
+  const handleFindSimilar = (w: ResearchWorkRead) => {
+    setSelectedWork(w);
+    router.push("/similar");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleMatchOpportunities = (w: ResearchWorkRead) => {
+    setSelectedWork(w);
+    router.push("/opportunities");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <article className="research-card" aria-labelledby={`work-title-${work.id}`}>
@@ -154,7 +167,7 @@ export const ResearchResultCard: React.FC<ResearchResultCardProps> = ({
         <button
           type="button"
           className="action-btn secondary-btn"
-          onClick={() => onFindSimilar(work)}
+          onClick={() => handleFindSimilar(work)}
         >
           <Compass size={15} />
           <span>Find Similar Research</span>
@@ -163,12 +176,12 @@ export const ResearchResultCard: React.FC<ResearchResultCardProps> = ({
         <button
           type="button"
           className="action-btn primary-btn"
-          onClick={() => onMatchOpportunities(work)}
+          onClick={() => handleMatchOpportunities(work)}
         >
           <Sparkles size={15} />
-          <span>Match Calls & Venues</span>
+          <span>Match Calls &amp; Venues</span>
         </button>
       </footer>
     </article>
   );
-};
+}

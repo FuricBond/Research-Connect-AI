@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, Filter, RotateCcw } from "lucide-react";
 import type { RankingMode, ResearchSearchParams } from "../../types/discovery";
@@ -156,3 +158,4 @@ export const SearchFilters: React.FC<SearchFiltersProps> = ({
     </aside>
   );
 };
+

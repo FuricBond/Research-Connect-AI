@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useState } from "react";
 import { AlertCircle, CalendarDays, ExternalLink, Loader2 } from "lucide-react";
 
@@ -122,3 +124,4 @@ export function OpportunityList() {
     </section>
   );
 }
+
