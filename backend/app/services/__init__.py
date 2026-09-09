@@ -22,6 +22,9 @@ from app.services.research_opportunity_matching_service import (
     calculate_type_compatibility,
     research_opportunity_matching_service,
 )
+from app.services.personalized_candidate_generation_service import (
+    PersonalizedCandidateGenerationService,
+)
 from app.services.researcher_intelligence_service import ResearcherIntelligenceService
 from app.services.researcher_preference_service import ResearcherPreferenceService
 from app.services.researcher_profile_service import ResearcherProfileService
@@ -68,5 +71,8 @@ __all__ = [
     "ResearcherIntelligenceService",
     # Researcher preference service (Phase 3.3)
     "ResearcherPreferenceService",
+    # Personalized candidate generation service (Phase 3.4)
+    "PersonalizedCandidateGenerationService",
 ]
+
 

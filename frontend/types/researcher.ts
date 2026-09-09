@@ -252,4 +252,74 @@ export interface ResearcherPreferenceIntelligenceResponse {
   generated_at: string;
 }
 
+// ── Phase 3.4 — Personalized Candidate Generation Types ──────────────────────
+
+export type CandidateSourceType =
+  | "EXPLICIT_PREFERENCE"
+  | "INFERRED_PREFERENCE"
+  | "RESEARCH_EXPERTISE"
+  | "RESEARCH_INTEREST"
+  | "PROFILE_KEYWORD"
+  | "COLD_START_FALLBACK";
+
+export interface CandidateProvenance {
+  candidate_id: string;
+  opportunity_id: string;
+  sources: CandidateSourceType[];
+  matched_topics: string[];
+  matched_preferences: string[];
+  matched_expertise: string[];
+  reasons: string[];
+  retrieval_channels: string[];
+}
+
+export interface PersonalizedCandidateOpportunity {
+  id: string;
+  title: string;
+  opportunity_type: string;
+  delivery_mode: string;
+  location?: string | null;
+  organizer?: string | null;
+  submission_deadline?: string | null;
+  website_url?: string | null;
+  topics: string[];
+  status: string;
+  is_predatory_flag: boolean;
+  risk_level?: string | null;
+  risk_score?: number | null;
+  risk_reasons: string[];
+  deadline_status?: string | null;
+  days_remaining?: number | null;
+  urgency_tier?: string | null;
+  deadline_explanation?: string | null;
+}
+
+export interface PersonalizedCandidateItem {
+  candidate_id: string;
+  opportunity: PersonalizedCandidateOpportunity;
+  provenance: CandidateProvenance;
+  eligibility_passed: boolean;
+  eligibility_reasons: string[];
+}
+
+export interface CandidateSourceCoverage {
+  explicit_preference_count: number;
+  inferred_preference_count: number;
+  expertise_count: number;
+  profile_count: number;
+  fallback_count: number;
+  unique_candidate_count: number;
+  deduplication_ratio: number;
+}
+
+export interface PersonalizedCandidateSetResponse {
+  researcher_id: string;
+  candidate_count: number;
+  is_cold_start: boolean;
+  coverage: CandidateSourceCoverage;
+  candidates: PersonalizedCandidateItem[];
+  metadata: Record<string, unknown>;
+}
+
+
 

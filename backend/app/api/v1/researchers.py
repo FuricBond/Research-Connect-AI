@@ -18,6 +18,9 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.schemas.personalized_candidate import (
+    PersonalizedCandidateSetResponse,
+)
 from app.schemas.researcher import (
     ProfileCompletenessSchema,
     ResearcherProfileCreate,
@@ -35,9 +38,13 @@ from app.schemas.researcher_preference import (
     ResearcherPreferenceItemSchema,
     ResearcherPreferenceUpdateSchema,
 )
+from app.services.personalized_candidate_generation_service import (
+    PersonalizedCandidateGenerationService,
+)
 from app.services.researcher_intelligence_service import ResearcherIntelligenceService
 from app.services.researcher_preference_service import ResearcherPreferenceService
 from app.services.researcher_profile_service import ResearcherProfileService
+
 
 
 logger = logging.getLogger(__name__)
@@ -513,5 +520,59 @@ def delete_researcher_preference(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=str(err),
         )
+
+
+@router.get(
+    "/{researcher_id}/personalized-candidates",
+    response_model=PersonalizedCandidateSetResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Generate personalized candidate set",
+    description=(
+        "Generate a deduplicated, eligibility-verified candidate set of research opportunities "
+        "tailored to the researcher's canonical profile, scholarly expertise, and personal preferences (Phase 3.4). "
+        "Strict boundary: Returns an unranked candidate pool with complete provenance. "
+        "Does NOT implement personalized ranking (reserved for Phase 3.5)."
+    ),
+)
+def get_personalized_candidates(
+    researcher_id: uuid.UUID,
+    limit: Annotated[int, Query(ge=1, le=200, description="Candidate set limit")] = 50,
+    include_inferred: Annotated[bool, Query(description="Include inferred preference candidates")] = True,
+    include_expertise: Annotated[bool, Query(description="Include scholarly expertise candidates")] = True,
+    include_fallback: Annotated[bool, Query(description="Include cold-start discovery fallback")] = True,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizedCandidateSetResponse:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation (Phase 3.4 / 3.3 convention)
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to view this researcher's personalized candidate set.",
+        )
+
+    try:
+        return PersonalizedCandidateGenerationService.generate_personalized_candidates(
+            db=db,
+            profile_id=profile.id,
+            limit=limit,
+            include_inferred=include_inferred,
+            include_expertise=include_expertise,
+            include_fallback=include_fallback,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
 
 

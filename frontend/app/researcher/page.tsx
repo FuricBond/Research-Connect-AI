@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import type {
+  PersonalizedCandidateSetResponse,
   ResearcherIntelligenceResponse,
   ResearcherPreferenceCreatePayload,
   ResearcherPreferenceIntelligenceResponse,
@@ -11,16 +12,19 @@ import type {
 import { ResearcherProfileView } from "../../components/researcher/ResearcherProfileView";
 import { ResearcherIntelligenceView } from "../../components/researcher/ResearcherIntelligenceView";
 import { ResearcherPreferencesView } from "../../components/researcher/ResearcherPreferencesView";
+import { PersonalizedCandidatePreview } from "../../components/researcher/PersonalizedCandidatePreview";
 import {
   createResearcherPreference,
   createResearcherProfile,
   deleteResearcherPreference,
+  fetchPersonalizedCandidates,
   fetchResearcherIntelligence,
   fetchResearcherPreferenceIntelligence,
   fetchResearcherProfile,
   fetchResearcherWorks,
 } from "../../services/api";
 import { AlertCircle, Loader2, Sparkles, UserPlus } from "lucide-react";
+
 
 // Default demo ID or fallback initialization for developer/preview usage
 const DEFAULT_DEMO_EMAIL = "researcher@university.edu";
@@ -44,12 +48,52 @@ export default function ResearcherPage() {
   const [preferencesError, setPreferencesError] = useState<string | null>(null);
   const [isRefreshingPreferences, setIsRefreshingPreferences] = useState(false);
 
+  // Personalized Candidates State (Phase 3.4)
+  const [candidates, setCandidates] = useState<PersonalizedCandidateSetResponse | null>(null);
+  const [candidatesLoading, setCandidatesLoading] = useState(false);
+  const [candidatesError, setCandidatesError] = useState<string | null>(null);
+  const [isRefreshingCandidates, setIsRefreshingCandidates] = useState(false);
+
   // New profile creation state
   const [initName, setInitName] = useState("Dr. Alex Rivera");
   const [initEmail, setInitEmail] = useState(DEFAULT_DEMO_EMAIL);
   const [initInstitution, setInitInstitution] = useState("Tech University");
   const [initDept, setInitDept] = useState("Computer Science");
   const [initStatus, setInitStatus] = useState("FACULTY");
+
+  const loadCandidates = async (
+    profileId: string,
+    options?: {
+      limit?: number;
+      includeInferred?: boolean;
+      includeExpertise?: boolean;
+      includeFallback?: boolean;
+    },
+    refresh = false
+  ) => {
+    if (refresh) {
+      setIsRefreshingCandidates(true);
+    } else {
+      setCandidatesLoading(true);
+    }
+    setCandidatesError(null);
+
+    try {
+      const data = await fetchPersonalizedCandidates(
+        profileId,
+        options,
+        profile?.user_id
+      );
+      setCandidates(data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to load personalized candidates";
+      setCandidatesError(msg);
+    } finally {
+      setCandidatesLoading(false);
+      setIsRefreshingCandidates(false);
+    }
+  };
+
 
   const loadIntelligence = async (profileId: string, refresh = false) => {
     if (refresh) {
@@ -96,6 +140,7 @@ export default function ResearcherPage() {
     try {
       await createResearcherPreference(profile.id, payload, profile.user_id);
       await loadPreferences(profile.id, false);
+      await loadCandidates(profile.id, undefined, false);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to add preference";
       setPreferencesError(msg);
@@ -107,6 +152,7 @@ export default function ResearcherPage() {
     try {
       await deleteResearcherPreference(profile.id, preferenceId, profile.user_id);
       await loadPreferences(profile.id, false);
+      await loadCandidates(profile.id, undefined, false);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to delete preference";
       setPreferencesError(msg);
@@ -137,6 +183,8 @@ export default function ResearcherPage() {
             loadIntelligence(loaded.id, false);
             // Load Phase 3.3 Preferences
             loadPreferences(loaded.id, false);
+            // Load Phase 3.4 Personalized Candidates
+            loadCandidates(loaded.id, undefined, false);
             setLoading(false);
             return;
           }
@@ -182,6 +230,7 @@ export default function ResearcherPage() {
       setProfile(created);
       loadIntelligence(created.id, true);
       loadPreferences(created.id, true);
+      loadCandidates(created.id, undefined, true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to initialize profile";
       setError(msg);
@@ -197,7 +246,9 @@ export default function ResearcherPage() {
     }
     loadIntelligence(updated.id, true);
     loadPreferences(updated.id, true);
+    loadCandidates(updated.id, undefined, true);
   };
+
 
 
   if (loading) {
@@ -393,8 +444,18 @@ export default function ResearcherPage() {
           onDeletePreference={handleDeletePreference}
           userId={profile.user_id}
         />
+        <div style={{ marginTop: "36px" }}>
+          <PersonalizedCandidatePreview
+            candidatesResponse={candidates}
+            loading={candidatesLoading}
+            error={candidatesError}
+            onRefresh={(options) => profile && loadCandidates(profile.id, options, true)}
+            isRefreshing={isRefreshingCandidates}
+          />
+        </div>
       </div>
     </div>
   );
 }
+
 

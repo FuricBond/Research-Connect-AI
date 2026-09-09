@@ -36,10 +36,11 @@ This document outlines the planned architecture and modular development roadmap 
   - **Phase 3.1 (Researcher Profile Foundation)**: **COMPLETE** (Canonical profile model, external identifier normalization, institution linking, profile completeness, service, REST API, Next.js UI)
   - **Phase 3.2 (Research Interest Intelligence)**: **COMPLETE** (Structured interests and expertise extraction, deterministic strength and confidence scoring, bounded recency signal, zero N+1 queries, provenance, REST API, Next.js UI)
   - **Phase 3.3 (Personal Preference Intelligence)**: **COMPLETE** (Canonical preference model, explicit preferences CRUD, activity-based inference from saved opportunities, derived expertise candidates, contradiction detection, completeness scoring, zero N+1 queries, provenance, REST API, Next.js UI)
-  - **Phase 3.4 (Personalized Candidate Retrieval)**: *Pending*
+  - **Phase 3.4 (Personalized Candidate Retrieval)**: **COMPLETE** (Multi-source personalized candidate generation, explicit/inferred preferences, scholarly expertise, profile keywords, cold-start discovery fallback, eligibility verification, Phase 2.6 risk & Phase 2.7 deadline preservation, deduplication with merged provenance, source balancing quotas, zero N+1 queries, REST API, Next.js candidate preview UI)
   - **Phase 3.5 (Personalized Hybrid Ranking)**: *Pending*
   - **Phase 3.6 (Recommendation Feedback & Interaction History)**: *Pending*
   - **Phase 3.7 (Personalization Evaluation & Benchmarking)**: *Pending*
+
 
 
 

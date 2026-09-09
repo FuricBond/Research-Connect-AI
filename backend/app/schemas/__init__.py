@@ -48,6 +48,14 @@ from app.schemas.researcher_preference import (
     ResearcherPreferenceItemSchema,
     ResearcherPreferenceUpdateSchema,
 )
+from app.schemas.personalized_candidate import (
+    CandidateProvenanceSchema,
+    CandidateSourceCoverageSchema,
+    CandidateSourceType,
+    PersonalizedCandidateItemSchema,
+    PersonalizedCandidateOpportunitySchema,
+    PersonalizedCandidateSetResponse,
+)
 
 __all__ = [
     "OpportunityFee",
@@ -93,6 +101,14 @@ __all__ = [
     "ResearcherPreferenceUpdateSchema",
     "PreferenceIntelligenceSummarySchema",
     "ResearcherPreferenceIntelligenceResponse",
+    # Phase 3.4 Personalized Candidate Generation Schemas
+    "CandidateSourceType",
+    "CandidateProvenanceSchema",
+    "PersonalizedCandidateOpportunitySchema",
+    "PersonalizedCandidateItemSchema",
+    "CandidateSourceCoverageSchema",
+    "PersonalizedCandidateSetResponse",
 ]
+
 
 
