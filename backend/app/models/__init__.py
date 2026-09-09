@@ -10,7 +10,7 @@ from app.models.research_knowledge import (
     ResearchWorkModel,
     ResearchWorkTopicModel,
 )
-from app.models.research_profile import ResearchProfileModel
+from app.models.research_profile import AcademicStatus, ResearchProfileModel
 from app.models.saved_opportunity import SavedOpportunityModel
 from app.models.source import SourceModel
 from app.models.topic import TopicAliasModel, TopicModel
@@ -20,6 +20,7 @@ __all__ = [
     "Base",
     "TimestampMixin",
     "UserModel",
+    "AcademicStatus",
     "ResearchProfileModel",
     "SourceModel",
     "TopicModel",

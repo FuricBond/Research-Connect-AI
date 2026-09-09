@@ -31,8 +31,16 @@ This document outlines the planned architecture and modular development roadmap 
   - **Phase 2.6E (Suspicious Pattern & Graph Signals)**: COMPLETE
   - **Phase 2.6F (Explainability & Discovery UI Integration)**: COMPLETE
   - **Phase 2.6G (Evaluation & False-Positive Hardening)**: COMPLETE
-- **Next Stage (Phase 2.7)**: **Submission Deadline Intelligence, Feasibility & Notification Automation**
-- **Subsequent Stage (Phase 3)**: **Personalized Researcher Intelligence & Recommendations** (Following completion of Phase 2.6 trust/risk pipeline and Phase 2.7 deadline intelligence)
+- **Phase 2.7 (Deadline Intelligence & Urgency Engine)**: **COMPLETE** (Subphases 2.7A–2.7G implemented, tested, and empirically evaluated)
+- **Phase 3 (Personalized Researcher Intelligence & Recommendations)**:
+  - **Phase 3.1 (Researcher Profile Foundation)**: **COMPLETE** (Canonical profile model, external identifier normalization, institution linking, profile completeness, service, REST API, Next.js UI)
+  - **Phase 3.2 (Research Interest Intelligence)**: *Pending*
+  - **Phase 3.3 (Researcher Preferences Engine)**: *Pending*
+  - **Phase 3.4 (Personalized Candidate Retrieval)**: *Pending*
+  - **Phase 3.5 (Personalized Hybrid Ranking)**: *Pending*
+  - **Phase 3.6 (Recommendation Feedback & Interaction History)**: *Pending*
+  - **Phase 3.7 (Personalization Evaluation & Benchmarking)**: *Pending*
+
 
 
 ---

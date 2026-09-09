@@ -22,6 +22,7 @@ from app.services.research_opportunity_matching_service import (
     calculate_type_compatibility,
     research_opportunity_matching_service,
 )
+from app.services.researcher_profile_service import ResearcherProfileService
 from app.services.similar_research_service import (
     MissingEmbeddingError,
     ResearchWorkNotFoundError,
@@ -59,4 +60,6 @@ __all__ = [
     "calculate_topic_compatibility",
     "calculate_type_compatibility",
     "research_opportunity_matching_service",
+    # Researcher profile service (Phase 3.1)
+    "ResearcherProfileService",
 ]

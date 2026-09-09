@@ -9,6 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 from app.api.health import router as health_router
 from app.api.opportunities import router as opportunities_router
 from app.api.v1.discovery import router as discovery_router
+from app.api.v1.researchers import router as researchers_router
 from app.core.cache import DiscoveryResponseCacheMiddleware
 from app.core.config import settings
 from app.core.rate_limiter import DiscoveryRateLimitMiddleware
@@ -45,6 +46,8 @@ app.include_router(health_router, prefix="/api")
 app.include_router(opportunities_router, prefix="/api")
 app.include_router(discovery_router, prefix="/api/v1")
 app.include_router(discovery_router, prefix="/api")
+app.include_router(researchers_router, prefix="/api/v1")
+app.include_router(researchers_router, prefix="/api")
 
 
 @app.get("/")

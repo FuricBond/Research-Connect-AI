@@ -19,6 +19,17 @@ from app.schemas.opportunity import (
     OpportunityListResponse,
     OpportunityRead,
 )
+from app.schemas.researcher import (
+    AcademicStatus,
+    CompletenessLevel,
+    ExternalIdentifiersSchema,
+    InstitutionSummarySchema,
+    ProfileCompletenessSchema,
+    ResearcherProfileCreate,
+    ResearcherProfileRead,
+    ResearcherProfileUpdate,
+    ResearcherWorkSummarySchema,
+)
 
 __all__ = [
     "OpportunityFee",
@@ -38,4 +49,14 @@ __all__ = [
     "SimilarResearchResponse",
     "OpportunityMatchItem",
     "OpportunityMatchResponse",
+    # Phase 3.1 Researcher Profile Schemas
+    "AcademicStatus",
+    "CompletenessLevel",
+    "ExternalIdentifiersSchema",
+    "InstitutionSummarySchema",
+    "ResearcherWorkSummarySchema",
+    "ProfileCompletenessSchema",
+    "ResearcherProfileCreate",
+    "ResearcherProfileUpdate",
+    "ResearcherProfileRead",
 ]

@@ -215,3 +215,66 @@ export async function matchOpportunitiesForResearch(
     { signal }
   );
 }
+
+// ── Researcher Profile API (Phase 3.1) ────────────────────────────────────────
+
+import type {
+  ProfileCompleteness,
+  ResearcherProfile,
+  ResearcherProfileCreatePayload,
+  ResearcherProfileUpdatePayload,
+  ResearcherWorkSummary,
+} from "../types/researcher";
+
+export async function fetchResearcherProfile(
+  id: string,
+  signal?: AbortSignal
+): Promise<ResearcherProfile> {
+  return fetchJson<ResearcherProfile>(`/api/v1/researchers/${id}`, { signal });
+}
+
+export async function createResearcherProfile(
+  payload: ResearcherProfileCreatePayload,
+  signal?: AbortSignal
+): Promise<ResearcherProfile> {
+  return fetchJson<ResearcherProfile>("/api/v1/researchers", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    signal,
+  });
+}
+
+export async function updateResearcherProfile(
+  id: string,
+  payload: ResearcherProfileUpdatePayload,
+  signal?: AbortSignal
+): Promise<ResearcherProfile> {
+  return fetchJson<ResearcherProfile>(`/api/v1/researchers/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+    signal,
+  });
+}
+
+export async function fetchResearcherWorks(
+  id: string,
+  limit: number = 20,
+  offset: number = 0,
+  signal?: AbortSignal
+): Promise<ResearcherWorkSummary[]> {
+  return fetchJson<ResearcherWorkSummary[]>(
+    `/api/v1/researchers/${id}/works?limit=${limit}&offset=${offset}`,
+    { signal }
+  );
+}
+
+export async function fetchProfileCompleteness(
+  id: string,
+  signal?: AbortSignal
+): Promise<ProfileCompleteness> {
+  return fetchJson<ProfileCompleteness>(
+    `/api/v1/researchers/${id}/completeness`,
+    { signal }
+  );
+}
+
