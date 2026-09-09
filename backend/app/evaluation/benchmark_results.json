@@ -1,6 +1,6 @@
 {
   "benchmark_phase": "Phase 2.5G \u2014 Empirical Evaluation, Ablation & Benchmark Hardening",
-  "timestamp": "2026-09-09T08:19:03.726296+00:00",
+  "timestamp": "2026-09-09T08:56:09.255855+00:00",
   "environment": {
     "os": "Windows",
     "os_release": "11",
@@ -13,7 +13,7 @@
   "phase_2_5g": {
     "phase": "2.5G",
     "benchmark_phase": "Phase 2.5G \u2014 Empirical Evaluation, Ablation & Benchmark Hardening",
-    "timestamp": "2026-09-09T08:19:03.724007+00:00",
+    "timestamp": "2026-09-09T08:56:09.253583+00:00",
     "dataset": {
       "total_queries": 108,
       "total_candidates": 324,
@@ -485,106 +485,106 @@
       "determinism_pass_rate": 1.0,
       "diversity_attribution_reconciled_rate": 1.0,
       "latency_profile": {
-        "mean_ranking_batch_ms": 0.111,
-        "mean_explanation_batch_ms": 0.194,
-        "per_candidate_overhead_ms": 0.1115
+        "mean_ranking_batch_ms": 0.065,
+        "mean_explanation_batch_ms": 0.111,
+        "per_candidate_overhead_ms": 0.0636
       }
     },
     "latency": {
       "batch_10": {
         "candidate_count": 10,
         "hybrid_ranking_latency_ms": {
-          "p50": 0.507,
-          "p95": 0.75,
-          "mean": 0.493
+          "p50": 0.263,
+          "p95": 0.271,
+          "mean": 0.263
         },
         "diversity_reranking_latency_ms": {
-          "p50": 2.073,
-          "p95": 2.917,
-          "mean": 2.177
+          "p50": 1.225,
+          "p95": 1.339,
+          "mean": 1.248
         },
         "explainability_latency_ms": {
-          "p50": 1.166,
-          "p95": 1.769,
-          "mean": 1.206,
-          "per_candidate_overhead_ms": 0.1206
+          "p50": 0.655,
+          "p95": 0.715,
+          "mean": 0.657,
+          "per_candidate_overhead_ms": 0.0657
         },
         "end_to_end_latency_ms": {
-          "p50": 3.75,
-          "p95": 4.805,
-          "mean": 3.877
+          "p50": 2.153,
+          "p95": 2.271,
+          "mean": 2.168
         }
       },
       "batch_50": {
         "candidate_count": 50,
         "hybrid_ranking_latency_ms": {
-          "p50": 2.186,
-          "p95": 3.752,
-          "mean": 2.325
+          "p50": 1.079,
+          "p95": 1.13,
+          "mean": 1.085
         },
         "diversity_reranking_latency_ms": {
-          "p50": 5.263,
-          "p95": 8.902,
-          "mean": 5.528
+          "p50": 2.807,
+          "p95": 2.942,
+          "mean": 2.82
         },
         "explainability_latency_ms": {
-          "p50": 2.338,
-          "p95": 3.676,
-          "mean": 2.439,
-          "per_candidate_overhead_ms": 0.0488
+          "p50": 1.281,
+          "p95": 1.297,
+          "mean": 1.281,
+          "per_candidate_overhead_ms": 0.0256
         },
         "end_to_end_latency_ms": {
-          "p50": 10.08,
-          "p95": 14.993,
-          "mean": 10.293
+          "p50": 5.186,
+          "p95": 5.3,
+          "mean": 5.187
         }
       },
       "batch_100": {
         "candidate_count": 100,
         "hybrid_ranking_latency_ms": {
-          "p50": 4.213,
-          "p95": 6.889,
-          "mean": 4.088
+          "p50": 2.075,
+          "p95": 3.533,
+          "mean": 2.209
         },
         "diversity_reranking_latency_ms": {
-          "p50": 5.012,
-          "p95": 6.925,
-          "mean": 4.726
+          "p50": 2.815,
+          "p95": 4.044,
+          "mean": 2.916
         },
         "explainability_latency_ms": {
-          "p50": 2.399,
-          "p95": 3.155,
-          "mean": 2.227,
-          "per_candidate_overhead_ms": 0.0223
+          "p50": 1.299,
+          "p95": 1.477,
+          "mean": 1.329,
+          "per_candidate_overhead_ms": 0.0133
         },
         "end_to_end_latency_ms": {
-          "p50": 11.836,
-          "p95": 16.377,
-          "mean": 11.042
+          "p50": 6.262,
+          "p95": 8.946,
+          "mean": 6.454
         }
       },
       "batch_200": {
         "candidate_count": 200,
         "hybrid_ranking_latency_ms": {
-          "p50": 6.943,
-          "p95": 9.964,
-          "mean": 6.564
+          "p50": 3.956,
+          "p95": 4.565,
+          "mean": 4.002
         },
         "diversity_reranking_latency_ms": {
-          "p50": 3.364,
-          "p95": 7.458,
-          "mean": 4.016
+          "p50": 2.85,
+          "p95": 4.951,
+          "mean": 2.989
         },
         "explainability_latency_ms": {
-          "p50": 1.723,
-          "p95": 3.833,
-          "mean": 1.913,
-          "per_candidate_overhead_ms": 0.0096
+          "p50": 1.282,
+          "p95": 1.518,
+          "mean": 1.303,
+          "per_candidate_overhead_ms": 0.0065
         },
         "end_to_end_latency_ms": {
-          "p50": 12.519,
-          "p95": 20.414,
-          "mean": 12.493
+          "p50": 8.088,
+          "p95": 11.035,
+          "mean": 8.295
         }
       }
     },
@@ -859,9 +859,9 @@
       }
     },
     "latency_profile_ms": {
-      "baseline_hybrid_p50": 0.231,
-      "reranker_inference_p50": 87.866,
-      "reranker_inference_p95": 98.431
+      "baseline_hybrid_p50": 0.226,
+      "reranker_inference_p50": 85.395,
+      "reranker_inference_p95": 98.101
     }
   },
   "diversity_novelty_evaluation": {
@@ -898,9 +898,9 @@
       "H_combined_diversity_plus_novelty": 1.0
     },
     "latency_profile_ms": {
-      "median_p50": 0.258,
-      "p95": 0.277,
-      "mean": 0.254
+      "median_p50": 0.192,
+      "p95": 0.262,
+      "mean": 0.196
     }
   },
   "retrieval_evaluation": {
@@ -1015,38 +1015,38 @@
     "determinism_pass_rate": 1.0,
     "diversity_attribution_reconciled_rate": 1.0,
     "latency_profile": {
-      "mean_ranking_batch_ms": 0.109,
-      "mean_explanation_batch_ms": 0.192,
-      "per_candidate_overhead_ms": 0.1106
+      "mean_ranking_batch_ms": 0.061,
+      "mean_explanation_batch_ms": 0.108,
+      "per_candidate_overhead_ms": 0.062
     }
   },
   "api_latencies": {
     "research_search": {
       "iterations": 30,
-      "p50_ms": 2.733,
-      "p95_ms": 5.503,
-      "p99_ms": 4100.318,
-      "mean_ms": 139.836,
-      "min_ms": 2.558,
-      "max_ms": 4100.318
+      "p50_ms": 1.457,
+      "p95_ms": 1.837,
+      "p99_ms": 4114.658,
+      "mean_ms": 138.589,
+      "min_ms": 1.378,
+      "max_ms": 4114.658
     },
     "similar_research": {
       "iterations": 30,
-      "p50_ms": 3.875,
-      "p95_ms": 5.608,
-      "p99_ms": 4104.452,
-      "mean_ms": 140.642,
-      "min_ms": 2.711,
-      "max_ms": 4104.452
+      "p50_ms": 1.421,
+      "p95_ms": 26.817,
+      "p99_ms": 4076.687,
+      "mean_ms": 138.709,
+      "min_ms": 1.335,
+      "max_ms": 4076.687
     },
     "opportunity_matching": {
       "iterations": 30,
-      "p50_ms": 2.687,
-      "p95_ms": 3.025,
-      "p99_ms": 7.695,
-      "mean_ms": 2.89,
-      "min_ms": 2.577,
-      "max_ms": 7.695
+      "p50_ms": 1.401,
+      "p95_ms": 2.077,
+      "p99_ms": 3.461,
+      "mean_ms": 1.533,
+      "min_ms": 1.346,
+      "max_ms": 3.461
     }
   },
   "concurrency_profile": {
@@ -1055,7 +1055,7 @@
       "total_requests": 4,
       "successful_requests": 4,
       "error_rate": 0.0,
-      "total_duration_sec": 4.0786,
+      "total_duration_sec": 4.1019,
       "throughput_qps": 1.0
     },
     "concurrency_5": {
@@ -1063,24 +1063,24 @@
       "total_requests": 20,
       "successful_requests": 20,
       "error_rate": 0.0,
-      "total_duration_sec": 0.0713,
-      "throughput_qps": 280.3
+      "total_duration_sec": 0.029,
+      "throughput_qps": 689.2
     },
     "concurrency_10": {
       "concurrent_virtual_clients": 10,
       "total_requests": 40,
       "successful_requests": 40,
       "error_rate": 0.0,
-      "total_duration_sec": 0.1134,
-      "throughput_qps": 352.8
+      "total_duration_sec": 0.0575,
+      "throughput_qps": 695.5
     },
     "concurrency_25": {
       "concurrent_virtual_clients": 25,
       "total_requests": 100,
       "successful_requests": 100,
       "error_rate": 0.0,
-      "total_duration_sec": 0.2774,
-      "throughput_qps": 360.5
+      "total_duration_sec": 0.1454,
+      "throughput_qps": 687.9
     }
   }
 }

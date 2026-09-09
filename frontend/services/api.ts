@@ -220,6 +220,8 @@ export async function matchOpportunitiesForResearch(
 
 import type {
   ProfileCompleteness,
+  ResearcherIntelligenceResponse,
+  ResearcherInterestItem,
   ResearcherProfile,
   ResearcherProfileCreatePayload,
   ResearcherProfileUpdatePayload,
@@ -277,4 +279,36 @@ export async function fetchProfileCompleteness(
     { signal }
   );
 }
+
+export async function fetchResearcherIntelligence(
+  id: string,
+  refresh: boolean = false,
+  signal?: AbortSignal
+): Promise<ResearcherIntelligenceResponse> {
+  return fetchJson<ResearcherIntelligenceResponse>(
+    `/api/v1/researchers/${id}/research-intelligence?refresh=${refresh}`,
+    { signal }
+  );
+}
+
+export async function fetchResearcherInterests(
+  id: string,
+  signal?: AbortSignal
+): Promise<ResearcherInterestItem[]> {
+  return fetchJson<ResearcherInterestItem[]>(
+    `/api/v1/researchers/${id}/interests`,
+    { signal }
+  );
+}
+
+export async function fetchResearcherExpertise(
+  id: string,
+  signal?: AbortSignal
+): Promise<ResearcherInterestItem[]> {
+  return fetchJson<ResearcherInterestItem[]>(
+    `/api/v1/researchers/${id}/expertise`,
+    { signal }
+  );
+}
+
 

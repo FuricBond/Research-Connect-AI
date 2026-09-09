@@ -30,6 +30,13 @@ from app.schemas.researcher import (
     ResearcherProfileUpdate,
     ResearcherWorkSummarySchema,
 )
+from app.schemas.researcher_intelligence import (
+    ExpertiseClassification,
+    ResearcherIntelligenceResponse,
+    ResearcherIntelligenceSummarySchema,
+    ResearcherInterestItemSchema,
+    SupportingWorkReferenceSchema,
+)
 
 __all__ = [
     "OpportunityFee",
@@ -59,4 +66,11 @@ __all__ = [
     "ResearcherProfileCreate",
     "ResearcherProfileUpdate",
     "ResearcherProfileRead",
+    # Phase 3.2 Researcher Intelligence Schemas
+    "ExpertiseClassification",
+    "SupportingWorkReferenceSchema",
+    "ResearcherInterestItemSchema",
+    "ResearcherIntelligenceSummarySchema",
+    "ResearcherIntelligenceResponse",
 ]
+

@@ -1,7 +1,7 @@
 {
   "phase": "2.5G",
   "benchmark_phase": "Phase 2.5G \u2014 Empirical Evaluation, Ablation & Benchmark Hardening",
-  "timestamp": "2026-09-09T08:19:03.724007+00:00",
+  "timestamp": "2026-09-09T08:56:09.253583+00:00",
   "dataset": {
     "total_queries": 108,
     "total_candidates": 324,
@@ -473,106 +473,106 @@
     "determinism_pass_rate": 1.0,
     "diversity_attribution_reconciled_rate": 1.0,
     "latency_profile": {
-      "mean_ranking_batch_ms": 0.111,
-      "mean_explanation_batch_ms": 0.194,
-      "per_candidate_overhead_ms": 0.1115
+      "mean_ranking_batch_ms": 0.065,
+      "mean_explanation_batch_ms": 0.111,
+      "per_candidate_overhead_ms": 0.0636
     }
   },
   "latency": {
     "batch_10": {
       "candidate_count": 10,
       "hybrid_ranking_latency_ms": {
-        "p50": 0.507,
-        "p95": 0.75,
-        "mean": 0.493
+        "p50": 0.263,
+        "p95": 0.271,
+        "mean": 0.263
       },
       "diversity_reranking_latency_ms": {
-        "p50": 2.073,
-        "p95": 2.917,
-        "mean": 2.177
+        "p50": 1.225,
+        "p95": 1.339,
+        "mean": 1.248
       },
       "explainability_latency_ms": {
-        "p50": 1.166,
-        "p95": 1.769,
-        "mean": 1.206,
-        "per_candidate_overhead_ms": 0.1206
+        "p50": 0.655,
+        "p95": 0.715,
+        "mean": 0.657,
+        "per_candidate_overhead_ms": 0.0657
       },
       "end_to_end_latency_ms": {
-        "p50": 3.75,
-        "p95": 4.805,
-        "mean": 3.877
+        "p50": 2.153,
+        "p95": 2.271,
+        "mean": 2.168
       }
     },
     "batch_50": {
       "candidate_count": 50,
       "hybrid_ranking_latency_ms": {
-        "p50": 2.186,
-        "p95": 3.752,
-        "mean": 2.325
+        "p50": 1.079,
+        "p95": 1.13,
+        "mean": 1.085
       },
       "diversity_reranking_latency_ms": {
-        "p50": 5.263,
-        "p95": 8.902,
-        "mean": 5.528
+        "p50": 2.807,
+        "p95": 2.942,
+        "mean": 2.82
       },
       "explainability_latency_ms": {
-        "p50": 2.338,
-        "p95": 3.676,
-        "mean": 2.439,
-        "per_candidate_overhead_ms": 0.0488
+        "p50": 1.281,
+        "p95": 1.297,
+        "mean": 1.281,
+        "per_candidate_overhead_ms": 0.0256
       },
       "end_to_end_latency_ms": {
-        "p50": 10.08,
-        "p95": 14.993,
-        "mean": 10.293
+        "p50": 5.186,
+        "p95": 5.3,
+        "mean": 5.187
       }
     },
     "batch_100": {
       "candidate_count": 100,
       "hybrid_ranking_latency_ms": {
-        "p50": 4.213,
-        "p95": 6.889,
-        "mean": 4.088
+        "p50": 2.075,
+        "p95": 3.533,
+        "mean": 2.209
       },
       "diversity_reranking_latency_ms": {
-        "p50": 5.012,
-        "p95": 6.925,
-        "mean": 4.726
+        "p50": 2.815,
+        "p95": 4.044,
+        "mean": 2.916
       },
       "explainability_latency_ms": {
-        "p50": 2.399,
-        "p95": 3.155,
-        "mean": 2.227,
-        "per_candidate_overhead_ms": 0.0223
+        "p50": 1.299,
+        "p95": 1.477,
+        "mean": 1.329,
+        "per_candidate_overhead_ms": 0.0133
       },
       "end_to_end_latency_ms": {
-        "p50": 11.836,
-        "p95": 16.377,
-        "mean": 11.042
+        "p50": 6.262,
+        "p95": 8.946,
+        "mean": 6.454
       }
     },
     "batch_200": {
       "candidate_count": 200,
       "hybrid_ranking_latency_ms": {
-        "p50": 6.943,
-        "p95": 9.964,
-        "mean": 6.564
+        "p50": 3.956,
+        "p95": 4.565,
+        "mean": 4.002
       },
       "diversity_reranking_latency_ms": {
-        "p50": 3.364,
-        "p95": 7.458,
-        "mean": 4.016
+        "p50": 2.85,
+        "p95": 4.951,
+        "mean": 2.989
       },
       "explainability_latency_ms": {
-        "p50": 1.723,
-        "p95": 3.833,
-        "mean": 1.913,
-        "per_candidate_overhead_ms": 0.0096
+        "p50": 1.282,
+        "p95": 1.518,
+        "mean": 1.303,
+        "per_candidate_overhead_ms": 0.0065
       },
       "end_to_end_latency_ms": {
-        "p50": 12.519,
-        "p95": 20.414,
-        "mean": 12.493
+        "p50": 8.088,
+        "p95": 11.035,
+        "mean": 8.295
       }
     }
   },

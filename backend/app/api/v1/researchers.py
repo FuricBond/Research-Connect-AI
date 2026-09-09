@@ -25,7 +25,13 @@ from app.schemas.researcher import (
     ResearcherProfileUpdate,
     ResearcherWorkSummarySchema,
 )
+from app.schemas.researcher_intelligence import (
+    ResearcherIntelligenceResponse,
+    ResearcherInterestItemSchema,
+)
+from app.services.researcher_intelligence_service import ResearcherIntelligenceService
 from app.services.researcher_profile_service import ResearcherProfileService
+
 
 logger = logging.getLogger(__name__)
 
@@ -143,3 +149,81 @@ def get_researcher_profile_completeness(
             detail=f"Researcher profile with ID '{researcher_id}' not found.",
         )
     return ResearcherProfileService.compute_profile_completeness(profile)
+
+
+@router.get(
+    "/{researcher_id}/research-intelligence",
+    response_model=ResearcherIntelligenceResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get researcher interest and expertise intelligence",
+    description=(
+        "Retrieve structured, explainable academic interests, expertise tiers, "
+        "recency signals, confidence metrics, and deterministic provenance for a researcher (Phase 3.2)."
+    ),
+)
+def get_researcher_intelligence(
+    researcher_id: uuid.UUID,
+    refresh: bool = Query(
+        False,
+        description="Force recomputation of intelligence instead of reading persisted records",
+    ),
+    db: Session = Depends(get_db),
+) -> ResearcherIntelligenceResponse:
+    try:
+        return ResearcherIntelligenceService.get_researcher_intelligence(
+            db=db,
+            identifier=researcher_id,
+            refresh=refresh,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
+
+@router.get(
+    "/{researcher_id}/interests",
+    response_model=list[ResearcherInterestItemSchema],
+    status_code=status.HTTP_200_OK,
+    summary="Get structured researcher academic interests",
+    description="Retrieve all inferred academic interests with strength, confidence, and provenance (Phase 3.2).",
+)
+def get_researcher_interests(
+    researcher_id: uuid.UUID,
+    db: Session = Depends(get_db),
+) -> list[ResearcherInterestItemSchema]:
+    try:
+        return ResearcherIntelligenceService.get_researcher_interests(
+            db=db,
+            identifier=researcher_id,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
+
+@router.get(
+    "/{researcher_id}/expertise",
+    response_model=list[ResearcherInterestItemSchema],
+    status_code=status.HTTP_200_OK,
+    summary="Get structured researcher academic expertise",
+    description="Retrieve confirmed primary and secondary academic expertise areas (Phase 3.2).",
+)
+def get_researcher_expertise(
+    researcher_id: uuid.UUID,
+    db: Session = Depends(get_db),
+) -> list[ResearcherInterestItemSchema]:
+    try:
+        return ResearcherIntelligenceService.get_researcher_expertise(
+            db=db,
+            identifier=researcher_id,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+

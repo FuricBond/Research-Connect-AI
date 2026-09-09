@@ -102,3 +102,65 @@ export interface ResearcherProfileUpdatePayload {
   keywords?: string[] | null;
   target_opportunity_types?: string[] | null;
 }
+
+// ── Phase 3.2 — Researcher Interest & Expertise Intelligence Types ──────────
+
+export type ExpertiseClassification =
+  | "PRIMARY_EXPERTISE"
+  | "SECONDARY_EXPERTISE"
+  | "EMERGING_INTEREST"
+  | "WEAK_INTEREST"
+  | "INSUFFICIENT_EVIDENCE";
+
+export interface SupportingWorkReference {
+  id: string;
+  title: string;
+  doi?: string | null;
+  publication_year?: number | null;
+  work_type?: string | null;
+  author_position?: string | null;
+  is_corresponding: boolean;
+  cited_by_count: number;
+  topic_confidence?: number | null;
+}
+
+export interface ResearcherInterestItem {
+  topic_id?: string | null;
+  topic_name: string;
+  topic_slug: string;
+  topic_category?: string | null;
+  strength: number;
+  confidence: number;
+  evidence_count: number;
+  recency_score: number;
+  classification: ExpertiseClassification;
+  is_primary_expertise: boolean;
+  first_observed_year?: number | null;
+  last_observed_year?: number | null;
+  source: string;
+  provenance_reasons: string[];
+  supporting_works: SupportingWorkReference[];
+}
+
+export interface ResearcherIntelligenceSummary {
+  total_topics_analyzed: number;
+  primary_expertise_count: number;
+  secondary_expertise_count: number;
+  emerging_interest_count: number;
+  total_works_analyzed: number;
+  active_years_span?: string | null;
+  has_profile_keywords: boolean;
+}
+
+export interface ResearcherIntelligenceResponse {
+  researcher_id: string;
+  profile_id?: string | null;
+  canonical_researcher_id?: string | null;
+  display_name: string;
+  interests: ResearcherInterestItem[];
+  expertise: ResearcherInterestItem[];
+  emerging: ResearcherInterestItem[];
+  summary: ResearcherIntelligenceSummary;
+  generated_at: string;
+}
+

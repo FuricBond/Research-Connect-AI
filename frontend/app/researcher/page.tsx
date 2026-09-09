@@ -1,9 +1,19 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import type { ResearcherProfile, ResearcherWorkSummary } from "../../types/researcher";
+import type {
+  ResearcherIntelligenceResponse,
+  ResearcherProfile,
+  ResearcherWorkSummary,
+} from "../../types/researcher";
 import { ResearcherProfileView } from "../../components/researcher/ResearcherProfileView";
-import { createResearcherProfile, fetchResearcherProfile, fetchResearcherWorks } from "../../services/api";
+import { ResearcherIntelligenceView } from "../../components/researcher/ResearcherIntelligenceView";
+import {
+  createResearcherProfile,
+  fetchResearcherIntelligence,
+  fetchResearcherProfile,
+  fetchResearcherWorks,
+} from "../../services/api";
 import { AlertCircle, Loader2, Sparkles, UserPlus } from "lucide-react";
 
 // Default demo ID or fallback initialization for developer/preview usage
@@ -16,12 +26,38 @@ export default function ResearcherPage() {
   const [error, setError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(false);
 
+  // Intelligence State (Phase 3.2)
+  const [intelligence, setIntelligence] = useState<ResearcherIntelligenceResponse | null>(null);
+  const [intelligenceLoading, setIntelligenceLoading] = useState(false);
+  const [intelligenceError, setIntelligenceError] = useState<string | null>(null);
+  const [isRefreshingIntelligence, setIsRefreshingIntelligence] = useState(false);
+
   // New profile creation state
   const [initName, setInitName] = useState("Dr. Alex Rivera");
   const [initEmail, setInitEmail] = useState(DEFAULT_DEMO_EMAIL);
   const [initInstitution, setInitInstitution] = useState("Tech University");
   const [initDept, setInitDept] = useState("Computer Science");
   const [initStatus, setInitStatus] = useState("FACULTY");
+
+  const loadIntelligence = async (profileId: string, refresh = false) => {
+    if (refresh) {
+      setIsRefreshingIntelligence(true);
+    } else {
+      setIntelligenceLoading(true);
+    }
+    setIntelligenceError(null);
+
+    try {
+      const data = await fetchResearcherIntelligence(profileId, refresh);
+      setIntelligence(data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to load research intelligence";
+      setIntelligenceError(msg);
+    } finally {
+      setIntelligenceLoading(false);
+      setIsRefreshingIntelligence(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -42,6 +78,8 @@ export default function ResearcherPage() {
               const loadedWorks = await fetchResearcherWorks(loaded.id).catch(() => []);
               if (!cancelled) setWorks(loadedWorks);
             }
+            // Load Phase 3.2 Intelligence
+            loadIntelligence(loaded.id, false);
             setLoading(false);
             return;
           }
@@ -64,6 +102,7 @@ export default function ResearcherPage() {
     };
   }, []);
 
+
   const handleCreateDefaultProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsInitializing(true);
@@ -84,6 +123,7 @@ export default function ResearcherPage() {
         localStorage.setItem("researchconnect_active_profile_id", created.id);
       }
       setProfile(created);
+      loadIntelligence(created.id, true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to initialize profile";
       setError(msg);
@@ -97,7 +137,9 @@ export default function ResearcherPage() {
     if (typeof window !== "undefined") {
       localStorage.setItem("researchconnect_active_profile_id", updated.id);
     }
+    loadIntelligence(updated.id, true);
   };
+
 
   if (loading) {
     return (
@@ -268,10 +310,22 @@ export default function ResearcherPage() {
   }
 
   return (
-    <ResearcherProfileView
-      profile={profile}
-      initialWorks={works}
-      onProfileUpdated={handleProfileUpdated}
-    />
+    <div>
+      <ResearcherProfileView
+        profile={profile}
+        initialWorks={works}
+        onProfileUpdated={handleProfileUpdated}
+      />
+      <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 16px 40px 16px" }}>
+        <ResearcherIntelligenceView
+          intelligence={intelligence}
+          loading={intelligenceLoading}
+          error={intelligenceError}
+          onRefresh={() => profile && loadIntelligence(profile.id, true)}
+          isRefreshing={isRefreshingIntelligence}
+        />
+      </div>
+    </div>
   );
 }
+

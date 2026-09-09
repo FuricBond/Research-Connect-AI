@@ -34,12 +34,13 @@ This document outlines the planned architecture and modular development roadmap 
 - **Phase 2.7 (Deadline Intelligence & Urgency Engine)**: **COMPLETE** (Subphases 2.7A–2.7G implemented, tested, and empirically evaluated)
 - **Phase 3 (Personalized Researcher Intelligence & Recommendations)**:
   - **Phase 3.1 (Researcher Profile Foundation)**: **COMPLETE** (Canonical profile model, external identifier normalization, institution linking, profile completeness, service, REST API, Next.js UI)
-  - **Phase 3.2 (Research Interest Intelligence)**: *Pending*
+  - **Phase 3.2 (Research Interest Intelligence)**: **COMPLETE** (Structured interests and expertise extraction, deterministic strength and confidence scoring, bounded recency signal, zero N+1 queries, provenance, REST API, Next.js UI)
   - **Phase 3.3 (Researcher Preferences Engine)**: *Pending*
   - **Phase 3.4 (Personalized Candidate Retrieval)**: *Pending*
   - **Phase 3.5 (Personalized Hybrid Ranking)**: *Pending*
   - **Phase 3.6 (Recommendation Feedback & Interaction History)**: *Pending*
   - **Phase 3.7 (Personalization Evaluation & Benchmarking)**: *Pending*
+
 
 
 
