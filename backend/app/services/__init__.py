@@ -22,6 +22,9 @@ from app.services.research_opportunity_matching_service import (
     calculate_type_compatibility,
     research_opportunity_matching_service,
 )
+from app.services.personalization_ranking_service import (
+    PersonalizationRankingService,
+)
 from app.services.personalized_candidate_generation_service import (
     PersonalizedCandidateGenerationService,
 )
@@ -73,6 +76,9 @@ __all__ = [
     "ResearcherPreferenceService",
     # Personalized candidate generation service (Phase 3.4)
     "PersonalizedCandidateGenerationService",
+    # Personalization ranking service (Phase 3.5)
+    "PersonalizationRankingService",
 ]
+
 
 

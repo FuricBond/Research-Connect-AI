@@ -56,6 +56,13 @@ from app.schemas.personalized_candidate import (
     PersonalizedCandidateOpportunitySchema,
     PersonalizedCandidateSetResponse,
 )
+from app.schemas.personalized_ranking import (
+    AblationSummarySchema,
+    MatchedPersonalizationSignalsSchema,
+    PersonalizationScoreBreakdownSchema,
+    PersonalizedRankedCandidateSchema,
+    PersonalizedRankingResponse,
+)
 
 __all__ = [
     "OpportunityFee",
@@ -108,7 +115,14 @@ __all__ = [
     "PersonalizedCandidateItemSchema",
     "CandidateSourceCoverageSchema",
     "PersonalizedCandidateSetResponse",
+    # Phase 3.5 Personalized Ranking Schemas
+    "PersonalizationScoreBreakdownSchema",
+    "MatchedPersonalizationSignalsSchema",
+    "PersonalizedRankedCandidateSchema",
+    "AblationSummarySchema",
+    "PersonalizedRankingResponse",
 ]
+
 
 
 

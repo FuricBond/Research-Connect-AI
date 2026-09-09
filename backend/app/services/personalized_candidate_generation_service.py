@@ -537,8 +537,11 @@ class PersonalizedCandidateGenerationService:
 
             fallback_stmt = select(OpportunityModel).where(
                 OpportunityModel.status.in_(["ACTIVE", "UNVERIFIED"]),
-                OpportunityModel.id.not_in(existing_ids) if existing_ids else True,
             )
+            if existing_ids:
+                fallback_stmt = fallback_stmt.where(
+                    OpportunityModel.id.not_in(existing_ids)
+                )
             # Prioritize upcoming deadlines
             fallback_stmt = fallback_stmt.order_by(
                 OpportunityModel.submission_deadline.asc().nulls_last(),
@@ -573,7 +576,7 @@ class PersonalizedCandidateGenerationService:
             primary_dl = deadline_assessment.primary_assessment
 
             # Exclude expired opportunities per Phase 2.7 deadline lifecycle
-            if primary_dl.status == DeadlineTemporalStatus.EXPIRED:
+            if primary_dl is not None and primary_dl.status == DeadlineTemporalStatus.EXPIRED:
                 continue
 
             # Safety Assessment: Phase 2.6 Trust & Risk Intelligence
@@ -622,10 +625,10 @@ class PersonalizedCandidateGenerationService:
                 risk_score=effective_risk_score,
                 risk_reasons=effective_reasons,
                 # Phase 2.7 deadline intelligence preserved
-                deadline_status=primary_dl.status.value,
-                days_remaining=primary_dl.days_remaining,
-                urgency_tier=primary_dl.urgency_tier.value,
-                deadline_explanation=primary_dl.explanation,
+                deadline_status=primary_dl.status.value if primary_dl is not None else None,
+                days_remaining=primary_dl.days_remaining if primary_dl is not None else None,
+                urgency_tier=primary_dl.urgency_tier.value if primary_dl is not None else None,
+                deadline_explanation=primary_dl.explanation if primary_dl is not None else None,
             )
 
 
@@ -649,7 +652,7 @@ class PersonalizedCandidateGenerationService:
                     eligibility_passed=True,
                     eligibility_reasons=[
                         f"Status '{opp.status}' valid",
-                        f"Deadline temporal status: '{primary_dl.status.value}'",
+                        f"Deadline temporal status: '{primary_dl.status.value if primary_dl is not None else 'UNKNOWN'}'",
                         f"Risk assessed: {risk_assessment.risk_level.value}",
                     ],
                 )

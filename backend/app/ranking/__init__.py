@@ -50,6 +50,12 @@ from app.ranking.hybrid_ranker import (
     RankingMode,
     hybrid_ranker,
 )
+from app.ranking.personalization_ranker import (
+    MAX_PERSONALIZATION_CONTRIBUTION,
+    PersonalizationRanker,
+    ResearcherPersonalizationContext,
+    personalization_ranker,
+)
 from app.ranking.signals import (
     RankingSignals,
     calculate_freshness,
@@ -75,6 +81,11 @@ __all__ = [
     "DiversityReranker",
     "HybridRanker",
     "MAX_DIVERSITY_LAMBDA",
+    "MAX_PERSONALIZATION_CONTRIBUTION",
+    "PersonalizationRanker",
+    "ResearcherPersonalizationContext",
+    "personalization_ranker",
+
     "RankedCandidate",
     "RankerWeights",
     "RankingMode",

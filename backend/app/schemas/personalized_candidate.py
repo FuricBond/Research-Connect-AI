@@ -112,6 +112,11 @@ class PersonalizedCandidateItemSchema(BaseModel):
         default_factory=list,
         description="Eligibility assessment notes (e.g. active status, deadline valid)",
     )
+    base_relevance_score: float | None = Field(
+        None,
+        description="Optional authoritative Phase 2 base relevance score in [0.0, 1.0]",
+    )
+
 
 
 class CandidateSourceCoverageSchema(BaseModel):

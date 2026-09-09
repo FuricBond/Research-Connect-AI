@@ -11,7 +11,7 @@ Exposes versioned endpoints for:
 from __future__ import annotations
 
 import logging
-from typing import Annotated
+from typing import Annotated, Any
 import uuid
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
@@ -20,6 +20,9 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.schemas.personalized_candidate import (
     PersonalizedCandidateSetResponse,
+)
+from app.schemas.personalized_ranking import (
+    PersonalizedRankingResponse,
 )
 from app.schemas.researcher import (
     ProfileCompletenessSchema,
@@ -38,12 +41,16 @@ from app.schemas.researcher_preference import (
     ResearcherPreferenceItemSchema,
     ResearcherPreferenceUpdateSchema,
 )
+from app.services.personalization_ranking_service import (
+    PersonalizationRankingService,
+)
 from app.services.personalized_candidate_generation_service import (
     PersonalizedCandidateGenerationService,
 )
 from app.services.researcher_intelligence_service import ResearcherIntelligenceService
 from app.services.researcher_preference_service import ResearcherPreferenceService
 from app.services.researcher_profile_service import ResearcherProfileService
+
 
 
 
@@ -573,6 +580,70 @@ def get_personalized_candidates(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(err),
         )
+
+
+@router.get(
+    "/{researcher_id}/personalized-recommendations",
+    response_model=PersonalizedRankingResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Generate personalized ranked recommendations",
+    description=(
+        "Generate deterministically ranked personalized recommendations (Phase 3.5). "
+        "Combines Phase 2 base relevance scores with bounded personalization adjustments (<= 0.15), "
+        "while enforcing relevance dominance, Phase 2.6 risk safety, and Phase 2.7 deadline lifecycle. "
+        "Supports R0 (base) vs R1 (personalized) ablation comparison."
+    ),
+)
+def get_personalized_recommendations(
+    researcher_id: uuid.UUID,
+    limit: Annotated[int, Query(ge=1, le=100, description="Recommendation limit")] = 20,
+    offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
+    include_inferred: Annotated[bool, Query(description="Include inferred preference signals")] = True,
+    include_expertise: Annotated[bool, Query(description="Include scholarly expertise signals")] = True,
+    include_fallback: Annotated[bool, Query(description="Include cold-start discovery fallback")] = True,
+    enable_personalization: Annotated[bool, Query(description="Enable Phase 3.5 personalization (False = pure R0 base rank)")] = True,
+    include_ablation: Annotated[bool, Query(description="Include R0 vs R1 ablation summary diagnostics")] = True,
+    opportunity_type: Annotated[str | None, Query(description="Filter by opportunity category (CONFERENCE, JOURNAL, etc.)")] = None,
+    delivery_mode: Annotated[str | None, Query(description="Filter by delivery mode (ONLINE, OFFLINE, HYBRID)")] = None,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizedRankingResponse:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation (Phase 3.5 / 3.4 convention)
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to view this researcher's personalized recommendations.",
+        )
+
+    try:
+        return PersonalizationRankingService.get_personalized_recommendations(
+            db=db,
+            profile_id=profile.id,
+            limit=limit,
+            offset=offset,
+            include_inferred=include_inferred,
+            include_expertise=include_expertise,
+            include_fallback=include_fallback,
+            enable_personalization=enable_personalization,
+            include_ablation=include_ablation,
+            opportunity_type=opportunity_type,
+            delivery_mode=delivery_mode,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
 
 
 

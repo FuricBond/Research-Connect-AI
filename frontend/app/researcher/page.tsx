@@ -13,7 +13,9 @@ import { ResearcherProfileView } from "../../components/researcher/ResearcherPro
 import { ResearcherIntelligenceView } from "../../components/researcher/ResearcherIntelligenceView";
 import { ResearcherPreferencesView } from "../../components/researcher/ResearcherPreferencesView";
 import { PersonalizedCandidatePreview } from "../../components/researcher/PersonalizedCandidatePreview";
+import { PersonalizedRankingPreview } from "../../components/researcher/PersonalizedRankingPreview";
 import {
+
   createResearcherPreference,
   createResearcherProfile,
   deleteResearcherPreference,
@@ -453,9 +455,16 @@ export default function ResearcherPage() {
             isRefreshing={isRefreshingCandidates}
           />
         </div>
+        <div style={{ marginTop: "36px" }}>
+          <PersonalizedRankingPreview
+            profileId={profile.id}
+            userId={profile.user_id}
+          />
+        </div>
       </div>
     </div>
   );
 }
+
 
 

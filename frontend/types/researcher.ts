@@ -321,5 +321,61 @@ export interface PersonalizedCandidateSetResponse {
   metadata: Record<string, unknown>;
 }
 
+// ── Phase 3.5 — Personalization Ranking Layer Types ──────────────────────────
+
+export interface PersonalizationScoreBreakdown {
+  explicit_preference_score: number;
+  inferred_preference_score: number;
+  expertise_match_score: number;
+  profile_match_score: number;
+  provenance_score: number;
+  raw_personalization_score: number;
+  relevance_damping: number;
+}
+
+export interface MatchedPersonalizationSignals {
+  matched_preferences: string[];
+  matched_expertise: string[];
+  matched_topics: string[];
+  matched_types: string[];
+}
+
+export interface PersonalizedRankedCandidate {
+  opportunity_id: string;
+  rank: number;
+  base_rank: number;
+  rank_delta: number;
+  final_score: number;
+  base_relevance_score: number;
+  personalization_score: number;
+  personalization_adjustment: number;
+  score_breakdown: PersonalizationScoreBreakdown;
+  matched_signals: MatchedPersonalizationSignals;
+  provenance: CandidateProvenance;
+  opportunity: PersonalizedCandidateOpportunity;
+}
+
+export interface AblationSummary {
+  total_candidates: number;
+  reordered_candidates_count: number;
+  max_rank_promotion: number;
+  max_rank_demotion: number;
+  average_personalization_adjustment: number;
+  invariants_verified: boolean;
+}
+
+export interface PersonalizedRankingResponse {
+  researcher_id: string;
+  total_candidates: number;
+  ranked_count: number;
+  is_cold_start: boolean;
+  personalization_enabled: boolean;
+  max_personalization_contribution: number;
+  recommendations: PersonalizedRankedCandidate[];
+  ablation_summary?: AblationSummary | null;
+  metadata: Record<string, unknown>;
+}
+
+
 
 
