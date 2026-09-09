@@ -37,6 +37,17 @@ from app.schemas.researcher_intelligence import (
     ResearcherInterestItemSchema,
     SupportingWorkReferenceSchema,
 )
+from app.schemas.researcher_preference import (
+    PreferenceCategory,
+    PreferenceCompletenessSchema,
+    PreferenceConflictSchema,
+    PreferenceIntelligenceSummarySchema,
+    PreferenceSource,
+    ResearcherPreferenceCreateSchema,
+    ResearcherPreferenceIntelligenceResponse,
+    ResearcherPreferenceItemSchema,
+    ResearcherPreferenceUpdateSchema,
+)
 
 __all__ = [
     "OpportunityFee",
@@ -72,5 +83,16 @@ __all__ = [
     "ResearcherInterestItemSchema",
     "ResearcherIntelligenceSummarySchema",
     "ResearcherIntelligenceResponse",
+    # Phase 3.3 Personal Preference Intelligence Schemas
+    "PreferenceCategory",
+    "PreferenceSource",
+    "PreferenceConflictSchema",
+    "PreferenceCompletenessSchema",
+    "ResearcherPreferenceItemSchema",
+    "ResearcherPreferenceCreateSchema",
+    "ResearcherPreferenceUpdateSchema",
+    "PreferenceIntelligenceSummarySchema",
+    "ResearcherPreferenceIntelligenceResponse",
 ]
+
 

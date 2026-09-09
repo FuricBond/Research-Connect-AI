@@ -23,6 +23,7 @@ from app.services.research_opportunity_matching_service import (
     research_opportunity_matching_service,
 )
 from app.services.researcher_intelligence_service import ResearcherIntelligenceService
+from app.services.researcher_preference_service import ResearcherPreferenceService
 from app.services.researcher_profile_service import ResearcherProfileService
 from app.services.similar_research_service import (
     MissingEmbeddingError,
@@ -65,5 +66,7 @@ __all__ = [
     "ResearcherProfileService",
     # Researcher intelligence service (Phase 3.2)
     "ResearcherIntelligenceService",
+    # Researcher preference service (Phase 3.3)
+    "ResearcherPreferenceService",
 ]
 

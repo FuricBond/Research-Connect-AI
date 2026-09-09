@@ -3,14 +3,20 @@
 import React, { useEffect, useState } from "react";
 import type {
   ResearcherIntelligenceResponse,
+  ResearcherPreferenceCreatePayload,
+  ResearcherPreferenceIntelligenceResponse,
   ResearcherProfile,
   ResearcherWorkSummary,
 } from "../../types/researcher";
 import { ResearcherProfileView } from "../../components/researcher/ResearcherProfileView";
 import { ResearcherIntelligenceView } from "../../components/researcher/ResearcherIntelligenceView";
+import { ResearcherPreferencesView } from "../../components/researcher/ResearcherPreferencesView";
 import {
+  createResearcherPreference,
   createResearcherProfile,
+  deleteResearcherPreference,
   fetchResearcherIntelligence,
+  fetchResearcherPreferenceIntelligence,
   fetchResearcherProfile,
   fetchResearcherWorks,
 } from "../../services/api";
@@ -31,6 +37,12 @@ export default function ResearcherPage() {
   const [intelligenceLoading, setIntelligenceLoading] = useState(false);
   const [intelligenceError, setIntelligenceError] = useState<string | null>(null);
   const [isRefreshingIntelligence, setIsRefreshingIntelligence] = useState(false);
+
+  // Preferences State (Phase 3.3)
+  const [preferences, setPreferences] = useState<ResearcherPreferenceIntelligenceResponse | null>(null);
+  const [preferencesLoading, setPreferencesLoading] = useState(false);
+  const [preferencesError, setPreferencesError] = useState<string | null>(null);
+  const [isRefreshingPreferences, setIsRefreshingPreferences] = useState(false);
 
   // New profile creation state
   const [initName, setInitName] = useState("Dr. Alex Rivera");
@@ -59,6 +71,49 @@ export default function ResearcherPage() {
     }
   };
 
+  const loadPreferences = async (profileId: string, refresh = false) => {
+    if (refresh) {
+      setIsRefreshingPreferences(true);
+    } else {
+      setPreferencesLoading(true);
+    }
+    setPreferencesError(null);
+
+    try {
+      const data = await fetchResearcherPreferenceIntelligence(profileId);
+      setPreferences(data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to load preferences";
+      setPreferencesError(msg);
+    } finally {
+      setPreferencesLoading(false);
+      setIsRefreshingPreferences(false);
+    }
+  };
+
+  const handleAddPreference = async (payload: ResearcherPreferenceCreatePayload) => {
+    if (!profile) return;
+    try {
+      await createResearcherPreference(profile.id, payload, profile.user_id);
+      await loadPreferences(profile.id, false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to add preference";
+      setPreferencesError(msg);
+    }
+  };
+
+  const handleDeletePreference = async (preferenceId: string) => {
+    if (!profile) return;
+    try {
+      await deleteResearcherPreference(profile.id, preferenceId, profile.user_id);
+      await loadPreferences(profile.id, false);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete preference";
+      setPreferencesError(msg);
+    }
+  };
+
+
   useEffect(() => {
     let cancelled = false;
 
@@ -80,6 +135,8 @@ export default function ResearcherPage() {
             }
             // Load Phase 3.2 Intelligence
             loadIntelligence(loaded.id, false);
+            // Load Phase 3.3 Preferences
+            loadPreferences(loaded.id, false);
             setLoading(false);
             return;
           }
@@ -124,6 +181,7 @@ export default function ResearcherPage() {
       }
       setProfile(created);
       loadIntelligence(created.id, true);
+      loadPreferences(created.id, true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to initialize profile";
       setError(msg);
@@ -138,6 +196,7 @@ export default function ResearcherPage() {
       localStorage.setItem("researchconnect_active_profile_id", updated.id);
     }
     loadIntelligence(updated.id, true);
+    loadPreferences(updated.id, true);
   };
 
 
@@ -323,6 +382,16 @@ export default function ResearcherPage() {
           error={intelligenceError}
           onRefresh={() => profile && loadIntelligence(profile.id, true)}
           isRefreshing={isRefreshingIntelligence}
+        />
+        <ResearcherPreferencesView
+          intelligence={preferences}
+          loading={preferencesLoading}
+          error={preferencesError}
+          onRefresh={() => profile && loadPreferences(profile.id, true)}
+          isRefreshing={isRefreshingPreferences}
+          onAddPreference={handleAddPreference}
+          onDeletePreference={handleDeletePreference}
+          userId={profile.user_id}
         />
       </div>
     </div>

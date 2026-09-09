@@ -164,3 +164,92 @@ export interface ResearcherIntelligenceResponse {
   generated_at: string;
 }
 
+// ── Phase 3.3 — Personal Preference Intelligence Types ──────────────────────
+
+export type PreferenceCategory =
+  | "OPPORTUNITY_TYPE"
+  | "DELIVERY_MODE"
+  | "TOPIC"
+  | "LOCATION"
+  | "DEADLINE_WINDOW"
+  | "OPEN_ACCESS"
+  | "VENUE";
+
+export type PreferenceSource = "EXPLICIT" | "INFERRED" | "DERIVED_FROM_EXPERTISE";
+
+export interface PreferenceConflict {
+  category: string;
+  conflicting_values: string[];
+  reason: string;
+  is_critical: boolean;
+}
+
+export interface PreferenceCompleteness {
+  score: number;
+  percentage: number;
+  is_complete: boolean;
+  missing_dimensions: string[];
+  dimension_breakdown: Record<string, boolean>;
+}
+
+export interface ResearcherPreferenceItem {
+  id: string;
+  profile_id: string;
+  category: PreferenceCategory;
+  preference_key: string;
+  preference_value: string;
+  display_label: string;
+  canonical_id?: string | null;
+  strength: number;
+  confidence: number;
+  source: PreferenceSource;
+  is_active: boolean;
+  recency_score: number;
+  provenance?: Record<string, unknown> | null;
+  provenance_reasons: string[];
+  last_observed_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface ResearcherPreferenceCreatePayload {
+  category: PreferenceCategory;
+  preference_key?: string | null;
+  preference_value: string;
+  display_label?: string | null;
+  canonical_id?: string | null;
+  strength?: number;
+  is_active?: boolean;
+}
+
+export interface ResearcherPreferenceUpdatePayload {
+  preference_value?: string | null;
+  display_label?: string | null;
+  strength?: number | null;
+  is_active?: boolean | null;
+}
+
+export interface PreferenceIntelligenceSummary {
+  total_preferences: number;
+  explicit_count: number;
+  inferred_count: number;
+  derived_count: number;
+  has_conflicts: boolean;
+  confidence_level: "HIGH" | "MEDIUM" | "LOW" | string;
+  completeness_percentage: number;
+}
+
+export interface ResearcherPreferenceIntelligenceResponse {
+  profile_id: string;
+  user_id: string;
+  display_name: string;
+  explicit_preferences: ResearcherPreferenceItem[];
+  inferred_preferences: ResearcherPreferenceItem[];
+  derived_candidates: ResearcherPreferenceItem[];
+  conflicts: PreferenceConflict[];
+  completeness: PreferenceCompleteness;
+  summary: PreferenceIntelligenceSummary;
+  generated_at: string;
+}
+
+
