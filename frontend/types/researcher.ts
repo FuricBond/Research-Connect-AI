@@ -522,6 +522,7 @@ export type DataSufficiencyStatus =
 export interface EvaluationMetrics {
   precision_at_5?: number | null;
   precision_at_10?: number | null;
+  recall_at_5?: number | null;
   recall_at_10?: number | null;
   hit_rate_at_5?: number | null;
   hit_rate_at_10?: number | null;

@@ -41,6 +41,9 @@ class EvaluationMetricsSchema(BaseModel):
     precision_at_10: float | None = Field(
         None, description="Precision@10 (proportion of top 10 items with positive feedback)"
     )
+    recall_at_5: float | None = Field(
+        None, description="Recall@5 (relevant items retrieved in top 5 / all known relevant items)"
+    )
     recall_at_10: float | None = Field(
         None, description="Recall@10 (relevant items retrieved in top 10 / all known relevant items)"
     )

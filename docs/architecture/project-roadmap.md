@@ -41,6 +41,8 @@ This document outlines the planned architecture and modular development roadmap 
   - **Phase 3.6 (Feedback & Recommendation Learning Loop)**: **COMPLETE** (Controlled feedback loop, bounded deterministic preference/interest adjustments, exponential decay, reversible signals, REST API, Next.js feedback UI)
   - **Phase 3.7 (Recommendation History & Evaluation)**: **COMPLETE** (Reproducible recommendation snapshots, deterministic ranking versioning, offline IR evaluation metrics, data sufficiency classifications, zero N+1 queries, REST API, Next.js history & evaluation UI)
   - **Phase 3.8 (Personalization Explainability & Researcher UI)**: **COMPLETE** (Grounded recommendation explanations, signal priority hierarchy, score consistency invariants, safety dominance, historical snapshot explanation immutability, researcher personalization summary, Why this? modal, Next.js UI)
+  - **Phase 3.9 (Evaluation, Ablation & Hardening)**: **COMPLETE** (Offline R0/R1/R2 IR evaluation, 10-state segmented evaluation, deterministic 6-signal ablation matrix, parameter sensitivity stability, 15-scenario adversarial safety matrix A–O, mathematical system invariants, strict X-User-ID ownership security across all 16 endpoints, 10–200 candidate performance benchmarks with zero N+1 queries, full architecture documentation)
+  - **Phase 3 (Personalized Researcher Intelligence & Recommendations)**: **COMPLETE** (All 9 subphases 3.1–3.9 implemented, hardened, verified with 155 dedicated tests and full backend test suite, and validated in Next.js production build)
 
 
 

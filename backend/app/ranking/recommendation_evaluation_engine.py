@@ -107,6 +107,7 @@ class RecommendationEvaluationEngine:
             return {
                 "precision_at_5": None,
                 "precision_at_10": None,
+                "recall_at_5": None,
                 "recall_at_10": None,
                 "hit_rate_at_5": None,
                 "hit_rate_at_10": None,
@@ -130,10 +131,12 @@ class RecommendationEvaluationEngine:
         p5 = precision_at_k(ordered_opportunity_ids, local_relevant_ids, k=5)
         p10 = precision_at_k(ordered_opportunity_ids, local_relevant_ids, k=10)
 
-        # Recall@10: proportion of all known relevant opportunities retrieved in top 10
+        # Recall@5 and Recall@10: proportion of all known relevant opportunities retrieved in top K
         if len(all_known_relevant_ids) > 0:
+            rec5 = recall_at_k(ordered_opportunity_ids, all_known_relevant_ids, k=5)
             rec10 = recall_at_k(ordered_opportunity_ids, all_known_relevant_ids, k=10)
         else:
+            rec5 = None
             rec10 = None
 
         hr5 = hit_rate_at_k(ordered_opportunity_ids, local_relevant_ids, k=5)
@@ -151,6 +154,7 @@ class RecommendationEvaluationEngine:
         return {
             "precision_at_5": round(p5, 4),
             "precision_at_10": round(p10, 4),
+            "recall_at_5": round(rec5, 4) if rec5 is not None else None,
             "recall_at_10": round(rec10, 4) if rec10 is not None else None,
             "hit_rate_at_5": round(hr5, 4),
             "hit_rate_at_10": round(hr10, 4),
@@ -189,6 +193,7 @@ class RecommendationEvaluationEngine:
             return EvaluationMetricsSchema(
                 precision_at_5=None,
                 precision_at_10=None,
+                recall_at_5=None,
                 recall_at_10=None,
                 hit_rate_at_5=None,
                 hit_rate_at_10=None,
@@ -213,6 +218,7 @@ class RecommendationEvaluationEngine:
             return EvaluationMetricsSchema(
                 precision_at_5=None,
                 precision_at_10=None,
+                recall_at_5=None,
                 recall_at_10=None,
                 hit_rate_at_5=None,
                 hit_rate_at_10=None,
@@ -248,6 +254,7 @@ class RecommendationEvaluationEngine:
         # ── Calculate IR Metrics across Snapshots ─────────────────────────────
         p5_scores: list[float] = []
         p10_scores: list[float] = []
+        rec5_scores: list[float] = []
         rec10_scores: list[float] = []
         hr5_scores: list[float] = []
         hr10_scores: list[float] = []
@@ -264,6 +271,8 @@ class RecommendationEvaluationEngine:
                 p5_scores.append(res["precision_at_5"])
             if res["precision_at_10"] is not None:
                 p10_scores.append(res["precision_at_10"])
+            if res["recall_at_5"] is not None:
+                rec5_scores.append(res["recall_at_5"])
             if res["recall_at_10"] is not None:
                 rec10_scores.append(res["recall_at_10"])
             if res["hit_rate_at_5"] is not None:
@@ -277,6 +286,7 @@ class RecommendationEvaluationEngine:
 
         avg_p5 = round(sum(p5_scores) / len(p5_scores), 4) if p5_scores else None
         avg_p10 = round(sum(p10_scores) / len(p10_scores), 4) if p10_scores else None
+        avg_rec5 = round(sum(rec5_scores) / len(rec5_scores), 4) if rec5_scores else None
         avg_rec10 = round(sum(rec10_scores) / len(rec10_scores), 4) if rec10_scores else None
         avg_hr5 = round(sum(hr5_scores) / len(hr5_scores), 4) if hr5_scores else None
         avg_hr10 = round(sum(hr10_scores) / len(hr10_scores), 4) if hr10_scores else None
@@ -303,6 +313,7 @@ class RecommendationEvaluationEngine:
         return EvaluationMetricsSchema(
             precision_at_5=avg_p5,
             precision_at_10=avg_p10,
+            recall_at_5=avg_rec5,
             recall_at_10=avg_rec10,
             hit_rate_at_5=avg_hr5,
             hit_rate_at_10=avg_hr10,
