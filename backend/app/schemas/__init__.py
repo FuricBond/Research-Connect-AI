@@ -73,6 +73,19 @@ from app.schemas.researcher_feedback import (
     FeedbackType,
     FeedbackUpdateRequest,
 )
+from app.schemas.recommendation_history import (
+    RecommendationHistoryListResponse,
+    RecommendationItemSnapshotSchema,
+    RecommendationOpportunityBriefSchema,
+    RecommendationSnapshotResponseSchema,
+    RecommendationSnapshotSummarySchema,
+)
+from app.schemas.recommendation_evaluation import (
+    DataSufficiencyStatus,
+    EvaluationMetricsSchema,
+    RecommendationEvaluationResponse,
+    VersionComparisonSummary,
+)
 
 __all__ = [
     "OpportunityFee",
@@ -140,6 +153,16 @@ __all__ = [
     "FeedbackListResponse",
     "BehavioralSignalSchema",
     "FeedbackSummaryResponse",
+    # Phase 3.7 Recommendation History & Evaluation Schemas
+    "RecommendationOpportunityBriefSchema",
+    "RecommendationItemSnapshotSchema",
+    "RecommendationSnapshotResponseSchema",
+    "RecommendationSnapshotSummarySchema",
+    "RecommendationHistoryListResponse",
+    "DataSufficiencyStatus",
+    "EvaluationMetricsSchema",
+    "VersionComparisonSummary",
+    "RecommendationEvaluationResponse",
 ]
 
 

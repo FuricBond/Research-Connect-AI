@@ -986,6 +986,6 @@ def test_zero_n_plus_one_query_performance(db_session: Session):
     finally:
         event.remove(engine, "before_cursor_execute", query_listener)
 
-    # Assert bounded query count: profile (1) + prefs (1) + interests (1) + candidates (<=5) + base models (1) + behavioral signals (<=3)
-    # Total queries should be <= 18, never 30+ (which would indicate N+1)
-    assert query_count <= 18, f"Too many queries executed ({query_count}); possible N+1 query issue."
+    # Assert bounded query count: profile (1) + prefs (1) + interests (1) + candidates (<=5) + base models (1) + behavioral signals (<=3) + snapshot persistence (<=3)
+    # Total queries should be <= 22, never 30+ (which would indicate N+1)
+    assert query_count <= 22, f"Too many queries executed ({query_count}); possible N+1 query issue."

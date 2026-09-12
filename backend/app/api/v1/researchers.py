@@ -10,6 +10,7 @@ Exposes versioned endpoints for:
 """
 from __future__ import annotations
 
+from datetime import datetime
 import logging
 from typing import Annotated, Any
 import uuid
@@ -48,6 +49,13 @@ from app.schemas.researcher_feedback import (
     FeedbackListResponse,
     FeedbackSummaryResponse,
 )
+from app.schemas.recommendation_history import (
+    RecommendationHistoryListResponse,
+    RecommendationSnapshotResponseSchema,
+)
+from app.schemas.recommendation_evaluation import (
+    RecommendationEvaluationResponse,
+)
 from app.services.feedback_service import ResearcherFeedbackService
 from app.services.personalization_ranking_service import (
     PersonalizationRankingService,
@@ -55,6 +63,7 @@ from app.services.personalization_ranking_service import (
 from app.services.personalized_candidate_generation_service import (
     PersonalizedCandidateGenerationService,
 )
+from app.services.recommendation_history_service import RecommendationHistoryService
 from app.services.researcher_intelligence_service import ResearcherIntelligenceService
 from app.services.researcher_preference_service import ResearcherPreferenceService
 from app.services.researcher_profile_service import ResearcherProfileService
@@ -613,6 +622,8 @@ def get_personalized_recommendations(
     include_ablation: Annotated[bool, Query(description="Include R0 vs R1 ablation summary diagnostics")] = True,
     opportunity_type: Annotated[str | None, Query(description="Filter by opportunity category (CONFERENCE, JOURNAL, etc.)")] = None,
     delivery_mode: Annotated[str | None, Query(description="Filter by delivery mode (ONLINE, OFFLINE, HYBRID)")] = None,
+    persist_snapshot: Annotated[bool, Query(description="Record persistent recommendation snapshot for history/evaluation")] = True,
+    session_id: Annotated[str | None, Query(description="Optional client session identifier for attribution")] = None,
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> PersonalizedRankingResponse:
@@ -645,6 +656,8 @@ def get_personalized_recommendations(
             include_ablation=include_ablation,
             opportunity_type=opportunity_type,
             delivery_mode=delivery_mode,
+            persist_snapshot=persist_snapshot,
+            session_id=session_id,
         )
     except ValueError as err:
         raise HTTPException(
@@ -865,6 +878,151 @@ def get_behavioral_signals(
         researcher_id=profile.id,
     )
     return behavioral_profile.signals
+
+
+# ── Phase 3.7 — Recommendation History & Evaluation Endpoints ─────────────────
+
+
+@router.get(
+    "/{researcher_id}/recommendation-history",
+    response_model=RecommendationHistoryListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="List researcher recommendation snapshots",
+    description=(
+        "Retrieve paginated recommendation snapshots for a researcher (Phase 3.7). "
+        "Provides reproducible point-in-time audit logs of what was recommended and when, "
+        "including ranking version provenance and top recommended opportunities."
+    ),
+)
+def get_recommendation_history(
+    researcher_id: uuid.UUID,
+    limit: Annotated[int, Query(ge=1, le=100, description="Page size limit")] = 20,
+    offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
+    ranking_version: Annotated[str | None, Query(description="Filter by ranking algorithm version")] = None,
+    from_date: Annotated[datetime | None, Query(description="Filter snapshots created on or after this timestamp")] = None,
+    to_date: Annotated[datetime | None, Query(description="Filter snapshots created on or before this timestamp")] = None,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> RecommendationHistoryListResponse:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to view this researcher's recommendation history.",
+        )
+
+    return RecommendationHistoryService.get_history(
+        db=db,
+        profile_id=profile.id,
+        limit=limit,
+        offset=offset,
+        ranking_version=ranking_version,
+        from_date=from_date,
+        to_date=to_date,
+    )
+
+
+@router.get(
+    "/{researcher_id}/recommendation-history/{snapshot_id}",
+    response_model=RecommendationSnapshotResponseSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Get detailed recommendation snapshot by ID",
+    description=(
+        "Retrieve a complete historical recommendation snapshot (Phase 3.7). "
+        "Returns ordered items, original point-in-time scores, and active user feedback."
+    ),
+)
+def get_recommendation_snapshot_detail(
+    researcher_id: uuid.UUID,
+    snapshot_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> RecommendationSnapshotResponseSchema:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to view this researcher's recommendation snapshot.",
+        )
+
+    snapshot_detail = RecommendationHistoryService.get_snapshot_detail(
+        db=db,
+        profile_id=profile.id,
+        snapshot_id=snapshot_id,
+    )
+    if not snapshot_detail:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Recommendation snapshot with ID '{snapshot_id}' not found for this researcher.",
+        )
+
+    return snapshot_detail
+
+
+@router.get(
+    "/{researcher_id}/recommendation-evaluation",
+    response_model=RecommendationEvaluationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Calculate offline evaluation metrics for recommendations",
+    description=(
+        "Compute offline evaluation metrics across recommendation history and feedback (Phase 3.7). "
+        "Returns Precision@K, Recall@K, HitRate@K, NDCG@K, Save Rate, Engagement Rate, Dismissal Rate, "
+        "and data sufficiency classifications (SUFFICIENT_DATA, INSUFFICIENT_DATA, NO_FEEDBACK, NO_HISTORY). "
+        "Includes independent algorithm version comparisons (R0 vs R1 vs R2)."
+    ),
+)
+def get_recommendation_evaluation(
+    researcher_id: uuid.UUID,
+    ranking_version: Annotated[str | None, Query(description="Filter evaluation to a specific ranking version")] = None,
+    from_date: Annotated[datetime | None, Query(description="Evaluation window start")] = None,
+    to_date: Annotated[datetime | None, Query(description="Evaluation window end")] = None,
+    include_comparison: Annotated[bool, Query(description="Include comparative breakdown across ranking versions")] = True,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> RecommendationEvaluationResponse:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to evaluate this researcher's recommendations.",
+        )
+
+    return RecommendationHistoryService.evaluate_recommendations(
+        db=db,
+        profile_id=profile.id,
+        ranking_version=ranking_version,
+        from_date=from_date,
+        to_date=to_date,
+        include_comparison=include_comparison,
+    )
+
 
 
 

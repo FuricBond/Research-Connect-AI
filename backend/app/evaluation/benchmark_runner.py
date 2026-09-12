@@ -69,7 +69,6 @@ from app.explainability.result_explainer import (
     ResultExplanation,
     result_explainer,
 )
-from app.main import app
 from app.models.opportunity import OpportunityModel
 from app.models.research_knowledge import ResearchWorkModel
 from app.ranking.diversity import (
@@ -806,6 +805,7 @@ class BenchmarkRunner:
 
     def benchmark_api_latencies(self, iterations: int = 30) -> dict[str, Any]:
         """Benchmark latency across key Phase 2.4 discovery API endpoints."""
+        from app.main import app
         client = TestClient(app)
         endpoints = [
             ("research_search", "/api/v1/discovery/research/search", {"q": "graph neural networks", "limit": 10}),
@@ -908,6 +908,7 @@ class BenchmarkRunner:
 
     def benchmark_concurrency(self) -> dict[str, Any]:
         """Simulate concurrent client load to measure throughput (QPS)."""
+        from app.main import app
         client = TestClient(app)
         concurrency_levels = [1, 5, 10, 25]
         concurrency_report: dict[str, Any] = {}

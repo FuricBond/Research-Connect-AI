@@ -455,6 +455,106 @@ export interface FeedbackSummaryResponse {
   is_cold_start: boolean;
 }
 
+// ── Phase 3.7 — Recommendation History & Evaluation Types ─────────────────────
+
+export interface RecommendationOpportunityBrief {
+  id: string;
+  title: string;
+  opportunity_type?: string | null;
+  delivery_mode?: string | null;
+  organizer?: string | null;
+  submission_deadline?: string | null;
+}
+
+export interface RecommendationItemSnapshot {
+  id: string;
+  snapshot_id: string;
+  opportunity_id: string;
+  rank: number;
+  base_relevance_score: number;
+  personalization_score: number;
+  behavioral_adjustment: number;
+  final_score: number;
+  risk_level?: string | null;
+  deadline_status?: string | null;
+  created_at: string;
+  opportunity?: RecommendationOpportunityBrief | null;
+  user_feedback: string[];
+}
+
+export interface RecommendationSnapshotSummary {
+  id: string;
+  researcher_id: string;
+  ranking_version: string;
+  candidate_count: number;
+  returned_count: number;
+  request_context: Record<string, unknown>;
+  created_at: string;
+  top_opportunity_titles: string[];
+}
+
+export interface RecommendationSnapshotDetail {
+  id: string;
+  researcher_id: string;
+  ranking_version: string;
+  candidate_count: number;
+  returned_count: number;
+  request_context: Record<string, unknown>;
+  created_at: string;
+  items: RecommendationItemSnapshot[];
+}
+
+export interface RecommendationHistoryResponse {
+  researcher_id: string;
+  items: RecommendationSnapshotSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export type DataSufficiencyStatus =
+  | "SUFFICIENT_DATA"
+  | "INSUFFICIENT_DATA"
+  | "NO_FEEDBACK"
+  | "NO_HISTORY";
+
+export interface EvaluationMetrics {
+  precision_at_5?: number | null;
+  precision_at_10?: number | null;
+  recall_at_10?: number | null;
+  hit_rate_at_5?: number | null;
+  hit_rate_at_10?: number | null;
+  ndcg_at_5?: number | null;
+  ndcg_at_10?: number | null;
+  save_rate?: number | null;
+  engagement_rate?: number | null;
+  dismissal_rate?: number | null;
+  data_status: DataSufficiencyStatus;
+  sample_size: number;
+  feedback_count: number;
+  notes?: string | null;
+}
+
+export interface VersionComparisonSummary {
+  ranking_version: string;
+  display_name: string;
+  sample_size: number;
+  data_status: DataSufficiencyStatus;
+  metrics: EvaluationMetrics;
+}
+
+export interface RecommendationEvaluationResponse {
+  researcher_id: string;
+  ranking_version?: string | null;
+  total_snapshots: number;
+  total_recommendations: number;
+  total_feedback_events: number;
+  data_status: DataSufficiencyStatus;
+  metrics: EvaluationMetrics;
+  ranking_comparison?: Record<string, VersionComparisonSummary> | null;
+  evaluated_at: string;
+}
+
 
 
 

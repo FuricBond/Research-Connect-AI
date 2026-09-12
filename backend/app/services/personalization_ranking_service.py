@@ -74,6 +74,8 @@ class PersonalizationRankingService:
         opportunity_type: str | None = None,
         delivery_mode: str | None = None,
         reference_time: datetime | None = None,
+        persist_snapshot: bool = True,
+        session_id: str | None = None,
     ) -> PersonalizedRankingResponse:
         """
         Produce deterministically ranked personalized recommendations for a researcher.
@@ -373,6 +375,42 @@ class PersonalizationRankingService:
                 invariants_verified=invariants_ok,
             )
 
+        # ── 7. Phase 3.7 Recommendation Snapshot Persistence ──────────────────
+        if not enable_personalization:
+            ranking_version = "phase2-baseline"
+        elif len(behavioral_profile.signals) == 0:
+            ranking_version = "phase3.5-personalized"
+        else:
+            ranking_version = "phase3.7-v1"
+
+        snapshot_id = None
+        if persist_snapshot and all_ranked:
+            from app.services.recommendation_history_service import RecommendationHistoryService
+            request_ctx = {
+                "limit": safe_limit,
+                "offset": safe_offset,
+                "include_inferred": include_inferred,
+                "include_expertise": include_expertise,
+                "include_fallback": include_fallback,
+                "enable_personalization": enable_personalization,
+                "opportunity_type": opportunity_type,
+                "delivery_mode": delivery_mode,
+            }
+            try:
+                snapshot = RecommendationHistoryService.record_snapshot(
+                    db=db,
+                    profile_id=profile.id,
+                    ranking_version=ranking_version,
+                    recommendations=all_ranked,
+                    candidate_count=total_candidates_count,
+                    request_context=request_ctx,
+                    session_id=session_id,
+                    reference_time=ref_time,
+                )
+                snapshot_id = snapshot.id
+            except Exception as exc:
+                logger.warning(f"Failed to record recommendation snapshot: {exc}")
+
         return PersonalizedRankingResponse(
             researcher_id=profile.id,
             total_candidates=total_candidates_count,
@@ -385,6 +423,8 @@ class PersonalizationRankingService:
             metadata={
                 "offset": safe_offset,
                 "limit": safe_limit,
+                "ranking_version": ranking_version,
+                "snapshot_id": str(snapshot_id) if snapshot_id else None,
                 "explicit_preference_count": len(explicit_prefs),
                 "inferred_preference_count": len(inferred_prefs),
                 "expertise_count": len(expertise_items),

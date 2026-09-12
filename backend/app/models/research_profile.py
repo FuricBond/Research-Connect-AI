@@ -11,6 +11,7 @@ from app.models.base import Base, TimestampMixin
 if TYPE_CHECKING:
     from app.models.research_knowledge import InstitutionModel, ResearcherModel
     from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
+    from app.models.recommendation_history import ResearcherRecommendationSnapshotModel
     from app.models.user import UserModel
 
 
@@ -140,6 +141,10 @@ class ResearchProfileModel(Base, TimestampMixin):
         foreign_keys=[canonical_researcher_id],
     )
     recommendation_feedback: Mapped[list["ResearcherRecommendationFeedbackModel"]] = relationship(
+        back_populates="researcher_profile",
+        cascade="all, delete-orphan",
+    )
+    recommendation_snapshots: Mapped[list["ResearcherRecommendationSnapshotModel"]] = relationship(
         back_populates="researcher_profile",
         cascade="all, delete-orphan",
     )

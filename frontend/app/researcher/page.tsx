@@ -15,6 +15,7 @@ import { ResearcherPreferencesView } from "../../components/researcher/Researche
 import { PersonalizedCandidatePreview } from "../../components/researcher/PersonalizedCandidatePreview";
 import { PersonalizedRankingPreview } from "../../components/researcher/PersonalizedRankingPreview";
 import { FeedbackHistoryView } from "../../components/researcher/FeedbackHistoryView";
+import { RecommendationHistoryView } from "../../components/researcher/RecommendationHistoryView";
 import {
 
   createResearcherPreference,
@@ -471,6 +472,14 @@ export default function ResearcherPage() {
             profileId={profile.id}
             userId={profile.user_id}
             onFeedbackChanged={() => setFeedbackRefreshKey((k) => k + 1)}
+          />
+        </div>
+        <div style={{ marginTop: "36px" }}>
+          <RecommendationHistoryView
+            key={`history-${feedbackRefreshKey}`}
+            profileId={profile.id}
+            userId={profile.user_id}
+            refreshTrigger={feedbackRefreshKey}
           />
         </div>
       </div>

@@ -111,7 +111,7 @@ Empowers researchers to organize deadlines, track submissions, and manage applic
 - **Saved Opportunities**: Bookmarking and custom categorization of relevant calls and venues.
 - **Submission Tracker**: Kanban or status-driven tracking of paper drafts, submissions, revisions, and acceptances.
 - **Application History**: Audit log of historical submissions and outcomes for personal reporting.
-- **Recommendation History**: Log of past recommendations with historical match parameters.
+- **Recommendation History**: Log of past recommendations with historical match parameters *(Phase 3.7 completed)*.
 - **Deadline Intelligence**: Smart countdowns, timezone conversions, and deadline warning indicators.
 - **Calendar**: Interactive calendar view with exportable feeds (iCal/Google Calendar).
 - **Notifications**: Email and in-app alerts for approaching deadlines, date changes, or newly matched opportunities.
@@ -147,6 +147,6 @@ Core system infrastructure, user interfaces, access control, and deployment oper
 ## 8. Evaluation
 Rigorous testing and quantitative validation of AI, scraping, and ranking systems.
 
-- **Recommendation Evaluation**: Offline and online metrics (Precision@K, Recall@K, MRR, NDCG) for opportunity ranking.
+- **Recommendation Evaluation**: Offline and online metrics (Precision@K, Recall@K, MRR, NDCG) for opportunity ranking *(Phase 3.7 completed)*.
 - **Risk Model Evaluation**: Classification accuracy, precision, and recall against known predatory venue benchmarks.
 - **Data Quality Evaluation**: Validation rates, duplicate reduction efficiency, and parsing completeness metrics.
