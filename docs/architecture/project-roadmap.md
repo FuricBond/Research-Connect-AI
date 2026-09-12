@@ -86,9 +86,9 @@ Provides explainable, ranked recommendations matching research profiles to appro
 - **Journal Recommendation**: Matching paper scope, turnaround time, and impact factor expectations to journal profiles.
 - **Best Venue Recommendation**: Multi-criteria ranking identifying optimal submission targets.
 - **Recommendation Ranking**: Combining semantic similarity, deadline proximity, and domain match into a unified score.
-- **Personalized Recommendation**: Adapting results to individual researcher stage, past submissions, and preferences.
+- **Personalized Recommendation**: Adapting results to individual researcher stage, past submissions, and preferences *(Phases 3.1–3.5 completed)*.
 - **Opportunity Comparison**: Side-by-side comparative analysis of candidate venues (acceptance rates, indexing, deadlines).
-- **Recommendation Feedback**: Capturing explicit user feedback (save, dismiss, irrelevant) to refine future rankings.
+- **Recommendation Feedback**: Capturing explicit user feedback (save, dismiss, irrelevant) to refine future rankings *(Phase 3.6 completed)*.
 - **Explainable Recommendations**: Transparent rationales detailing *why* a specific venue or opportunity was recommended.
 
 ---

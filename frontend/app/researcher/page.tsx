@@ -14,6 +14,7 @@ import { ResearcherIntelligenceView } from "../../components/researcher/Research
 import { ResearcherPreferencesView } from "../../components/researcher/ResearcherPreferencesView";
 import { PersonalizedCandidatePreview } from "../../components/researcher/PersonalizedCandidatePreview";
 import { PersonalizedRankingPreview } from "../../components/researcher/PersonalizedRankingPreview";
+import { FeedbackHistoryView } from "../../components/researcher/FeedbackHistoryView";
 import {
 
   createResearcherPreference,
@@ -55,6 +56,7 @@ export default function ResearcherPage() {
   const [candidatesLoading, setCandidatesLoading] = useState(false);
   const [candidatesError, setCandidatesError] = useState<string | null>(null);
   const [isRefreshingCandidates, setIsRefreshingCandidates] = useState(false);
+  const [feedbackRefreshKey, setFeedbackRefreshKey] = useState<number>(0);
 
   // New profile creation state
   const [initName, setInitName] = useState("Dr. Alex Rivera");
@@ -457,8 +459,18 @@ export default function ResearcherPage() {
         </div>
         <div style={{ marginTop: "36px" }}>
           <PersonalizedRankingPreview
+            key={`ranking-${feedbackRefreshKey}`}
             profileId={profile.id}
             userId={profile.user_id}
+            onFeedbackRecorded={() => setFeedbackRefreshKey((k) => k + 1)}
+          />
+        </div>
+        <div style={{ marginTop: "36px" }}>
+          <FeedbackHistoryView
+            key={`feedback-${feedbackRefreshKey}`}
+            profileId={profile.id}
+            userId={profile.user_id}
+            onFeedbackChanged={() => setFeedbackRefreshKey((k) => k + 1)}
           />
         </div>
       </div>

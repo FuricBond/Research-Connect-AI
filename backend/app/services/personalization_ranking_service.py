@@ -167,12 +167,22 @@ class PersonalizationRankingService:
             if tt and tt.strip()
         )
 
+        # Batch load Phase 3.6 behavioral profile
+        from app.services.feedback_service import ResearcherFeedbackService
+        behavioral_profile = ResearcherFeedbackService.get_behavioral_profile(
+            db=db,
+            researcher_id=profile.id,
+            reference_time=ref_time,
+            explicit_preferences=explicit_prefs,
+        )
+
         is_cold_start = (
             len(explicit_prefs) == 0
             and len(inferred_prefs) == 0
             and len(expertise_items) == 0
             and len(profile_keywords) == 0
             and len(profile_target_types) == 0
+            and len(behavioral_profile.signals) == 0
         )
 
         context = ResearcherPersonalizationContext(
@@ -184,6 +194,8 @@ class PersonalizationRankingService:
             target_opportunity_types=profile_target_types,
             institution=profile.institution,
             academic_status=profile.academic_status,
+            behavioral_signals=tuple(behavioral_profile.signals),
+            suppressed_opportunity_ids=frozenset(behavioral_profile.suppressed_opportunity_ids),
             is_cold_start=is_cold_start,
         )
 
@@ -197,6 +209,7 @@ class PersonalizationRankingService:
                 include_inferred=include_inferred,
                 include_expertise=include_expertise,
                 include_fallback=include_fallback,
+                suppressed_opportunity_ids=behavioral_profile.suppressed_opportunity_ids,
                 reference_time=ref_time,
             )
         )

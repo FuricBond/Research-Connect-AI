@@ -63,6 +63,16 @@ from app.schemas.personalized_ranking import (
     PersonalizedRankedCandidateSchema,
     PersonalizedRankingResponse,
 )
+from app.schemas.researcher_feedback import (
+    BehavioralSignalSchema,
+    FeedbackCreateRequest,
+    FeedbackItemResponse,
+    FeedbackListResponse,
+    FeedbackSource,
+    FeedbackSummaryResponse,
+    FeedbackType,
+    FeedbackUpdateRequest,
+)
 
 __all__ = [
     "OpportunityFee",
@@ -121,6 +131,15 @@ __all__ = [
     "PersonalizedRankedCandidateSchema",
     "AblationSummarySchema",
     "PersonalizedRankingResponse",
+    # Phase 3.6 Feedback & Learning Schemas
+    "FeedbackType",
+    "FeedbackSource",
+    "FeedbackCreateRequest",
+    "FeedbackUpdateRequest",
+    "FeedbackItemResponse",
+    "FeedbackListResponse",
+    "BehavioralSignalSchema",
+    "FeedbackSummaryResponse",
 ]
 
 

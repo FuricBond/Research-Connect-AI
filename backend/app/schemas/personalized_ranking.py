@@ -58,6 +58,22 @@ class PersonalizationScoreBreakdownSchema(BaseModel):
         le=1.0,
         description="Candidate source breadth from Phase 3.4 multi-channel discovery (weight: 0.10)",
     )
+    behavioral_score: float = Field(
+        0.0,
+        ge=0.0,
+        le=1.0,
+        description="Match score from Phase 3.6 learned behavioral feedback signals",
+    )
+    behavioral_confidence: float = Field(
+        0.0,
+        ge=0.0,
+        le=1.0,
+        description="Confidence of supporting behavioral feedback signals",
+    )
+    behavioral_adjustment: float = Field(
+        0.0,
+        description="Signed contribution of learned behavioral feedback to personalization",
+    )
     raw_personalization_score: float = Field(
         0.0,
         ge=0.0,

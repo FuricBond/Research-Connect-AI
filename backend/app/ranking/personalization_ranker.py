@@ -22,6 +22,10 @@ import logging
 from typing import Any, Sequence 
 import uuid
 
+from app.ranking.feedback_config import (
+    MAX_NEGATIVE_BEHAVIORAL_ADJUSTMENT,
+    MAX_POSITIVE_BEHAVIORAL_ADJUSTMENT,
+)
 from app.ranking.signals import validate_signal
 from app.schemas.personalized_candidate import (
     CandidateProvenanceSchema,
@@ -84,6 +88,9 @@ class ResearcherPersonalizationContext:
     target_opportunity_types: tuple[str, ...] = ()
     institution: str | None = None
     academic_status: str | None = None
+    # Phase 3.6 Behavioral feedback signals & negative suppression
+    behavioral_signals: tuple[Any, ...] = ()
+    suppressed_opportunity_ids: frozenset[uuid.UUID] = frozenset()
     # Cold start status
     is_cold_start: bool = False
 
@@ -356,8 +363,64 @@ class PersonalizationRanker:
                     matched_exp.append(e)
 
 
+        # ── 6. Phase 3.6 Behavioral Feedback Signals ──────────────────────────
+        opp_id = getattr(opp, "id", None)
+        is_suppressed = bool(opp_id and opp_id in context.suppressed_opportunity_ids)
+
+        behavioral_conf_sum = 0.0
+        behavioral_matches_count = 0
+        signed_behavioral_adjustment = 0.0
+
+        for sig in context.behavioral_signals:
+            s_cat = getattr(sig, "category", "")
+            s_val = getattr(sig, "preference_value", "")
+            s_conf = float(getattr(sig, "confidence", 0.0) or 0.0)
+            s_norm = float(getattr(sig, "normalized_score", 0.0) or 0.0)
+
+            matched = False
+            if s_cat == "OPPORTUNITY_TYPE" and s_val.upper() == opp_type_upper:
+                matched = True
+                matched_prefs.append(f"Behavioral Type: {s_val} ({getattr(sig, 'direction', '')})")
+            elif s_cat == "DELIVERY_MODE" and s_val.upper() == opp_mode_upper:
+                matched = True
+                matched_prefs.append(f"Behavioral Mode: {s_val} ({getattr(sig, 'direction', '')})")
+            elif s_cat == "TOPIC":
+                val_lower = s_val.lower()
+                if val_lower in opp_topics_lower or val_lower in opp_title_lower:
+                    matched = True
+                    matched_topics.add(s_val)
+                    matched_prefs.append(f"Behavioral Topic: {s_val} ({getattr(sig, 'direction', '')})")
+            elif s_cat == "LOCATION" and s_val.lower() in opp_location_lower:
+                matched = True
+                matched_prefs.append(f"Behavioral Location: {s_val} ({getattr(sig, 'direction', '')})")
+            elif s_cat == "VENUE" and opp.organizer and s_val.lower() in opp.organizer.lower():
+                matched = True
+                matched_prefs.append(f"Behavioral Venue: {s_val} ({getattr(sig, 'direction', '')})")
+
+            if matched:
+                behavioral_matches_count += 1
+                behavioral_conf_sum += s_conf
+                signed_behavioral_adjustment += s_norm * s_conf
+
+        if is_suppressed:
+            signed_behavioral_adjustment = -MAX_NEGATIVE_BEHAVIORAL_ADJUSTMENT
+            avg_conf = 1.0
+            behavioral_score = 0.0
+            matched_prefs.append("Suppressed: Active negative feedback")
+        elif behavioral_matches_count > 0:
+            avg_conf = round(behavioral_conf_sum / behavioral_matches_count, 4)
+            behavioral_score = max(0.0, min(1.0, (signed_behavioral_adjustment / behavioral_matches_count + 1.0) / 2.0))
+            signed_behavioral_adjustment = max(
+                -MAX_NEGATIVE_BEHAVIORAL_ADJUSTMENT,
+                min(MAX_POSITIVE_BEHAVIORAL_ADJUSTMENT, signed_behavioral_adjustment / behavioral_matches_count * 0.10),
+            )
+        else:
+            avg_conf = 0.0
+            behavioral_score = 0.0
+            signed_behavioral_adjustment = 0.0
+
         # ── Weighted Composite Personalization Score ──────────────────────────
-        raw_personalization_score = round(
+        base_p_score = round(
             self.explicit_weight * explicit_score
             + self.inferred_weight * inferred_score
             + self.expertise_weight * expertise_score
@@ -365,7 +428,11 @@ class PersonalizationRanker:
             + self.provenance_weight * provenance_score,
             6,
         )
-        raw_personalization_score = min(1.0, max(0.0, raw_personalization_score))
+
+        if is_suppressed:
+            raw_personalization_score = 0.0
+        else:
+            raw_personalization_score = min(1.0, max(0.0, round(base_p_score + signed_behavioral_adjustment, 6)))
 
         breakdown = PersonalizationScoreBreakdownSchema(
             explicit_preference_score=round(explicit_score, 4),
@@ -373,6 +440,9 @@ class PersonalizationRanker:
             expertise_match_score=round(expertise_score, 4),
             profile_match_score=round(profile_score, 4),
             provenance_score=round(provenance_score, 4),
+            behavioral_score=round(behavioral_score, 4),
+            behavioral_confidence=round(avg_conf, 4),
+            behavioral_adjustment=round(signed_behavioral_adjustment, 4),
             raw_personalization_score=raw_personalization_score,
             relevance_damping=1.0,  # attached during ranking with candidate base score
         )
@@ -516,7 +586,9 @@ class PersonalizationRanker:
             risk_score = getattr(opp, "risk_score", 0.0) or 0.0
             is_high_risk = is_predatory or risk_level == "HIGH_RISK" or risk_score >= 0.70
 
-            if not enable_personalization or context.is_cold_start or is_high_risk:
+            is_suppressed = bool(opp_id and opp_id in context.suppressed_opportunity_ids)
+
+            if not enable_personalization or context.is_cold_start or is_high_risk or is_suppressed:
                 p_adjustment = 0.0
             else:
                 # Bounded adjustment: min(0.15, raw * 0.15 * damping)
@@ -529,7 +601,10 @@ class PersonalizationRanker:
                 )
 
             # Final Score: min(1.0, base_score + p_adjustment)
-            final_score = round(min(1.0, max(0.0, base_score + p_adjustment)), 6)
+            if is_suppressed:
+                final_score = round(max(0.0, base_score - 0.50), 6)
+            else:
+                final_score = round(min(1.0, max(0.0, base_score + p_adjustment)), 6)
 
             scored_intermediates.append(
                 _ScoredPersonalizedCandidate(

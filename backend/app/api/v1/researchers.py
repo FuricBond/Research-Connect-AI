@@ -41,6 +41,14 @@ from app.schemas.researcher_preference import (
     ResearcherPreferenceItemSchema,
     ResearcherPreferenceUpdateSchema,
 )
+from app.schemas.researcher_feedback import (
+    BehavioralSignalSchema,
+    FeedbackCreateRequest,
+    FeedbackItemResponse,
+    FeedbackListResponse,
+    FeedbackSummaryResponse,
+)
+from app.services.feedback_service import ResearcherFeedbackService
 from app.services.personalization_ranking_service import (
     PersonalizationRankingService,
 )
@@ -643,6 +651,221 @@ def get_personalized_recommendations(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(err),
         )
+
+
+# ── Phase 3.6 — Feedback & Recommendation Learning Endpoints ─────────────────
+
+
+@router.post(
+    "/{researcher_id}/feedback",
+    response_model=FeedbackItemResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Record recommendation interaction feedback",
+    description=(
+        "Record an explicit or implicit recommendation interaction event (Phase 3.6). "
+        "Supports VIEW, SAVE, DISMISS, INTERESTED, NOT_INTERESTED, APPLY. "
+        "Idempotent: updates existing state if same event type was previously submitted."
+    ),
+)
+def record_feedback(
+    researcher_id: uuid.UUID,
+    payload: FeedbackCreateRequest,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> FeedbackItemResponse:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to submit feedback for this researcher.",
+        )
+
+    try:
+        return ResearcherFeedbackService.record_feedback(
+            db=db,
+            researcher_id=profile.id,
+            payload=payload,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
+
+@router.get(
+    "/{researcher_id}/feedback",
+    response_model=FeedbackListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Query researcher feedback history",
+    description=(
+        "Retrieve paginated interaction feedback history with optional filtering by "
+        "feedback_type, opportunity_id, and date range (Phase 3.6)."
+    ),
+)
+def get_feedback_history(
+    researcher_id: uuid.UUID,
+    limit: Annotated[int, Query(ge=1, le=200, description="Page limit")] = 50,
+    offset: Annotated[int, Query(ge=0, description="Page offset")] = 0,
+    feedback_type: Annotated[str | None, Query(description="Filter by type (VIEW, SAVE, DISMISS, etc.)")] = None,
+    opportunity_id: Annotated[uuid.UUID | None, Query(description="Filter by opportunity ID")] = None,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> FeedbackListResponse:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to view this researcher's feedback history.",
+        )
+
+    try:
+        return ResearcherFeedbackService.get_feedback_history(
+            db=db,
+            researcher_id=profile.id,
+            limit=limit,
+            offset=offset,
+            feedback_type=feedback_type,
+            opportunity_id=opportunity_id,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
+
+@router.delete(
+    "/{researcher_id}/feedback/{feedback_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Delete feedback item",
+    description="Remove or undo an interaction feedback event (Phase 3.6).",
+)
+def delete_feedback(
+    researcher_id: uuid.UUID,
+    feedback_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> dict[str, Any]:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to delete this researcher's feedback.",
+        )
+
+    deleted = ResearcherFeedbackService.delete_feedback(
+        db=db,
+        researcher_id=profile.id,
+        feedback_id=feedback_id,
+    )
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Feedback record with ID '{feedback_id}' not found.",
+        )
+
+    return {"deleted": True, "feedback_id": str(feedback_id)}
+
+
+@router.get(
+    "/{researcher_id}/feedback/summary",
+    response_model=FeedbackSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get feedback summary and behavioral learning metrics",
+    description="Return aggregated interaction statistics and behavioral learning status (Phase 3.6).",
+)
+def get_feedback_summary(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> FeedbackSummaryResponse:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to view this researcher's feedback summary.",
+        )
+
+    return ResearcherFeedbackService.get_feedback_summary(
+        db=db,
+        researcher_id=profile.id,
+    )
+
+
+@router.get(
+    "/{researcher_id}/feedback/signals",
+    response_model=list[BehavioralSignalSchema],
+    status_code=status.HTTP_200_OK,
+    summary="Get learned behavioral signals",
+    description=(
+        "Return all active learned behavioral preference signals synthesized by the "
+        "deterministic FeedbackEngine, including confidence and temporal decay (Phase 3.6)."
+    ),
+)
+def get_behavioral_signals(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> list[BehavioralSignalSchema]:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to view this researcher's behavioral signals.",
+        )
+
+    behavioral_profile = ResearcherFeedbackService.get_behavioral_profile(
+        db=db,
+        researcher_id=profile.id,
+    )
+    return behavioral_profile.signals
+
 
 
 

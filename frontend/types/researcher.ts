@@ -331,6 +331,9 @@ export interface PersonalizationScoreBreakdown {
   provenance_score: number;
   raw_personalization_score: number;
   relevance_damping: number;
+  behavioral_score?: number;
+  behavioral_confidence?: number;
+  behavioral_adjustment?: number;
 }
 
 export interface MatchedPersonalizationSignals {
@@ -374,6 +377,82 @@ export interface PersonalizedRankingResponse {
   recommendations: PersonalizedRankedCandidate[];
   ablation_summary?: AblationSummary | null;
   metadata: Record<string, unknown>;
+}
+
+// ── Phase 3.6 — Feedback & Recommendation Learning Types ─────────────────────
+
+export type FeedbackType =
+  | "VIEW"
+  | "SAVE"
+  | "DISMISS"
+  | "INTERESTED"
+  | "NOT_INTERESTED"
+  | "APPLY";
+
+export type FeedbackSource =
+  | "RECOMMENDATION_FEED"
+  | "SEARCH_RESULT"
+  | "OPPORTUNITY_DETAIL"
+  | "SAVED_LIST"
+  | "MANUAL_ACTION";
+
+export interface FeedbackCreatePayload {
+  opportunity_id: string;
+  feedback_type: FeedbackType;
+  source?: FeedbackSource;
+  notes?: string;
+  rank_position?: number;
+  recommendation_session_id?: string;
+  metadata_snapshot?: Record<string, unknown>;
+}
+
+export interface FeedbackItem {
+  id: string;
+  researcher_id: string;
+  opportunity_id: string;
+  feedback_type: FeedbackType;
+  source: FeedbackSource;
+  notes?: string | null;
+  rank_position?: number | null;
+  recommendation_session_id?: string | null;
+  metadata_snapshot?: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+  opportunity_title?: string | null;
+  opportunity_type?: string | null;
+  delivery_mode?: string | null;
+  location?: string | null;
+}
+
+export interface FeedbackListResponse {
+  items: FeedbackItem[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface BehavioralSignal {
+  category: string;
+  preference_key: string;
+  preference_value: string;
+  display_label: string;
+  raw_score: number;
+  normalized_score: number;
+  confidence: number;
+  sample_size: number;
+  direction: "POSITIVE" | "NEGATIVE";
+  recency_score: number;
+  last_interacted_at?: string | null;
+}
+
+export interface FeedbackSummaryResponse {
+  total_feedback_count: number;
+  counts_by_type: Record<string, number>;
+  top_positive_topics: string[];
+  top_negative_topics: string[];
+  overall_confidence: number;
+  suppressed_count: number;
+  is_cold_start: boolean;
 }
 
 

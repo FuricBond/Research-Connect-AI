@@ -79,6 +79,7 @@ def db_session() -> Session:
         Base.metadata.tables["research_profiles"],
         Base.metadata.tables["researcher_interests"],
         Base.metadata.tables["researcher_preferences"],
+        Base.metadata.tables["researcher_recommendation_feedback"],
     ]
     Base.metadata.create_all(bind=engine, tables=target_tables)
     session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -745,8 +746,8 @@ def test_bounded_database_queries(db_session: Session):
             limit=25,
         )
         assert len(res.candidates) >= 20
-        # Total DB queries must be constant O(1) <= 6 queries regardless of candidate count
-        assert query_count <= 8
+        # Total DB queries must be constant O(1) <= 10 queries regardless of candidate count (including Phase 3.6 suppression lookup)
+        assert query_count <= 10
     finally:
         event.remove(engine, "before_cursor_execute", _query_listener)
 

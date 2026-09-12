@@ -28,6 +28,7 @@ from app.services.personalization_ranking_service import (
 from app.services.personalized_candidate_generation_service import (
     PersonalizedCandidateGenerationService,
 )
+from app.services.feedback_service import ResearcherFeedbackService
 from app.services.researcher_intelligence_service import ResearcherIntelligenceService
 from app.services.researcher_preference_service import ResearcherPreferenceService
 from app.services.researcher_profile_service import ResearcherProfileService
@@ -78,6 +79,8 @@ __all__ = [
     "PersonalizedCandidateGenerationService",
     # Personalization ranking service (Phase 3.5)
     "PersonalizationRankingService",
+    # Researcher feedback service (Phase 3.6)
+    "ResearcherFeedbackService",
 ]
 
 

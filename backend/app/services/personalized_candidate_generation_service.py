@@ -70,6 +70,8 @@ class PersonalizedCandidateGenerationService:
         include_inferred: bool = True,
         include_expertise: bool = True,
         include_fallback: bool = True,
+        suppressed_opportunity_ids: set[uuid.UUID] | None = None,
+        include_suppression: bool = True,
         reference_time: datetime | None = None,
     ) -> PersonalizedCandidateSetResponse:
         """
@@ -177,6 +179,20 @@ class PersonalizedCandidateGenerationService:
             else 0
         )
 
+        # Resolve negative feedback suppression set (Phase 3.6)
+        active_suppressed: set[uuid.UUID] = set()
+        if suppressed_opportunity_ids is not None:
+            active_suppressed = set(suppressed_opportunity_ids)
+        elif include_suppression:
+            try:
+                from app.services.feedback_service import ResearcherFeedbackService
+                active_suppressed = ResearcherFeedbackService.get_suppressed_opportunity_ids(
+                    db=db, researcher_id=profile.id, reference_time=ref_time
+                )
+            except Exception as e:
+                logger.warning("Could not resolve suppressed opportunities for profile %s: %s", profile.id, e)
+                active_suppressed = set()
+
         # ── 4. Candidate Retrieval Pipeline ───────────────────────────────────
         # In-memory candidate registry: opportunity_id -> raw candidate dict
         raw_candidates: dict[uuid.UUID, dict[str, Any]] = {}
@@ -212,6 +228,9 @@ class PersonalizedCandidateGenerationService:
             reason: str = "",
             retrieval_channel: str = "metadata_query",
         ) -> None:
+            if active_suppressed and opp.id in active_suppressed:
+                # Omit dismissed/not_interested candidates from candidate pool
+                return
             source_instance_counts[source] = source_instance_counts.get(source, 0) + 1
             opp_id = opp.id
             if opp_id not in raw_candidates:

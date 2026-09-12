@@ -1,8 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { fetchPersonalizedRecommendations } from "../../services/api";
+import {
+  fetchPersonalizedRecommendations,
+  recordRecommendationFeedback,
+} from "../../services/api";
 import type {
+  FeedbackType,
   PersonalizedRankedCandidate,
   PersonalizedRankingResponse,
 } from "../../types/researcher";
@@ -10,11 +14,13 @@ import type {
 interface PersonalizedRankingPreviewProps {
   profileId: string;
   userId?: string;
+  onFeedbackRecorded?: () => void;
 }
 
 export function PersonalizedRankingPreview({
   profileId,
   userId,
+  onFeedbackRecorded,
 }: PersonalizedRankingPreviewProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +32,35 @@ export function PersonalizedRankingPreview({
   const [includeExpertise, setIncludeExpertise] = useState<boolean>(true);
   const [limit, setLimit] = useState<number>(20);
   const [selectedCandidate, setSelectedCandidate] = useState<PersonalizedRankedCandidate | null>(null);
+  const [feedbackStatus, setFeedbackStatus] = useState<Record<string, string>>({});
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState<boolean>(false);
+
+  const handleRecordFeedback = async (
+    opportunityId: string,
+    type: FeedbackType,
+    rankPosition?: number
+  ) => {
+    if (!profileId || isSubmittingFeedback) return;
+    setIsSubmittingFeedback(true);
+    try {
+      await recordRecommendationFeedback(
+        profileId,
+        {
+          opportunity_id: opportunityId,
+          feedback_type: type,
+          source: "RECOMMENDATION_FEED",
+          rank_position: rankPosition,
+        },
+        userId
+      );
+      setFeedbackStatus((prev) => ({ ...prev, [opportunityId]: type }));
+      onFeedbackRecorded?.();
+    } catch (err: unknown) {
+      console.error("Failed to record feedback:", err);
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
 
   const loadRecommendations = useCallback(async () => {
     if (!profileId) return;
@@ -354,6 +389,21 @@ export function PersonalizedRankingPreview({
                       {selectedCandidate.score_breakdown.profile_match_score.toFixed(4)}
                     </span>
                   </div>
+                  {selectedCandidate.score_breakdown.behavioral_score != null && (
+                    <div className="flex justify-between text-slate-300">
+                      <span>Learned Behavioral (Phase 3.6):</span>
+                      <span
+                        className={`font-mono ${
+                          (selectedCandidate.score_breakdown.behavioral_adjustment ?? 0) >= 0
+                            ? "text-emerald-400"
+                            : "text-rose-400"
+                        }`}
+                      >
+                        {(selectedCandidate.score_breakdown.behavioral_adjustment ?? 0) >= 0 ? "+" : ""}
+                        {(selectedCandidate.score_breakdown.behavioral_adjustment ?? 0).toFixed(4)}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-slate-300">
                     <span>Relevance Damping Factor:</span>
                     <span className="font-mono">
@@ -436,6 +486,82 @@ export function PersonalizedRankingPreview({
                     {selectedCandidate.opportunity.deadline_status || "UNKNOWN"} (
                     {selectedCandidate.opportunity.urgency_tier || "APPROACHING"})
                   </span>
+                </div>
+
+                {/* Phase 3.6 Interactive Recommendation Feedback Loop */}
+                <div className="border-t border-slate-800/80 pt-2.5 mt-2 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-slate-300">
+                      Recommendation Feedback:
+                    </span>
+                    {feedbackStatus[selectedCandidate.opportunity_id] && (
+                      <span className="text-[10px] text-emerald-400 font-medium font-mono">
+                        ✓ Recorded: {feedbackStatus[selectedCandidate.opportunity_id]}
+                      </span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-4 gap-1.5 pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRecordFeedback(
+                          selectedCandidate.opportunity_id,
+                          "SAVE",
+                          selectedCandidate.rank
+                        )
+                      }
+                      disabled={isSubmittingFeedback}
+                      className="px-2 py-1.5 rounded bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 border border-amber-800/50 text-[11px] font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                      title="Save bookmark (+0.25 weight)"
+                    >
+                      <span>★</span> Save
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRecordFeedback(
+                          selectedCandidate.opportunity_id,
+                          "INTERESTED",
+                          selectedCandidate.rank
+                        )
+                      }
+                      disabled={isSubmittingFeedback}
+                      className="px-2 py-1.5 rounded bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-800/50 text-[11px] font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                      title="Interested (+0.30 weight)"
+                    >
+                      <span>👍</span> Like
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRecordFeedback(
+                          selectedCandidate.opportunity_id,
+                          "NOT_INTERESTED",
+                          selectedCandidate.rank
+                        )
+                      }
+                      disabled={isSubmittingFeedback}
+                      className="px-2 py-1.5 rounded bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 text-[11px] font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                      title="Not Interested (-0.30 weight)"
+                    >
+                      <span>👎</span> Dislike
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleRecordFeedback(
+                          selectedCandidate.opportunity_id,
+                          "DISMISS",
+                          selectedCandidate.rank
+                        )
+                      }
+                      disabled={isSubmittingFeedback}
+                      className="px-2 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                      title="Dismiss & Suppress (-0.20 weight)"
+                    >
+                      <span>✕</span> Dismiss
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

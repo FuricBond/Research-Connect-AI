@@ -13,6 +13,7 @@ from app.models.research_knowledge import (
 from app.models.research_profile import AcademicStatus, ResearchProfileModel
 from app.models.researcher_interest import ResearcherInterestModel
 from app.models.researcher_preference import ResearcherPreferenceModel
+from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
 from app.models.saved_opportunity import SavedOpportunityModel
 from app.models.source import SourceModel
 from app.models.topic import TopicAliasModel, TopicModel
@@ -26,6 +27,7 @@ __all__ = [
     "ResearchProfileModel",
     "ResearcherInterestModel",
     "ResearcherPreferenceModel",
+    "ResearcherRecommendationFeedbackModel",
     "SourceModel",
     "TopicModel",
     "TopicAliasModel",
