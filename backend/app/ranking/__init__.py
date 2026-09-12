@@ -56,6 +56,10 @@ from app.ranking.personalization_ranker import (
     ResearcherPersonalizationContext,
     personalization_ranker,
 )
+from app.ranking.recommendation_explainer import (
+    RecommendationExplainer,
+    recommendation_explainer,
+)
 from app.ranking.signals import (
     RankingSignals,
     calculate_freshness,
@@ -85,6 +89,8 @@ __all__ = [
     "PersonalizationRanker",
     "ResearcherPersonalizationContext",
     "personalization_ranker",
+    "RecommendationExplainer",
+    "recommendation_explainer",
 
     "RankedCandidate",
     "RankerWeights",

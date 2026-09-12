@@ -56,7 +56,14 @@ from app.schemas.recommendation_history import (
 from app.schemas.recommendation_evaluation import (
     RecommendationEvaluationResponse,
 )
+from app.schemas.recommendation_explanation import (
+    PersonalizationSummaryResponse,
+    RecommendationExplanationSchema,
+)
 from app.services.feedback_service import ResearcherFeedbackService
+from app.services.personalization_explanation_service import (
+    PersonalizationExplanationService,
+)
 from app.services.personalization_ranking_service import (
     PersonalizationRankingService,
 )
@@ -1022,6 +1029,142 @@ def get_recommendation_evaluation(
         to_date=to_date,
         include_comparison=include_comparison,
     )
+
+
+# ── Phase 3.8 — Personalization Explainability Endpoints ─────────────────────
+
+
+@router.get(
+    "/{researcher_id}/personalization-summary",
+    response_model=PersonalizationSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get comprehensive personalization summary and learned signals",
+    description=(
+        "Returns a holistic personalization summary for the researcher (Phase 3.8). "
+        "Includes counts of active research interests, verified expertise, explicit preferences, "
+        "learned behavioral signals, overall personalization confidence, and learned attribute affinities."
+    ),
+)
+def get_personalization_summary(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationSummaryResponse:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to view this researcher's personalization summary.",
+        )
+
+    return PersonalizationExplanationService.get_personalization_summary(
+        db=db,
+        profile_id=profile.id,
+    )
+
+
+@router.get(
+    "/{researcher_id}/personalized-recommendations/{opportunity_id}/explanation",
+    response_model=RecommendationExplanationSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Get structured explanation for an active recommendation",
+    description=(
+        "Returns a detailed, human-understandable, and machine-inspectable explanation "
+        "for why an opportunity was recommended to this researcher (Phase 3.8). "
+        "Explains matched explicit preferences, scholarly expertise, behavioral feedback signals, "
+        "deadline urgency, and publication trust/safety status."
+    ),
+)
+def get_recommendation_explanation(
+    researcher_id: uuid.UUID,
+    opportunity_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> RecommendationExplanationSchema:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to inspect this recommendation explanation.",
+        )
+
+    try:
+        return PersonalizationExplanationService.explain_opportunity_for_researcher(
+            db=db,
+            profile_id=profile.id,
+            opportunity_id=opportunity_id,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
+
+@router.get(
+    "/{researcher_id}/recommendation-history/{snapshot_id}/items/{opportunity_id}/explanation",
+    response_model=RecommendationExplanationSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Get frozen historical explanation for a past recommendation",
+    description=(
+        "Returns an immutable point-in-time explanation for why an opportunity was recommended "
+        "within a historical snapshot (Phase 3.8). Strictly uses frozen historical scores and metadata."
+    ),
+)
+def get_historical_recommendation_explanation(
+    researcher_id: uuid.UUID,
+    snapshot_id: uuid.UUID,
+    opportunity_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> RecommendationExplanationSchema:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to inspect this historical recommendation explanation.",
+        )
+
+    try:
+        return PersonalizationExplanationService.explain_historical_recommendation(
+            db=db,
+            profile_id=profile.id,
+            snapshot_id=snapshot_id,
+            opportunity_id=opportunity_id,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
 
 
 

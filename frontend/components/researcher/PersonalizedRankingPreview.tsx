@@ -3,13 +3,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
   fetchPersonalizedRecommendations,
+  fetchRecommendationExplanation,
   recordRecommendationFeedback,
 } from "../../services/api";
 import type {
   FeedbackType,
   PersonalizedRankedCandidate,
   PersonalizedRankingResponse,
+  RecommendationExplanation,
 } from "../../types/researcher";
+import { RecommendationExplanationModal } from "./RecommendationExplanationModal";
+import { AlertTriangle, HelpCircle, Sparkles } from "lucide-react";
 
 interface PersonalizedRankingPreviewProps {
   profileId: string;
@@ -34,6 +38,33 @@ export function PersonalizedRankingPreview({
   const [selectedCandidate, setSelectedCandidate] = useState<PersonalizedRankedCandidate | null>(null);
   const [feedbackStatus, setFeedbackStatus] = useState<Record<string, string>>({});
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState<boolean>(false);
+
+  // Phase 3.8 Explanation Modal State
+  const [explainingCandidate, setExplainingCandidate] = useState<PersonalizedRankedCandidate | null>(null);
+  const [explanationData, setExplanationData] = useState<RecommendationExplanation | null>(null);
+  const [isExplanationLoading, setIsExplanationLoading] = useState<boolean>(false);
+  const [showExplanationModal, setShowExplanationModal] = useState<boolean>(false);
+
+  const handleOpenExplanation = async (cand: PersonalizedRankedCandidate, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setExplainingCandidate(cand);
+    setShowExplanationModal(true);
+
+    if (cand.explanation) {
+      setExplanationData(cand.explanation);
+      setIsExplanationLoading(false);
+    } else {
+      setIsExplanationLoading(true);
+      try {
+        const exp = await fetchRecommendationExplanation(profileId, cand.opportunity_id, userId);
+        setExplanationData(exp);
+      } catch (err) {
+        console.error("Failed to fetch explanation:", err);
+      } finally {
+        setIsExplanationLoading(false);
+      }
+    }
+  };
 
   const handleRecordFeedback = async (
     opportunityId: string,
@@ -283,20 +314,54 @@ export function PersonalizedRankingPreview({
                       </div>
                     </div>
 
-                    {/* Score Badges */}
-                    <div className="text-right flex flex-col items-end min-w-[80px]">
-                      <div className="text-sm font-bold text-indigo-300 font-mono">
-                        {cand.final_score.toFixed(4)}
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-mono">
-                        Base: {cand.base_relevance_score.toFixed(3)}
-                      </div>
-                      {cand.personalization_adjustment > 0 && (
-                        <div className="text-[10px] text-emerald-400 font-mono">
-                          +{cand.personalization_adjustment.toFixed(3)}
+                    {/* Score Badges & Why This Button */}
+                    <div className="text-right flex flex-col items-end min-w-[90px] gap-1.5">
+                      <div>
+                        <div className="text-sm font-bold text-indigo-300 font-mono">
+                          {cand.final_score.toFixed(4)}
                         </div>
-                      )}
+                        <div className="text-[10px] text-slate-400 font-mono">
+                          Base: {cand.base_relevance_score.toFixed(3)}
+                        </div>
+                        {cand.personalization_adjustment > 0 && (
+                          <div className="text-[10px] text-emerald-400 font-mono">
+                            +{cand.personalization_adjustment.toFixed(3)}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Why this? Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => handleOpenExplanation(cand, e)}
+                        className="px-2 py-1 rounded bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/60 text-[10px] font-semibold flex items-center gap-1 transition-colors"
+                        title="Why this recommendation?"
+                      >
+                        <HelpCircle size={11} />
+                        <span>Why this?</span>
+                      </button>
                     </div>
+                  </div>
+
+                  {/* Badges footer: Personalization strength + Risk warning */}
+                  <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]">
+                    <span className="text-slate-400 flex items-center gap-1">
+                      <Sparkles size={11} className="text-indigo-400" />
+                      {cand.explanation?.personalization_strength ||
+                        (cand.personalization_adjustment >= 0.08
+                          ? "Highly personalized"
+                          : cand.personalization_adjustment >= 0.04
+                          ? "Personalized"
+                          : cand.personalization_adjustment > 0
+                          ? "Some personalization"
+                          : "General recommendation")}
+                    </span>
+
+                    {(cand.opportunity.risk_level === "HIGH_RISK" || cand.opportunity.is_predatory_flag) && (
+                      <span className="text-rose-400 font-semibold flex items-center gap-1">
+                        <AlertTriangle size={11} /> High Risk Warning
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -572,6 +637,16 @@ export function PersonalizedRankingPreview({
           No candidates available for personalized ranking.
         </div>
       )}
+
+      {/* Phase 3.8 Recommendation Explanation Modal */}
+      <RecommendationExplanationModal
+        isOpen={showExplanationModal}
+        onClose={() => setShowExplanationModal(false)}
+        explanation={explanationData}
+        loading={isExplanationLoading}
+        opportunityTitle={explainingCandidate?.opportunity.title}
+        organization={explainingCandidate?.opportunity.location || explainingCandidate?.opportunity.delivery_mode}
+      />
     </div>
   );
 }

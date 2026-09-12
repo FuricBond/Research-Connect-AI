@@ -18,6 +18,7 @@ from app.schemas.personalized_candidate import (
     CandidateProvenanceSchema,
     PersonalizedCandidateOpportunitySchema,
 )
+from app.schemas.recommendation_explanation import RecommendationExplanationSchema
 
 
 class PersonalizationScoreBreakdownSchema(BaseModel):
@@ -167,6 +168,10 @@ class PersonalizedRankedCandidateSchema(BaseModel):
     opportunity: PersonalizedCandidateOpportunitySchema = Field(
         ...,
         description="Opportunity metadata with Phase 2.6 risk & Phase 2.7 deadline intelligence",
+    )
+    explanation: RecommendationExplanationSchema | None = Field(
+        None,
+        description="Phase 3.8 structured human-readable and machine-inspectable explanation",
     )
 
 

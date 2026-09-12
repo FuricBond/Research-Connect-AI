@@ -36,9 +36,11 @@ This document outlines the planned architecture and modular development roadmap 
   - **Phase 3.1 (Researcher Profile Foundation)**: **COMPLETE** (Canonical profile model, external identifier normalization, institution linking, profile completeness, service, REST API, Next.js UI)
   - **Phase 3.2 (Research Interest Intelligence)**: **COMPLETE** (Structured interests and expertise extraction, deterministic strength and confidence scoring, bounded recency signal, zero N+1 queries, provenance, REST API, Next.js UI)
   - **Phase 3.3 (Personal Preference Intelligence)**: **COMPLETE** (Canonical preference model, explicit preferences CRUD, activity-based inference from saved opportunities, derived expertise candidates, contradiction detection, completeness scoring, zero N+1 queries, provenance, REST API, Next.js UI)
+  - **Phase 3.4 (Personalized Candidate Generation)**: **COMPLETE** (Multi-channel candidate retrieval across explicit preferences, learned topics, and author expertise, fallback guarantees, provenance tracing, REST API, Next.js UI)
   - **Phase 3.5 (Personalized Hybrid Ranking)**: **COMPLETE** (Dedicated personalization ranking layer, bounded adjustment <= 0.15, relevance dominance and damping, Phase 2.6 risk & Phase 2.7 deadline preservation, multi-key deterministic tie-breaking, R0 vs R1 ablation diagnostics, zero N+1 queries, REST API, Next.js diagnostic preview UI)
-  - **Phase 3.6 (Recommendation Feedback & Interaction History)**: *Pending*
-  - **Phase 3.7 (Personalization Evaluation & Benchmarking)**: *Pending*
+  - **Phase 3.6 (Feedback & Recommendation Learning Loop)**: **COMPLETE** (Controlled feedback loop, bounded deterministic preference/interest adjustments, exponential decay, reversible signals, REST API, Next.js feedback UI)
+  - **Phase 3.7 (Recommendation History & Evaluation)**: **COMPLETE** (Reproducible recommendation snapshots, deterministic ranking versioning, offline IR evaluation metrics, data sufficiency classifications, zero N+1 queries, REST API, Next.js history & evaluation UI)
+  - **Phase 3.8 (Personalization Explainability & Researcher UI)**: **COMPLETE** (Grounded recommendation explanations, signal priority hierarchy, score consistency invariants, safety dominance, historical snapshot explanation immutability, researcher personalization summary, Why this? modal, Next.js UI)
 
 
 

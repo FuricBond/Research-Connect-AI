@@ -5,15 +5,18 @@ import {
   fetchRecommendationEvaluation,
   fetchRecommendationHistory,
   fetchRecommendationSnapshotDetail,
+  fetchHistoricalRecommendationExplanation,
 } from "../../services/api";
 import type {
   EvaluationMetrics,
   RecommendationEvaluationResponse,
+  RecommendationExplanation,
   RecommendationHistoryResponse,
   RecommendationItemSnapshot,
   RecommendationSnapshotDetail,
   RecommendationSnapshotSummary,
 } from "../../types/researcher";
+import { RecommendationExplanationModal } from "./RecommendationExplanationModal";
 import {
   Activity,
   AlertCircle,
@@ -28,6 +31,7 @@ import {
   FileText,
   History,
   Info,
+  HelpCircle,
   Layers,
   Percent,
   RefreshCw,
@@ -62,6 +66,33 @@ export function RecommendationHistoryView({
   const [selectedSnapshotId, setSelectedSnapshotId] = useState<string | null>(null);
   const [snapshotDetail, setSnapshotDetail] = useState<RecommendationSnapshotDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState<boolean>(false);
+
+  // Phase 3.8 Historical Explanation Modal
+  const [selectedHistoricalItem, setSelectedHistoricalItem] = useState<RecommendationItemSnapshot | null>(null);
+  const [historicalExplanation, setHistoricalExplanation] = useState<RecommendationExplanation | null>(null);
+  const [historicalExplanationLoading, setHistoricalExplanationLoading] = useState<boolean>(false);
+  const [showHistoricalExplanationModal, setShowHistoricalExplanationModal] = useState<boolean>(false);
+
+  const handleInspectHistoricalExplanation = async (item: RecommendationItemSnapshot) => {
+    if (!profileId || !selectedSnapshotId) return;
+    setSelectedHistoricalItem(item);
+    setShowHistoricalExplanationModal(true);
+    setHistoricalExplanationLoading(true);
+
+    try {
+      const exp = await fetchHistoricalRecommendationExplanation(
+        profileId,
+        item.snapshot_id || selectedSnapshotId,
+        item.opportunity_id,
+        userId
+      );
+      setHistoricalExplanation(exp);
+    } catch (err: unknown) {
+      console.error("Failed to load historical explanation:", err);
+    } finally {
+      setHistoricalExplanationLoading(false);
+    }
+  };
 
   const loadData = useCallback(
     async (isRefresh = false) => {
@@ -820,6 +851,7 @@ export function RecommendationHistoryView({
                         <th style={{ padding: "8px", textAlign: "right" }}>Beh.</th>
                         <th style={{ padding: "8px", textAlign: "right" }}>Final</th>
                         <th style={{ padding: "8px" }}>Feedback Outcome</th>
+                        <th style={{ padding: "8px", textAlign: "center" }}>Why?</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -882,6 +914,29 @@ export function RecommendationHistoryView({
                               <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>No interaction</span>
                             )}
                           </td>
+                          <td style={{ padding: "8px", textAlign: "center" }}>
+                            <button
+                              type="button"
+                              onClick={() => handleInspectHistoricalExplanation(item)}
+                              style={{
+                                padding: "4px 8px",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                borderRadius: "4px",
+                                border: "1px solid var(--border-color)",
+                                background: "var(--bg-main)",
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                color: "var(--primary, #2563eb)",
+                              }}
+                              title="Why was this recommended in this historical snapshot?"
+                            >
+                              <HelpCircle size={12} />
+                              <span>Why?</span>
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -917,6 +972,16 @@ export function RecommendationHistoryView({
           </div>
         </div>
       )}
+
+      {/* Phase 3.8 Historical Explanation Modal */}
+      <RecommendationExplanationModal
+        isOpen={showHistoricalExplanationModal}
+        onClose={() => setShowHistoricalExplanationModal(false)}
+        explanation={historicalExplanation}
+        loading={historicalExplanationLoading}
+        opportunityTitle={selectedHistoricalItem?.opportunity?.title}
+        organization={selectedHistoricalItem?.opportunity?.organizer || undefined}
+      />
     </div>
   );
 }

@@ -86,6 +86,14 @@ from app.schemas.recommendation_evaluation import (
     RecommendationEvaluationResponse,
     VersionComparisonSummary,
 )
+from app.schemas.recommendation_explanation import (
+    ExplanationFactorSchema,
+    ExplanationReasonCategory,
+    LearnedSignalItemSchema,
+    PersonalizationSummaryResponse,
+    RecommendationExplanationSchema,
+    SignalImpact,
+)
 
 __all__ = [
     "OpportunityFee",
@@ -163,6 +171,13 @@ __all__ = [
     "EvaluationMetricsSchema",
     "VersionComparisonSummary",
     "RecommendationEvaluationResponse",
+    # Phase 3.8 Personalization Explainability Schemas
+    "ExplanationReasonCategory",
+    "SignalImpact",
+    "ExplanationFactorSchema",
+    "RecommendationExplanationSchema",
+    "LearnedSignalItemSchema",
+    "PersonalizationSummaryResponse",
 ]
 
 

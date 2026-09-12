@@ -14,6 +14,7 @@ import { ResearcherIntelligenceView } from "../../components/researcher/Research
 import { ResearcherPreferencesView } from "../../components/researcher/ResearcherPreferencesView";
 import { PersonalizedCandidatePreview } from "../../components/researcher/PersonalizedCandidatePreview";
 import { PersonalizedRankingPreview } from "../../components/researcher/PersonalizedRankingPreview";
+import { PersonalizationSummaryView } from "../../components/researcher/PersonalizationSummaryView";
 import { FeedbackHistoryView } from "../../components/researcher/FeedbackHistoryView";
 import { RecommendationHistoryView } from "../../components/researcher/RecommendationHistoryView";
 import {
@@ -456,6 +457,14 @@ export default function ResearcherPage() {
             error={candidatesError}
             onRefresh={(options) => profile && loadCandidates(profile.id, options, true)}
             isRefreshing={isRefreshingCandidates}
+          />
+        </div>
+        <div style={{ marginTop: "36px" }}>
+          <PersonalizationSummaryView
+            key={`pers-summary-${feedbackRefreshKey}`}
+            profileId={profile.id}
+            userId={profile.user_id}
+            refreshTrigger={feedbackRefreshKey}
           />
         </div>
         <div style={{ marginTop: "36px" }}>

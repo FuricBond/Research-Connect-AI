@@ -356,6 +356,7 @@ export interface PersonalizedRankedCandidate {
   matched_signals: MatchedPersonalizationSignals;
   provenance: CandidateProvenance;
   opportunity: PersonalizedCandidateOpportunity;
+  explanation?: RecommendationExplanation | null;
 }
 
 export interface AblationSummary {
@@ -555,6 +556,78 @@ export interface RecommendationEvaluationResponse {
   evaluated_at: string;
 }
 
+// ── Phase 3.8 — Personalization Explainability Types ─────────────────────────
 
+export type ExplanationReasonCategory =
+  | "EXPLICIT_PREFERENCE"
+  | "RESEARCH_EXPERTISE"
+  | "RESEARCH_INTEREST"
+  | "BEHAVIORAL_FEEDBACK"
+  | "PROFILE_KEYWORD"
+  | "DOMAIN_RELEVANCE"
+  | "DEADLINE_URGENCY"
+  | "TRUST_AND_SAFETY";
 
+export type SignalImpact = "POSITIVE" | "NEGATIVE" | "NEUTRAL";
 
+export interface ExplanationFactor {
+  category: ExplanationReasonCategory;
+  summary: string;
+  detail?: string | null;
+  impact: SignalImpact;
+  weight_or_score?: number | null;
+  is_primary: boolean;
+}
+
+export interface RecommendationExplanation {
+  opportunity_id: string;
+  researcher_id: string;
+  rank: number;
+  final_score: number;
+  base_relevance_score: number;
+  personalization_contribution: number;
+  personalization_strength: string;
+  primary_reasons: string[];
+  supporting_reasons: string[];
+  behavioral_reasons: string[];
+  preference_reasons: string[];
+  expertise_reasons: string[];
+  negative_reasons: string[];
+  factors: ExplanationFactor[];
+  risk_summary?: string | null;
+  trust_status?: string | null;
+  deadline_summary?: string | null;
+  confidence: string;
+  confidence_score: number;
+  is_historical: boolean;
+  ranking_version: string;
+  generated_at: string;
+}
+
+export interface LearnedSignalItem {
+  category: string;
+  display_label: string;
+  strength: string;
+  direction: string;
+  normalized_score: number;
+  confidence: number;
+  supporting_event_count: number;
+}
+
+export interface PersonalizationSummaryResponse {
+  researcher_id: string;
+  active_interests_count: number;
+  strong_expertise_count: number;
+  explicit_preferences_count: number;
+  behavioral_signals_count: number;
+  personalization_confidence: string;
+  confidence_score: number;
+  is_cold_start: boolean;
+  has_feedback: boolean;
+  total_feedback_count: number;
+  learned_topics: LearnedSignalItem[];
+  learned_opportunity_types: LearnedSignalItem[];
+  learned_delivery_modes: LearnedSignalItem[];
+  top_positive_signals: string[];
+  top_negative_signals: string[];
+}

@@ -26,6 +26,7 @@ from app.ranking.feedback_config import (
     MAX_NEGATIVE_BEHAVIORAL_ADJUSTMENT,
     MAX_POSITIVE_BEHAVIORAL_ADJUSTMENT,
 )
+from app.ranking.recommendation_explainer import recommendation_explainer
 from app.ranking.signals import validate_signal
 from app.schemas.personalized_candidate import (
     CandidateProvenanceSchema,
@@ -114,6 +115,7 @@ class _ScoredPersonalizedCandidate:
     provenance: CandidateProvenanceSchema
     opportunity: PersonalizedCandidateOpportunitySchema
     candidate_item: Any | None = None
+    rank: int = 0
 
 
 # ── Personalization Ranker Engine ─────────────────────────────────────────────
@@ -671,8 +673,15 @@ class PersonalizationRanker:
         sliced = scored_intermediates[start_idx:end_idx]
 
         final_ranked_results: list[PersonalizedRankedCandidateSchema] = []
+        ranking_ver = "phase3.8-v1" if enable_personalization else "phase2-baseline"
         for rank_pos, item in enumerate(sliced, start=start_idx + 1):
             rank_delta = item.base_rank - rank_pos
+            item.rank = rank_pos
+            explanation = recommendation_explainer.explain_ranked_candidate(
+                candidate=item,
+                context=context,
+                ranking_version=ranking_ver,
+            )
             final_ranked_results.append(
                 PersonalizedRankedCandidateSchema(
                     opportunity_id=item.opportunity_id,
@@ -687,6 +696,7 @@ class PersonalizationRanker:
                     matched_signals=item.matched_signals,
                     provenance=item.provenance,
                     opportunity=item.opportunity,
+                    explanation=explanation,
                 )
             )
 

@@ -29,6 +29,9 @@ from app.services.personalized_candidate_generation_service import (
     PersonalizedCandidateGenerationService,
 )
 from app.services.feedback_service import ResearcherFeedbackService
+from app.services.personalization_explanation_service import (
+    PersonalizationExplanationService,
+)
 from app.services.recommendation_history_service import RecommendationHistoryService
 from app.services.researcher_intelligence_service import ResearcherIntelligenceService
 from app.services.researcher_preference_service import ResearcherPreferenceService
@@ -84,6 +87,8 @@ __all__ = [
     "ResearcherFeedbackService",
     # Recommendation history service (Phase 3.7)
     "RecommendationHistoryService",
+    # Personalization explanation service (Phase 3.8)
+    "PersonalizationExplanationService",
 ]
 
 
