@@ -18,7 +18,12 @@ from app.models.recommendation_history import (
     ResearcherRecommendationSnapshotModel,
     ResearcherRecommendationItemModel,
 )
-from app.models.saved_opportunity import SavedOpportunityModel
+from app.models.saved_opportunity import (
+    ResearchOpportunityWorkspaceModel,
+    SavedOpportunityModel,
+    WorkspacePriority,
+    WorkspaceStatus,
+)
 from app.models.source import SourceModel
 from app.models.topic import TopicAliasModel, TopicModel
 from app.models.user import UserModel
@@ -40,6 +45,9 @@ __all__ = [
     "OpportunityModel",
     "OpportunityTopicModel",
     "SavedOpportunityModel",
+    "ResearchOpportunityWorkspaceModel",
+    "WorkspaceStatus",
+    "WorkspacePriority",
     "IngestionRunModel",
     # Research knowledge (Phase 2.2A / 2.2B / 2.3A)
     "ResearcherModel",

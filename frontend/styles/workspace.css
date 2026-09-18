@@ -1,0 +1,583 @@
+/* ── Phase 4.1 Opportunity Workspace Styles ────────────────────────────────── */
+
+.workspace-container {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 32px 24px 80px 24px;
+}
+
+.workspace-header {
+  margin-bottom: 24px;
+}
+
+.workspace-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.workspace-title-wrap h1 {
+  margin: 0 0 6px 0;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.workspace-tagline {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.workspace-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.workspace-stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.workspace-stat-card:hover {
+  border-color: var(--border-hover);
+  box-shadow: var(--shadow-md);
+}
+
+.workspace-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.workspace-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* ── Filter Bar & Pipeline Tabs ────────────────────────────────────────────── */
+
+.workspace-controls {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.workspace-pipeline-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.workspace-pipeline-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-body);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease-in-out;
+}
+
+.workspace-pipeline-tab:hover {
+  background: var(--bg-muted);
+  color: var(--text-main);
+}
+
+.workspace-pipeline-tab.active {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.workspace-tab-count {
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+}
+
+.workspace-pipeline-tab.active .workspace-tab-count {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.workspace-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.workspace-search-box {
+  flex: 1 1 240px;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.workspace-search-input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  font-size: 13px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-app);
+  color: var(--text-main);
+  outline: none;
+}
+
+.workspace-search-input:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+.workspace-search-icon {
+  position: absolute;
+  left: 10px;
+  color: var(--text-subtle);
+  pointer-events: none;
+}
+
+.workspace-select {
+  padding: 8px 12px;
+  font-size: 13px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: var(--text-main);
+  outline: none;
+  cursor: pointer;
+}
+
+.workspace-select:focus {
+  border-color: var(--primary);
+}
+
+/* ── Workspace Opportunity Cards ───────────────────────────────────────────── */
+
+.workspace-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.workspace-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+}
+
+.workspace-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-hover);
+}
+
+.workspace-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.workspace-card-title-area {
+  flex: 1;
+}
+
+.workspace-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.workspace-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.status-badge-saved {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.status-badge-considering {
+  background: #fdf4ff;
+  color: #a21caf;
+  border: 1px solid #f5d0fe;
+}
+
+.status-badge-planning {
+  background: #fefce8;
+  color: #a16207;
+  border: 1px solid #fef08a;
+}
+
+.status-badge-applied {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.status-badge-accepted {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.status-badge-rejected {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.status-badge-archived {
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
+}
+
+.workspace-priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.priority-urgent {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.priority-high {
+  background: #ffedd5;
+  color: #c2410c;
+  border: 1px solid #fdba74;
+}
+
+.priority-medium {
+  background: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.priority-low {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.workspace-card-title {
+  margin: 0 0 6px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+.workspace-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.workspace-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ── Opportunity Intelligence Strip (Canonical Deadline & Risk) ──────────── */
+
+.workspace-intel-strip {
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin: 14px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.workspace-intel-left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.workspace-deadline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.deadline-pill-critical {
+  color: #b91c1c;
+}
+
+.deadline-pill-urgent {
+  color: #c2410c;
+}
+
+.deadline-pill-normal {
+  color: #0f766e;
+}
+
+.deadline-pill-relaxed {
+  color: #475569;
+}
+
+.workspace-risk-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--risk-high-bg);
+  color: var(--risk-high-text);
+  border: 1px solid var(--risk-high-border);
+}
+
+/* ── Interactive Workflow Controls ────────────────────────────────────────── */
+
+.workspace-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.workspace-transition-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workspace-transition-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.workspace-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: #ffffff;
+  color: var(--text-body);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+.workspace-action-btn:hover {
+  background: var(--bg-muted);
+  color: var(--text-main);
+  border-color: var(--border-hover);
+}
+
+.workspace-action-btn.danger:hover {
+  background: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.workspace-action-btn.primary {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.workspace-action-btn.primary:hover {
+  background: var(--primary-hover);
+}
+
+/* ── Notes and Tags Box ───────────────────────────────────────────────────── */
+
+.workspace-notes-section {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.workspace-notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.workspace-notes-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 13px;
+  color: var(--text-body);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  resize: vertical;
+  min-height: 60px;
+  outline: none;
+}
+
+.workspace-notes-textarea:focus {
+  border-color: var(--primary);
+}
+
+.workspace-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.workspace-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: var(--bg-muted);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text-body);
+}
+
+.workspace-tag-remove {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-subtle);
+  display: inline-flex;
+}
+
+.workspace-tag-remove:hover {
+  color: #b91c1c;
+}
+
+.workspace-tag-input {
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  font-size: 11px;
+  outline: none;
+  background: transparent;
+}
+
+.workspace-tag-input:focus {
+  border-style: solid;
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+/* ── Empty & Error States ─────────────────────────────────────────────────── */
+
+.workspace-empty-state {
+  text-align: center;
+  padding: 64px 24px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  margin: 24px 0;
+}
+
+.workspace-empty-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--text-subtle);
+  margin: 0 auto 16px auto;
+}
+
+.workspace-empty-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 8px 0;
+}
+
+.workspace-empty-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 420px;
+  margin: 0 auto 20px auto;
+}
+
+.workspace-error-banner {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}

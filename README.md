@@ -82,7 +82,7 @@ The entire intelligence and ranking pipeline is **deterministic, in-memory, and 
 | **Scraping** | `requests`, `BeautifulSoup4` | Production WikiCFP connector, change detection, and data freshness pipelines |
 | **IR / Evaluation** | `scikit-learn`, custom RRF & IR Metrics | P@K, R@K, MRR, NDCG, Kendall-τ rank correlation, HHI concentration, 16-scenario benchmark suite |
 | **Containerization** | Docker Compose | Local PostgreSQL 16 with pre-configured `pgvector` extension |
-| **Testing** | `pytest` | 54 test modules, 867 passing tests, zero-network in-memory fixtures |
+| **Testing** | `pytest` | 56 test modules, 883 passing tests, zero-network in-memory fixtures |
 | **Knowledge Graph** | `graphify` | Navigable AST + semantic knowledge graph (`graphify-out/`) |
 
 ---
@@ -92,7 +92,7 @@ The entire intelligence and ranking pipeline is **deterministic, in-memory, and 
 ```text
 researchconnect-ai/
 ├── backend/
-│   ├── alembic/              # Database migration environment & versions (0001–0010)
+│   ├── alembic/              # Database migration environment & versions (0001–0011)
 │   ├── alembic.ini           # Alembic migration configuration
 │   ├── app/
 │   │   ├── ai/               # Recommender logic and ML embeddings integration
@@ -234,8 +234,8 @@ researchconnect-ai/
 
 | Sub-Phase | Description | Status |
 |---|---|---|
-| **4.0** | **Architecture & Roadmap Alignment** (Repository audit, Next.js baseline formalization, roadmap alignment, domain model decision criteria) | 🟡 **Current / In Progress** |
-| **4.1** | **Opportunity Workspace** (Multi-stage workspace tracking: SAVED, CONSIDERING, PLANNING, APPLIED, ARCHIVED; REST API, Next.js UI) | ⚪ Planned / Not Implemented |
+| **4.0** | **Architecture & Roadmap Alignment** (Repository audit, Next.js baseline formalization, roadmap alignment, domain model decision criteria) | ✅ Complete |
+| **4.1** | **Opportunity Workspace** (Multi-stage workspace tracking: SAVED, CONSIDERING, PLANNING, APPLIED, ACCEPTED, REJECTED, ARCHIVED; REST API, Next.js UI) | ✅ Complete |
 | **4.2** | **Submission & Application Tracker** (`ResearchSubmission` model, manuscript lifecycle: DRAFT to DECISION, target deadlines, milestones) | ⚪ Planned / Not Implemented |
 | **4.3** | **Application History & Audit** (Immutable event audit logging, stage transition history, personal productivity metrics) | ⚪ Planned / Not Implemented |
 | **4.4** | **Research Calendar & Deadline Planning** (Timeline visualizer powered by Phase 2.7 canonical deadlines, milestone scheduling, iCal export) | ⚪ Planned / Not Implemented |
