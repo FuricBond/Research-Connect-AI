@@ -82,7 +82,7 @@ The entire intelligence and ranking pipeline is **deterministic, in-memory, and 
 | **Scraping** | `requests`, `BeautifulSoup4` | Production WikiCFP connector, change detection, and data freshness pipelines |
 | **IR / Evaluation** | `scikit-learn`, custom RRF & IR Metrics | P@K, R@K, MRR, NDCG, Kendall-τ rank correlation, HHI concentration, 16-scenario benchmark suite |
 | **Containerization** | Docker Compose | Local PostgreSQL 16 with pre-configured `pgvector` extension |
-| **Testing** | `pytest` | 56 test modules, 883 passing tests, zero-network in-memory fixtures |
+| **Testing** | `pytest` | 58 test modules, 903 passing backend tests (1,292 total with scrapers), zero-network in-memory fixtures |
 | **Knowledge Graph** | `graphify` | Navigable AST + semantic knowledge graph (`graphify-out/`) |
 
 ---
@@ -92,7 +92,7 @@ The entire intelligence and ranking pipeline is **deterministic, in-memory, and 
 ```text
 researchconnect-ai/
 ├── backend/
-│   ├── alembic/              # Database migration environment & versions (0001–0011)
+│   ├── alembic/              # Database migration environment & versions (0001–0012)
 │   ├── alembic.ini           # Alembic migration configuration
 │   ├── app/
 │   │   ├── ai/               # Recommender logic and ML embeddings integration

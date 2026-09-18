@@ -101,6 +101,7 @@ def db_session() -> Session:
         Base.metadata.tables["opportunities"],
         Base.metadata.tables["opportunity_topics"],
         Base.metadata.tables["saved_opportunities"],
+        Base.metadata.tables["research_submissions"],
         Base.metadata.tables["research_profiles"],
         Base.metadata.tables["researcher_interests"],
         Base.metadata.tables["researcher_preferences"],

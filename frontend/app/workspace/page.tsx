@@ -27,6 +27,7 @@ import {
   Calendar,
   Clock,
   ExternalLink,
+  FileText,
   Loader2,
   Plus,
   RefreshCw,
@@ -655,6 +656,17 @@ export default function WorkspacePage() {
                       <option value="HIGH">High</option>
                       <option value="URGENT">Urgent</option>
                     </select>
+
+                    {/* Submissions Management Link */}
+                    <Link
+                      href={`/workspace/${item.id}/submission`}
+                      className="workspace-action-btn primary"
+                      title="Manage research submissions"
+                      style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                    >
+                      <FileText size={12} />
+                      Submissions
+                    </Link>
 
                     {/* Archive / Unarchive Button */}
                     {item.status === "ARCHIVED" ? (

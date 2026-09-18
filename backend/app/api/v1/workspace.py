@@ -24,6 +24,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.saved_opportunity import SavedOpportunityModel
 from app.models.user import UserModel
+from app.schemas.research_submission import ResearchSubmissionListResponse
 from app.schemas.workspace import (
     WorkspaceItemCreate,
     WorkspaceItemRead,
@@ -34,6 +35,7 @@ from app.schemas.workspace import (
     WorkspaceStatusTransition,
     WorkspaceSummaryResponse,
 )
+from app.services.research_submission_service import ResearchSubmissionService
 from app.services.workspace_service import InvalidTransitionError, WorkspaceService
 
 logger = logging.getLogger(__name__)
@@ -286,3 +288,33 @@ def remove_from_workspace(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+
+
+@router.get(
+    "/{item_id}/submissions",
+    response_model=ResearchSubmissionListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="List submissions for workspace item",
+    description="Retrieve all research submissions tracked under a specific workspace opportunity.",
+)
+def list_workspace_item_submissions(
+    item_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> ResearchSubmissionListResponse:
+    user_id = resolve_current_user(db, x_user_id)
+    try:
+        workspace_item = WorkspaceService.get_workspace_item(db, user_id, item_id)
+        if workspace_item is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Workspace item with ID '{item_id}' not found.",
+            )
+        return ResearchSubmissionService.list_submissions(
+            db=db,
+            user_id=user_id,
+            workspace_item_id=item_id,
+        )
+    except PermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+

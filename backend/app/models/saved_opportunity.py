@@ -13,6 +13,7 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.opportunity import OpportunityModel
+    from app.models.research_submission import ResearchSubmissionModel
     from app.models.user import UserModel
 
 
@@ -145,6 +146,10 @@ class SavedOpportunityModel(Base):
     )
     opportunity: Mapped["OpportunityModel"] = relationship(
         back_populates="saved_by_users",
+    )
+    submissions: Mapped[list["ResearchSubmissionModel"]] = relationship(
+        back_populates="workspace_item",
+        cascade="all, delete-orphan",
     )
 
 
