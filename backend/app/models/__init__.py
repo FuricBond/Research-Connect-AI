@@ -23,6 +23,14 @@ from app.models.research_submission import (
     SubmissionStatus,
     SubmissionType,
 )
+from app.models.submission_document import (
+    DocumentStatus,
+    DocumentType,
+    ResearchSubmissionDocumentModel,
+    ResearchSubmissionDocumentVersionModel,
+    ResearchSubmissionEventModel,
+    SubmissionEventType,
+)
 from app.models.saved_opportunity import (
     ResearchOpportunityWorkspaceModel,
     SavedOpportunityModel,
@@ -56,6 +64,12 @@ __all__ = [
     "ResearchSubmissionModel",
     "SubmissionStatus",
     "SubmissionType",
+    "ResearchSubmissionDocumentModel",
+    "ResearchSubmissionDocumentVersionModel",
+    "ResearchSubmissionEventModel",
+    "DocumentType",
+    "DocumentStatus",
+    "SubmissionEventType",
     "IngestionRunModel",
     # Research knowledge (Phase 2.2A / 2.2B / 2.3A)
     "ResearcherModel",

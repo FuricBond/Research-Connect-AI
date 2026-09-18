@@ -22,14 +22,25 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.research_submission import SubmissionStatus, SubmissionType
+from app.models.submission_document import DocumentStatus, DocumentType
 from app.models.user import UserModel
 from app.schemas.research_submission import (
     ResearchSubmissionCreate,
     ResearchSubmissionListResponse,
     ResearchSubmissionRead,
     ResearchSubmissionUpdate,
+    SubmissionDocumentCreate,
+    SubmissionDocumentListResponse,
+    SubmissionDocumentRead,
+    SubmissionDocumentUpdate,
+    SubmissionDocumentVersionRead,
+    SubmissionHistoryResponse,
+    SubmissionReadinessResponse,
     SubmissionStatusTransition,
     SubmissionSummaryResponse,
+)
+from app.services.research_submission_document_service import (
+    ResearchSubmissionDocumentService,
 )
 from app.services.research_submission_service import (
     InvalidSubmissionTransitionError,
@@ -236,3 +247,243 @@ def delete_submission(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+
+
+# ── Phase 4.3: Submission Document & Artifact Endpoints ───────────────────────
+
+
+@router.post(
+    "/{submission_id}/documents",
+    response_model=SubmissionDocumentRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create submission document",
+    description="Attach a document artifact (e.g. full paper, abstract, cover letter, dataset) to a research submission.",
+)
+def create_submission_document(
+    submission_id: uuid.UUID,
+    payload: SubmissionDocumentCreate,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> SubmissionDocumentRead:
+    user_id = resolve_current_user(db, x_user_id)
+    try:
+        return ResearchSubmissionDocumentService.create_document(
+            db=db,
+            user_id=user_id,
+            submission_id=submission_id,
+            payload=payload,
+        )
+    except PermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+
+
+@router.get(
+    "/{submission_id}/documents",
+    response_model=SubmissionDocumentListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="List submission documents",
+    description="List all document artifacts for a research submission with status and category filtering.",
+)
+def list_submission_documents(
+    submission_id: uuid.UUID,
+    status_filter: Annotated[DocumentStatus | None, Query(alias="status", description="Filter by document status")] = None,
+    document_type: Annotated[DocumentType | None, Query(description="Filter by document category")] = None,
+    is_required: Annotated[bool | None, Query(description="Filter by required flag")] = None,
+    include_archived: Annotated[bool, Query(description="Include archived documents")] = True,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> SubmissionDocumentListResponse:
+    user_id = resolve_current_user(db, x_user_id)
+    try:
+        return ResearchSubmissionDocumentService.list_documents(
+            db=db,
+            user_id=user_id,
+            submission_id=submission_id,
+            status=status_filter,
+            document_type=document_type,
+            is_required=is_required,
+            include_archived=include_archived,
+        )
+    except PermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+
+
+@router.get(
+    "/{submission_id}/documents/{document_id}",
+    response_model=SubmissionDocumentRead,
+    status_code=status.HTTP_200_OK,
+    summary="Get submission document",
+    description="Retrieve a single submission document artifact and its active version metadata.",
+)
+def get_submission_document(
+    submission_id: uuid.UUID,
+    document_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> SubmissionDocumentRead:
+    user_id = resolve_current_user(db, x_user_id)
+    try:
+        doc = ResearchSubmissionDocumentService.get_document(
+            db=db,
+            user_id=user_id,
+            submission_id=submission_id,
+            document_id=document_id,
+        )
+        if doc is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Document with ID '{document_id}' not found for submission '{submission_id}'.",
+            )
+        return doc
+    except PermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+
+
+@router.patch(
+    "/{submission_id}/documents/{document_id}",
+    response_model=SubmissionDocumentRead,
+    status_code=status.HTTP_200_OK,
+    summary="Update submission document",
+    description="Partially update a submission document, update its status, or create a new immutable version snapshot.",
+)
+def update_submission_document(
+    submission_id: uuid.UUID,
+    document_id: uuid.UUID,
+    payload: SubmissionDocumentUpdate,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> SubmissionDocumentRead:
+    user_id = resolve_current_user(db, x_user_id)
+    try:
+        return ResearchSubmissionDocumentService.update_document(
+            db=db,
+            user_id=user_id,
+            submission_id=submission_id,
+            document_id=document_id,
+            payload=payload,
+        )
+    except PermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+
+
+@router.delete(
+    "/{submission_id}/documents/{document_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete submission document",
+    description="Permanently delete a submission document and all its historical version records.",
+)
+def delete_submission_document(
+    submission_id: uuid.UUID,
+    document_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> Response:
+    user_id = resolve_current_user(db, x_user_id)
+    try:
+        ResearchSubmissionDocumentService.delete_document(
+            db=db,
+            user_id=user_id,
+            submission_id=submission_id,
+            document_id=document_id,
+        )
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except PermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+
+
+@router.get(
+    "/{submission_id}/documents/{document_id}/versions",
+    response_model=list[SubmissionDocumentVersionRead],
+    status_code=status.HTTP_200_OK,
+    summary="List document version history",
+    description="Retrieve all immutable historical versions and metadata snapshots for a document.",
+)
+def list_document_versions(
+    submission_id: uuid.UUID,
+    document_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> list[SubmissionDocumentVersionRead]:
+    user_id = resolve_current_user(db, x_user_id)
+    try:
+        return ResearchSubmissionDocumentService.list_document_versions(
+            db=db,
+            user_id=user_id,
+            submission_id=submission_id,
+            document_id=document_id,
+        )
+    except PermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+
+
+# ── Phase 4.3: Submission Readiness Assessment Endpoint ───────────────────────
+
+
+@router.get(
+    "/{submission_id}/readiness",
+    response_model=SubmissionReadinessResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Evaluate submission readiness",
+    description="Run deterministic readiness assessment on a submission, checking required documents, metadata completeness, and canonical deadline context.",
+)
+def evaluate_submission_readiness(
+    submission_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> SubmissionReadinessResponse:
+    user_id = resolve_current_user(db, x_user_id)
+    try:
+        return ResearchSubmissionDocumentService.evaluate_readiness(
+            db=db,
+            user_id=user_id,
+            submission_id=submission_id,
+        )
+    except PermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+
+
+# ── Phase 4.3: Submission Audit History Timeline Endpoint ─────────────────────
+
+
+@router.get(
+    "/{submission_id}/history",
+    response_model=SubmissionHistoryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get submission audit history",
+    description="Retrieve chronological audit history events for submission status transitions, document changes, and version creations.",
+)
+def get_submission_history(
+    submission_id: uuid.UUID,
+    limit: Annotated[int, Query(ge=1, le=100, description="Max events to return")] = 50,
+    offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> SubmissionHistoryResponse:
+    user_id = resolve_current_user(db, x_user_id)
+    try:
+        return ResearchSubmissionDocumentService.get_submission_history(
+            db=db,
+            user_id=user_id,
+            submission_id=submission_id,
+            limit=limit,
+            offset=offset,
+        )
+    except PermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+

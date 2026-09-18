@@ -26,6 +26,7 @@ from app.models.research_submission import (
     SubmissionStatus,
     SubmissionType,
 )
+from app.models.submission_document import SubmissionEventType
 from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
 from app.models.saved_opportunity import SavedOpportunityModel, WorkspaceStatus
 from app.ranking.deadline import deadline_explainability_service
@@ -239,6 +240,22 @@ class ResearchSubmissionService:
 
         db.add(submission)
         db.flush()
+
+        # Phase 4.3 Audit Event Logging
+        from app.services.research_submission_document_service import ResearchSubmissionDocumentService
+        ResearchSubmissionDocumentService.log_event(
+            db=db,
+            submission_id=submission.id,
+            event_type=SubmissionEventType.SUBMISSION_CREATED,
+            new_state={
+                "title": submission.title,
+                "submission_type": submission.submission_type,
+                "status": submission.status,
+            },
+            description=f"Created submission '{submission.title}' ({submission.submission_type}).",
+            user_id=resolved_user_id,
+        )
+
         db.commit()
 
         # Eagerly refresh relationships
@@ -433,6 +450,23 @@ class ResearchSubmissionService:
 
         submission.updated_at = now
         db.flush()
+
+        # Phase 4.3 Audit Event Logging
+        from app.services.research_submission_document_service import ResearchSubmissionDocumentService
+        ResearchSubmissionDocumentService.log_event(
+            db=db,
+            submission_id=submission.id,
+            event_type=SubmissionEventType.METADATA_UPDATED,
+            new_state={
+                "title": submission.title,
+                "submission_type": submission.submission_type,
+                "venue": submission.venue,
+                "external_submission_id": submission.external_submission_id,
+            },
+            description=f"Updated metadata for submission '{submission.title}'.",
+            user_id=cls.resolve_user_id(db, user_id),
+        )
+
         db.commit()
         db.refresh(submission, ["workspace_item"])
         return submission
@@ -469,6 +503,21 @@ class ResearchSubmissionService:
         allowed_targets = VALID_SUBMISSION_TRANSITIONS.get(current_status, set())
         if target_status not in allowed_targets:
             raise InvalidSubmissionTransitionError(current_status, target_status, allowed_targets)
+
+        # Readiness validation when transitioning to READY (Phase 4.3)
+        if target_status == SubmissionStatus.READY:
+            from app.services.research_submission_document_service import ResearchSubmissionDocumentService
+            readiness = ResearchSubmissionDocumentService.evaluate_readiness(db, user_id, submission_id)
+            if not readiness.can_mark_submission_ready:
+                blocker_msgs = "; ".join(b.message for b in readiness.blocking_issues)
+                raise InvalidSubmissionTransitionError(
+                    current_status=current_status,
+                    target_status=target_status,
+                    allowed_targets=allowed_targets,
+                    message=(
+                        f"Cannot transition submission to 'READY': {len(readiness.blocking_issues)} blocking readiness issue(s) detected: [{blocker_msgs}]."
+                    ),
+                )
 
         now = datetime.now(timezone.utc)
         submission.status = target_status.value
@@ -538,6 +587,19 @@ class ResearchSubmissionService:
             submission.decision_at = None
 
         db.flush()
+
+        # Phase 4.3 Audit Event Logging
+        from app.services.research_submission_document_service import ResearchSubmissionDocumentService
+        ResearchSubmissionDocumentService.log_event(
+            db=db,
+            submission_id=submission.id,
+            event_type=SubmissionEventType.STATUS_TRANSITIONED,
+            old_state={"status": current_status.value},
+            new_state={"status": target_status.value},
+            description=f"Transitioned submission status from '{current_status.value}' to '{target_status.value}'.",
+            user_id=cls.resolve_user_id(db, user_id),
+        )
+
         db.commit()
         db.refresh(submission, ["workspace_item"])
         return submission

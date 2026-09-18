@@ -13,6 +13,10 @@ from app.models.base import Base
 
 if TYPE_CHECKING:
     from app.models.saved_opportunity import SavedOpportunityModel
+    from app.models.submission_document import (
+        ResearchSubmissionDocumentModel,
+        ResearchSubmissionEventModel,
+    )
 
 
 class SubmissionStatus(str, Enum):
@@ -157,4 +161,17 @@ class ResearchSubmissionModel(Base):
     # Relationship to Workspace item
     workspace_item: Mapped["SavedOpportunityModel"] = relationship(
         back_populates="submissions",
+    )
+
+    # Documents & Artifacts (Phase 4.3)
+    documents: Mapped[list["ResearchSubmissionDocumentModel"]] = relationship(
+        back_populates="submission",
+        cascade="all, delete-orphan",
+    )
+
+    # Audit Events (Phase 4.3)
+    events: Mapped[list["ResearchSubmissionEventModel"]] = relationship(
+        back_populates="submission",
+        cascade="all, delete-orphan",
+        order_by="desc(ResearchSubmissionEventModel.created_at)",
     )

@@ -14,6 +14,11 @@ import uuid
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.research_submission import SubmissionStatus, SubmissionType
+from app.models.submission_document import (
+    DocumentStatus,
+    DocumentType,
+    SubmissionEventType,
+)
 
 
 class SubmissionDeadlineContext(BaseModel):
@@ -182,3 +187,207 @@ class SubmissionSummaryResponse(BaseModel):
     withdrawn_submissions: int
     counts_by_status: dict[str, int]
     counts_by_type: dict[str, int]
+
+
+# ── Phase 4.3: Submission Document & Workflow Schemas ─────────────────────────
+
+
+class SubmissionDocumentCreate(BaseModel):
+    """Payload for creating or adding a document artifact to a submission."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    document_type: DocumentType = Field(
+        default=DocumentType.OTHER,
+        description="Category of document (e.g. FULL_PAPER, ABSTRACT, COVER_LETTER)",
+    )
+    title: str = Field(
+        ...,
+        min_length=1,
+        max_length=255,
+        description="Document title or display name",
+    )
+    description: str | None = Field(
+        None,
+        description="Instructions, requirements description, or user notes",
+    )
+    is_required: bool = Field(
+        default=False,
+        description="Whether this document is mandatory for marking submission READY",
+    )
+    status: DocumentStatus = Field(
+        default=DocumentStatus.DRAFT,
+        description="Preparation status: REQUIRED, MISSING, DRAFT, READY, REJECTED, ARCHIVED",
+    )
+    file_metadata: dict[str, Any] = Field(
+        default_factory=dict,
+        description="MIME type, size, hash, original filename",
+    )
+    storage_reference: str | None = Field(
+        None,
+        max_length=500,
+        description="Opaque reference identifier or storage key",
+    )
+
+
+class SubmissionDocumentUpdate(BaseModel):
+    """Payload for updating a submission document's metadata, status, or version."""
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    title: str | None = Field(
+        None,
+        min_length=1,
+        max_length=255,
+        description="Updated document title",
+    )
+    description: str | None = Field(
+        None,
+        description="Updated instructions or notes",
+    )
+    document_type: DocumentType | None = Field(
+        None,
+        description="Updated document category",
+    )
+    status: DocumentStatus | None = Field(
+        None,
+        description="Updated document preparation status",
+    )
+    is_required: bool | None = Field(
+        None,
+        description="Updated requirement flag",
+    )
+    file_metadata: dict[str, Any] | None = Field(
+        None,
+        description="Updated file metadata",
+    )
+    storage_reference: str | None = Field(
+        None,
+        max_length=500,
+        description="Updated storage reference or upload key",
+    )
+    create_new_version: bool = Field(
+        default=False,
+        description="If True, increments current_version and saves an immutable snapshot in version history",
+    )
+
+
+class SubmissionDocumentVersionRead(BaseModel):
+    """Read representation of an immutable historical document version snapshot."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    document_id: uuid.UUID
+    version_number: int
+    title: str
+    file_metadata: dict[str, Any] = Field(default_factory=dict)
+    storage_reference: str | None = None
+    checksum: str | None = None
+    status: str
+    created_at: datetime
+    created_by_id: uuid.UUID | None = None
+
+
+class SubmissionDocumentRead(BaseModel):
+    """Full representation of a submission document artifact."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    submission_id: uuid.UUID
+    document_type: DocumentType
+    title: str
+    description: str | None = None
+    status: DocumentStatus
+    is_required: bool
+    current_version: int
+    file_metadata: dict[str, Any] = Field(default_factory=dict)
+    storage_reference: str | None = None
+    completed_at: datetime | None = None
+    created_at: datetime
+    updated_at: datetime
+    versions_count: int = 1
+    latest_versions: list[SubmissionDocumentVersionRead] = Field(default_factory=list)
+
+
+class SubmissionDocumentListResponse(BaseModel):
+    """List response for documents belonging to a submission."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    items: list[SubmissionDocumentRead]
+    total_count: int
+    submission_id: uuid.UUID
+    counts_by_status: dict[str, int]
+    counts_by_type: dict[str, int]
+
+
+class SubmissionReadinessIssue(BaseModel):
+    """Identifies a blocker or warning during submission readiness evaluation."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    code: str = Field(..., description="Issue identifier code (e.g. MISSING_REQUIRED_DOCUMENT)")
+    message: str = Field(..., description="Human-readable explanation of the issue")
+    is_blocking: bool = Field(..., description="True if this prevents marking submission READY")
+    document_id: uuid.UUID | None = None
+    field: str | None = None
+
+
+class SubmissionReadinessResponse(BaseModel):
+    """Comprehensive readiness assessment evaluated by the Submission Readiness Engine."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    submission_id: uuid.UUID
+    overall_readiness: str = Field(..., description="READY, NOT_READY, BLOCKED, or UNKNOWN")
+    can_mark_submission_ready: bool = Field(
+        ...,
+        description="True strictly when zero blocking issues exist and requirements are satisfied",
+    )
+    readiness_percentage: int = Field(
+        ...,
+        ge=0,
+        le=100,
+        description="Percentage completion of required items (0-100)",
+    )
+    total_document_count: int
+    required_document_count: int
+    completed_document_count: int
+    missing_document_count: int
+    draft_document_count: int
+    rejected_document_count: int
+    archived_document_count: int
+    metadata_completeness: float = Field(..., ge=0.0, le=1.0)
+    blocking_issues: list[SubmissionReadinessIssue] = Field(default_factory=list)
+    warnings: list[SubmissionReadinessIssue] = Field(default_factory=list)
+    readiness_explanation: str
+    deadline_context: SubmissionDeadlineContext | None = None
+
+
+class SubmissionHistoryEvent(BaseModel):
+    """Read schema for an audit event in the submission history timeline."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    submission_id: uuid.UUID
+    event_type: SubmissionEventType
+    document_id: uuid.UUID | None = None
+    description: str
+    old_state: dict[str, Any] | None = None
+    new_state: dict[str, Any] | None = None
+    created_at: datetime
+    created_by_id: uuid.UUID | None = None
+
+
+class SubmissionHistoryResponse(BaseModel):
+    """Chronological audit trail response for a submission."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    items: list[SubmissionHistoryEvent]
+    total_count: int
+    submission_id: uuid.UUID
+
