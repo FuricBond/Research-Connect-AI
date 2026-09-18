@@ -42,11 +42,15 @@ This document outlines the planned architecture and modular development roadmap 
   - **Phase 3.7 (Recommendation History & Evaluation)**: **COMPLETE** (Reproducible recommendation snapshots, deterministic ranking versioning, offline IR evaluation metrics, data sufficiency classifications, zero N+1 queries, REST API, Next.js history & evaluation UI)
   - **Phase 3.8 (Personalization Explainability & Researcher UI)**: **COMPLETE** (Grounded recommendation explanations, signal priority hierarchy, score consistency invariants, safety dominance, historical snapshot explanation immutability, researcher personalization summary, Why this? modal, Next.js UI)
   - **Phase 3.9 (Evaluation, Ablation & Hardening)**: **COMPLETE** (Offline R0/R1/R2 IR evaluation, 10-state segmented evaluation, deterministic 6-signal ablation matrix, parameter sensitivity stability, 15-scenario adversarial safety matrix A–O, mathematical system invariants, strict X-User-ID ownership security across all 16 endpoints, 10–200 candidate performance benchmarks with zero N+1 queries, full architecture documentation)
-  - **Phase 3 (Personalized Researcher Intelligence & Recommendations)**: **COMPLETE** (All 9 subphases 3.1–3.9 implemented, hardened, verified with 155 dedicated tests and full backend test suite, and validated in Next.js production build)
-
-
-
-
+- **Phase 4 (Research Management & Researcher Workflow)**:
+  - **Phase 4.0 (Architecture & Roadmap Alignment)**: **CURRENT / IN PROGRESS** (Full repository audit, Next.js App Router baseline confirmation, canonical roadmap alignment, domain model decision criteria, invariant specification)
+  - **Phase 4.1 (Opportunity Workspace)**: PLANNED / NOT IMPLEMENTED (Researcher-scoped workspace states: SAVED, CONSIDERING, PLANNING, APPLIED, ACCEPTED, REJECTED, ARCHIVED; REST API, Next.js UI)
+  - **Phase 4.2 (Submission & Application Tracker)**: PLANNED / NOT IMPLEMENTED (Submission lifecycle: DRAFT, PREPARING, READY_TO_SUBMIT, SUBMITTED, UNDER_REVIEW, REVISION_REQUIRED, ACCEPTED, REJECTED, WITHDRAWN; target deadlines, REST API, Next.js UI)
+  - **Phase 4.3 (Application History & Audit)**: PLANNED / NOT IMPLEMENTED (Immutable event logging, stage transition audit trail, personal academic productivity analytics)
+  - **Phase 4.4 (Research Calendar & Deadline Planning)**: PLANNED / NOT IMPLEMENTED (Powered strictly by Phase 2.7 canonical deadlines, milestone scheduling, iCal feed export, Google Calendar integration)
+  - **Phase 4.5 (Notifications & Alerts)**: PLANNED / NOT IMPLEMENTED (Canonical deadline alert triggers, deadline revision alerts, notification preferences, in-app notification center)
+  - **Phase 4.6 (Research Management Dashboard)**: PLANNED / NOT IMPLEMENTED (Unified Next.js App Router command center combining deadlines, active submissions, saved opportunities, personalized recommendations)
+  - **Phase 4.7 (Evaluation & Production Hardening)**: PLANNED / NOT IMPLEMENTED (E2E workflow testing, multi-user isolation verification, audit trail verification, database query performance, stress testing)
 
 ---
 
@@ -105,20 +109,46 @@ Ensures students and researchers avoid predatory or substandard publication venu
 - **Publisher/Indexing Verification & Resolution**: Cross-referencing indexing claims (DOAJ, Crossref, OpenAlex) and entity resolution *(Phase 2.6D completed)*.
 - **Suspicious Graph & Topology Intelligence**: Academic trust graph analysis detecting organizer/domain syndicates and identity collisions *(Phase 2.6E completed)*.
 - **Risk Explainability & API/UI Integration**: Deterministic, transparent, provenance-backed trust/risk explanations with progressive disclosure across API and frontend *(Phase 2.6F completed)*.
-- **Risk Model Evaluation & False-Positive Hardening**: Benchmarks and calibration against ground-truth sets *(Phase 2.6G - Pending)*.
+- **Risk Model Evaluation & False-Positive Hardening**: Benchmarks and calibration against ground-truth sets *(Phase 2.6G completed)*.
 
 ---
 
 ## 5. Research Management
-Empowers researchers to organize deadlines, track submissions, and manage applications seamlessly.
+Empowers researchers to organize deadlines, track submissions, and manage applications seamlessly across the research lifecycle.
 
-- **Saved Opportunities**: Bookmarking and custom categorization of relevant calls and venues.
-- **Submission Tracker**: Kanban or status-driven tracking of paper drafts, submissions, revisions, and acceptances.
-- **Application History**: Audit log of historical submissions and outcomes for personal reporting.
-- **Recommendation History**: Log of past recommendations with historical match parameters *(Phase 3.7 completed)*.
-- **Deadline Intelligence**: Smart countdowns, timezone conversions, and deadline warning indicators.
-- **Calendar**: Interactive calendar view with exportable feeds (iCal/Google Calendar).
-- **Notifications**: Email and in-app alerts for approaching deadlines, date changes, or newly matched opportunities.
+> [!NOTE]
+> **Architectural Purpose of Phase 4**: Research Management does **NOT** replace or compete with the Opportunity Discovery, Ranking, or Recommendation engines. Rather, it builds the researcher workflow layer directly on top of the existing intelligence systems (consuming Phase 2.6 risk signals, Phase 2.7 canonical deadlines, and Phase 3 personalized profiles).
+
+### Product Evolution Flow
+```text
+Opportunity Discovery (Phases 1, 2.1–2.4)
+        ↓
+Opportunity Intelligence: Trust & Deadlines (Phases 2.6, 2.7)
+        ↓
+Researcher Intelligence & Preferences (Phases 3.1–3.3)
+        ↓
+Personalized Recommendations (Phases 3.4–3.9)
+        ↓
+Research Management & Opportunity Workspace (Phase 4.1)
+        ↓
+Submission & Application Workflow (Phases 4.2–4.3)
+        ↓
+Research Calendar & Deadline Planning (Phase 4.4)
+        ↓
+Notifications & Proactive Alerts (Phase 4.5)
+        ↓
+Unified Research Management Dashboard (Phase 4.6)
+```
+
+### Planned Subphases (4.0–4.7)
+- **Phase 4.0 (Architecture & Roadmap Alignment)**: *(Current / In Progress)* Complete repository audit, Next.js App Router baseline confirmation, canonical roadmap alignment, domain model decision criteria, and invariant specifications.
+- **Phase 4.1 (Opportunity Workspace)**: *(Planned)* Multi-stage researcher-scoped opportunity tracking (`SAVED`, `CONSIDERING`, `PLANNING`, `APPLIED`, `ACCEPTED`, `REJECTED`, `ARCHIVED`), custom notes, priority tags, REST API, Next.js Workspace UI.
+- **Phase 4.2 (Submission & Application Tracker)**: *(Planned)* Dedicated `ResearchSubmission` model tracking paper manuscripts through the full submission lifecycle (`DRAFT`, `PREPARING`, `READY_TO_SUBMIT`, `SUBMITTED`, `UNDER_REVIEW`, `REVISION_REQUIRED`, `ACCEPTED`, `REJECTED`, `WITHDRAWN`), target deadlines, REST API, Next.js Tracker UI.
+- **Phase 4.3 (Application History & Audit)**: *(Planned)* Immutable event-driven audit logging for all submission transitions, milestone completions, and outcomes for personal reporting and analytics.
+- **Phase 4.4 (Research Calendar & Deadline Planning)**: *(Planned)* Timeline visualizer powered strictly by Phase 2.7 canonical deadline views, preparation milestones, iCal export feed, and Google Calendar integration.
+- **Phase 4.5 (Notifications & Alerts)**: *(Planned)* Canonical deadline alert triggers, deadline revision notifications, and user notification preference controls.
+- **Phase 4.6 (Research Management Dashboard)**: *(Planned)* Unified Next.js App Router command center aggregating upcoming deadlines, active submissions, saved opportunities, and personalized recommendations.
+- **Phase 4.7 (Evaluation & Production Hardening)**: *(Planned)* Multi-user isolation verification, audit trail verification, database query performance, stress testing, and production readiness audit.
 
 ---
 

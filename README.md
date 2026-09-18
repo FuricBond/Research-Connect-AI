@@ -2,7 +2,7 @@
 
 **ResearchConnect AI** is an intelligent full-stack platform designed to help students, researchers, and faculty discover, organize, and match with academic and research opportunities — including peer-reviewed conferences, academic journals, calls for papers (CFPs), workshops, research assistantships, and grants.
 
-The project is built as a clean, maintainable monorepo for a collaborative final-year project team. It deliberately avoids unnecessary distributed systems, microservices, and MLOps overhead (no Kubernetes, Kafka, Airflow, or MLflow) in favor of a robust, readable, and well-tested architecture.
+The project is built as a clean, maintainable monorepo for a collaborative final-year project team. It deliberately avoids unnecessary distributed systems, microservices, and MLOps overhead (no Kubernetes, Kafka, Airflow, or MLflow) in favor of a robust, readable, and thoroughly tested architecture.
 
 ---
 
@@ -10,11 +10,11 @@ The project is built as a clean, maintainable monorepo for a collaborative final
 
 ```text
 ┌──────────────────────────────────────────────────────────┐
-│                   React + TypeScript                     │
-│                    (Vite Frontend)                       │
-│          [Next.js migration planned for Phase 3]         │
+│                 Next.js 15+ App Router                   │
+│              (React 19 + TypeScript Frontend)            │
+│         [SSR + Client Components + CSS Design Tokens]    │
 └────────────────────────────┬─────────────────────────────┘
-                             │ REST / JSON
+                             │ REST / JSON (FastAPI v1)
                              ▼
 ┌──────────────────────────────────────────────────────────┐
 │                   FastAPI / Python                       │
@@ -22,7 +22,7 @@ The project is built as a clean, maintainable monorepo for a collaborative final
 │                                                          │
 │  ┌─────────────┐ ┌──────────────┐ ┌────────────────────┐ │
 │  │  API Routes │ │ Ranking &    │ │  Deadline          │ │
-│  │  (v1/)      │ │ Discovery    │ │  Intelligence      │ │
+│  │  (v1/)      │ │ Personalize  │ │  Intelligence      │ │
 │  └──────┬──────┘ └──────┬───────┘ └────────┬───────────┘ │
 │         │               │                  │             │
 │         └───────────────┴──────────────────┘             │
@@ -51,36 +51,39 @@ Raw Opportunity Data
         │                    ranking/signals.py
         ▼
 [Intelligence Engine]  ─── deadline/intelligence.py
-        │                    risk/engine.py, scoring.py
+        │                    risk/scoring.py, engine.py
         ▼
 [Conflict/Revision]    ─── deadline/resolvers.py
         │                    risk/graph.py (AcademicTrustGraph)
         ▼
+[Personalization]      ─── services/personalization_ranking_service.py
+        │                    services/researcher_preference_service.py
+        ▼
 [Explainability]       ─── deadline/explainability.py
         │                    risk/explainability.py
-        │                    explainability/result_explainer.py
+        │                    services/personalization_explanation_service.py
         ▼
-[API + Frontend]       ─── api/v1/discovery.py
-                             schemas/deadline.py, opportunity.py
+[API + Frontend]       ─── api/v1/discovery.py, api/v1/researchers.py
+                             Next.js App Router (app/opportunities, app/researcher)
 ```
 
-The full pipeline is **deterministic, in-memory, and zero-network** at ranking time — no LLM calls, no external API requests, no database writes during ranking.
+The entire intelligence and ranking pipeline is **deterministic, in-memory, and zero-network** at request time — no LLM calls, no external API requests, and no database writes during ranking evaluation.
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React 19, TypeScript, Vite, Vanilla CSS, Lucide React *(Next.js migration planned)* |
-| **Backend** | Python 3.11+, FastAPI, Pydantic v2, SQLAlchemy 2.0, Alembic |
-| **Database** | PostgreSQL 16 with `pgvector` extension (HNSW indexes, cosine similarity) |
-| **Embeddings** | `sentence-transformers` · `all-MiniLM-L6-v2` (384-dim vectors) |
-| **Scraping** | `requests`, `BeautifulSoup4` (Playwright reserved for JS-heavy pages) |
-| **IR / ML** | `scikit-learn`, `XGBoost`, custom Reciprocal Rank Fusion, NDCG/MRR/P@K |
-| **Containerization** | Docker Compose (local PostgreSQL + pgvector) |
-| **Testing** | `pytest` — 44 test modules, 640+ passing tests |
-| **Version Control** | Git & GitHub |
+| Layer | Technology | Details |
+|---|---|---|
+| **Frontend** | Next.js 15.3+, React 19, TypeScript 5.7+ | Next.js App Router, SSR + Client Components, Vanilla CSS design tokens, Lucide React icons |
+| **Backend** | Python 3.11+, FastAPI, Pydantic v2 | Versioned REST API (`/api/v1`), SQLAlchemy 2.0 ORM, Alembic migrations |
+| **Database** | PostgreSQL 16 + `pgvector` extension | Relational storage, HNSW vector indexes (cosine similarity), GIN full-text search indexes |
+| **Embeddings** | `sentence-transformers` · `all-MiniLM-L6-v2` | 384-dimensional dense semantic vectors with content-hash deduplication |
+| **Scraping** | `requests`, `BeautifulSoup4` | Production WikiCFP connector, change detection, and data freshness pipelines |
+| **IR / Evaluation** | `scikit-learn`, custom RRF & IR Metrics | P@K, R@K, MRR, NDCG, Kendall-τ rank correlation, HHI concentration, 16-scenario benchmark suite |
+| **Containerization** | Docker Compose | Local PostgreSQL 16 with pre-configured `pgvector` extension |
+| **Testing** | `pytest` | 54 test modules, 867 passing tests, zero-network in-memory fixtures |
+| **Knowledge Graph** | `graphify` | Navigable AST + semantic knowledge graph (`graphify-out/`) |
 
 ---
 
@@ -89,15 +92,17 @@ The full pipeline is **deterministic, in-memory, and zero-network** at ranking t
 ```text
 researchconnect-ai/
 ├── backend/
-│   ├── alembic/              # Database migration environment & versions
+│   ├── alembic/              # Database migration environment & versions (0001–0010)
 │   ├── alembic.ini           # Alembic migration configuration
 │   ├── app/
-│   │   ├── ai/               # Recommender logic and ML integrations
+│   │   ├── ai/               # Recommender logic and ML embeddings integration
 │   │   ├── api/              # FastAPI route endpoints
-│   │   │   └── v1/           # Versioned REST API (discovery, opportunities)
-│   │   ├── core/             # Configuration, rate limiting, environment settings
-│   │   ├── db/               # Database session, engine, and init SQL
-│   │   ├── evaluation/       # Benchmarking, IR metrics, empirical datasets
+│   │   │   ├── health.py     # System health and liveness probe
+│   │   │   ├── opportunities.py # Opportunity CRUD and direct intelligence endpoints
+│   │   │   └── v1/           # Versioned REST API (discovery.py, researchers.py)
+│   │   ├── core/             # Configuration, cache middleware, rate limiter, security
+│   │   ├── db/               # Database session, engine, custom pgvector/tsvector types
+│   │   ├── evaluation/       # Benchmark runners, IR metrics, empirical datasets
 │   │   │   ├── benchmark_dataset.py
 │   │   │   ├── benchmark_runner.py
 │   │   │   ├── deadline_dataset.py   # 43-fixture deadline evaluation corpus
@@ -106,11 +111,18 @@ researchconnect-ai/
 │   │   │   └── risk_runner.py        # Risk evaluation runner
 │   │   ├── explainability/   # Result explainer (Phase 2.4F)
 │   │   ├── models/           # SQLAlchemy ORM declarative models
-│   │   ├── ranking/          # Core ranking & intelligence pipeline
-│   │   │   ├── deadline/     # Phase 2.7 — Deadline Intelligence
-│   │   │   │   ├── __init__.py
+│   │   │   ├── opportunity.py        # OpportunityModel, OpportunityTopicModel
+│   │   │   ├── research_profile.py   # ResearchProfileModel, AcademicStatus
+│   │   │   ├── researcher_interest.py # ResearcherInterestModel
+│   │   │   ├── researcher_preference.py # ResearcherPreferenceModel
+│   │   │   ├── researcher_feedback.py # ResearcherRecommendationFeedbackModel
+│   │   │   ├── recommendation_history.py # Snapshot & Item models
+│   │   │   ├── saved_opportunity.py  # SavedOpportunityModel
+│   │   │   └── user.py               # UserModel
+│   │   ├── ranking/          # Core ranking & intelligence pipelines
+│   │   │   ├── deadline/     # Phase 2.7 — Deadline Intelligence Engine
 │   │   │   │   ├── extractors.py     # Evidence extraction from raw text/fields
-│   │   │   │   ├── models.py         # DeadlineEvidence, NormalizedDeadline, etc.
+│   │   │   │   ├── models.py         # DeadlineEvidence, NormalizedDeadline, CanonicalDeadlineView
 │   │   │   │   ├── normalizers.py    # UTC normalization, timezone inference
 │   │   │   │   ├── intelligence.py   # DeadlineIntelligence (urgency/status)
 │   │   │   │   ├── resolvers.py      # DeadlineConflictResolver
@@ -119,36 +131,41 @@ researchconnect-ai/
 │   │   │   │   ├── engine.py         # Risk scoring orchestration
 │   │   │   │   ├── extractors.py     # Evidence signal extraction
 │   │   │   │   ├── graph.py          # AcademicTrustGraph (syndicate detection)
-│   │   │   │   ├── models.py         # RiskEvidence, RiskAssessment, etc.
+│   │   │   │   ├── models.py         # RiskEvidence, RiskAssessment
 │   │   │   │   ├── scoring.py        # DeterministicRiskScoringEngine
-│   │   │   │   ├── venue_intelligence.py
-│   │   │   │   └── explainability.py
-│   │   │   ├── diagnostics.py        # AcademicCoverageDiagnostics
+│   │   │   │   ├── venue_intelligence.py # DOAJ, Crossref, OpenAlex verification
+│   │   │   │   └── explainability.py # RiskExplainabilityService
 │   │   │   ├── diversity.py          # DiversityReranker (MMR + HHI)
-│   │   │   ├── features.py           # AcademicFeatures extraction
 │   │   │   ├── hybrid_ranker.py      # HybridRanker (RRF + multi-signal)
-│   │   │   ├── reranker.py           # Post-processing re-ranker
-│   │   │   ├── signals.py            # RankingSignals, weight normalization
-│   │   │   └── venue_intelligence.py
+│   │   │   └── signals.py            # RankingSignals, weight normalization
 │   │   ├── repositories/     # Data access layer (vector, lexical)
-│   │   ├── schemas/          # Pydantic schemas (opportunity, deadline, discovery)
+│   │   ├── schemas/          # Pydantic v2 schemas (opportunity, deadline, researcher, feedback)
 │   │   ├── search/           # Query intelligence & GIN index integration
-│   │   ├── services/         # Business logic (opportunity, similarity, matching)
+│   │   ├── services/         # Domain services (opportunity, researcher profile, personalization)
 │   │   └── main.py           # FastAPI entrypoint, CORS, router registration
-│   ├── tests/                # Pytest suite — 44 modules, 640+ tests
+│   ├── tests/                # Pytest suite — 54 modules, 867 passing tests
 │   ├── pytest.ini            # Pytest configuration
 │   └── requirements.txt      # Pinned Python dependencies
 ├── frontend/
-│   ├── src/
-│   │   ├── components/       # UI components (OpportunityList, ExplainabilityDrawer, etc.)
-│   │   ├── pages/            # Application views (Discovery, Opportunity, Explore)
-│   │   ├── services/         # API client utilities
-│   │   ├── types/            # TypeScript type definitions (deadline, risk, opportunity)
-│   │   ├── App.tsx           # Main application shell
-│   │   ├── main.tsx          # React root render
-│   │   └── styles.css        # Core design styles and tokens
-│   ├── index.html            # HTML entrypoint
-│   ├── package.json          # Frontend dependencies and scripts
+│   ├── app/                  # Next.js 15 App Router routes
+│   │   ├── browse/           # Browse opportunities directory
+│   │   ├── opportunities/    # Opportunity details & deadline intelligence
+│   │   ├── researcher/       # Researcher workspace, profiles & personalization view
+│   │   ├── similar/          # Similar research works & matching
+│   │   ├── layout.tsx        # Root layout with navigation shell
+│   │   ├── loading.tsx       # Root loading state
+│   │   ├── not-found.tsx     # 404 handler
+│   │   └── page.tsx          # Main landing & search view
+│   ├── components/           # Reusable UI components
+│   │   ├── discovery/        # Hybrid search, filtering, and result cards
+│   │   ├── pages/            # Page-level composed views
+│   │   └── researcher/       # Profile, Preferences, Recommendations, Explainability modals
+│   ├── hooks/                # Custom React client hooks
+│   ├── services/             # API client utilities (FastAPI v1 endpoints)
+│   ├── styles/               # CSS design tokens, reset, and globals
+│   ├── types/                # Pydantic-mirrored TypeScript schemas
+│   ├── package.json          # Next.js, React, and TypeScript dependencies
+│   ├── next.config.ts        # Next.js configuration
 │   └── tsconfig.json         # TypeScript compiler configuration
 ├── scrapers/
 │   ├── parsers/              # Raw data parsers and normalizers
@@ -158,7 +175,7 @@ researchconnect-ai/
 │   ├── api/                  # API specification documentation
 │   ├── architecture/         # System architecture, phase documentation & roadmap
 │   └── scraping/             # Scraper design and lifecycle documentation
-├── graphify-out/             # Knowledge graph (5,051 nodes, 10,878 edges)
+├── graphify-out/             # Knowledge graph (6,202 nodes, 26+ edge types)
 ├── .env.example              # Environment variables template
 ├── .gitignore                # Comprehensive Git ignore rules
 ├── docker-compose.yml        # PostgreSQL + pgvector container setup
@@ -169,11 +186,11 @@ researchconnect-ai/
 
 ## 📊 Current Implementation Status
 
-### ✅ Phase 1 — Foundation
-- PostgreSQL 16 + pgvector database setup
+### ✅ Phase 1 — Foundation *(Complete)*
+- PostgreSQL 16 + pgvector database setup with Docker Compose
 - SQLAlchemy 2.0 ORM with Alembic migration environment
-- Core `Opportunity` model and basic CRUD API
-- React + TypeScript + Vite frontend scaffold
+- Core `OpportunityModel` and CRUD API
+- Next.js 15+ App Router frontend foundation
 
 ### ✅ Phase 2 — Research Intelligence Engine *(Complete)*
 
@@ -194,81 +211,96 @@ researchconnect-ai/
 | **2.4H** | Testing & Benchmarking (IR metrics, 16-scenario dataset, latency profiling) | ✅ Complete |
 | **2.4I** | Full-Text GIN Indexing & Query Intelligence (stored tsvectors, acronym expansion) | ✅ Complete |
 | **2.4J** | Ranking Hardening (indexing tier evaluation, predatory penalties, quality signals) | ✅ Complete |
-| **2.4K** | Frontend Discovery Experience (React UI, explainability drawer, rate limiting, caching) | ✅ Complete |
+| **2.4K** | Frontend Discovery Experience (Next.js discovery UI, explainability drawer, caching) | ✅ Complete |
 | **2.5A–G** | Ranking & Recommendation Optimization (diversity, reranking, empirical eval) | ✅ Complete |
-| **2.6A–G** | Predatory & Suspicious Detection (risk engine, trust graph, explainability) | ✅ Complete |
+| **2.6A–G** | Predatory & Suspicious Detection (risk engine, trust graph, explainability, eval) | ✅ Complete |
 | **2.7A–G** | Deadline Intelligence (evidence extraction → normalization → conflict resolution → explainability → evaluation) | ✅ Complete |
 
-### 🔜 Phase 3 — Personalized Researcher Intelligence & Recommendations *(Next)*
-- Researcher profile modeling and preference learning
-- Personalized opportunity ranking
-- Submission tracking, calendar integration, deadline notifications
-- Frontend migration to Next.js (App Router, SSR)
+### ✅ Phase 3 — Personalized Researcher Intelligence & Recommendations *(Complete)*
+
+| Sub-Phase | Description | Status |
+|---|---|---|
+| **3.1** | Researcher Profile Foundation (`ResearchProfileModel`, ORCID/OpenAlex linking, completeness) | ✅ Complete |
+| **3.2** | Research Interest Intelligence (`ResearcherInterestModel`, topic strength, confidence scoring) | ✅ Complete |
+| **3.3** | Personal Preference Intelligence (`ResearcherPreferenceModel`, explicit CRUD, activity-based inference) | ✅ Complete |
+| **3.4** | Personalized Candidate Generation (multi-channel candidate retrieval, fallback guarantees) | ✅ Complete |
+| **3.5** | Personalized Hybrid Ranking (bounded adjustment $\le 0.15$, relevance dominance, safety invariants) | ✅ Complete |
+| **3.6** | Feedback & Recommendation Learning Loop (`ResearcherRecommendationFeedbackModel`, exponential decay, `SavedOpportunityModel` sync) | ✅ Complete |
+| **3.7** | Recommendation History & Evaluation (`ResearcherRecommendationSnapshotModel`, point-in-time snapshots, offline IR metrics) | ✅ Complete |
+| **3.8** | Personalization Explainability & Researcher UI (grounded attribution hierarchy, "Why this?" modal, summary view) | ✅ Complete |
+| **3.9** | Evaluation, Ablation & Hardening (R0/R1/R2 IR evaluation, 10-state segmented evaluation, 6-signal ablation matrix, 15-scenario adversarial safety matrix, strict `X-User-ID` security) | ✅ Complete |
+
+### 🚀 Phase 4 — Research Management & Researcher Workflow *(Current Major Phase)*
+
+| Sub-Phase | Description | Status |
+|---|---|---|
+| **4.0** | **Architecture & Roadmap Alignment** (Repository audit, Next.js baseline formalization, roadmap alignment, domain model decision criteria) | 🟡 **Current / In Progress** |
+| **4.1** | **Opportunity Workspace** (Multi-stage workspace tracking: SAVED, CONSIDERING, PLANNING, APPLIED, ARCHIVED; REST API, Next.js UI) | ⚪ Planned / Not Implemented |
+| **4.2** | **Submission & Application Tracker** (`ResearchSubmission` model, manuscript lifecycle: DRAFT to DECISION, target deadlines, milestones) | ⚪ Planned / Not Implemented |
+| **4.3** | **Application History & Audit** (Immutable event audit logging, stage transition history, personal productivity metrics) | ⚪ Planned / Not Implemented |
+| **4.4** | **Research Calendar & Deadline Planning** (Timeline visualizer powered by Phase 2.7 canonical deadlines, milestone scheduling, iCal export) | ⚪ Planned / Not Implemented |
+| **4.5** | **Notifications & Alerts** (Canonical deadline alert triggers, deadline revision notifications, notification preference management) | ⚪ Planned / Not Implemented |
+| **4.6** | **Research Management Dashboard** (Unified Next.js App Router command center aggregating deadlines, active submissions, saved opportunities) | ⚪ Planned / Not Implemented |
+| **4.7** | **Evaluation & Production Hardening** (Multi-user isolation verification, audit trail verification, database query performance, stress testing) | ⚪ Planned / Not Implemented |
 
 ---
 
 ## 🏗️ Key Subsystems
 
-### Deadline Intelligence Pipeline (Phase 2.7)
+### 1. Deadline Intelligence Pipeline (Phase 2.7)
+- **`deadline/extractors.py`** — Extracts `DeadlineEvidence` from raw text fields using heuristic pattern matching.
+- **`deadline/normalizers.py`** — `DeadlineNormalizer`: UTC normalization, timezone inference, precision classification.
+- **`deadline/intelligence.py`** — `DeadlineIntelligence`: urgency scoring, temporal status, urgency tier assignment (`CRITICAL`, `URGENT`, `NORMAL`, `RELAXED`).
+- **`deadline/resolvers.py`** — `DeadlineConflictResolver`: multi-source conflict resolution, revision classification.
+- **`deadline/explainability.py`** — `DeadlineExplainabilityService`: structured, human-readable explanations.
+- **`schemas/deadline.py`** — `OpportunityDeadlineSchema`, `CanonicalDeadlineView`, loss-aware serialization.
 
-The deadline intelligence pipeline extracts, normalizes, validates, and explains submission deadline data with no network calls at ranking time:
+### 2. Trust & Risk Detection Pipeline (Phase 2.6)
+- **`risk/extractors.py`** — Evidence signal extraction from opportunity metadata.
+- **`risk/scoring.py`** — `DeterministicRiskScoringEngine`: calibrated composite risk ratings.
+- **`risk/graph.py`** — `AcademicTrustGraph` + `SuspiciousGraphAnalyzer`: organizer syndicate and identity collision detection.
+- **`risk/venue_intelligence.py`** — Cross-source indexing verification (DOAJ, Crossref, OpenAlex).
+- **`risk/explainability.py`** — Provenance-backed risk explanations with progressive disclosure.
 
-- **`deadline/extractors.py`** — Extracts `DeadlineEvidence` from raw text fields using pattern matching + heuristics
-- **`deadline/normalizers.py`** — `DeadlineNormalizer`: UTC normalization, timezone inference, precision classification
-- **`deadline/intelligence.py`** — `DeadlineIntelligence`: urgency scoring, temporal status, urgency tier assignment
-- **`deadline/resolvers.py`** — `DeadlineConflictResolver`: revision classification, multi-source conflict resolution
-- **`deadline/explainability.py`** — `DeadlineExplainabilityService`: structured human-readable explanations
-- **`schemas/deadline.py`** — `OpportunityDeadlineSchema`, `CanonicalDeadlineView`, loss-aware serialization
-- **Evaluation**: 43-fixture empirical dataset, 20/20 safety invariants passing, `DeadlineBenchmarkRunner`
-
-### Trust & Risk Detection Pipeline (Phase 2.6)
-
-- **`risk/extractors.py`** — Evidence signal extraction from opportunity fields
-- **`risk/scoring.py`** — `DeterministicRiskScoringEngine`: calibrated composite risk scores
-- **`risk/graph.py`** — `AcademicTrustGraph` + `SuspiciousGraphAnalyzer`: organizer syndicate and identity-collision detection
-- **`risk/venue_intelligence.py`** — Cross-source indexing verification (DOAJ, Crossref, OpenAlex)
-- **`risk/explainability.py`** — Provenance-backed risk explanations with progressive disclosure
-
-### Hybrid Ranking Engine (Phase 2.4–2.5)
-
-- **`hybrid_ranker.py`** — `HybridRanker`: Reciprocal Rank Fusion, multi-signal weighted scoring, deterministic tie-breaking
-- **`signals.py`** — `RankingSignals`: feature extraction, normalization, weight validation
-- **`diversity.py`** — `DiversityReranker`: MMR diversity, HHI concentration control
-- **`features.py`** — `AcademicFeatures`: citation, venue tier, recency, submission compatibility
-
-### Evaluation Framework
-
-- **`evaluation/metrics.py`** — P@K, R@K, MRR, NDCG, Kendall-τ, HHI concentration
-- **`evaluation/benchmark_runner.py`** — `BenchmarkRunner`: 16-scenario IR evaluation harness
-- **`evaluation/deadline_runner.py`** — `DeadlineBenchmarkRunner`: end-to-end deadline pipeline evaluation
-- **`evaluation/risk_runner.py`** — Risk classification benchmark harness
+### 3. Researcher Intelligence & Personalization (Phase 3)
+- **`services/researcher_profile_service.py`** — Profile management, external ID normalization, completeness computation.
+- **`services/researcher_intelligence_service.py`** — Topic and expertise extraction from scholarly works.
+- **`services/researcher_preference_service.py`** — Explicit preference CRUD, activity-based inferred preferences from `SavedOpportunityModel`.
+- **`services/personalized_candidate_generation_service.py`** — Multi-channel candidate retrieval with fallback guarantees.
+- **`services/personalization_ranking_service.py`** — Bounded personalization adjustments ($\le 0.15$) preserving base relevance dominance.
+- **`services/feedback_service.py`** — Behavioral feedback logging (VIEW, SAVE, INTERESTED, APPLY, DISMISS, NOT_INTERESTED), decay, and `SavedOpportunityModel` synchronization.
+- **`services/recommendation_history_service.py`** — Immutable point-in-time recommendation snapshot generation and offline IR evaluation.
+- **`services/personalization_explanation_service.py`** — Grounded, attribution-based "Why this?" explanations.
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & Validation
 
-The project maintains a comprehensive test suite with **44 test modules** and **640+ passing tests** (all zero-network, in-memory):
+The backend maintains a comprehensive test suite of **54 test modules** and **867 passing tests** (all zero-network, in-memory):
 
 ```bash
+# Run full backend test suite
 cd backend
-pytest                    # Run full suite
-pytest -v --tb=short      # Verbose with short tracebacks
-pytest tests/test_phase2_7g_deadline_evaluation.py  # Phase-specific tests
-pytest tests/test_risk_scoring_engine.py             # Risk engine tests
+..\.venv\Scripts\pytest.exe
+
+# Run with verbose output
+..\.venv\Scripts\pytest.exe -v --tb=short
+
+# Run specific intelligence test suites
+..\.venv\Scripts\pytest.exe tests/test_phase2_7g_deadline_evaluation.py
+..\.venv\Scripts\pytest.exe tests/test_phase3_9_hardening.py
 ```
 
-Key test modules:
+Frontend verification:
+```bash
+cd frontend
 
-| Module | Coverage |
-|---|---|
-| `test_phase2_7g_deadline_evaluation.py` | Deadline pipeline: 43 fixtures, 20 safety invariants |
-| `test_phase2_6g_risk_evaluation.py` | Risk pipeline: classification accuracy, false-positive hardening |
-| `test_phase2_5g_evaluation.py` | Ranking optimization: diversity, MRR, NDCG |
-| `test_risk_explainability.py` | Risk explainability: provenance, signal attribution |
-| `test_deadline_conflict_resolution.py` | Conflict resolver: revision classification, authority tiers |
-| `test_suspicious_graph_intelligence.py` | Trust graph: syndicate detection, identity collision |
-| `test_hybrid_ranker.py` | HybridRanker: RRF fusion, weight validation |
-| `test_result_explainer.py` | Result explainer: signal attributions, qualitative summaries |
+# TypeScript type check
+npm run type-check
+
+# Next.js production build
+npm run build
+```
 
 ---
 
@@ -319,7 +351,7 @@ alembic upgrade head
 uvicorn app.main:app --reload --port 8000
 ```
 
-API interactive docs: `http://localhost:8000/docs`
+API interactive documentation: `http://localhost:8000/docs`
 
 ---
 
@@ -331,46 +363,42 @@ npm install
 npm run dev
 ```
 
-Web app: `http://localhost:5173`
+Next.js web application: `http://localhost:3000`
 
 ---
 
-### 4. Running Tests
+### 4. Running Validation
 
 ```bash
-# Backend test suite (640+ tests, all in-memory)
+# Backend tests (867 tests, zero-network)
 cd backend
-pytest
+..\.venv\Scripts\pytest.exe
 
-# Frontend build validation
+# Frontend type validation and production build
 cd frontend
+npm run type-check
 npm run build
 ```
 
 ---
 
-## 🏛️ Architectural Principles
+## 🏛️ Architectural Invariants
 
-1. **Deterministic over probabilistic** — All ranking and scoring logic is fully deterministic. Given identical input, the pipeline always produces identical output. No LLM inference, no random seeds, no non-deterministic tie-breaking.
-
-2. **Zero network at ranking time** — The entire ranking, risk, and deadline pipeline runs with zero network calls, zero database writes, and zero external API requests at request time.
-
-3. **Evidence-backed explanations** — Every risk score, deadline status, and ranking decision carries structured provenance: which signals fired, which sources contributed, and what the confidence basis is.
-
-4. **In-memory, composable pipeline** — Each pipeline stage (extraction → normalization → scoring → conflict resolution → explainability) is independently testable and can be composed or short-circuited without side effects.
-
-5. **No premature scaling** — The architecture deliberately avoids Kubernetes, Kafka, Celery workers, MLflow, and Airflow. Complexity is introduced only when empirically required.
+1. **Deterministic over probabilistic** — All ranking, scoring, and personalization logic is fully deterministic. Given identical inputs, the system produces identical outputs. Zero LLM inference or random tie-breaking during ranking.
+2. **Zero network at request time** — The entire ranking, risk, deadline, and personalization pipeline executes in-memory with zero external network calls or database writes at request time.
+3. **Relevance and safety dominance** — Personalization adjustments are bounded ($|adj| \le 0.15$). High-risk venues ($risk \ge 0.70$ or $is\_predatory = True$) and expired deadlines ($deadline\_status = EXPIRED$) are strictly suppressed and cannot be boosted by personalization.
+4. **Canonical source of truth** — Phase 4 Research Management consumes canonical outputs from Phase 2.6 (risk), Phase 2.7 (deadlines), and Phase 3 (researcher intelligence). It does not create duplicate domain logic or shadow calculations.
+5. **Strict user scoping & ownership** — All researcher workflows, saved opportunities, preferences, and submission records enforce `X-User-ID` isolation to prevent cross-user data leakage.
+6. **No premature scaling** — The architecture avoids Kafka, Celery, Kubernetes, and heavy MLOps overhead in favor of clean, modular, and maintainable services.
 
 ---
 
-## ⚠️ Current Limitations
+## ⚠️ Current Scope Boundaries & Status
 
-- **No live user authentication** — The platform does not yet implement user accounts, sessions, or JWT/OAuth. This is planned for Phase 3.
-- **No persistent submission tracking** — Submission tracker and calendar integration are Phase 3 features.
-- **Frontend pre-migration** — The current frontend uses React + Vite. A migration to **Next.js App Router** is planned for Phase 3 to support SSR and improved SEO.
-- **Scraper coverage** — Currently only WikiCFP is a production-grade source connector. Additional source integrations (ACM, IEEE, Springer) are pending.
-- **Embeddings not auto-generated** — Semantic embeddings require a manual pipeline trigger; no background scheduler is yet active.
-- **No live notifications** — Deadline notification emails and in-app alerts are planned for Phase 3.
+- **Authentication Infrastructure**: Researcher operations currently use explicit `X-User-ID` header matching and user verification. Full session cookies / OAuth2 login flows are planned for platform hardening.
+- **Research Management Roadmap**: Opportunity workspace states, manuscript submission tracking, calendar iCal export, and proactive notifications are part of Phase 4 (Phases 4.1–4.7) and are not yet implemented in Phase 4.0.
+- **Embeddings Generation**: Semantic embeddings are calculated deterministically via local sentence-transformers; automated background ingestion daemons are planned for production hardening.
+- **Scraper Ingestion**: WikiCFP is fully operational as a verified source connector; additional connectors (ACM, IEEE, Springer) are planned for ingestion scaling.
 
 ---
 
@@ -387,10 +415,8 @@ npm run build
 
 - **Primary Coding Model**: Antigravity with **Claude Sonnet** for core feature design, refactoring, and implementation.
 - **Fallback / Alternative**: **Google Gemini** for specialized analysis or alternate reasoning.
-- **Knowledge Graph**: `graphify` — 5,051 nodes, 10,878 edges across the full codebase (see `graphify-out/`).
-
-*(These preferences govern IDE and tooling workflows only; they are not runtime application dependencies.)*
+- **Knowledge Graph**: `graphify` — 6,202 nodes across the full codebase (see `graphify-out/`).
 
 ---
 
-For the full development roadmap and phase-by-phase feature breakdown, see [Development Roadmap](docs/architecture/project-roadmap.md).
+For the full development roadmap and phase-by-phase feature breakdown, see [Development Roadmap](docs/architecture/project-roadmap.md) and [Phase 4.0 Architecture & Roadmap Alignment](docs/architecture/phase4-0-architecture-roadmap-alignment.md).
