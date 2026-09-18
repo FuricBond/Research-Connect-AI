@@ -660,9 +660,9 @@ class ResearchSubmissionDocumentService:
         can_mark_ready = not has_blockers
 
         if len(required_docs) == 0:
-            readiness_percentage = 100 if completeness_score >= 0.6 and not has_blockers else int(completeness_score * 100)
+            readiness_percentage = 100 if completeness_score >= 0.6 and not has_blockers else completeness_score * 100
         else:
-            readiness_percentage = int(round((len(completed_docs) / len(required_docs)) * 100))
+            readiness_percentage = round((len(completed_docs) / len(required_docs)) * 100)
 
         if has_blockers:
             any_rejected = any(i.code == "REQUIRED_DOCUMENT_REJECTED" for i in blocking_issues)

@@ -8,6 +8,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 
 from app.api.health import router as health_router
 from app.api.opportunities import router as opportunities_router
+from app.api.v1.calendar import router as calendar_router
 from app.api.v1.discovery import router as discovery_router
 from app.api.v1.researchers import router as researchers_router
 from app.api.v1.submissions import router as submissions_router
@@ -54,6 +55,9 @@ app.include_router(workspace_router, prefix="/api/v1")
 app.include_router(workspace_router, prefix="/api")
 app.include_router(submissions_router, prefix="/api/v1")
 app.include_router(submissions_router, prefix="/api")
+app.include_router(calendar_router, prefix="/api/v1")
+app.include_router(calendar_router, prefix="/api")
+
 
 
 @app.get("/")

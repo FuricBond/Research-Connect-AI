@@ -42,6 +42,18 @@ import type {
   SubmissionSummaryResponse,
   SubmissionType,
 } from "../types/submission";
+import type {
+  CalendarCreatePayload,
+  CalendarEventCreatePayload,
+  CalendarEventFilterParams,
+  CalendarEventUpdatePayload,
+  CalendarUpdatePayload,
+  OpportunityProjectPayload,
+  OpportunityProjectResponse,
+  ResearchCalendar,
+  ResearchCalendarEvent,
+  ResearcherCalendarViewResponse,
+} from "../types/calendar";
 
 // NEXT_PUBLIC_API_URL replaces former VITE_API_URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -1329,5 +1341,200 @@ export async function fetchSubmissionHistory(
   }
 
   return fetchJson<SubmissionHistoryResponse>(endpoint, { headers, signal });
+}
+
+// ── Phase 4.4 — Research Calendar & Visual Planning API ──────────────────────────
+
+export async function fetchDefaultCalendar(
+  userId?: string,
+  signal?: AbortSignal
+): Promise<ResearchCalendar> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  return fetchJson<ResearchCalendar>("/api/v1/calendar/default", { headers, signal });
+}
+
+export async function fetchCalendars(
+  userId?: string,
+  signal?: AbortSignal
+): Promise<{ calendars: ResearchCalendar[]; total: number }> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  return fetchJson<{ calendars: ResearchCalendar[]; total: number }>("/api/v1/calendar", {
+    headers,
+    signal,
+  });
+}
+
+export async function createCalendar(
+  payload: CalendarCreatePayload,
+  userId?: string,
+  signal?: AbortSignal
+): Promise<ResearchCalendar> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  return fetchJson<ResearchCalendar>("/api/v1/calendar", {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+    signal,
+  });
+}
+
+export async function fetchCalendar(
+  calendarId: string,
+  userId?: string,
+  signal?: AbortSignal
+): Promise<ResearchCalendar> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  return fetchJson<ResearchCalendar>(`/api/v1/calendar/${calendarId}`, { headers, signal });
+}
+
+export async function updateCalendar(
+  calendarId: string,
+  payload: CalendarUpdatePayload,
+  userId?: string,
+  signal?: AbortSignal
+): Promise<ResearchCalendar> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  return fetchJson<ResearchCalendar>(`/api/v1/calendar/${calendarId}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify(payload),
+    signal,
+  });
+}
+
+export async function fetchCalendarEvents(
+  calendarId: string,
+  filters: CalendarEventFilterParams = {},
+  userId?: string,
+  signal?: AbortSignal
+): Promise<{ events: ResearchCalendarEvent[]; total: number }> {
+  const params = new URLSearchParams();
+  if (filters.start_date) params.set("start_date", filters.start_date);
+  if (filters.end_date) params.set("end_date", filters.end_date);
+  if (filters.event_type) params.set("event_type", filters.event_type);
+  if (filters.opportunity_id) params.set("opportunity_id", filters.opportunity_id);
+  if (filters.submission_id) params.set("submission_id", filters.submission_id);
+
+  const qs = params.toString();
+  const endpoint = qs
+    ? `/api/v1/calendar/${calendarId}/events?${qs}`
+    : `/api/v1/calendar/${calendarId}/events`;
+
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+
+  return fetchJson<{ events: ResearchCalendarEvent[]; total: number }>(endpoint, {
+    headers,
+    signal,
+  });
+}
+
+export async function createCalendarEvent(
+  calendarId: string,
+  payload: CalendarEventCreatePayload,
+  userId?: string,
+  signal?: AbortSignal
+): Promise<ResearchCalendarEvent> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  return fetchJson<ResearchCalendarEvent>(`/api/v1/calendar/${calendarId}/events`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+    signal,
+  });
+}
+
+export async function updateCalendarEvent(
+  calendarId: string,
+  eventId: string,
+  payload: CalendarEventUpdatePayload,
+  userId?: string,
+  signal?: AbortSignal
+): Promise<ResearchCalendarEvent> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  return fetchJson<ResearchCalendarEvent>(`/api/v1/calendar/${calendarId}/events/${eventId}`, {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify(payload),
+    signal,
+  });
+}
+
+export async function deleteCalendarEvent(
+  calendarId: string,
+  eventId: string,
+  userId?: string,
+  signal?: AbortSignal
+): Promise<{ message: string }> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  return fetchJson<{ message: string }>(`/api/v1/calendar/${calendarId}/events/${eventId}`, {
+    method: "DELETE",
+    headers,
+    signal,
+  });
+}
+
+export async function projectOpportunityToCalendar(
+  calendarId: string,
+  payload: OpportunityProjectPayload,
+  userId?: string,
+  signal?: AbortSignal
+): Promise<OpportunityProjectResponse> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  return fetchJson<OpportunityProjectResponse>(`/api/v1/calendar/${calendarId}/project-opportunity`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+    signal,
+  });
+}
+
+export async function fetchResearcherCalendar(
+  researcherId: string,
+  filters: CalendarEventFilterParams = {},
+  userId?: string,
+  signal?: AbortSignal
+): Promise<ResearcherCalendarViewResponse> {
+  const params = new URLSearchParams();
+  if (filters.start_date) params.set("start_date", filters.start_date);
+  if (filters.end_date) params.set("end_date", filters.end_date);
+  if (filters.event_type) params.set("event_type", filters.event_type);
+  if (filters.opportunity_id) params.set("opportunity_id", filters.opportunity_id);
+  if (filters.submission_id) params.set("submission_id", filters.submission_id);
+
+  const qs = params.toString();
+  const endpoint = qs
+    ? `/api/v1/researchers/${researcherId}/calendar?${qs}`
+    : `/api/v1/researchers/${researcherId}/calendar`;
+
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+
+  return fetchJson<ResearcherCalendarViewResponse>(endpoint, { headers, signal });
+}
+
+export function getCalendarExportUrl(calendarId: string, userId?: string): string {
+  const base = `${API_URL}/api/v1/calendar/${calendarId}/export.ics`;
+  if (userId) {
+    return `${base}?user_id=${encodeURIComponent(userId)}`;
+  }
+  return base;
+}
+
+export function getResearcherCalendarExportUrl(researcherId: string, userId?: string): string {
+  const base = `${API_URL}/api/v1/researchers/${researcherId}/calendar.ics`;
+  if (userId) {
+    return `${base}?user_id=${encodeURIComponent(userId)}`;
+  }
+  return base;
 }
 

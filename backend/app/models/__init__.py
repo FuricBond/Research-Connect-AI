@@ -41,6 +41,13 @@ from app.models.source import SourceModel
 from app.models.topic import TopicAliasModel, TopicModel
 from app.models.user import UserModel
 
+from app.models.calendar import (
+    CalendarEventStatus,
+    CalendarEventType,
+    ResearchCalendarEventModel,
+    ResearchCalendarModel,
+)
+
 __all__ = [
     "Base",
     "TimestampMixin",
@@ -70,6 +77,10 @@ __all__ = [
     "DocumentType",
     "DocumentStatus",
     "SubmissionEventType",
+    "ResearchCalendarModel",
+    "ResearchCalendarEventModel",
+    "CalendarEventType",
+    "CalendarEventStatus",
     "IngestionRunModel",
     # Research knowledge (Phase 2.2A / 2.2B / 2.3A)
     "ResearcherModel",
@@ -80,5 +91,6 @@ __all__ = [
     "ResearchWorkInstitutionModel",
     "ResearchWorkTopicModel",
 ]
+
 
 

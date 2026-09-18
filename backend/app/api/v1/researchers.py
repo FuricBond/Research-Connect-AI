@@ -15,10 +15,13 @@ import logging
 from typing import Annotated, Any
 import uuid
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
+from app.models.calendar import CalendarEventType
+from app.schemas.calendar import ResearcherCalendarViewResponse
+from app.services.research_calendar_service import ResearchCalendarService
 from app.schemas.personalized_candidate import (
     PersonalizedCandidateSetResponse,
 )
@@ -1164,6 +1167,92 @@ def get_historical_recommendation_explanation(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(err),
         )
+
+
+@router.get(
+    "/{researcher_id}/calendar",
+    response_model=ResearcherCalendarViewResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get consolidated researcher calendar",
+    description="Retrieve the researcher's primary planning calendar, projected deadlines, and custom milestones.",
+)
+def get_researcher_calendar(
+    researcher_id: uuid.UUID,
+    start_date: datetime | None = Query(default=None, description="Filter events on or after this timestamp"),
+    end_date: datetime | None = Query(default=None, description="Filter events on or before this timestamp"),
+    event_type: CalendarEventType | None = Query(default=None, description="Filter by event category"),
+    opportunity_id: uuid.UUID | None = Query(default=None, description="Filter by opportunity ID"),
+    submission_id: uuid.UUID | None = Query(default=None, description="Filter by submission ID"),
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> ResearcherCalendarViewResponse:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to access this researcher calendar.",
+        )
+
+    return ResearchCalendarService.get_researcher_calendar_view(
+        db=db,
+        researcher_id=profile.id,
+        user_id=profile.user_id,
+        start_date=start_date,
+        end_date=end_date,
+        event_type=event_type,
+        opportunity_id=opportunity_id,
+        submission_id=submission_id,
+    )
+
+
+@router.get(
+    "/{researcher_id}/calendar.ics",
+    status_code=status.HTTP_200_OK,
+    summary="Export researcher calendar to iCalendar (.ics)",
+    description="Export the researcher's planning calendar and deadlines as a standard RFC 5545 iCalendar (.ics) file.",
+)
+def export_researcher_calendar_ics(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> Response:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to export this researcher calendar.",
+        )
+
+    calendar = ResearchCalendarService.get_or_create_default_calendar(db, user_id=profile.user_id)
+    ical_content = ResearchCalendarService.generate_ical_feed(db, calendar.id, user_id=profile.user_id)
+
+    return Response(
+        content=ical_content,
+        media_type="text/calendar; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="researcher_{profile.id}_calendar.ics"',
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
+    )
+
 
 
 
