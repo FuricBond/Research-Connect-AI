@@ -410,11 +410,28 @@ Facilitates institutional and cross-disciplinary collaboration within verified a
   - 20 safety invariants verified: zero N+1 queries, zero alteration of Phase 2.5/3.5/4 recommendation ranking scores, zero behavioral tracking, collaborative filtering, or ML personalization in Phase 5.1.
   - 14 dedicated backend tests passed; 100% pass rate on all regression test suites.
 
+#### Phase 5.2 — Explicit Preference Interpretation & Personalization Signal Foundation [COMPLETE]
+- **Deterministic Domain Layer & Explainable Signals**:
+  - `PreferenceInterpreter` evaluates opportunities against explicit researcher preferences across 9 supported dimensions (`KEYWORD`, `RESEARCH_DOMAIN`, `COUNTRY`, `REGION`, `INSTITUTION`, `FUNDING`, `ACADEMIC_LEVEL`, `CAREER_STAGE`, `OPPORTUNITY_TYPE`).
+  - Strict 3-state semantics preserved: Preferred $\neq$ Neutral $\neq$ Excluded.
+  - Conflict detection: When an opportunity intersects both preferred and excluded criteria, both signals are preserved as `CONFLICT` with `UNRESOLVED` polarity.
+  - Missing data safety: Missing opportunity attributes strictly yield `INSUFFICIENT_EVIDENCE` and are never treated as negative evidence or exclusions.
+- **REST APIs**:
+  - `GET /api/v1/researchers/{id}/opportunities/{opp_id}/preference-match`: Single opportunity evaluation returning atomic dimension signals and aggregate assessment.
+  - `POST /api/v1/researchers/{id}/opportunities/preference-matches`: Batch evaluation endpoint in memory with zero N+1 database queries.
+- **Next.js App Router Integration**:
+  - `PreferenceMatchBadge` component rendering 3-state match badges, count indicators, and interactive popover explanations.
+  - Integrated into `UnifiedResearchIntelligenceView` alongside recommendation cards with zero ranking reordering.
+- **Strict Phase Boundary & Invariants**:
+  - Zero behavioral learning, zero collaborative filtering, zero embeddings, zero ML personalization, zero opaque ranking boosts.
+  - All 25 safety invariants verified with dedicated test suite (`test_preference_interpretation.py`).
+
 #### Future Phase 5 Modules (Planned)
-- **Phase 5.2 — Faculty Research Opportunities**: Structured listings posted by faculty members for open research slots, thesis topics, and specialized projects.
-- **Phase 5.3 — Collaborative Project Postings**: Multi-student or inter-departmental research project announcements seeking collaborators.
-- **Phase 5.4 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
-- **Phase 5.5 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
+- **Phase 5.3 — Adaptive & Behavioral Personalization**: Contextual learning, click/bookmark signals, and balanced ranking integration.
+- **Phase 5.4 — Faculty Research Opportunities**: Structured listings posted by faculty members for open research slots, thesis topics, and specialized projects.
+- **Phase 5.5 — Collaborative Project Postings**: Multi-student or inter-departmental research project announcements seeking collaborators.
+- **Phase 5.6 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
+- **Phase 5.7 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
 
 ---
 

@@ -206,6 +206,20 @@ class StructuredExclusionsSchema(BaseModel):
     excluded_institutions: list[str] = Field(default_factory=list)
 
 
+class PreferenceIntelligenceSummarySchema(BaseModel):
+    """High-level summary of preference intelligence."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    total_preferences: int = 0
+    explicit_count: int = 0
+    inferred_count: int = 0
+    derived_count: int = 0
+    has_conflicts: bool = False
+    confidence_level: str = "HIGH"
+    completeness_percentage: int = 0
+
+
 class StructuredPreferencesResponseSchema(BaseModel):
     """Structured hierarchical representation of researcher preferences (Phase 5.1)."""
 
@@ -220,23 +234,12 @@ class StructuredPreferencesResponseSchema(BaseModel):
     academic: StructuredAcademicPreferencesSchema = Field(default_factory=StructuredAcademicPreferencesSchema)
     exclusions: StructuredExclusionsSchema = Field(default_factory=StructuredExclusionsSchema)
     raw_preferences: list[ResearcherPreferenceItemSchema] = Field(default_factory=list)
-    summary: PreferenceIntelligenceSummarySchema
-    completeness: PreferenceCompletenessSchema
+    summary: PreferenceIntelligenceSummarySchema = Field(default_factory=PreferenceIntelligenceSummarySchema)
+    completeness: PreferenceCompletenessSchema = Field(
+        default_factory=lambda: PreferenceCompletenessSchema(score=0.0, percentage=0)
+    )
     updated_at: datetime | None = None
 
-
-class PreferenceIntelligenceSummarySchema(BaseModel):
-    """High-level summary of preference intelligence."""
-
-    model_config = ConfigDict(from_attributes=True)
-
-    total_preferences: int = 0
-    explicit_count: int = 0
-    inferred_count: int = 0
-    derived_count: int = 0
-    has_conflicts: bool = False
-    confidence_level: str = "HIGH"
-    completeness_percentage: int = 0
 
 
 class ResearcherPreferenceIntelligenceResponse(BaseModel):

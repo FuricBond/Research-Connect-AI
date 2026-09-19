@@ -16,11 +16,19 @@ from typing import Annotated, Any
 import uuid
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.db.session import get_db
 from app.models.calendar import CalendarEventType
+from app.models.opportunity import OpportunityModel, OpportunityTopicModel
 from app.models.research_profile import ResearchProfileModel
+from app.personalization import (
+    BatchOpportunityPreferenceMatchRequest,
+    BatchOpportunityPreferenceMatchResponse,
+    PreferenceInterpreter,
+    PreferencePersonalizationAssessment,
+)
 from app.schemas.calendar import ResearcherCalendarViewResponse
 from app.services.research_calendar_service import ResearchCalendarService
 from app.schemas.notification import (
@@ -1707,6 +1715,91 @@ def get_opportunity_intelligence(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(err),
         )
+
+
+@router.get(
+    "/{researcher_id}/opportunities/{opportunity_id}/preference-match",
+    response_model=PreferencePersonalizationAssessment,
+    status_code=status.HTTP_200_OK,
+    summary="Get deterministic preference match evaluation for an opportunity",
+    description="Evaluates a specific opportunity against all explicit researcher preferences, returning structured match signals and explanations.",
+)
+def get_opportunity_preference_match(
+    researcher_id: uuid.UUID,
+    opportunity_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PreferencePersonalizationAssessment:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    stmt = (
+        select(OpportunityModel)
+        .where(OpportunityModel.id == opportunity_id)
+        .options(
+            selectinload(OpportunityModel.topic_associations).joinedload(
+                OpportunityTopicModel.topic
+            )
+        )
+    )
+    opp = db.execute(stmt).scalar_one_or_none()
+    if not opp:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Opportunity {opportunity_id} not found",
+        )
+
+    structured_prefs = ResearcherPreferenceService.get_structured_preferences(db, profile.id)
+    return PreferenceInterpreter.evaluate_opportunity(
+        profile_id=profile.id,
+        preferences=structured_prefs,
+        opportunity=opp,
+    )
+
+
+@router.post(
+    "/{researcher_id}/opportunities/preference-matches",
+    response_model=BatchOpportunityPreferenceMatchResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Batch evaluate opportunities against researcher preferences",
+    description="Evaluates a list of opportunities in memory against researcher preferences with zero N+1 queries.",
+)
+def batch_opportunity_preference_matches(
+    researcher_id: uuid.UUID,
+    payload: BatchOpportunityPreferenceMatchRequest,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> BatchOpportunityPreferenceMatchResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    
+    stmt = (
+        select(OpportunityModel)
+        .where(OpportunityModel.id.in_(payload.opportunity_ids))
+        .options(
+            selectinload(OpportunityModel.topic_associations).joinedload(
+                OpportunityTopicModel.topic
+            )
+        )
+    )
+    opps = list(db.execute(stmt).scalars().unique().all())
+
+    structured_prefs = ResearcherPreferenceService.get_structured_preferences(db, profile.id)
+    
+    batch_results = PreferenceInterpreter.evaluate_opportunities_batch(
+        profile_id=profile.id,
+        preferences=structured_prefs,
+        opportunities=opps,
+    )
+
+    ordered_assessments = [
+        batch_results[opp_id]
+        for opp_id in payload.opportunity_ids
+        if opp_id in batch_results
+    ]
+
+    return BatchOpportunityPreferenceMatchResponse(
+        profile_id=profile.id,
+        assessments=ordered_assessments,
+        evaluated_count=len(ordered_assessments),
+    )
 
 
 

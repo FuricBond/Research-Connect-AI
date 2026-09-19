@@ -30,10 +30,12 @@ import {
   Zap,
 } from "lucide-react";
 import {
+  fetchBatchOpportunityPreferenceMatches,
   getOpportunityIntelligence,
   getUnifiedRecommendations,
   getUnifiedResearchIntelligence,
 } from "../../services/api";
+import { PreferenceMatchBadge } from "../personalization/PreferenceMatchBadge";
 import type {
   EvidenceTierBreakdown,
   ResearchIntelligenceSignal,
@@ -42,6 +44,7 @@ import type {
   UnifiedRecommendationResponse,
   UnifiedResearcherContext,
 } from "../../types/research_intelligence";
+import type { PreferencePersonalizationAssessment } from "../../types/personalization";
 
 interface UnifiedResearchIntelligenceViewProps {
   profileId: string;
@@ -50,13 +53,13 @@ interface UnifiedResearchIntelligenceViewProps {
   onNavigateToWorkspace?: (savedId?: string) => void;
 }
 
-export function UnifiedResearchIntelligenceView({
+export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligenceViewProps> = ({
   profileId,
   userId,
   onSelectOpportunity,
   onNavigateToWorkspace,
-}: UnifiedResearchIntelligenceViewProps) {
-  // Researcher Context State
+}) => {
+  // Context State
   const [context, setContext] = useState<UnifiedResearcherContext | null>(null);
   const [contextLoading, setContextLoading] = useState<boolean>(true);
   const [contextError, setContextError] = useState<string | null>(null);
@@ -66,6 +69,7 @@ export function UnifiedResearchIntelligenceView({
   const [recsLoading, setRecsLoading] = useState<boolean>(true);
   const [recsError, setRecsError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [preferenceMatches, setPreferenceMatches] = useState<Record<string, PreferencePersonalizationAssessment>>({});
 
   // Detailed Intelligence Modal/Drawer State
   const [selectedIntel, setSelectedIntel] = useState<UnifiedOpportunityIntelligence | null>(null);
@@ -105,6 +109,23 @@ export function UnifiedResearchIntelligenceView({
           userId
         );
         setRecsData(data);
+        if (data.recommendations.length > 0) {
+          fetchBatchOpportunityPreferenceMatches(
+            profileId,
+            data.recommendations.map((r) => r.opportunity_id),
+            userId
+          )
+            .then((res) => {
+              const map: Record<string, PreferencePersonalizationAssessment> = {};
+              for (const a of res.assessments) {
+                map[a.opportunity_id] = a;
+              }
+              setPreferenceMatches(map);
+            })
+            .catch((err) => {
+              console.warn("Could not fetch preference matches:", err);
+            });
+        }
       } catch (err: unknown) {
         setRecsError(err instanceof Error ? err.message : "Failed to load unified recommendations.");
       } finally {
@@ -444,6 +465,7 @@ export function UnifiedResearchIntelligenceView({
                             {item.workspace_context.submission_readiness_score?.toFixed(0)}%)
                           </span>
                         )}
+                        <PreferenceMatchBadge assessment={preferenceMatches[item.opportunity_id] || null} />
                       </div>
 
                       <h3

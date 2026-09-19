@@ -514,6 +514,111 @@ class ResearcherPreferenceService:
         return results
 
     @classmethod
+    def build_structured_from_items(
+        cls,
+        profile_id: uuid.UUID,
+        user_id: uuid.UUID,
+        items: Sequence[Any],
+        summary: Any = None,
+        completeness: Any = None,
+    ) -> StructuredPreferencesResponseSchema:
+        """
+        Build StructuredPreferencesResponseSchema from a sequence of preference items or models.
+        """
+        interests = StructuredResearchInterestsSchema()
+        opportunities = StructuredOpportunityPreferencesSchema()
+        geography = StructuredGeographicPreferencesSchema()
+        funding = StructuredFundingPreferencesSchema()
+        academic = StructuredAcademicPreferencesSchema()
+        exclusions = StructuredExclusionsSchema()
+
+        for p in items:
+            ptype = getattr(p, "preference_type", "PREFERRED")
+            is_excluded = (ptype == "EXCLUDED")
+            cat = getattr(p, "category", "")
+            val = getattr(p, "preference_value", "")
+            pkey = getattr(p, "preference_key", "")
+
+            # Research Interests
+            if cat == PreferenceCategory.RESEARCH_DOMAIN.value:
+                interests.research_domains.append(val)
+            elif cat == PreferenceCategory.TOPIC.value:
+                if is_excluded:
+                    exclusions.excluded_topics.append(val)
+                else:
+                    interests.topics.append(val)
+            elif cat == PreferenceCategory.KEYWORD.value:
+                interests.keywords.append(val)
+
+            # Opportunities
+            elif cat == PreferenceCategory.OPPORTUNITY_TYPE.value:
+                if is_excluded:
+                    opportunities.excluded_types.append(val)
+                    exclusions.excluded_opportunity_types.append(val)
+                else:
+                    opportunities.preferred_types.append(val)
+            elif cat == PreferenceCategory.DELIVERY_MODE.value:
+                opportunities.delivery_modes.append(val)
+
+            # Geography
+            elif cat == PreferenceCategory.COUNTRY.value:
+                if is_excluded:
+                    geography.excluded_countries.append(val)
+                    exclusions.excluded_countries.append(val)
+                else:
+                    geography.preferred_countries.append(val)
+            elif cat == PreferenceCategory.REGION.value or cat == PreferenceCategory.LOCATION.value:
+                if is_excluded:
+                    geography.excluded_regions.append(val)
+                    exclusions.excluded_regions.append(val)
+                else:
+                    geography.preferred_regions.append(val)
+            elif cat == PreferenceCategory.INSTITUTION.value:
+                if is_excluded:
+                    geography.excluded_institutions.append(val)
+                    exclusions.excluded_institutions.append(val)
+                else:
+                    geography.preferred_institutions.append(val)
+
+            # Funding
+            elif cat == PreferenceCategory.FUNDING.value:
+                if pkey == "funding_required":
+                    funding.funding_required = (val.lower() == "true")
+                elif pkey == "min_amount":
+                    try:
+                        funding.min_funding_amount = float(val)
+                    except ValueError:
+                        pass
+                elif pkey == "max_amount":
+                    try:
+                        funding.max_funding_amount = float(val)
+                    except ValueError:
+                        pass
+                elif pkey == "currency":
+                    funding.currency = val.upper()
+
+            # Academic
+            elif cat == PreferenceCategory.ACADEMIC_LEVEL.value:
+                academic.academic_level = val
+            elif cat == PreferenceCategory.CAREER_STAGE.value:
+                academic.career_stage = val
+
+        return StructuredPreferencesResponseSchema(
+            profile_id=profile_id,
+            user_id=user_id,
+            interests=interests,
+            opportunities=opportunities,
+            geography=geography,
+            funding=funding,
+            academic=academic,
+            exclusions=exclusions,
+            raw_preferences=list(items) if items and hasattr(items[0], "id") else [],
+            summary=summary,
+            completeness=completeness,
+            updated_at=datetime.now(timezone.utc),
+        )
+
+    @classmethod
     def get_structured_preferences(
         cls,
         db: Session,
@@ -523,95 +628,12 @@ class ResearcherPreferenceService:
         Retrieve structured hierarchical preferences partitioned into canonical domain buckets (Phase 5.1).
         """
         intel = cls.get_preference_intelligence(db, profile_id)
-        raw_items = intel.explicit_preferences
-
-        interests = StructuredResearchInterestsSchema()
-        opportunities = StructuredOpportunityPreferencesSchema()
-        geography = StructuredGeographicPreferencesSchema()
-        funding = StructuredFundingPreferencesSchema()
-        academic = StructuredAcademicPreferencesSchema()
-        exclusions = StructuredExclusionsSchema()
-
-        for p in raw_items:
-            is_excluded = (p.preference_type == "EXCLUDED")
-
-            # Research Interests
-            if p.category == PreferenceCategory.RESEARCH_DOMAIN.value:
-                interests.research_domains.append(p.preference_value)
-            elif p.category == PreferenceCategory.TOPIC.value:
-                if is_excluded:
-                    exclusions.excluded_topics.append(p.preference_value)
-                else:
-                    interests.topics.append(p.preference_value)
-            elif p.category == PreferenceCategory.KEYWORD.value:
-                interests.keywords.append(p.preference_value)
-
-            # Opportunities
-            elif p.category == PreferenceCategory.OPPORTUNITY_TYPE.value:
-                if is_excluded:
-                    opportunities.excluded_types.append(p.preference_value)
-                    exclusions.excluded_opportunity_types.append(p.preference_value)
-                else:
-                    opportunities.preferred_types.append(p.preference_value)
-            elif p.category == PreferenceCategory.DELIVERY_MODE.value:
-                opportunities.delivery_modes.append(p.preference_value)
-
-            # Geography
-            elif p.category == PreferenceCategory.COUNTRY.value:
-                if is_excluded:
-                    geography.excluded_countries.append(p.preference_value)
-                    exclusions.excluded_countries.append(p.preference_value)
-                else:
-                    geography.preferred_countries.append(p.preference_value)
-            elif p.category == PreferenceCategory.REGION.value or p.category == PreferenceCategory.LOCATION.value:
-                if is_excluded:
-                    geography.excluded_regions.append(p.preference_value)
-                    exclusions.excluded_regions.append(p.preference_value)
-                else:
-                    geography.preferred_regions.append(p.preference_value)
-            elif p.category == PreferenceCategory.INSTITUTION.value:
-                if is_excluded:
-                    geography.excluded_institutions.append(p.preference_value)
-                    exclusions.excluded_institutions.append(p.preference_value)
-                else:
-                    geography.preferred_institutions.append(p.preference_value)
-
-            # Funding
-            elif p.category == PreferenceCategory.FUNDING.value:
-                if p.preference_key == "funding_required":
-                    funding.funding_required = (p.preference_value.lower() == "true")
-                elif p.preference_key == "min_amount":
-                    try:
-                        funding.min_funding_amount = float(p.preference_value)
-                    except ValueError:
-                        pass
-                elif p.preference_key == "max_amount":
-                    try:
-                        funding.max_funding_amount = float(p.preference_value)
-                    except ValueError:
-                        pass
-                elif p.preference_key == "currency":
-                    funding.currency = p.preference_value.upper()
-
-            # Academic
-            elif p.category == PreferenceCategory.ACADEMIC_LEVEL.value:
-                academic.academic_level = p.preference_value
-            elif p.category == PreferenceCategory.CAREER_STAGE.value:
-                academic.career_stage = p.preference_value
-
-        return StructuredPreferencesResponseSchema(
+        return cls.build_structured_from_items(
             profile_id=intel.profile_id,
             user_id=intel.user_id,
-            interests=interests,
-            opportunities=opportunities,
-            geography=geography,
-            funding=funding,
-            academic=academic,
-            exclusions=exclusions,
-            raw_preferences=raw_items,
+            items=intel.explicit_preferences,
             summary=intel.summary,
             completeness=intel.completeness,
-            updated_at=datetime.now(timezone.utc),
         )
 
     # -------------------------------------------------------------------------
