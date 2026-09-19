@@ -113,12 +113,24 @@ from app.services.researcher_intelligence_service import ResearcherIntelligenceS
 from app.services.researcher_interaction_service import ResearcherInteractionService
 from app.services.researcher_preference_service import ResearcherPreferenceService
 from app.services.researcher_profile_service import ResearcherProfileService
+from app.models.adaptive_signal import (
+    AdaptiveEvidenceState,
+    AdaptiveSignalDimension,
+)
+from app.personalization.adaptive_models import (
+    AdaptivePreferenceSignal,
+    AdaptiveSignalExplanationResponse,
+    AdaptiveSignalsResponse,
+)
+from app.schemas.adaptive_signal import AdaptiveSignalRecomputeRequest
+from app.services.adaptive_signal_service import AdaptivePreferenceSignalService
 from app.schemas.researcher_interaction import (
     InteractionCreateRequest,
     InteractionResponse,
     OpportunityInteractionHistoryResponse,
     ResearcherInteractionSummaryResponse,
 )
+
 
 
 
@@ -1844,10 +1856,12 @@ def get_opportunity_personalization(
         )
 
     structured_prefs = ResearcherPreferenceService.get_structured_preferences(db, profile.id)
+    adaptive_signals = AdaptivePreferenceSignalService.get_adaptive_signals(db, profile.id)
     return PersonalizationScorer.score_opportunity(
         profile_id=profile.id,
         preferences=structured_prefs,
         opportunity=opp,
+        adaptive_signals=adaptive_signals,
     )
 
 
@@ -1878,11 +1892,13 @@ def batch_opportunity_personalization(
     opps = list(db.execute(stmt).scalars().unique().all())
 
     structured_prefs = ResearcherPreferenceService.get_structured_preferences(db, profile.id)
+    adaptive_signals = AdaptivePreferenceSignalService.get_adaptive_signals(db, profile.id)
 
     batch_results = PersonalizationScorer.score_opportunities_batch(
         profile_id=profile.id,
         preferences=structured_prefs,
         opportunities=opps,
+        adaptive_signals=adaptive_signals,
     )
 
     ordered_assessments = [
@@ -1896,6 +1912,7 @@ def batch_opportunity_personalization(
         assessments=ordered_assessments,
         evaluated_count=len(ordered_assessments),
     )
+
 
 
 # ----------------------------------------------------------------------------
@@ -1989,14 +2006,105 @@ def get_researcher_interaction_summary(
         )
 
 
+# ----------------------------------------------------------------------------
+# Phase 5.5: Adaptive Preference Signal Endpoints
+# ----------------------------------------------------------------------------
+
+@router.get(
+    "/{researcher_id}/adaptive-signals",
+    response_model=AdaptiveSignalsResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get researcher adaptive preference signals",
+    description="Retrieves aggregated, bounded behavioral preference signals derived deterministically from researcher interactions.",
+)
+def get_researcher_adaptive_signals(
+    researcher_id: uuid.UUID,
+    dimension: AdaptiveSignalDimension | None = Query(default=None, description="Filter by signal dimension"),
+    state: AdaptiveEvidenceState | None = Query(default=None, description="Filter by evidence state"),
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> AdaptiveSignalsResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    signals = AdaptivePreferenceSignalService.get_adaptive_signals(
+        db=db,
+        profile_id=profile.id,
+        dimension=dimension,
+        state=state,
+    )
+    return AdaptiveSignalsResponse(
+        profile_id=profile.id,
+        items=signals,
+        total_count=len(signals),
+    )
 
 
+@router.get(
+    "/{researcher_id}/adaptive-signals/explanation",
+    response_model=AdaptiveSignalExplanationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get deterministic summary explanation of adaptive signals",
+    description="Retrieves structured, transparent natural language explanations summarizing the researcher's behavioral signals.",
+)
+def get_researcher_adaptive_signals_explanation(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> AdaptiveSignalExplanationResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return AdaptivePreferenceSignalService.get_adaptive_signals_summary_explanation(
+        db=db,
+        profile_id=profile.id,
+    )
 
 
+@router.get(
+    "/{researcher_id}/adaptive-signals/{signal_id}",
+    response_model=AdaptivePreferenceSignal,
+    status_code=status.HTTP_200_OK,
+    summary="Get a specific adaptive preference signal",
+    description="Retrieves a specific adaptive preference signal for a researcher by ID, ensuring researcher isolation.",
+)
+def get_adaptive_signal_by_id(
+    researcher_id: uuid.UUID,
+    signal_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> AdaptivePreferenceSignal:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    signal = AdaptivePreferenceSignalService.get_adaptive_signal_by_id(
+        db=db,
+        profile_id=profile.id,
+        signal_id=signal_id,
+    )
+    if not signal:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Adaptive signal with ID '{signal_id}' not found.",
+        )
+    return signal
 
 
-
-
-
-
-
+@router.post(
+    "/{researcher_id}/adaptive-signals/recompute",
+    response_model=AdaptiveSignalsResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Recompute researcher adaptive preference signals",
+    description="Recomputes all bounded adaptive signals from the researcher's historical interaction records deterministically.",
+)
+def recompute_researcher_adaptive_signals(
+    researcher_id: uuid.UUID,
+    payload: AdaptiveSignalRecomputeRequest | None = None,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> AdaptiveSignalsResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    signals = AdaptivePreferenceSignalService.recompute_adaptive_signals(
+        db=db,
+        profile_id=profile.id,
+    )
+    db.commit()
+    return AdaptiveSignalsResponse(
+        profile_id=profile.id,
+        items=signals,
+        total_count=len(signals),
+    )

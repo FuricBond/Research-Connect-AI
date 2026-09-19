@@ -14,6 +14,11 @@ from app.models.research_profile import AcademicStatus, ResearchProfileModel
 from app.models.researcher_interest import ResearcherInterestModel
 from app.models.researcher_preference import ResearcherPreferenceModel
 from app.models.researcher_interaction import InteractionType, ResearcherInteractionModel
+from app.models.adaptive_signal import (
+    AdaptiveEvidenceState,
+    AdaptivePreferenceSignalModel,
+    AdaptiveSignalDimension,
+)
 from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
 from app.models.recommendation_history import (
     ResearcherRecommendationSnapshotModel,
@@ -81,6 +86,9 @@ __all__ = [
     "ResearcherPreferenceModel",
     "ResearcherInteractionModel",
     "InteractionType",
+    "AdaptivePreferenceSignalModel",
+    "AdaptiveSignalDimension",
+    "AdaptiveEvidenceState",
     "ResearcherRecommendationFeedbackModel",
     "ResearcherRecommendationSnapshotModel",
     "ResearcherRecommendationItemModel",

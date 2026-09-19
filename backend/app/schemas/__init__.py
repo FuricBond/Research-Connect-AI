@@ -80,6 +80,15 @@ from app.schemas.researcher_interaction import (
     OpportunityInteractionHistoryResponse,
     ResearcherInteractionSummaryResponse,
 )
+from app.schemas.adaptive_signal import (
+    AdaptiveEvidenceState,
+    AdaptivePersonalizationContribution,
+    AdaptivePreferenceSignal,
+    AdaptiveSignalDimension,
+    AdaptiveSignalExplanationResponse,
+    AdaptiveSignalRecomputeRequest,
+    AdaptiveSignalsResponse,
+)
 from app.schemas.recommendation_history import (
     RecommendationHistoryListResponse,
     RecommendationItemSnapshotSchema,
@@ -174,6 +183,14 @@ __all__ = [
     "Phase5InteractionType",
     "OpportunityInteractionHistoryResponse",
     "ResearcherInteractionSummaryResponse",
+    # Phase 5.5 Adaptive Preference Signal Schemas
+    "AdaptiveSignalDimension",
+    "AdaptiveEvidenceState",
+    "AdaptivePreferenceSignal",
+    "AdaptivePersonalizationContribution",
+    "AdaptiveSignalsResponse",
+    "AdaptiveSignalExplanationResponse",
+    "AdaptiveSignalRecomputeRequest",
     # Phase 3.7 Recommendation History & Evaluation Schemas
     "RecommendationOpportunityBriefSchema",
     "RecommendationItemSnapshotSchema",

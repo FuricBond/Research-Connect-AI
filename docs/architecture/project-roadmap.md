@@ -26,7 +26,11 @@ This document provides the authoritative, comprehensive architectural roadmap an
 | **Phase 4.6** | Collaborative Research Management | **COMPLETE** | Multi-user workspaces, RBAC (`OWNER`/`EDITOR`/`CONTRIBUTOR`/`VIEWER`), secure invitations, task tracking, activity trail, migration 0016 | 56 Tests |
 | **Phase 4.7** | Research Intelligence Integration | **COMPLETE** | Authoritative unified integration service connecting Phases 2, 3, 4; signal provenance, canonical identity resolution, 6-tier explainability | 14 Tests |
 | **Phase 5.1** | Researcher Preferences Foundation | **COMPLETE** | Explicit preference foundation, 3-state semantics (Preferred/Neutral/Excluded), extended categories, bulk sync, Next.js `/researcher/preferences` UI, migration 0017 | 14 Tests / 100% Regr |
-| **Phase 5.2** | Community & Collaboration Features | **PLANNED** | Faculty research slots, collaborative project postings, research internships, RA openings, peer discovery | Planned |
+| **Phase 5.2** | Preference Interpretation | **COMPLETE** | Deterministic domain layer, 9-dimension evaluation, conflict preservation, missing-data safety, batch API, Next.js match badge | 25 Invariants Passed |
+| **Phase 5.3** | Personalization-Aware Opportunity Scoring | **COMPLETE** | Normalized dimension weights, bounded scoring (0-1), structured contribution breakdown, batch API, Next.js score badge | 20 Invariants Passed |
+| **Phase 5.4** | Researcher Feedback & Interaction Signals | **COMPLETE** | Append-only auditable interaction store, explicit feedback vs passive telemetry, rapid-fire deduplication, migration 0018, interactive feedback bar | 25 Invariants Passed |
+| **Phase 5.5** | Adaptive Preference Signal Aggregation | **COMPLETE** | Deterministic interaction aggregation, temporal decay (30d half-life), bounded additive personalization (±0.10), overreaction protection, migration 0019, Next.js adaptive signals card | 17 Tests / 35 Invariants |
+| **Phase 5.6** | Faculty Research Opportunities | **PLANNED** | Faculty research slots, collaborative project postings, research internships, RA openings, peer discovery | Planned |
 | **Phase 6** | Platform Infrastructure & Governance | **IN PROGRESS** | Role-Based Access Control (Student/Faculty/Admin), JWT/OAuth, rate limiting, structured logging, Docker production specs | Continuous |
 | **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,008+ Passing Tests |
 
@@ -461,8 +465,38 @@ Facilitates institutional and cross-disciplinary collaboration within verified a
   - Zero collaborative filtering, zero embeddings, zero vector databases, zero ML personalization, zero LLM calls, zero external analytics.
   - All 25 safety invariants verified with dedicated test suite (`test_researcher_interactions.py`).
 
+#### Phase 5.5 — Adaptive Preference Signal Aggregation & Personalization Bridge [COMPLETE]
+- **Deterministic Interaction Aggregation & Temporal Decay**:
+  - `AdaptiveSignalEngine` aggregates Phase 5.4 researcher interactions into bounded preference signals across canonical opportunity dimensions (`OPPORTUNITY_TYPE`, `RESEARCH_DOMAIN`, `COUNTRY`, `INSTITUTION`, `FUNDING`).
+  - Transparent, versioned interaction weighting (`VIEWED`: 0.05, `OPENED`: 0.10, `SHARED`: 0.30, `SAVED`: 0.60, `INTERESTED`: 0.80, `APPLIED`: 1.00, `NOT_INTERESTED`: -0.70, `DISMISSED`: -0.50, `HIDDEN`: -0.90).
+  - Exponential temporal decay with 30-day half-life: $w_{\text{eff}} = w_{\text{base}} \times 2^{-\Delta t / 30.0}$, bounded by minimum weight floor 0.05. Explicit reference time parameter ensures zero wall-clock dependence in tests.
+- **Evidence Preservation & Conflict Handling**:
+  - Positive and negative evidence counts and decayed weights are tracked separately (never collapsed into an opaque score).
+  - Confidence metric ($0.0 \le c \le 1.0$) combines evidence volume factor and polarity agreement factor.
+  - Dual-evidence conflicts are transparently flagged as `CONFLICT` with `UNRESOLVED` polarity.
+- **Overreaction Protection**:
+  - Strict 4-tier classification: `INSUFFICIENT_EVIDENCE` ($N < 3$), `EMERGING` ($3 \le N < 6$), `ESTABLISHED` ($6 \le N < 12$), `STRONG` ($N \ge 12$).
+  - Single interactions or sparse evidence ($N < 3$) strictly yield 0.0 score contribution.
+- **Personalization Bridge & Relevance Dominance**:
+  - Additive contribution bounded by $\text{clamp}(\Delta_{\text{adaptive}}, -0.10, +0.10)$, preserving Phase 4 relevance dominance ($\ge 85\%$).
+  - Explicit preferences (Phase 5.1) remain authoritative; explicit `EXCLUDED` always produces 0.0 final score regardless of adaptive affinity.
+  - Zero preference rewriting: interactions never create, modify, or delete explicit preferences.
+- **Database Model & Migration**:
+  - `adaptive_preference_signals` table with composite unique constraint `(profile_id, dimension, signal_value)`.
+  - Non-destructive Alembic migration `0019_phase5_5_adaptive_preference_signals.py`.
+- **REST APIs**:
+  - `GET /api/v1/researchers/{id}/adaptive-signals`: Paginated adaptive signals with dimension and state filters.
+  - `GET /api/v1/researchers/{id}/adaptive-signals/{signal_id}`: Single signal detail with evidence breakdown.
+  - `POST /api/v1/researchers/{id}/adaptive-signals/recompute`: Deterministic signal recomputation.
+  - `GET /api/v1/researchers/{id}/adaptive-signals/explanation`: Structured aggregate natural language summary.
+- **Next.js App Router Integration**:
+  - `AdaptiveSignalsCard` component featuring dimension/state filters, evidence counts, visual strength bars, deterministic explanations, and recompute action.
+  - Integrated into `UnifiedResearchIntelligenceView` (Section 2.5).
+- **Strict Phase Boundary & Invariants**:
+  - Zero ML models, zero LLMs, zero vector DBs, zero collaborative filtering, zero cross-user profiling.
+  - All 35 safety invariants verified with 17 dedicated tests (`test_adaptive_preference_signals.py`) and 162 regression tests.
+
 #### Future Phase 5 Modules (Planned)
-- **Phase 5.5 — Adaptive & Behavioral Personalization**: Contextual learning, feedback weight integration, and balanced ranking integration.
 - **Phase 5.6 — Faculty Research Opportunities**: Structured listings posted by faculty members for open research slots, thesis topics, and specialized projects.
 - **Phase 5.7 — Collaborative Project Postings**: Multi-student or inter-departmental research project announcements seeking collaborators.
 - **Phase 5.8 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.

@@ -141,8 +141,11 @@ export interface PersonalizationAssessment {
   breakdown: PersonalizationScoreBreakdown;
   explanation: PersonalizationExplanation;
   preference_assessment: PreferencePersonalizationAssessment;
+  adaptive_score?: number;
+  adaptive_contributions?: AdaptivePersonalizationContribution[];
   evaluated_at: string;
 }
+
 
 export interface BatchPersonalizationRequest {
   opportunity_ids: string[];
@@ -215,5 +218,76 @@ export interface ResearcherInteractionSummaryResponse {
   most_recent_interaction?: InteractionResponse | null;
   recent_interactions: InteractionResponse[];
   interaction_strength_signal?: number | null;
+}
+
+// =============================================================================
+// Phase 5.5 — Adaptive Preference Signal Aggregation & Personalization Bridge Types
+// =============================================================================
+
+export type AdaptiveSignalDimension =
+  | "OPPORTUNITY_TYPE"
+  | "DELIVERY_MODE"
+  | "LOCATION"
+  | "PUBLISHER"
+  | "RESEARCH_TOPIC";
+
+export type AdaptiveEvidenceState =
+  | "INSUFFICIENT_EVIDENCE"
+  | "EMERGING"
+  | "ESTABLISHED"
+  | "STRONG"
+  | "CONFLICT";
+
+export interface AdaptivePreferenceSignal {
+  id: string;
+  profile_id: string;
+  dimension: AdaptiveSignalDimension;
+  signal_value: string;
+  positive_evidence_count: number;
+  negative_evidence_count: number;
+  total_evidence_count: number;
+  decay_adjusted_positive_weight: number;
+  decay_adjusted_negative_weight: number;
+  weighted_signal_strength: number;
+  confidence: number;
+  evidence_state: AdaptiveEvidenceState;
+  evidence_window_days: number;
+  latest_evidence_timestamp?: string | null;
+  algorithm_version: string;
+  deterministic_explanation: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AdaptivePersonalizationContribution {
+  dimension: AdaptiveSignalDimension;
+  signal_value: string;
+  signal_strength: number;
+  confidence: number;
+  evidence_state: AdaptiveEvidenceState;
+  weight: number;
+  raw_contribution: number;
+  bounded_contribution: number;
+  explanation: string;
+}
+
+export interface AdaptiveSignalsResponse {
+  profile_id: string;
+  items: AdaptivePreferenceSignal[];
+  total_count: number;
+}
+
+export interface AdaptiveSignalExplanationResponse {
+  profile_id: string;
+  established_signals_count: number;
+  emerging_signals_count: number;
+  insufficient_signals_count: number;
+  conflict_signals_count: number;
+  summary_explanation: string;
+  dimension_explanations: Record<string, string[]>;
+}
+
+export interface AdaptiveSignalRecomputeRequest {
+  force?: boolean;
 }
 

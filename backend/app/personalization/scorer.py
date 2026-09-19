@@ -37,6 +37,15 @@ from app.personalization.models import (
     PreferencePersonalizationAssessment,
     SignalPolarity,
 )
+from app.personalization.adaptive_config import (
+    DEFAULT_ADAPTIVE_CONFIG,
+    AdaptiveSignalConfig,
+)
+from app.personalization.adaptive_engine import AdaptiveSignalEngine
+from app.personalization.adaptive_models import (
+    AdaptivePersonalizationContribution,
+    AdaptivePreferenceSignal,
+)
 from app.personalization.scoring_config import (
     DEFAULT_SCORING_CONFIG,
     PersonalizationScoringConfig,
@@ -62,9 +71,12 @@ class PersonalizationScorer:
         opportunity: OpportunityModel,
         config: PersonalizationScoringConfig = DEFAULT_SCORING_CONFIG,
         preference_assessment: PreferencePersonalizationAssessment | None = None,
+        adaptive_signals: Sequence[AdaptivePreferenceSignal] | None = None,
+        adaptive_config: AdaptiveSignalConfig = DEFAULT_ADAPTIVE_CONFIG,
     ) -> PersonalizationAssessment:
         """
-        Evaluate and score a single opportunity against researcher explicit preferences.
+        Evaluate and score a single opportunity against researcher explicit preferences
+        and bounded Phase 5.5 adaptive preference signals.
 
         Parameters
         ----------
@@ -78,11 +90,15 @@ class PersonalizationScorer:
             Scoring weights and multipliers configuration.
         preference_assessment : PreferencePersonalizationAssessment, optional
             Pre-computed Phase 5.2 assessment (to avoid recomputation if already available).
+        adaptive_signals : Sequence of AdaptivePreferenceSignal, optional
+            Aggregated adaptive preference signals for the researcher.
+        adaptive_config : AdaptiveSignalConfig, optional
+            Adaptive signal scoring configuration.
 
         Returns
         -------
         PersonalizationAssessment
-            Complete score, breakdown, explanations, and underlying signals.
+            Complete score, breakdown, explanations, adaptive contributions, and underlying signals.
         """
         # 1. Obtain Phase 5.2 preference match assessment
         if preference_assessment is None:
@@ -105,7 +121,47 @@ class PersonalizationScorer:
             config=config,
         )
 
-        # 4. Generate structured deterministic explanations
+        # 4. Phase 5.5 — Evaluate additive adaptive contribution
+        adaptive_score = 0.0
+        adaptive_contributions: list[AdaptivePersonalizationContribution] = []
+
+        if adaptive_signals:
+            raw_adaptive_score, adaptive_contributions = AdaptiveSignalEngine.evaluate_opportunity_adaptive_contribution(
+                signals=adaptive_signals,
+                opportunity=opportunity,
+                config=adaptive_config,
+            )
+            # Invariant 13 & 1: Explicit preferences remain authoritative.
+            # If explicit exclusion is present, adaptive signals CANNOT revive the score from 0.0.
+            if (
+                preference_assessment.overall_match_state == PreferenceMatchType.EXCLUDED_MATCH
+                or preference_assessment.excluded_matches_count > 0
+                or score.match_state == PreferenceMatchType.EXCLUDED_MATCH
+            ):
+                adaptive_score = 0.0
+            else:
+                # If explicit PREFERRED matches exist, opposing negative adaptive signals cannot drop the score below 0.50
+                if preference_assessment.positive_matches_count > 0 and raw_adaptive_score < 0.0:
+                    if score.bounded_score >= 0.50:
+                        bounded_adaptive = max(raw_adaptive_score, 0.50 - score.bounded_score)
+                    else:
+                        bounded_adaptive = raw_adaptive_score
+                else:
+                    bounded_adaptive = raw_adaptive_score
+                adaptive_score = round(bounded_adaptive, 4)
+
+        final_personalization_score = round(
+            max(0.0, min(1.0, score.bounded_score + adaptive_score)),
+            4,
+        )
+        if (
+            preference_assessment.overall_match_state == PreferenceMatchType.EXCLUDED_MATCH
+            or preference_assessment.excluded_matches_count > 0
+            or score.match_state == PreferenceMatchType.EXCLUDED_MATCH
+        ):
+            final_personalization_score = 0.0
+
+        # 5. Generate structured deterministic explanations
         explanation = cls._generate_explanation(
             score=score,
             breakdown=breakdown,
@@ -115,11 +171,13 @@ class PersonalizationScorer:
         return PersonalizationAssessment(
             profile_id=profile_id,
             opportunity_id=opportunity.id,
-            personalization_score=score.bounded_score,
+            personalization_score=final_personalization_score,
             score=score,
             breakdown=breakdown,
             explanation=explanation,
             preference_assessment=preference_assessment,
+            adaptive_score=adaptive_score,
+            adaptive_contributions=adaptive_contributions,
             evaluated_at=datetime.now(timezone.utc),
         )
 
@@ -130,9 +188,12 @@ class PersonalizationScorer:
         preferences: Sequence[ResearcherPreferenceItemSchema | ResearcherPreferenceModel] | StructuredPreferencesResponseSchema,
         opportunities: Sequence[OpportunityModel],
         config: PersonalizationScoringConfig = DEFAULT_SCORING_CONFIG,
+        adaptive_signals: Sequence[AdaptivePreferenceSignal] | None = None,
+        adaptive_config: AdaptiveSignalConfig = DEFAULT_ADAPTIVE_CONFIG,
     ) -> dict[uuid.UUID, PersonalizationAssessment]:
         """
-        Score a batch of opportunities in memory against researcher preferences with zero N+1 queries.
+        Score a batch of opportunities in memory against researcher preferences and adaptive signals
+        with zero N+1 queries.
         """
         # 1. Batch evaluate Phase 5.2 preference interpretations
         batch_assessments = PreferenceInterpreter.evaluate_opportunities_batch(
@@ -152,9 +213,12 @@ class PersonalizationScorer:
                     opportunity=opp,
                     config=config,
                     preference_assessment=assessment,
+                    adaptive_signals=adaptive_signals,
+                    adaptive_config=adaptive_config,
                 )
 
         return results
+
 
     # -------------------------------------------------------------------------
     # Internal Calculation & Breakdown Helpers

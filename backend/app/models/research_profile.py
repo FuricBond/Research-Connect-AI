@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
     from app.models.recommendation_history import ResearcherRecommendationSnapshotModel
     from app.models.researcher_interaction import ResearcherInteractionModel
+    from app.models.adaptive_signal import AdaptivePreferenceSignalModel
     from app.models.user import UserModel
 
 
@@ -150,6 +151,10 @@ class ResearchProfileModel(Base, TimestampMixin):
         cascade="all, delete-orphan",
     )
     interactions: Mapped[list["ResearcherInteractionModel"]] = relationship(
+        back_populates="researcher_profile",
+        cascade="all, delete-orphan",
+    )
+    adaptive_signals: Mapped[list["AdaptivePreferenceSignalModel"]] = relationship(
         back_populates="researcher_profile",
         cascade="all, delete-orphan",
     )

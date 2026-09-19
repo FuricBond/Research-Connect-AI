@@ -49,6 +49,9 @@ from app.services.similar_research_service import (
 from app.services.research_intelligence_integration_service import (
     ResearchIntelligenceIntegrationService,
 )
+from app.services.adaptive_signal_service import AdaptivePreferenceSignalService
+from app.services.researcher_interaction_service import ResearcherInteractionService
+
 
 __all__ = [
     # Opportunity service
@@ -95,7 +98,12 @@ __all__ = [
     "PersonalizationExplanationService",
     # Research intelligence integration service (Phase 4.7)
     "ResearchIntelligenceIntegrationService",
+    # Researcher interaction service (Phase 5.4)
+    "ResearcherInteractionService",
+    # Adaptive preference signal service (Phase 5.5)
+    "AdaptivePreferenceSignalService",
 ]
+
 
 
 

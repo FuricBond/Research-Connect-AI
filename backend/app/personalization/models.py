@@ -13,6 +13,8 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.personalization.adaptive_models import AdaptivePersonalizationContribution
+
 
 class PreferenceMatchType(str, Enum):
     """Classification of how an opportunity relates to researcher preferences."""
@@ -329,6 +331,14 @@ class PersonalizationAssessment(BaseModel):
     preference_assessment: PreferencePersonalizationAssessment = Field(
         ...,
         description="Underlying Phase 5.2 preference evaluation",
+    )
+    adaptive_score: float = Field(
+        0.0,
+        description="Additive bounded contribution from Phase 5.5 adaptive preference signals [-0.10, +0.10]",
+    )
+    adaptive_contributions: list[AdaptivePersonalizationContribution] = Field(
+        default_factory=list,
+        description="Dimension-level adaptive preference contributions",
     )
     evaluated_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),

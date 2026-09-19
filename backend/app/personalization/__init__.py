@@ -1,3 +1,14 @@
+from app.personalization.adaptive_config import (
+    DEFAULT_ADAPTIVE_CONFIG,
+    AdaptiveSignalConfig,
+)
+from app.personalization.adaptive_engine import AdaptiveSignalEngine
+from app.personalization.adaptive_models import (
+    AdaptivePersonalizationContribution,
+    AdaptivePreferenceSignal,
+    AdaptiveSignalExplanationResponse,
+    AdaptiveSignalsResponse,
+)
 from app.personalization.interpreter import PreferenceInterpreter
 from app.personalization.models import (
     BatchOpportunityPreferenceMatchRequest,
@@ -42,5 +53,13 @@ __all__ = [
     "PersonalizationAssessment",
     "BatchPersonalizationRequest",
     "BatchPersonalizationResponse",
+    "AdaptivePreferenceSignal",
+    "AdaptivePersonalizationContribution",
+    "AdaptiveSignalsResponse",
+    "AdaptiveSignalExplanationResponse",
+    "AdaptiveSignalConfig",
+    "DEFAULT_ADAPTIVE_CONFIG",
+    "AdaptiveSignalEngine",
 ]
+
 

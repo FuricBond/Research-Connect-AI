@@ -603,6 +603,17 @@ class ResearcherPreferenceService:
             elif cat == PreferenceCategory.CAREER_STAGE.value:
                 academic.career_stage = val
 
+        if summary is None:
+            summary = PreferenceIntelligenceSummarySchema(
+                total_preferences=len(items),
+                explicit_count=len(items),
+            )
+        if completeness is None:
+            completeness = PreferenceCompletenessSchema(
+                score=1.0 if items else 0.0,
+                percentage=100 if items else 0,
+            )
+
         return StructuredPreferencesResponseSchema(
             profile_id=profile_id,
             user_id=user_id,
@@ -617,6 +628,7 @@ class ResearcherPreferenceService:
             completeness=completeness,
             updated_at=datetime.now(timezone.utc),
         )
+
 
     @classmethod
     def get_structured_preferences(
