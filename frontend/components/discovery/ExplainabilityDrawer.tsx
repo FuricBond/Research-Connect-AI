@@ -662,7 +662,7 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                         </div>
                         <div className="signal-card-meta">
                           <span>Field: <strong>{sig.source_field}</strong></span>
-                          {sig.matched_value && <span>Matched: <em>"{sig.matched_value}"</em></span>}
+                          {sig.matched_value && <span>Matched: <em>&ldquo;{sig.matched_value}&rdquo;</em></span>}
                           <span>Strength: <strong>{sig.strength}</strong></span>
                           <span>Confidence: <strong>{sig.confidence}</strong></span>
                           <span className="contrib-val positive-color">Trust Value: +{sig.contribution.toFixed(4)}</span>
@@ -689,7 +689,7 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                         </div>
                         <div className="signal-card-meta">
                           <span>Field: <strong>{sig.source_field}</strong></span>
-                          {sig.matched_value && <span>Matched: <em>"{sig.matched_value}"</em></span>}
+                          {sig.matched_value && <span>Matched: <em>&ldquo;{sig.matched_value}&rdquo;</em></span>}
                           <span>Strength: <strong>{sig.strength}</strong></span>
                           <span>Severity: <strong className={`severity-text ${sig.severity.toLowerCase()}`}>{sig.severity}</strong></span>
                           <span className="contrib-val negative-color">Gross Contrib: +{sig.contribution.toFixed(4)}</span>
@@ -1042,7 +1042,7 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                               <span className="obs-source">
                                 {obs.source} ({obs.authority_tier})
                               </span>
-                              <span className="obs-raw">"{obs.raw_value || obs.normalized_deadline?.local_date}"</span>
+                              <span className="obs-raw">&ldquo;{obs.raw_value || obs.normalized_deadline?.local_date}&rdquo;</span>
                               <span className="obs-parsed">
                                 {obs.normalized_deadline?.local_date} {obs.normalized_deadline?.timezone_name}
                               </span>

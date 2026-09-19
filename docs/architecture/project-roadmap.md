@@ -211,14 +211,17 @@ This document provides the authoritative, comprehensive architectural roadmap an
   - REST API under `/api/v1/notifications`, `/read`, `/dismiss`, `/mark-all-read`, and `/api/v1/researchers/me/notification-preferences`.
   - Next.js App Router Notification Center at `/notifications` and Preferences at `/settings/notifications`.
   - 39 dedicated unit, API, invariant, and performance tests.
-- **Phase 4.6 (Research Management Dashboard — Planned)**:
-  - Unified Next.js App Router command center aggregating:
-    - Upcoming canonical deadlines and preparatory milestones from Phase 4.4 calendar.
-    - Active submissions in flight with live readiness meters and pipeline statuses from Phase 4.2/4.3.
-    - Saved opportunities grouped by workspace stage from Phase 4.1.
-    - Top personalized opportunity recommendations from Phase 3.5.
-    - Unread deadline alerts and reminders from Phase 4.5.
-  - Fast single-request composite dashboard API (`/api/v1/dashboard`) with sub-50ms latency budget.
+- **Phase 4.6 (Collaborative Research Management — Completed)**:
+  - Bounded collaboration model around research workspaces (`SavedOpportunityModel`).
+  - `WorkspaceMemberModel`, `WorkspaceInvitationModel`, `WorkspaceTaskModel`, and `WorkspaceActivityModel`.
+  - Server-side Role-Based Access Control (RBAC) via `WorkspaceAuthorizationService` (`OWNER`, `EDITOR`, `CONTRIBUTOR`, `VIEWER`).
+  - Cryptographic URL-safe invitation lifecycle (create, accept, decline, revoke, expiration) with idempotent acceptance and zero secret leakage.
+  - Workspace-scoped task management with assignment, status, priority, and submission/document linkage.
+  - Append-only structured activity trail and workflow comments.
+  - Phase 4.5 notification pipeline integration for invitations, role changes, and task assignments.
+  - Next.js App Router UI at `/workspace/[id]` with tabbed panels (Overview, Submissions, Tasks, Members, Invitations, Activity & Notes).
+  - 56 dedicated unit, integration, invariant, and performance tests with verified zero N+1 queries.
+  - Non-destructive Alembic migration `0016_phase4_6_collaboration.py`.
 - **Phase 4.7 (Evaluation & Production Hardening — Planned)**:
   - End-to-end workflow verification across multi-user workspaces.
   - Tenant isolation security penetration testing verifying complete separation under concurrent `X-User-ID` requests.
@@ -356,11 +359,18 @@ Research Calendar (Phase 4.4) ──────► Advance Reminders & Alerts (
    - User notification preferences (channels, quiet hours, urgency thresholds) and custom reminder rules (e.g. 14d, 7d, 1d).
    - Accessible via `/api/v1/notifications`, `/notifications`, and `/settings/notifications`.
 
-#### Planned Subsystems (Phases 4.6–4.7)
-1. **Phase 4.6 — Research Management Dashboard**:
-   - Unified Next.js App Router command center aggregating upcoming deadlines, active submissions, readiness checklists, calendar milestones, and personalized recommendations.
-   - Single-request composite dashboard API (`/api/v1/dashboard`) with sub-50ms target response time.
-2. **Phase 4.7 — Evaluation & Production Hardening**:
+6. **Phase 4.6 — Collaborative Research Management**:
+   - Bounded collaboration model around research workspaces (`SavedOpportunityModel`).
+   - `WorkspaceMemberModel`, `WorkspaceInvitationModel`, `WorkspaceTaskModel`, and `WorkspaceActivityModel`.
+   - Server-side RBAC (`OWNER`, `EDITOR`, `CONTRIBUTOR`, `VIEWER`) via `WorkspaceAuthorizationService`.
+   - Secure invitation lifecycle with expiration, revocation, and idempotent token-based acceptance.
+   - Workspace tasks with assignment, status tracking, and linked submission/document artifacts.
+   - Append-only structured activity trail and workflow notes.
+   - Phase 4.5 notification integration for invitations, role changes, and task assignments.
+   - Accessible via `/api/v1/workspaces/{id}/members`, `/invitations`, `/tasks`, `/activity` and `/workspace/[id]`.
+
+#### Planned Subsystems (Phase 4.7)
+1. **Phase 4.7 — Evaluation & Production Hardening**:
    - Multi-user isolation verification, audit trail tamper-resistance tests, database query plan optimization, high-concurrency stress testing, and production deployment configuration.
 
 ---

@@ -269,6 +269,23 @@ class WorkspaceService:
         db.add(new_item)
         db.flush()
 
+        # Phase 4.6: Seed OWNER membership for workspace creator if table exists
+        try:
+            from sqlalchemy import inspect
+            conn = db.connection()
+            if "workspace_members" in inspect(conn).get_table_names():
+                from app.models.workspace_collaboration import MemberStatus, WorkspaceMemberModel, WorkspaceRole
+                owner_member = WorkspaceMemberModel(
+                    workspace_id=new_item.id,
+                    user_id=resolved_user_id,
+                    role=WorkspaceRole.OWNER.value,
+                    status=MemberStatus.ACTIVE.value,
+                    joined_at=now,
+                )
+                db.add(owner_member)
+        except Exception as exc:
+            logger.debug(f"Could not seed workspace owner: {exc}")
+
         # 4. Synchronize Phase 3.6 feedback loop if profile exists
         try:
             profile = db.execute(
@@ -322,7 +339,10 @@ class WorkspaceService:
             return None
 
         if item.user_id != resolved_user_id:
-            raise PermissionError("Forbidden: You do not have permission to access this workspace item.")
+            from app.services.workspace_authorization_service import WorkspaceAuthorizationService
+            member = WorkspaceAuthorizationService.get_member(db, item.id, resolved_user_id)
+            if member is None:
+                raise PermissionError("Forbidden: You do not have permission to access this workspace item.")
 
         return item
 
@@ -489,6 +509,13 @@ class WorkspaceService:
         if item is None:
             raise ValueError(f"Workspace item with ID '{item_id}' not found.")
 
+        resolved_user_id = cls.resolve_user_id(db, user_id)
+        if item.user_id != resolved_user_id:
+            from app.services.workspace_authorization_service import WorkspaceAuthorizationService
+            member = WorkspaceAuthorizationService.get_member(db, item.id, resolved_user_id)
+            if member is None or not WorkspaceAuthorizationService.can_edit(member):
+                raise PermissionError("Forbidden: You must be an owner or editor to update this workspace item.")
+
         now = datetime.now(timezone.utc)
         if payload.priority is not None:
             item.priority = payload.priority.value
@@ -519,6 +546,13 @@ class WorkspaceService:
         item = cls.get_workspace_item(db, user_id, item_id)
         if item is None:
             raise ValueError(f"Workspace item with ID '{item_id}' not found.")
+
+        resolved_user_id = cls.resolve_user_id(db, user_id)
+        if item.user_id != resolved_user_id:
+            from app.services.workspace_authorization_service import WorkspaceAuthorizationService
+            member = WorkspaceAuthorizationService.get_member(db, item.id, resolved_user_id)
+            if member is None or not WorkspaceAuthorizationService.can_edit(member):
+                raise PermissionError("Forbidden: You must be an owner or editor to transition workspace state.")
 
         current_status = WorkspaceStatus(item.status)
 
@@ -599,8 +633,14 @@ class WorkspaceService:
         if item is None:
             raise ValueError(f"Workspace item with ID '{item_id}' not found.")
 
+        resolved_user_id = cls.resolve_user_id(db, user_id)
+        if item.user_id != resolved_user_id:
+            from app.services.workspace_authorization_service import WorkspaceAuthorizationService
+            member = WorkspaceAuthorizationService.get_member(db, item.id, resolved_user_id)
+            if member is None or not WorkspaceAuthorizationService.can_manage_workspace(member):
+                raise PermissionError("Forbidden: Only the workspace owner can remove or delete this workspace item.")
+
         # If it was in SAVED status, clean up SAVE feedback in Phase 3.6
-        resolved_user_id = item.user_id
         opp_id = item.opportunity_id
         if item.status == WorkspaceStatus.SAVED.value:
             try:

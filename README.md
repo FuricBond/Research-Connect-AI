@@ -236,12 +236,12 @@ researchconnect-ai/
 |---|---|---|
 | **4.0** | **Architecture & Roadmap Alignment** (Repository audit, Next.js baseline formalization, roadmap alignment, domain model decision criteria) | ✅ Complete |
 | **4.1** | **Opportunity Workspace** (Multi-stage workspace tracking: SAVED, CONSIDERING, PLANNING, APPLIED, ACCEPTED, REJECTED, ARCHIVED; REST API, Next.js UI) | ✅ Complete |
-| **4.2** | **Submission & Application Tracker** (`ResearchSubmission` model, manuscript lifecycle: DRAFT to DECISION, target deadlines, milestones) | ⚪ Planned / Not Implemented |
-| **4.3** | **Application History & Audit** (Immutable event audit logging, stage transition history, personal productivity metrics) | ⚪ Planned / Not Implemented |
-| **4.4** | **Research Calendar & Deadline Planning** (Timeline visualizer powered by Phase 2.7 canonical deadlines, milestone scheduling, iCal export) | ⚪ Planned / Not Implemented |
-| **4.5** | **Notifications & Alerts** (Canonical deadline alert triggers, deadline revision notifications, notification preference management) | ⚪ Planned / Not Implemented |
-| **4.6** | **Research Management Dashboard** (Unified Next.js App Router command center aggregating deadlines, active submissions, saved opportunities) | ⚪ Planned / Not Implemented |
-| **4.7** | **Evaluation & Production Hardening** (Multi-user isolation verification, audit trail verification, database query performance, stress testing) | ⚪ Planned / Not Implemented |
+| **4.2** | **Submission & Application Tracker** (`ResearchSubmissionModel`, manuscript lifecycle: DRAFT to DECISION/WITHDRAWN, target deadlines, milestones) | ✅ Complete |
+| **4.3** | **Submission Documents & Readiness Engine** (Document lifecycle, immutable SHA-256 versioning, `SubmissionReadinessEngine` gating, audit events) | ✅ Complete |
+| **4.4** | **Research Calendar & Deadline Planning** (`ResearchCalendarModel`, canonical deadline projection, custom planning events, RFC 5545 `.ics` export, visual calendar) | ✅ Complete |
+| **4.5** | **Deadline Reminders, Notifications & Scheduled Alerts** (Multi-channel delivery, deterministic SHA-256 deduplication, zero N+1 scheduler, notification center & preferences) | ✅ Complete |
+| **4.6** | **Collaborative Research Management** (Workspace members & RBAC, cryptographic invitations, collaborative tasks, append-only activity feed, Next.js `/workspace/[id]` collaboration UI) | ✅ Complete |
+| **4.7** | **Evaluation & Production Hardening** (Multi-user isolation verification, audit trail verification, database query performance, stress testing) | ⚪ Planned |
 
 ---
 

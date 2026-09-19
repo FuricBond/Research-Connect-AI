@@ -220,7 +220,10 @@ class ResearchSubmissionService:
             raise ValueError(f"Workspace opportunity with ID '{payload.workspace_item_id}' not found.")
 
         if ws_item.user_id != resolved_user_id:
-            raise PermissionError("Forbidden: You do not have permission to attach a submission to this workspace item.")
+            from app.services.workspace_authorization_service import WorkspaceAuthorizationService
+            member = WorkspaceAuthorizationService.get_member(db, ws_item.id, resolved_user_id)
+            if member is None or not WorkspaceAuthorizationService.can_edit(member):
+                raise PermissionError("Forbidden: You do not have permission to attach a submission to this workspace item.")
 
         now = datetime.now(timezone.utc)
         submission = ResearchSubmissionModel(
@@ -287,7 +290,10 @@ class ResearchSubmissionService:
             return None
 
         if submission.workspace_item.user_id != resolved_user_id:
-            raise PermissionError("Forbidden: You do not have permission to access this research submission.")
+            from app.services.workspace_authorization_service import WorkspaceAuthorizationService
+            member = WorkspaceAuthorizationService.get_member(db, submission.workspace_item_id, resolved_user_id)
+            if member is None:
+                raise PermissionError("Forbidden: You do not have permission to access this research submission.")
 
         return submission
 
@@ -432,6 +438,13 @@ class ResearchSubmissionService:
         if submission is None:
             raise ValueError(f"Research submission with ID '{submission_id}' not found.")
 
+        resolved_user_id = cls.resolve_user_id(db, user_id)
+        if submission.workspace_item.user_id != resolved_user_id:
+            from app.services.workspace_authorization_service import WorkspaceAuthorizationService
+            member = WorkspaceAuthorizationService.get_member(db, submission.workspace_item_id, resolved_user_id)
+            if member is None or not WorkspaceAuthorizationService.can_edit(member):
+                raise PermissionError("Forbidden: You must be an owner or editor to update this research submission.")
+
         now = datetime.now(timezone.utc)
         if payload.title is not None:
             submission.title = payload.title.strip()
@@ -487,6 +500,13 @@ class ResearchSubmissionService:
         submission = cls.get_submission(db, user_id, submission_id)
         if submission is None:
             raise ValueError(f"Research submission with ID '{submission_id}' not found.")
+
+        resolved_user_id = cls.resolve_user_id(db, user_id)
+        if submission.workspace_item.user_id != resolved_user_id:
+            from app.services.workspace_authorization_service import WorkspaceAuthorizationService
+            member = WorkspaceAuthorizationService.get_member(db, submission.workspace_item_id, resolved_user_id)
+            if member is None or not WorkspaceAuthorizationService.can_edit(member):
+                raise PermissionError("Forbidden: You must be an owner or editor to transition submission status.")
 
         current_status = SubmissionStatus(submission.status)
 
@@ -618,6 +638,13 @@ class ResearchSubmissionService:
         submission = cls.get_submission(db, user_id, submission_id)
         if submission is None:
             raise ValueError(f"Research submission with ID '{submission_id}' not found.")
+
+        resolved_user_id = cls.resolve_user_id(db, user_id)
+        if submission.workspace_item.user_id != resolved_user_id:
+            from app.services.workspace_authorization_service import WorkspaceAuthorizationService
+            member = WorkspaceAuthorizationService.get_member(db, submission.workspace_item_id, resolved_user_id)
+            if member is None or not WorkspaceAuthorizationService.can_manage_workspace(member):
+                raise PermissionError("Forbidden: Only the workspace owner can delete submissions.")
 
         if submission.status not in {SubmissionStatus.DRAFT.value, SubmissionStatus.WITHDRAWN.value}:
             raise InvalidSubmissionTransitionError(

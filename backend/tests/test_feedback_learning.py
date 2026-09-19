@@ -106,6 +106,10 @@ def db_session() -> Session:
         Base.metadata.tables["researcher_interests"],
         Base.metadata.tables["researcher_preferences"],
         Base.metadata.tables["researcher_recommendation_feedback"],
+        Base.metadata.tables["workspace_members"],
+        Base.metadata.tables["workspace_invitations"],
+        Base.metadata.tables["workspace_tasks"],
+        Base.metadata.tables["workspace_activities"],
     ]
     Base.metadata.create_all(bind=engine, tables=target_tables)
     session_factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -57,6 +57,18 @@ from app.models.notification import (
     OffsetUnit,
     ReminderRuleModel,
 )
+from app.models.workspace_collaboration import (
+    ActivityType,
+    InvitationStatus,
+    MemberStatus,
+    TaskPriority,
+    TaskStatus,
+    WorkspaceActivityModel,
+    WorkspaceInvitationModel,
+    WorkspaceMemberModel,
+    WorkspaceRole,
+    WorkspaceTaskModel,
+)
 
 __all__ = [
     "Base",
@@ -100,6 +112,17 @@ __all__ = [
     "DeliveryStatus",
     "OffsetUnit",
     "IngestionRunModel",
+    # Collaboration (Phase 4.6)
+    "WorkspaceRole",
+    "MemberStatus",
+    "InvitationStatus",
+    "TaskStatus",
+    "TaskPriority",
+    "ActivityType",
+    "WorkspaceMemberModel",
+    "WorkspaceInvitationModel",
+    "WorkspaceTaskModel",
+    "WorkspaceActivityModel",
     # Research knowledge (Phase 2.2A / 2.2B / 2.3A)
     "ResearcherModel",
     "ResearchSourceModel",

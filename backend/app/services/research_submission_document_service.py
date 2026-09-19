@@ -60,10 +60,11 @@ class ResearchSubmissionDocumentService:
         db: Session,
         user_id: uuid.UUID,
         submission_id: uuid.UUID,
+        min_role: str = "VIEWER",
     ) -> tuple[ResearchSubmissionModel, uuid.UUID]:
         """
-        Validates researcher ownership of a submission.
-        Raises ValueError if not found, PermissionError if owned by another researcher.
+        Validates researcher ownership or workspace membership of a submission.
+        Raises ValueError if not found, PermissionError if not authorized.
         """
         resolved_user_id = cls.resolve_user_id(db, user_id)
 
@@ -79,7 +80,16 @@ class ResearchSubmissionDocumentService:
             raise ValueError(f"Research submission with ID '{submission_id}' not found.")
 
         if submission.workspace_item.user_id != resolved_user_id:
-            raise PermissionError("Forbidden: You do not have permission to access this research submission.")
+            from app.services.workspace_authorization_service import WorkspaceAuthorizationService
+            member = WorkspaceAuthorizationService.get_member(db, submission.workspace_item_id, resolved_user_id)
+            if member is None:
+                raise PermissionError("Forbidden: You do not have permission to access this research submission.")
+            if min_role == "EDITOR" and not WorkspaceAuthorizationService.can_edit(member):
+                raise PermissionError("Forbidden: You must be an owner or editor to perform this action.")
+            if min_role == "CONTRIBUTOR" and not WorkspaceAuthorizationService.can_contribute(member):
+                raise PermissionError("Forbidden: You must be an owner, editor, or contributor to perform this action.")
+            if min_role == "OWNER" and not WorkspaceAuthorizationService.can_manage_workspace(member):
+                raise PermissionError("Forbidden: Only the workspace owner can perform this action.")
 
         return submission, resolved_user_id
 
@@ -124,7 +134,7 @@ class ResearchSubmissionDocumentService:
         Creates a new document artifact for a submission.
         Initializes version 1 and logs an audit event.
         """
-        submission, resolved_user_id = cls.validate_submission_ownership(db, user_id, submission_id)
+        submission, resolved_user_id = cls.validate_submission_ownership(db, user_id, submission_id, min_role="CONTRIBUTOR")
 
         now = datetime.now(timezone.utc)
         doc_status = payload.status.value if hasattr(payload.status, "value") else str(payload.status)
@@ -292,7 +302,7 @@ class ResearchSubmissionDocumentService:
         Partially updates a document.
         If create_new_version is True, preserves history and creates an immutable snapshot.
         """
-        submission, resolved_user_id = cls.validate_submission_ownership(db, user_id, submission_id)
+        submission, resolved_user_id = cls.validate_submission_ownership(db, user_id, submission_id, min_role="CONTRIBUTOR")
 
         doc = db.execute(
             select(ResearchSubmissionDocumentModel)
@@ -430,7 +440,7 @@ class ResearchSubmissionDocumentService:
         Permanently removes a document and its version history.
         Logs an audit event.
         """
-        submission, resolved_user_id = cls.validate_submission_ownership(db, user_id, submission_id)
+        submission, resolved_user_id = cls.validate_submission_ownership(db, user_id, submission_id, min_role="EDITOR")
 
         doc = db.execute(
             select(ResearchSubmissionDocumentModel).where(

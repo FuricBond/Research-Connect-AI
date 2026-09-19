@@ -14,6 +14,7 @@ from app.api.v1.notifications import router as notifications_router
 from app.api.v1.researchers import router as researchers_router
 from app.api.v1.submissions import router as submissions_router
 from app.api.v1.workspace import router as workspace_router
+from app.api.v1.workspace_collaboration import router as workspace_collaboration_router
 from app.core.cache import DiscoveryResponseCacheMiddleware
 from app.core.config import settings
 from app.core.rate_limiter import DiscoveryRateLimitMiddleware
@@ -60,6 +61,8 @@ app.include_router(calendar_router, prefix="/api/v1")
 app.include_router(calendar_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api/v1")
 app.include_router(notifications_router, prefix="/api")
+app.include_router(workspace_collaboration_router, prefix="/api/v1")
+app.include_router(workspace_collaboration_router, prefix="/api")
 
 
 

@@ -15,6 +15,12 @@ if TYPE_CHECKING:
     from app.models.opportunity import OpportunityModel
     from app.models.research_submission import ResearchSubmissionModel
     from app.models.user import UserModel
+    from app.models.workspace_collaboration import (
+        WorkspaceActivityModel,
+        WorkspaceInvitationModel,
+        WorkspaceMemberModel,
+        WorkspaceTaskModel,
+    )
 
 
 class WorkspaceStatus(str, Enum):
@@ -150,6 +156,23 @@ class SavedOpportunityModel(Base):
     submissions: Mapped[list["ResearchSubmissionModel"]] = relationship(
         back_populates="workspace_item",
         cascade="all, delete-orphan",
+    )
+    members: Mapped[list["WorkspaceMemberModel"]] = relationship(
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+    )
+    invitations: Mapped[list["WorkspaceInvitationModel"]] = relationship(
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+    )
+    tasks: Mapped[list["WorkspaceTaskModel"]] = relationship(
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+    )
+    activities: Mapped[list["WorkspaceActivityModel"]] = relationship(
+        back_populates="workspace",
+        cascade="all, delete-orphan",
+        order_by="desc(WorkspaceActivityModel.created_at)",
     )
 
 
