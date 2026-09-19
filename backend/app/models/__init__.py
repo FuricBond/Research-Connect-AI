@@ -47,6 +47,16 @@ from app.models.calendar import (
     ResearchCalendarEventModel,
     ResearchCalendarModel,
 )
+from app.models.notification import (
+    DeliveryChannel,
+    DeliveryStatus,
+    NotificationDeliveryAttemptModel,
+    NotificationModel,
+    NotificationPreferenceModel,
+    NotificationType,
+    OffsetUnit,
+    ReminderRuleModel,
+)
 
 __all__ = [
     "Base",
@@ -81,6 +91,14 @@ __all__ = [
     "ResearchCalendarEventModel",
     "CalendarEventType",
     "CalendarEventStatus",
+    "NotificationModel",
+    "NotificationPreferenceModel",
+    "ReminderRuleModel",
+    "NotificationDeliveryAttemptModel",
+    "NotificationType",
+    "DeliveryChannel",
+    "DeliveryStatus",
+    "OffsetUnit",
     "IngestionRunModel",
     # Research knowledge (Phase 2.2A / 2.2B / 2.3A)
     "ResearcherModel",

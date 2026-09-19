@@ -1,186 +1,400 @@
-# ResearchConnect AI — Development Roadmap
+# ResearchConnect AI — Development Roadmap & System Architecture
 
-This document outlines the planned architecture and modular development roadmap for **ResearchConnect AI**. The project follows a clean, maintainable modular structure designed for a collaborative final-year project team, avoiding unnecessary distributed systems or MLOps overhead while maintaining high code quality and clear separation of concerns.
-
-### Implementation Status:
-- **Phase 1 (Foundation)**: COMPLETE (PostgreSQL + pgvector, core models, opportunity API)
-- **Phase 2.1 (Ingestion Hardening)**: COMPLETE (WikiCFP source, validation, deduplication, change detection, audit tracking)
-- **Phase 2.2A (Research Knowledge - OpenAlex)**: COMPLETE (OpenAlex API, research_works, researchers, research_sources, institutions)
-- **Phase 2.2B (Research Knowledge - Crossref)**: COMPLETE (Crossref API, DOI canonicalization, non-destructive matching & enrichment, citation fields)
-- **Phase 2.3A (Topic & Taxonomy Intelligence)**: COMPLETE (Canonical taxonomy DAG, aliases, OpenAlex/Crossref mapping, deterministic keyword extraction, multi-evidence scoring)
-- **Phase 2.3B (Semantic Embeddings + pgvector)**: COMPLETE (384-dim all-MiniLM-L6-v2 embeddings, content hashing, HNSW vector indexes)
-- **Phase 2.4A (Vector Retrieval Foundation)**: COMPLETE (pgvector cosine retrieval, candidate limits, metadata filtering, entity exclusion)
-- **Phase 2.4B (Hybrid Search & Candidate Fusion)**: COMPLETE (PostgreSQL weighted FTS, Reciprocal Rank Fusion, dual-path candidate merging)
-- **Phase 2.4C (Similar Research Retrieval)**: COMPLETE (Multi-signal similarity, topic overlap, taxonomy DAG proximity, deterministic ranking, self-exclusion)
-- **Phase 2.4D (Research ↔ Opportunity Matching)**: COMPLETE (Multi-signal matching, publication type compatibility, taxonomy DAG proximity, deterministic ranking, filter propagation)
-- **Phase 2.4E (Hybrid Ranking Engine)**: COMPLETE (Reusable multi-signal ranker, publication recency freshness, deadline urgency, weight validation, deterministic tie-breaking)
-- **Phase 2.4F (Explainable Results)**: COMPLETE (Structured machine-readable signal attributions, qualitative summaries, strengths and limitations, deterministic zero-LLM reasoning)
-- **Phase 2.4G (FastAPI Discovery Layer)**: COMPLETE (Versioned REST API, Pydantic schemas, parameter validation, error mapping, hybrid ranking & explainability integration)
-- **Phase 2.4H (Testing, Benchmarking & Documentation)**: COMPLETE (IR metrics, 16-scenario benchmark dataset, Vector vs Lexical vs Hybrid evaluation, latency & concurrency profiling, discovery architecture documentation)
-- **Phase 2.4 (Discovery & Intelligent Search)**: **COMPLETE** (All 8 subphases 2.4A–2.4H implemented, tested with 573 passing tests, and documented)
-- **Phase 2.4+ Advancement**:
-  - **Phase 2.4I (Full-Text GIN Indexing & Query Intelligence)**: COMPLETE (Stored tsvectors, GIN indexes, academic acronym expansion, 589 tests)
-  - **Phase 2.4J (Ranking Hardening & Opportunity Quality Signals)**: COMPLETE (Indexing tier evaluation, predatory risk penalties, status reliability, relevance dominance, 630 tests)
-  - **Phase 2.4K (Frontend Discovery Experience & Production Hardening)**: COMPLETE (React discovery UI, similar research explorer, opportunity matcher, explainability drawer, rate limiting, caching, 634 tests)
-- **Phase 2.5 (Ranking & Recommendation Optimization)**: **COMPLETE** (All subphases 2.5A–2.5G implemented, tested, and empirically evaluated)
-- **Phase 2.6 (Predatory & Suspicious Detection)**: **COMPLETE**
-  - **Phase 2.6A (Architecture & Data Audit)**: COMPLETE
-  - **Phase 2.6B (Risk Evidence Extraction & Pattern Matchers)**: COMPLETE
-  - **Phase 2.6C (Deterministic Risk Scoring Engine)**: COMPLETE
-  - **Phase 2.6D (Venue / Publisher Intelligence & Cross-Source Resolution)**: COMPLETE
-  - **Phase 2.6E (Suspicious Pattern & Graph Signals)**: COMPLETE
-  - **Phase 2.6F (Explainability & Discovery UI Integration)**: COMPLETE
-  - **Phase 2.6G (Evaluation & False-Positive Hardening)**: COMPLETE
-- **Phase 2.7 (Deadline Intelligence & Urgency Engine)**: **COMPLETE** (Subphases 2.7A–2.7G implemented, tested, and empirically evaluated)
-- **Phase 3 (Personalized Researcher Intelligence & Recommendations)**:
-  - **Phase 3.1 (Researcher Profile Foundation)**: **COMPLETE** (Canonical profile model, external identifier normalization, institution linking, profile completeness, service, REST API, Next.js UI)
-  - **Phase 3.2 (Research Interest Intelligence)**: **COMPLETE** (Structured interests and expertise extraction, deterministic strength and confidence scoring, bounded recency signal, zero N+1 queries, provenance, REST API, Next.js UI)
-  - **Phase 3.3 (Personal Preference Intelligence)**: **COMPLETE** (Canonical preference model, explicit preferences CRUD, activity-based inference from saved opportunities, derived expertise candidates, contradiction detection, completeness scoring, zero N+1 queries, provenance, REST API, Next.js UI)
-  - **Phase 3.4 (Personalized Candidate Generation)**: **COMPLETE** (Multi-channel candidate retrieval across explicit preferences, learned topics, and author expertise, fallback guarantees, provenance tracing, REST API, Next.js UI)
-  - **Phase 3.5 (Personalized Hybrid Ranking)**: **COMPLETE** (Dedicated personalization ranking layer, bounded adjustment <= 0.15, relevance dominance and damping, Phase 2.6 risk & Phase 2.7 deadline preservation, multi-key deterministic tie-breaking, R0 vs R1 ablation diagnostics, zero N+1 queries, REST API, Next.js diagnostic preview UI)
-  - **Phase 3.6 (Feedback & Recommendation Learning Loop)**: **COMPLETE** (Controlled feedback loop, bounded deterministic preference/interest adjustments, exponential decay, reversible signals, REST API, Next.js feedback UI)
-  - **Phase 3.7 (Recommendation History & Evaluation)**: **COMPLETE** (Reproducible recommendation snapshots, deterministic ranking versioning, offline IR evaluation metrics, data sufficiency classifications, zero N+1 queries, REST API, Next.js history & evaluation UI)
-  - **Phase 3.8 (Personalization Explainability & Researcher UI)**: **COMPLETE** (Grounded recommendation explanations, signal priority hierarchy, score consistency invariants, safety dominance, historical snapshot explanation immutability, researcher personalization summary, Why this? modal, Next.js UI)
-  - **Phase 3.9 (Evaluation, Ablation & Hardening)**: **COMPLETE** (Offline R0/R1/R2 IR evaluation, 10-state segmented evaluation, deterministic 6-signal ablation matrix, parameter sensitivity stability, 15-scenario adversarial safety matrix A–O, mathematical system invariants, strict X-User-ID ownership security across all 16 endpoints, 10–200 candidate performance benchmarks with zero N+1 queries, full architecture documentation)
-- **Phase 4 (Research Management & Researcher Workflow)**:
-  - **Phase 4.0 (Architecture & Roadmap Alignment)**: **COMPLETE** (Full repository audit, Next.js App Router baseline confirmation, canonical roadmap alignment, domain model decision criteria, invariant specification)
-  - **Phase 4.1 (Opportunity Workspace)**: **COMPLETE** (Researcher-scoped workspace states: SAVED, CONSIDERING, PLANNING, APPLIED, ACCEPTED, REJECTED, ARCHIVED; deterministic state machine transitions, strict X-User-ID researcher isolation, Alembic migration 0011, REST API under /api/v1/workspace, Next.js App Router UI at /workspace, 16 unit & API tests, zero N+1 queries, backward compatibility with Phase 3.6 feedback)
-  - **Phase 4.2 (Submission & Application Tracker)**: **COMPLETE** (Canonical ResearchSubmissionModel 1:N with SavedOpportunityModel, deterministic 7-state lifecycle machine DRAFT → READY → SUBMITTED → UNDER_REVIEW → ACCEPTED / REJECTED with WITHDRAWN, workspace status synchronization rules, Phase 2.7 deadline intelligence integration, opaque external tracking IDs/URLs, Alembic migration 0012, REST API under /api/v1/submissions and /api/v1/workspace/{id}/submissions, Next.js App Router UI at /workspace/[id]/submission with visual pipeline stepper, strict X-User-ID tenant isolation, zero N+1 queries, 20 dedicated unit & API tests, full regression suite passing)
-  - **Phase 4.3 (Application History & Audit)**: PLANNED / NOT IMPLEMENTED (Immutable event logging, stage transition audit trail, personal academic productivity analytics)
-  - **Phase 4.4 (Research Calendar & Deadline Planning)**: PLANNED / NOT IMPLEMENTED (Powered strictly by Phase 2.7 canonical deadlines, milestone scheduling, iCal feed export, Google Calendar integration)
-  - **Phase 4.5 (Notifications & Alerts)**: PLANNED / NOT IMPLEMENTED (Canonical deadline alert triggers, deadline revision alerts, notification preferences, in-app notification center)
-  - **Phase 4.6 (Research Management Dashboard)**: PLANNED / NOT IMPLEMENTED (Unified Next.js App Router command center combining deadlines, active submissions, saved opportunities, personalized recommendations)
-  - **Phase 4.7 (Evaluation & Production Hardening)**: PLANNED / NOT IMPLEMENTED (E2E workflow testing, multi-user isolation verification, audit trail verification, database query performance, stress testing)
+This document provides the authoritative, comprehensive architectural roadmap and implementation log for **ResearchConnect AI**. The platform is built with a modular, clean-architecture design suited for high-impact research discovery, academic intelligence, and lifecycle management—avoiding speculative distributed systems or MLOps overhead while maintaining uncompromising code quality, deterministic mathematical guarantees, and strict separation of concerns.
 
 ---
 
-## 1. Data & Discovery
-Focuses on acquiring, sanitizing, and maintaining accurate, fresh data on academic and research opportunities across various publication venues.
+## Executive Implementation Status
 
-- **Conference Discovery**: Automated discovery and indexing of peer-reviewed conferences across disciplines.
-- **Journal Discovery**: Identification of academic journals with verified indexing details and publication cycles.
-- **CFP & Workshop Discovery**: Tracking of special calls for papers (CFPs), symposiums, and workshop deadlines.
-- **Web Scraping**: Resilient data scrapers using `Requests` and `BeautifulSoup` (with `Playwright` reserved for JavaScript-heavy pages).
-- **Data Cleaning**: Stripping formatting artifacts, noise, invalid HTML, and normalizing date/text formats.
-- **Normalization**: Standardizing opportunity metadata (dates, topics, venue types, submission URLs) into consistent schemas.
-- **Validation**: Schema-level validation and completeness checks before ingestion into the primary database.
-- **Duplicate Detection**: Identifying overlapping submissions or duplicate listings across multiple feeds.
-- **Change Detection**: Detecting revisions in deadlines, venue locations, or submission guidelines.
-- **Data Freshness**: Routine checks and TTL management to archive expired opportunities.
-- **Source Reliability**: Tracking and rating the historical accuracy and uptime of source feeds.
-
----
-
-## 2. Research Intelligence
-Extracts contextual understanding from user inputs (abstracts, drafts, profiles) and research domain taxonomies.
-
-- **Research Profile**: Structured user profile capturing current domains, methodologies, publications, and interests.
-- **Research Topic Extraction**: Semantic topic identification from uploaded abstracts or research summaries.
-- **Abstract Analysis**: Deep parsing of manuscript drafts or abstracts to extract core themes and contributions.
-- **Keyword Extraction**: Automated extraction of domain-specific keywords and phrases.
-- **Domain/Sub-Domain Classification**: Hierarchical categorization of research areas (e.g., Computer Science -> NLP -> Information Retrieval).
-- **Literature Discovery**: Contextual suggestions of relevant prior work and foundational literature.
-- **Research Trend Analysis**: Identifying trending research topics and emerging themes across venues.
-- **Research Gap Suggestions**: Identifying under-explored niches and potential intersections in chosen topics.
-- **Research Roadmap**: Generating step-by-step milestones for manuscript preparation and targeted submission.
+| Phase | Subsystem / Focus | Status | Key Deliverables & Capabilities | Verification |
+| :--- | :--- | :---: | :--- | :---: |
+| **Phase 1** | Foundation & Core Storage | **COMPLETE** | PostgreSQL + pgvector, SQLAlchemy 2.0, Alembic migrations, Opportunity & User models, REST API CRUD, Docker Compose | Verified |
+| **Phase 2.1** | Ingestion Hardening | **COMPLETE** | WikiCFP scrapers, schema validation, deduplication, change detection, audit tracking, error recovery | Verified |
+| **Phase 2.2** | Academic Knowledge Integration | **COMPLETE** | OpenAlex & Crossref ingestion, relational entities (`research_works`, `researchers`, `institutions`), DOI canonicalization | Verified |
+| **Phase 2.3** | Taxonomy & Semantic Embeddings | **COMPLETE** | 36-node canonical CS taxonomy DAG, deterministic keyword extraction, 384-dim `all-MiniLM-L6-v2` embeddings, HNSW index | Verified |
+| **Phase 2.4** | Discovery & Intelligent Search | **COMPLETE** | Hybrid FTS + pgvector HNSW retrieval, Reciprocal Rank Fusion ($k=60$), similar research, match engine, zero-LLM explainer | 634 Tests |
+| **Phase 2.5** | Recommendation Ranking & Features | **COMPLETE** | Academic feature extraction, $\ge 85\%$ relevance dominance, mode presets, diversity/novelty (MMR/HHI), 108-query benchmark | 714 Tests |
+| **Phase 2.6** | Trust & Predatory Detection | **COMPLETE** | Heuristic evidence extractors, deterministic 0–100 risk scoring, publisher verification (DOAJ/Crossref), academic trust graph | 100% Reputable Precision |
+| **Phase 2.7** | Deadline Intelligence & Urgency | **COMPLETE** | Multi-milestone taxonomy, UTC/AoE normalization, authority hierarchy conflict resolution, revision tracking, urgency decay | 20 Invariants Passed |
+| **Phase 3** | Personalized Researcher Intelligence | **COMPLETE** | Researcher profile foundation, interest/expertise extraction, preference inference, personalized candidate gen, feedback loop | 845 Tests |
+| **Phase 4.0** | Workflow Architecture & Alignment | **COMPLETE** | Comprehensive codebase audit, Next.js App Router baseline, domain boundary specifications, lifecycle state machines | Verified |
+| **Phase 4.1** | Opportunity Workspace | **COMPLETE** | 7 workspace lifecycle states, notes/tags, X-User-ID tenant isolation, Alembic migration 0011, `/workspace` UI | 16 Tests |
+| **Phase 4.2** | Submission & Application Tracker | **COMPLETE** | Canonical `ResearchSubmissionModel` (1:N), 7-state lifecycle machine, Phase 2.7 deadline grounding, migration 0012, visual stepper UI | 20 Tests |
+| **Phase 4.3** | Document Workflow & Readiness | **COMPLETE** | Document lifecycle & categories, immutable SHA-256 versioning, Submission Readiness Engine, audit trails, migration 0013, doc console UI | 26 Tests |
+| **Phase 4.4** | Research Calendar & iCal Export | **COMPLETE** | Calendar & event models, Phase 2.7 canonical deadline projection, user planning events, deterministic RFC 5545 `.ics` export, migration 0014, `/calendar` UI | 28 Tests |
+| **Phase 4.5** | Deadline Reminders & Alerts | **COMPLETE** | Preference & reminder models, in-app & email providers, SHA-256 deduplication, zero N+1 scheduler (0.73ms/user), migration 0015, `/notifications` UI | 39 Tests |
+| **Phase 4.6** | Research Management Dashboard | **PLANNED** | Unified command center aggregating active submissions, upcoming deadlines, preparation milestones, saved opportunities, and recommendations | Target: Next.js App Router |
+| **Phase 4.7** | Evaluation & Production Hardening | **PLANNED** | Multi-user isolation stress testing, end-to-end workflow benchmarks, audit trail tamper verification, database query profiling | Target: Production Release |
+| **Phase 5** | Community & Collaboration | **PLANNED** | Faculty research slots, collaborative project postings, research internships, RA openings, peer discovery | Planned |
+| **Phase 6** | Platform Infrastructure & Governance | **IN PROGRESS** | Role-Based Access Control (Student/Faculty/Admin), JWT/OAuth, rate limiting, structured logging, Docker production specs | Continuous |
+| **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,008+ Passing Tests |
 
 ---
 
-## 3. AI Recommendation
-Provides explainable, ranked recommendations matching research profiles to appropriate venues and opportunities.
+## Detailed Implementation Directory
 
-- **Semantic Recommendation**: Vector similarity search using `pgvector` and domain-tuned embedding models.
-- **Conference Recommendation**: Matching manuscript topics and readiness to appropriate conference tracks.
-- **Journal Recommendation**: Matching paper scope, turnaround time, and impact factor expectations to journal profiles.
-- **Best Venue Recommendation**: Multi-criteria ranking identifying optimal submission targets.
-- **Recommendation Ranking**: Combining semantic similarity, deadline proximity, and domain match into a unified score.
-- **Personalized Recommendation**: Adapting results to individual researcher stage, past submissions, and preferences *(Phases 3.1–3.5 completed)*.
-- **Opportunity Comparison**: Side-by-side comparative analysis of candidate venues (acceptance rates, indexing, deadlines).
-- **Recommendation Feedback**: Capturing explicit user feedback (save, dismiss, irrelevant) to refine future rankings *(Phase 3.6 completed)*.
-- **Explainable Recommendations**: Transparent rationales detailing *why* a specific venue or opportunity was recommended.
-
----
-
-## 4. Trust & Quality
-Ensures students and researchers avoid predatory or substandard publication venues through transparent risk analysis.
-
-- **Predatory/Suspicious Opportunity Detection**: Heuristic and pattern-based identification of predatory conferences and journals *(Phase 2.6B completed)*.
-- **Deterministic Risk Scoring**: Composite calibrated risk ratings and trust mitigation *(Phase 2.6C completed)*.
-- **Publisher/Indexing Verification & Resolution**: Cross-referencing indexing claims (DOAJ, Crossref, OpenAlex) and entity resolution *(Phase 2.6D completed)*.
-- **Suspicious Graph & Topology Intelligence**: Academic trust graph analysis detecting organizer/domain syndicates and identity collisions *(Phase 2.6E completed)*.
-- **Risk Explainability & API/UI Integration**: Deterministic, transparent, provenance-backed trust/risk explanations with progressive disclosure across API and frontend *(Phase 2.6F completed)*.
-- **Risk Model Evaluation & False-Positive Hardening**: Benchmarks and calibration against ground-truth sets *(Phase 2.6G completed)*.
+### Phase 1: Foundation & Core Storage Architecture
+- **Scope & Objectives**: Establish the relational and vector database foundation, containerized local development environment, core data models, Alembic migration pipeline, and baseline REST endpoints.
+- **Data Models & Migrations**:
+  - `OpportunityModel`: Core academic venue entity (conferences, journals, workshops) with title, acronym, venue type, submission URL, deadlines, location, and metadata JSON.
+  - `UserModel`: Base user account entity with role support (`STUDENT`, `FACULTY`, `ADMIN`).
+  - Migration `0001_initial`: Initialized PostgreSQL schema with UUID primary keys, timestamp mixins, and indexing.
+- **Infrastructure & Services**:
+  - PostgreSQL 16 with native `pgvector` extension enabled via Docker Compose.
+  - SQLAlchemy 2.0 declarative base with async-compatible session management and connection pooling.
+  - Initial FastAPI application with health check and CRUD endpoints for opportunities under `/api/v1/opportunities`.
+- **Verification**: Database migrations applied cleanly; CRUD unit tests verified entity persistence and schema serialization.
 
 ---
 
-## 5. Research Management
-Empowers researchers to organize deadlines, track submissions, and manage applications seamlessly across the research lifecycle.
+### Phase 2.1: Ingestion Hardening & Pipeline Resilience
+- **Scope & Objectives**: Build resilient scrapers for academic calls for papers (WikiCFP), enforcing strict schema validation, deduplication, change detection, and audit logging.
+- **Architecture & Scrapers**:
+  - `scrapers/wikicfp`: Modular scraper targeting WikiCFP categories with rate limiting, retries, and backoff.
+  - `DataCleaner`: HTML entity stripping, whitespace normalization, and encoding fixes.
+  - `SchemaValidator`: Pydantic-based validation rejecting incomplete or malformed opportunities before database insertion.
+  - `Deduplicator`: Content-hash deduplication across acronyms, titles, and submission URLs.
+  - `ChangeDetector`: Compares incoming data with existing records to flag deadline modifications or venue updates.
+- **Verification**: 389 scraper unit and integration tests passing; zero unhandled network exceptions on malformed HTML fixtures.
 
-> [!NOTE]
-> **Architectural Purpose of Phase 4**: Research Management does **NOT** replace or compete with the Opportunity Discovery, Ranking, or Recommendation engines. Rather, it builds the researcher workflow layer directly on top of the existing intelligence systems (consuming Phase 2.6 risk signals, Phase 2.7 canonical deadlines, and Phase 3 personalized profiles).
+---
 
-### Product Evolution Flow
-```text
-Opportunity Discovery (Phases 1, 2.1–2.4)
-        ↓
-Opportunity Intelligence: Trust & Deadlines (Phases 2.6, 2.7)
-        ↓
-Researcher Intelligence & Preferences (Phases 3.1–3.3)
-        ↓
-Personalized Recommendations (Phases 3.4–3.9)
-        ↓
-Research Management & Opportunity Workspace (Phase 4.1)
-        ↓
-Submission & Application Workflow (Phases 4.2–4.3)
-        ↓
-Research Calendar & Deadline Planning (Phase 4.4)
-        ↓
-Notifications & Proactive Alerts (Phase 4.5)
-        ↓
-Unified Research Management Dashboard (Phase 4.6)
+### Phase 2.2: Academic Knowledge Integration (OpenAlex & Crossref)
+- **Phase 2.2A (OpenAlex Ingestion)**:
+  - Ingested rich bibliometric data from OpenAlex API.
+  - Introduced relational models: `ResearchWorkModel`, `ResearcherModel`, `ResearchSourceModel`, and `InstitutionModel`.
+  - Stored author affiliations, concept tags, citation counts, publication dates, and Open Access statuses.
+- **Phase 2.2B (Crossref Ingestion & Canonicalization)**:
+  - Ingested publisher-authoritative metadata via Crossref REST API.
+  - Non-destructive record enrichment: unified DOI canonicalization (`https://doi.org/...`), funder metadata, license tracking, and citation counts.
+  - Established cross-source entity linking between OpenAlex concepts and Crossref publication venues.
+- **Verification**: Verified zero data loss during multi-source reconciliation; idempotency verified across re-ingestion passes.
+
+---
+
+### Phase 2.3: Topic Taxonomy & Semantic Embeddings
+- **Phase 2.3A (Canonical Topic & Taxonomy Intelligence)**:
+  - Designed a 36-node canonical Computer Science taxonomy Directed Acyclic Graph (DAG) covering AI, Systems, Security, Theory, HCI, and Data Engineering.
+  - Implemented ancestor/descendant traversal, lowest common ancestor (LCA) calculations, and cycle detection.
+  - Mapped OpenAlex/Crossref concepts and aliases to canonical taxonomy nodes using multi-evidence scoring and deterministic keyword extraction.
+- **Phase 2.3B (Semantic Embeddings with pgvector)**:
+  - Integrated local 384-dimensional dense embedding model (`sentence-transformers/all-MiniLM-L6-v2`).
+  - Implemented deterministic content hashing (`SHA-256`) to ensure incremental, idempotent embedding updates without redundant re-computation.
+  - Alembic migration `0006_phase2_3b`: Added `Vector(384)` columns and created HNSW indexes (`m=16`, `ef_construction=64`) for cosine distance retrieval (`<=>`).
+- **Verification**: Embedding extraction verified; HNSW index creation confirmed in PostgreSQL; sub-millisecond nearest-neighbor lookups verified.
+
+---
+
+### Phase 2.4: Discovery & Intelligent Search Subsystem
+- **Phase 2.4A (Vector Retrieval Foundation)**: `VectorRepository` with pgvector HNSW cosine distance search, candidate limits, metadata filtering, and entity exclusion.
+- **Phase 2.4B (Hybrid Search & Candidate Fusion)**: PostgreSQL weighted Full-Text Search (`ts_rank_cd`) combined with vector retrieval via Reciprocal Rank Fusion (RRF, $k=60$).
+- **Phase 2.4C (Similar Research Retrieval)**: `SimilarResearchService` calculating dense semantic similarity, exact topic overlap, taxonomy DAG proximity, and source work self-exclusion.
+- **Phase 2.4D (Research ↔ Opportunity Matching)**: `ResearchOpportunityMatchingService` evaluating research paper abstracts against open calls, enforcing publication type compatibility matrices (e.g. `article` $\to$ `JOURNAL`) and 90-day linear deadline urgency.
+- **Phase 2.4E (Hybrid Ranking Engine)**: Reusable `HybridRanker` supporting `GENERAL`, `RESEARCH_SIMILARITY`, and `RESEARCH_OPPORTUNITY` modes with exponential freshness decay and deterministic 15-key tie-breaking.
+- **Phase 2.4F (Explainable Results)**: Deterministic, zero-LLM `ResultExplainer` producing machine-readable feature attributions, qualitative summaries, and trade-off highlights ($100\%$ score-weight mathematical alignment).
+- **Phase 2.4G (FastAPI Discovery Layer)**: REST endpoints under `/api/v1/discovery` for unified research search, similar paper discovery, and opportunity matching with Pydantic validation.
+- **Phase 2.4H (Testing & Benchmarking)**: 16-scenario IR benchmark dataset evaluating NDCG, MAP, and MRR across Vector, Lexical, and Hybrid retrieval paths; latency profiling under concurrency.
+- **Phase 2.4I (Full-Text GIN Indexing & Query Intelligence)**: Stored `tsvector` columns with PostgreSQL GIN indexes and academic acronym expansion (e.g., "NLP" $\to$ "Natural Language Processing").
+- **Phase 2.4J (Ranking Hardening & Opportunity Quality Signals)**: Indexing tier evaluation, predatory risk penalties, venue status reliability, and mathematical relevance dominance.
+- **Phase 2.4K (Frontend Discovery Experience & Hardening)**: React discovery interface with search bar, similar research explorer, opportunity matcher, explainability drawer, and API rate-limiting/caching.
+- **Verification**: 634 passing tests across discovery subphases.
+
+---
+
+### Phase 2.5: Recommendation Ranking & Feature Engineering
+- **Phase 2.5A (Architecture & Baseline Reconnaissance)**: Pipeline audit, baseline verification, and zero-regression gate.
+- **Phase 2.5B (Feature Extraction & Normalization)**: `AcademicFeatureExtractor` producing normalized $[0.0, 1.0]$ canonical features:
+  - `citation_impact`: Log-scaled citations normalized to 10,000 threshold.
+  - `author_prominence`: Maximum author citation prominence log-scaled to 50,000.
+  - `author_position`: Discrete weights for corresponding (1.0), first (0.9), last (0.8), and middle (0.5) authors.
+  - `institution_prestige`: Maximum institutional citation footprint log-scaled to 500,000.
+  - `venue_prestige`: Venue citation footprint plus DOAJ indexing bonus (+0.10).
+  - `open_access_tier`: Tiered weighting (gold: 1.0, hybrid: 0.85, green: 0.70, bronze: 0.55, closed: 0.20).
+- **Phase 2.5C (Deterministic Recommendation Ranker & Mode Presets)**: Integrated features into `HybridRanker`; enforced strict $\ge 85\%$ relevance dominance constraint to prevent prestige bias from hijacking relevance; 15-key deterministic tie-breaker.
+- **Phase 2.5D (Academic Quality & Venue Signals Integration)**: Graph entity traversal connecting works to authors, institutions, and verified venue indexing sources.
+- **Phase 2.5E (Diversity & Novelty Mechanics)**: Deterministic list-aware reranker applying Maximal Marginal Relevance (MMR), author/venue/institution penalty damping, and Herfindahl-Hirschman Index (HHI) concentration control.
+- **Phase 2.5F (Explainability Layer Expansion)**: Mathematical explainability engine detailing secondary feature attributions and trade-offs without external LLM calls.
+- **Phase 2.5G (Empirical Evaluation & Benchmark Hardening)**: 108-query benchmark suite measuring NDCG@5, MAP, and MRR; full 6-signal ablation study and cross-disciplinary sensitivity analysis.
+- **Verification**: 714 passing tests in the full suite; verified 0.0% ranking divergence across platforms.
+
+---
+
+### Phase 2.6: Trust, Safety & Predatory Detection Subsystem
+- **Phase 2.6A (Architecture & Data Audit)**: Predatory risk taxonomy, risk feature schemas, baseline criteria, and data source audit.
+- **Phase 2.6B (Risk Evidence Extraction & Pattern Matchers)**: Heuristic pattern matchers detecting predatory payment channels (Western Union, MoneyGram), fake impact factors, unrealistic review turnarounds (<48 hours), hijacked domains, and aggressive solicitation keywords.
+- **Phase 2.6C (Deterministic Risk Scoring Engine)**: Composite calibrated 0–100 risk score with categorical tiers (`VERY_LOW`, `LOW`, `MODERATE`, `HIGH`, `CRITICAL`) and mathematical invariant bounds.
+- **Phase 2.6D (Venue / Publisher Intelligence & Cross-Source Resolution)**: Entity resolution cross-referencing DOAJ indexing, Crossref member status, and OpenAlex sources; ISSN/publisher normalization.
+- **Phase 2.6E (Suspicious Pattern & Graph Signals)**: Academic trust graph detecting organizer/domain syndicates, contact email/phone collisions, shell conferences, and co-located predatory venues.
+- **Phase 2.6F (Risk Explainability & Discovery UI Integration)**: Transparent risk badges, warning banners, and progressive disclosure drawers integrated into `ExplainabilityDrawer.tsx`.
+- **Phase 2.6G (Empirical Evaluation & False-Positive Hardening)**: 108-fixture curated risk evaluation dataset across 4 strata; achieved $100\%$ precision on reputable venues and $0\%$ false-positive rate on high-tier venues across 20 safety invariants.
+- **Verification**: All 21 risk evaluation tests passing; zero false positives on reputable academic venues.
+
+---
+
+### Phase 2.7: Deadline Intelligence & Urgency Engine
+- **Phase 2.7A (Architecture & Deadline Taxonomy)**: Multi-milestone taxonomy supporting `ABSTRACT`, `SUBMISSION`, `NOTIFICATION`, `CAMERA_READY`, `REGISTRATION`, `EVENT_START`, and `EVENT_END`; temporal states (`UPCOMING`, `DUE_TODAY`, `EXPIRED`, `MISSING`, `TBD`).
+- **Phase 2.7B (Multi-Evidence Deadline Extraction)**: `DeadlineEvidenceExtractor` extracting structured temporal markers and dates from unstructured CFP text with confidence scoring.
+- **Phase 2.7C (Date & Timezone Normalization)**: `DeadlineNormalizer` enforcing strict UTC normalization, Anywhere on Earth (AoE, UTC-12) semantics, explicit timezone offsets, and date-only 23:59:59 end-of-day handling.
+- **Phase 2.7D (Deadline Urgency Engine)**: `UrgencyEngine` implementing non-linear exponential and sigmoid decay; urgency tiers (`CRITICAL`, `URGENT`, `APPROACHING`, `NORMAL`, `RELAXED`); preserves Phase 2.5 0.05 ranking weight compatibility.
+- **Phase 2.7E (Multi-Source Conflict Resolution & Revision Tracking)**: `DeadlineConflictResolver` with canonical source hierarchy (`OFFICIAL_WEBSITE` > `CFP_SERVICE` > `AGGREGATOR`); equal-authority conflict preservation (`SOURCE_CONFLICT`); revision history tracking extensions (`EXTENDED`) and preponements (`MOVED_EARLIER`).
+- **Phase 2.7F (Deadline Explainability & Discovery UI Integration)**: `DeadlineExplainabilityService` producing structured timeline badges, countdown timers, and provenance data integrated into `ExplainabilityDrawer.tsx`.
+- **Phase 2.7G (Empirical Evaluation & Hardening)**: Rigorous verification across 20 mathematical invariants; sub-millisecond execution ($0.41\text{ ms}$ per candidate); zero per-candidate database queries; complete orthogonality with Phase 2.5 ranking and Phase 2.6 risk scoring.
+- **Verification**: All 20 invariants verified; zero regression across full test suite.
+
+---
+
+### Phase 3: Personalized Researcher Intelligence & Recommendations
+- **Phase 3.1 (Researcher Profile Foundation)**: Canonical `ResearcherProfileModel`, external identifier normalization (ORCID, Google Scholar, Semantic Scholar), institution affiliation linking, profile completeness scoring ($0.0$–$1.0$), CRUD service, REST API, and Next.js UI.
+- **Phase 3.2 (Research Interest Intelligence)**: Structured interests and expertise extraction from past works, deterministic strength ($0.0$–$1.0$) and confidence scoring, bounded recency signal, zero N+1 queries, provenance tracking, REST API, and Next.js UI.
+- **Phase 3.3 (Personal Preference Intelligence)**: Canonical `ResearcherPreferenceModel`, explicit preference CRUD (topics, venue types, open access, deadline windows), activity-based inference from saved opportunities, contradiction detection, completeness scoring, zero N+1 queries, REST API, and Next.js UI.
+- **Phase 3.4 (Personalized Candidate Generation)**: Multi-channel candidate retrieval across explicit preferences, learned topics, and author expertise; fallback guarantees; provenance tracing; strict exclusion of Phase 2.7 `EXPIRED` opportunities and preservation of Phase 2.6 risk flags; REST API and Next.js UI.
+- **Phase 3.5 (Personalized Hybrid Ranking)**: Dedicated personalization ranking layer with bounded adjustment ($\le 0.15$), relevance dominance and damping, Phase 2.6 risk and Phase 2.7 deadline preservation, multi-key deterministic tie-breaking, R0 vs R1 ablation diagnostics, REST API, and Next.js diagnostic preview UI.
+- **Phase 3.6 (Feedback & Recommendation Learning Loop)**: Controlled feedback loop capturing user interactions (`SAVE`, `DISMISS`, `CLICK`), bounded deterministic preference/interest adjustments, exponential decay, reversible signals, REST API, and Next.js feedback UI.
+- **Phase 3.7 (Recommendation History & Evaluation)**: `RecommendationSnapshotModel` capturing reproducible recommendation snapshots, deterministic ranking versioning, offline IR evaluation metrics (NDCG@K, MAP, MRR), data sufficiency classifications, REST API, and Next.js history & evaluation UI.
+- **Phase 3.8 (Personalization Explainability & Researcher UI)**: Grounded recommendation explanations, 8-level signal priority hierarchy, score consistency invariants, safety dominance, historical snapshot explanation immutability, researcher personalization summary, "Why this?" modal, and Next.js UI.
+- **Phase 3.9 (Evaluation, Ablation & Hardening)**: Offline R0/R1/R2 IR evaluation, 10-state segmented evaluation, deterministic 6-signal ablation matrix, parameter sensitivity stability, 15-scenario adversarial safety matrix (Scenarios A–O), mathematical system invariants, strict `X-User-ID` ownership security across all 16 endpoints, 10–200 candidate performance benchmarks with zero N+1 queries.
+- **Verification**: 845 passing tests across Phase 3 subsystems.
+
+---
+
+### Phase 4: Research Management & Researcher Workflow
+- **Phase 4.0 (Architecture & Roadmap Alignment)**:
+  - Comprehensive repository audit confirming Next.js App Router baseline and domain boundaries.
+  - Canonical roadmap alignment establishing that Research Management consumes—rather than duplicates or competes with—Phase 2.6 risk, Phase 2.7 deadlines, and Phase 3 personalization.
+  - Invariant specifications preventing state machine bypass, date manipulation, or tenant leakage.
+- **Phase 4.1 (Opportunity Workspace)**:
+  - `SavedOpportunityModel` supporting 7 researcher-scoped lifecycle states: `SAVED`, `CONSIDERING`, `PLANNING`, `APPLIED`, `ACCEPTED`, `REJECTED`, and `ARCHIVED`.
+  - Deterministic state machine transitions, custom notes, priority tags, and strict `X-User-ID` researcher isolation.
+  - Alembic migration `0011_phase4_1_workspace`.
+  - REST API under `/api/v1/workspace` and Next.js App Router UI at `/workspace`.
+  - 16 dedicated unit and API tests; zero N+1 queries; backward compatibility with Phase 3.6 feedback loop.
+- **Phase 4.2 (Submission & Application Tracker)**:
+  - Canonical `ResearchSubmissionModel` with a 1:N relationship to `SavedOpportunityModel`.
+  - Deterministic 7-state submission lifecycle: `DRAFT` $\to$ `READY` $\to$ `SUBMITTED` $\to$ `UNDER_REVIEW` $\to$ `ACCEPTED` / `REJECTED`, with terminal `WITHDRAWN` state.
+  - Automatic workspace status synchronization rules (e.g. transitioning submission to `SUBMITTED` advances workspace item to `APPLIED`).
+  - Read-only grounding in Phase 2.7 canonical deadline intelligence (days remaining, AoE status, extension status, urgency tier).
+  - Alembic migration `0012_phase4_2_submissions`.
+  - REST API under `/api/v1/submissions` and `/api/v1/workspace/{id}/submissions`.
+  - Next.js App Router UI at `/workspace/[id]/submission` with visual pipeline stepper and external tracking links.
+  - 20 dedicated unit and API tests.
+- **Phase 4.3 (Research Submission Workflow & Document Management)**:
+  - `SubmissionDocumentModel`, `SubmissionDocumentVersionModel`, and `SubmissionEventModel`.
+  - Deterministic manuscript document lifecycle: `REQUIRED`, `MISSING`, `DRAFT`, `READY`, `REJECTED`, and `ARCHIVED`.
+  - Strongly-typed artifact categories: `MANUSCRIPT`, `COVER_LETTER`, `SUPPLEMENTARY`, `ETHICS_STATEMENT`, `SOURCE_CODE`, and `DATA_AVAILABILITY`.
+  - Immutable version snapshotting tracking content hash (`SHA-256`), byte size, and upload metadata.
+  - Deterministic `SubmissionReadinessEngine` gating submission transition to `READY` until all required documents exist in `READY` status.
+  - Comprehensive chronological audit trail logging of all stage transitions, document uploads, and status changes.
+  - Alembic migration `0013_phase4_3_documents`.
+  - REST API under `/api/v1/submissions/{id}/documents`, `/readiness`, and `/audit-trail`.
+  - Next.js App Router document manager and readiness console at `/workspace/[id]/submission`.
+  - 26 dedicated unit and API tests.
+- **Phase 4.4 (Research Calendar & Visual Deadline Planning)**:
+  - `ResearchCalendarModel` and `ResearchCalendarEventModel`.
+  - Researcher-owned planning calendar projection layer consuming Phase 2.7 canonical deadline intelligence.
+  - Deterministic milestone isolation for all 7 Phase 2.7 milestone types (`ABSTRACT`, `SUBMISSION`, `NOTIFICATION`, etc.).
+  - Support for user-created planning events (`TASK`, `MEETING`, `MILESTONE`, `REMINDER`).
+  - Idempotent opportunity projection updating existing calendar events if canonical deadlines are revised or extended.
+  - Deterministic RFC 5545 `.ics` export with byte-level determinism and strict 75-octet line folding.
+  - Alembic migration `0014_phase4_4_calendar`.
+  - REST API under `/api/v1/calendar`, `/events`, `/project-opportunity`, and `/export/ical`.
+  - Next.js App Router visual calendar at `/calendar` with Month and Agenda views, event filters, and quick-add planning tasks.
+  - 28 dedicated unit and API tests.
+- **Phase 4.5 (Deadline Reminders, Notifications & Scheduled Alerts)**:
+  - `NotificationPreferenceModel`, `ReminderRuleModel`, `NotificationModel`, and `NotificationDeliveryAttemptModel`.
+  - Production-ready reminder and alert system grounded in Phase 2.7 canonical deadlines and Phase 4.4 calendar events.
+  - Multi-milestone isolation and extension/revision-aware recalculation.
+  - Provider-agnostic delivery abstraction (`BaseNotificationDeliveryProvider`) with `InAppDeliveryProvider` and `MockEmailDeliveryProvider`.
+  - Deterministic `SHA-256` deduplication key ensuring zero duplicate alerts across repeated scheduler runs.
+  - Background `ReminderSchedulerService` with batch chunking ($N=50$) and zero N+1 database queries, benchmarked at $728\text{ ms}$ for 1,000 researchers ($0.73\text{ ms}$ per user).
+  - User notification preferences (channel toggles, quiet hours, minimum urgency thresholds) and customizable reminder offset rules (e.g. 14 days, 7 days, 1 day before deadline).
+  - Alembic migration `0015_phase4_5_notifications`.
+  - REST API under `/api/v1/notifications`, `/read`, `/dismiss`, `/mark-all-read`, and `/api/v1/researchers/me/notification-preferences`.
+  - Next.js App Router Notification Center at `/notifications` and Preferences at `/settings/notifications`.
+  - 39 dedicated unit, API, invariant, and performance tests.
+- **Phase 4.6 (Research Management Dashboard — Planned)**:
+  - Unified Next.js App Router command center aggregating:
+    - Upcoming canonical deadlines and preparatory milestones from Phase 4.4 calendar.
+    - Active submissions in flight with live readiness meters and pipeline statuses from Phase 4.2/4.3.
+    - Saved opportunities grouped by workspace stage from Phase 4.1.
+    - Top personalized opportunity recommendations from Phase 3.5.
+    - Unread deadline alerts and reminders from Phase 4.5.
+  - Fast single-request composite dashboard API (`/api/v1/dashboard`) with sub-50ms latency budget.
+- **Phase 4.7 (Evaluation & Production Hardening — Planned)**:
+  - End-to-end workflow verification across multi-user workspaces.
+  - Tenant isolation security penetration testing verifying complete separation under concurrent `X-User-ID` requests.
+  - Audit trail immutability and tamper-resistance verification.
+  - High-concurrency database connection pool stress testing and index query plan validation.
+  - Final production readiness audit.
+
+---
+
+## Thematic Architecture Deep-Dives
+
+### 1. Data & Discovery Architecture
+Focuses on acquiring, sanitizing, indexing, and retrieving research opportunities and academic literature with high precision and low latency.
+
+```
+Incoming CFP / Paper ──► Clean & Validate ──► Hash Deduplication ──► Canonical Taxonomy DAG
+                              │                     │                         │
+                              ▼                     ▼                         ▼
+                        SQL Storage ◄────── 384d Dense Embedding ◄── GIN tsvector Columns
 ```
 
-### Planned Subphases (4.0–4.7)
-- **Phase 4.0 (Architecture & Roadmap Alignment)**: **COMPLETE** (Full repository audit, Next.js App Router baseline confirmation, canonical roadmap alignment, domain model decision criteria, and invariant specifications).
-- **Phase 4.1 (Opportunity Workspace)**: **COMPLETE** (Multi-stage researcher-scoped opportunity tracking `SAVED`, `CONSIDERING`, `PLANNING`, `APPLIED`, `ACCEPTED`, `REJECTED`, `ARCHIVED`, custom notes, priority tags, REST API, Next.js Workspace UI).
-- **Phase 4.2 (Submission & Application Tracker)**: **COMPLETE** (Dedicated `ResearchSubmissionModel` tracking manuscripts through lifecycle `DRAFT`, `READY`, `SUBMITTED`, `UNDER_REVIEW`, `ACCEPTED`, `REJECTED`, `WITHDRAWN`, Phase 2.7 canonical deadline grounding, workspace status sync, REST API, Next.js Tracker UI at `/workspace/[id]/submission`).
-- **Phase 4.3 (Research Submission Workflow & Document Management)**: **COMPLETE** (Deterministic manuscript document lifecycle `REQUIRED`, `MISSING`, `DRAFT`, `READY`, `REJECTED`, `ARCHIVED`, strongly-typed artifact categories, immutable version snapshotting, deterministic Submission Readiness Engine gating transitions to `READY`, comprehensive chronological audit trail logging, and Next.js App Router document manager & readiness console).
-- **Phase 4.4 (Research Calendar & Deadline Planning)**: **COMPLETE** (Researcher-owned planning calendar projection layer consuming Phase 2.7 canonical deadline intelligence, deterministic milestone isolation, user planning tasks, idempotent projection, RFC 5545 `.ics` export with byte-level determinism, REST API, Next.js App Router visual calendar at `/calendar` with Month and Agenda views).
-- **Phase 4.5 (Notifications & Alerts)**: *(Planned)* Canonical deadline alert triggers, deadline revision notifications, and user notification preference controls.
-- **Phase 4.6 (Research Management Dashboard)**: *(Planned)* Unified Next.js App Router command center aggregating upcoming deadlines, active submissions, saved opportunities, and personalized recommendations.
-- **Phase 4.7 (Evaluation & Production Hardening)**: *(Planned)* Multi-user isolation verification, audit trail verification, database query performance, stress testing, and production readiness audit.
+- **Conference, Journal & CFP Discovery**: Automated ingestion via WikiCFP scrapers, OpenAlex bibliometrics, and Crossref DOIs *(Phases 1, 2.1, 2.2A, 2.2B)*.
+- **Data Cleaning & Schema Normalization**: Normalizing heterogeneous venue metadata, dates, URLs, and publisher strings into validated Pydantic schemas *(Phases 2.1, 2.2B)*.
+- **Change Detection & Audit Tracking**: Detecting deadline revisions, venue venue moves, and call cancellations *(Phases 2.1, 2.7E)*.
+- **Hybrid Retrieval & RRF Fusion**: Merging pgvector HNSW cosine similarity with PostgreSQL weighted full-text search (`ts_rank_cd`) via Reciprocal Rank Fusion ($k=60$) *(Phases 2.4A, 2.4B, 2.4I)*.
+- **Specialized Matching Pipelines**:
+  - Similar Research Explorer: Semantic nearest neighbors, exact topic overlap, and taxonomy DAG hierarchical proximity *(Phase 2.4C)*.
+  - Research-to-Opportunity Matcher: Evaluating manuscript abstracts against open CFPs using publication type compatibility matrices and deadline windows *(Phase 2.4D)*.
+- **Zero-LLM Explainability**: Fully transparent, machine-readable signal attributions ($100\%$ aligned with mathematical weights) explaining exactly why items are retrieved and ranked *(Phase 2.4F)*.
 
 ---
 
-## 6. Community
-Facilitates institutional and cross-disciplinary academic collaboration within the platform.
+### 2. Research Intelligence & Taxonomy Engine
+Extracts contextual, semantic, and structural understanding from user manuscripts, research profiles, and academic taxonomies.
 
-- **Faculty Opportunities**: Listings posted by university faculty for open research slots.
-- **Research Projects**: Collaborative multi-student or inter-departmental project postings.
-- **Research Internships**: Curated industry and academic research internship openings.
-- **Research Assistant Opportunities**: Formal RA openings for undergraduate and postgraduate students.
-
----
-
-## 7. Platform
-Core system infrastructure, user interfaces, access control, and deployment operations.
-
-- **Student Portal**: Tailored view for undergraduate and postgraduate student discovery, tracking, and profile matching.
-- **Faculty Portal**: Administrative tools for faculty to post opportunities and review applicant matches.
-- **Admin Portal**: System moderation, manual data review, feed management, and user governance.
-- **Admin Verification**: Verification workflows for faculty credentials and institutional affiliations.
-- **Analytics**: Usage insights, opportunity trends, search metrics, and match effectiveness.
-- **Authentication**: Secure user authentication (JWT/OAuth) with password hashing.
-- **Authorization**: Role-Based Access Control (RBAC) separating Student, Faculty, and Admin permissions.
-- **Security**: Strict input validation, CORS protection, rate limiting, and secure environment configuration.
-- **Logging**: Structured application logging for debugging and audit trails.
-- **Deployment**: Lightweight Docker configuration for production containerization on standard cloud/VPS hosts.
+- **Canonical Computer Science Taxonomy**: 36-node curated DAG modeling hierarchical parent-child relationships, transitive ancestor/descendant closure, and lowest common ancestor distances *(Phase 2.3A)*.
+- **Deterministic Keyword & Concept Extraction**: Mapping author-provided keywords, unstructured abstract text, and external concept tags to canonical taxonomy nodes *(Phase 2.3A)*.
+- **Researcher Profile Representation**: Canonical researcher profile tracking ORCIDs, Google Scholar IDs, institutional affiliations, and profile completeness *(Phase 3.1)*.
+- **Research Interest & Expertise Scoring**: Inferring topic strengths ($0.0$–$1.0$) and confidence scores from historical publications with exponential recency decay *(Phase 3.2)*.
+- **Personal Preference Modeling**: Storing explicit researcher preferences (topics, venue types, open access, deadline notice) and inferring latent preferences from workspace behavior *(Phase 3.3)*.
 
 ---
 
-## 8. Evaluation
-Rigorous testing and quantitative validation of AI, scraping, and ranking systems.
+### 3. AI Recommendation & Multi-Stage Ranking
+Provides explainable, personalized, and mathematically bounded recommendations matching researchers to venues.
 
-- **Recommendation Evaluation**: Offline and online metrics (Precision@K, Recall@K, MRR, NDCG) for opportunity ranking *(Phase 3.7 completed)*.
-- **Risk Model Evaluation**: Classification accuracy, precision, and recall against known predatory venue benchmarks.
-- **Data Quality Evaluation**: Validation rates, duplicate reduction efficiency, and parsing completeness metrics.
+```
+Candidate Generation (Phase 3.4)
+        │
+        ▼
+Base Hybrid Ranking (Phase 2.5) ──► Relevance Dominance (≥85%) ──► Diversity & Novelty (MMR)
+        │
+        ▼
+Personalized Ranking (Phase 3.5) ──► Bounded Adjustment (≤0.15) ──► Safety & Deadline Preservation
+        │
+        ▼
+Deterministic 15-Key Tie-Breaker ──► Explainable Output (Phase 3.8)
+```
+
+- **Academic Feature Layer**: 6 normalized canonical signals: citation impact, author prominence, author position, institution prestige, venue prestige, and open access tier *(Phase 2.5B)*.
+- **Relevance Dominance Invariant**: Mathematical constraint guaranteeing that relevance signals always constitute $\ge 85\%$ of the total ranking mass, preventing high-prestige but irrelevant venues from ranking high *(Phase 2.5C)*.
+- **Diversity & Novelty Reranking**: Maximal Marginal Relevance (MMR) and Herfindahl-Hirschman Index (HHI) concentration limits preventing author, venue, or topic monopolies in recommendation lists *(Phase 2.5E)*.
+- **Personalized Candidate Retrieval**: Multi-channel generation across explicit preferences, learned topics, and author expertise *(Phase 3.4)*.
+- **Personalized Hybrid Ranking**: Bounded personalization adjustments ($\le 0.15$) preserving base relevance, Phase 2.6 risk flags, and Phase 2.7 deadline status *(Phase 3.5)*.
+- **Closed-Loop Feedback**: Controlled learning from user saves, dismissals, and clicks with reversible weights and decay *(Phase 3.6)*.
+- **Recommendation Snapshotting & Offline IR**: Capturing immutable recommendation histories and evaluating NDCG@K, MAP, and MRR across 10-state segmented datasets *(Phases 3.7, 3.9)*.
+
+---
+
+### 4. Trust, Safety & Deadline Intelligence
+Protects researchers from predatory publication venues and provides authoritative temporal lifecycle tracking.
+
+#### Trust & Predatory Detection (Phase 2.6)
+- **Heuristic Risk Extraction**: Pattern matching for predatory fee mechanisms (Western Union/MoneyGram), fake impact factors, sub-48-hour peer review, and hijacked domains *(Phase 2.6B)*.
+- **Deterministic Risk Scoring**: Calibrated 0–100 risk score and 5 categorical tiers (`VERY_LOW`, `LOW`, `MODERATE`, `HIGH`, `CRITICAL`) *(Phase 2.6C)*.
+- **Publisher & Indexing Verification**: Resolving ISSNs and publishers against DOAJ, Crossref, and OpenAlex indexing records *(Phase 2.6D)*.
+- **Academic Trust Graph**: Detecting organizer/domain syndicates, contact email/phone collisions, and shell conferences *(Phase 2.6E)*.
+- **Risk Transparency & UI Badges**: Provenance-backed risk explanations and warning banners with progressive disclosure *(Phase 2.6F)*.
+- **Empirical Hardening**: $100\%$ precision on reputable venues and $0\%$ false positives on top-tier venues across 20 safety invariants *(Phase 2.6G)*.
+
+#### Deadline Intelligence & Urgency Engine (Phase 2.7)
+- **Multi-Milestone Taxonomy**: Independent tracking of 7 milestone types (`ABSTRACT`, `SUBMISSION`, `NOTIFICATION`, `CAMERA_READY`, `REGISTRATION`, `EVENT_START`, `EVENT_END`) *(Phase 2.7A)*.
+- **Timezone Normalization & AoE Semantics**: Canonical UTC conversion handling Anywhere on Earth (AoE, UTC-12) and date-only 23:59:59 end-of-day conventions *(Phase 2.7C)*.
+- **Authority Hierarchy & Conflict Resolution**: Canonical source hierarchy (`OFFICIAL_WEBSITE` > `CFP_SERVICE` > `AGGREGATOR`) with equal-authority conflict preservation (`SOURCE_CONFLICT`) *(Phase 2.7E)*.
+- **Revision & Extension Tracking**: Full lineage tracking of extended deadlines (`EXTENDED`) or preponed dates (`MOVED_EARLIER`) *(Phase 2.7E)*.
+- **Non-Linear Urgency Engine**: Exponential and sigmoid decay scoring mapping deadlines to urgency tiers without distorting Phase 2.5 relevance *(Phase 2.7D)*.
+- **Deadline Explainability**: Real-time visual timeline badges and countdowns in the UI *(Phase 2.7F)*.
+
+---
+
+### 5. Research Management & Workflow Lifecycle
+Directly empowers researchers to manage their submissions, documents, milestones, calendars, and alerts across the research lifecycle.
+
+```
+Saved Opportunity (Phase 4.1) ──► Research Submission (Phase 4.2)
+       │                                     │
+       ▼                                     ▼
+Preparation Milestones               Document Versioning & Readiness (Phase 4.3)
+       │                                     │
+       ▼                                     ▼
+Research Calendar (Phase 4.4) ──────► Advance Reminders & Alerts (Phase 4.5)
+       │                                     │
+       └──────────────────┬──────────────────┘
+                          ▼
+            Unified Dashboard (Phase 4.6)
+```
+
+#### Completed Subsystems (Phases 4.0–4.5)
+1. **Phase 4.1 — Opportunity Workspace**:
+   - Researcher-scoped tracking across 7 stages: `SAVED`, `CONSIDERING`, `PLANNING`, `APPLIED`, `ACCEPTED`, `REJECTED`, `ARCHIVED`.
+   - Private custom notes, priority tags, and strict tenant isolation via `X-User-ID`.
+   - Accessible via `/api/v1/workspace` and `/workspace`.
+2. **Phase 4.2 — Submission & Application Tracker**:
+   - `ResearchSubmissionModel` (1:N with saved opportunities) managing manuscripts through a 7-state lifecycle: `DRAFT` $\to$ `READY` $\to$ `SUBMITTED` $\to$ `UNDER_REVIEW` $\to$ `ACCEPTED` / `REJECTED`, plus `WITHDRAWN`.
+   - Bidirectional workspace synchronization; read-only grounding in Phase 2.7 canonical deadline intelligence.
+   - Accessible via `/api/v1/submissions` and `/workspace/[id]/submission`.
+3. **Phase 4.3 — Research Submission Workflow & Document Management**:
+   - Document lifecycle: `REQUIRED`, `MISSING`, `DRAFT`, `READY`, `REJECTED`, `ARCHIVED`.
+   - Strongly-typed artifact categories: `MANUSCRIPT`, `COVER_LETTER`, `SUPPLEMENTARY`, `ETHICS_STATEMENT`, `SOURCE_CODE`, `DATA_AVAILABILITY`.
+   - Immutable version snapshotting with SHA-256 hashes and byte sizes.
+   - Deterministic `SubmissionReadinessEngine` gating submission transition to `READY` until all required documents are satisfied.
+   - Complete chronological audit logging with `SubmissionEventModel`.
+   - Accessible via `/api/v1/submissions/{id}/documents` and `/workspace/[id]/submission`.
+4. **Phase 4.4 — Research Calendar & Visual Deadline Planning**:
+   - `ResearchCalendarModel` and `ResearchCalendarEventModel`.
+   - Automatic projection of Phase 2.7 canonical deadlines with milestone isolation and revision/extension synchronization.
+   - User-created planning events (`TASK`, `MEETING`, `MILESTONE`, `REMINDER`).
+   - Deterministic RFC 5545 `.ics` export with 75-octet line folding and byte-level determinism.
+   - Accessible via `/api/v1/calendar` and `/calendar` with Month and Agenda views.
+5. **Phase 4.5 — Deadline Reminders, Notifications & Scheduled Alerts**:
+   - Production-ready alert system grounded in Phase 2.7 canonical deadlines and Phase 4.4 planning events.
+   - Provider abstraction (`InAppDeliveryProvider`, `MockEmailDeliveryProvider`).
+   - Idempotent alert generation via deterministic SHA-256 deduplication keys.
+   - Zero N+1 scheduled reminder engine ($0.73\text{ ms}$ per user across 1,000 researchers).
+   - User notification preferences (channels, quiet hours, urgency thresholds) and custom reminder rules (e.g. 14d, 7d, 1d).
+   - Accessible via `/api/v1/notifications`, `/notifications`, and `/settings/notifications`.
+
+#### Planned Subsystems (Phases 4.6–4.7)
+1. **Phase 4.6 — Research Management Dashboard**:
+   - Unified Next.js App Router command center aggregating upcoming deadlines, active submissions, readiness checklists, calendar milestones, and personalized recommendations.
+   - Single-request composite dashboard API (`/api/v1/dashboard`) with sub-50ms target response time.
+2. **Phase 4.7 — Evaluation & Production Hardening**:
+   - Multi-user isolation verification, audit trail tamper-resistance tests, database query plan optimization, high-concurrency stress testing, and production deployment configuration.
+
+---
+
+### 6. Community & Academic Collaboration (Phase 5 — Planned)
+Facilitates institutional and cross-disciplinary collaboration within verified academic boundaries.
+
+- **Faculty Research Opportunities**: Structured listings posted by faculty members for open research slots, thesis topics, and specialized projects.
+- **Collaborative Project Postings**: Multi-student or inter-departmental research project announcements seeking collaborators.
+- **Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
+- **Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
+
+---
+
+### 7. Platform Infrastructure, Governance & Security (Phase 6)
+Core infrastructure, identity, security, access control, and deployment operations.
+
+- **Authentication & Identity**: JWT/OAuth2 authentication with bcrypt password hashing and session management.
+- **Role-Based Access Control (RBAC)**: Strict separation of permissions across `STUDENT`, `FACULTY`, and `ADMIN` roles.
+- **Multi-Tenant Isolation**: Hardened tenant scoping via `X-User-ID` headers across all user-facing services and database queries.
+- **API Protection**: Strict Pydantic input validation, CORS protection, sliding-window rate limiting, and secure environment configuration.
+- **Structured Logging & Observability**: Formatted JSON logging with correlation IDs and audit trails for compliance.
+- **Containerization & Deployment**: Docker Compose local development and lightweight multi-stage Dockerfiles for cloud deployment.
+
+---
+
+### 8. Evaluation Framework & Mathematical Invariants (Phase 7 / Continuous)
+Continuous quantitative validation of AI, scraping, ranking, and lifecycle systems.
+
+- **Offline IR Evaluation**: Automated benchmarking of NDCG@K, MAP, and MRR across Vector, Lexical, Hybrid, and Personalized ranking configurations.
+- **Safety Invariants**:
+  - *Relevance Dominance*: $\sum w_{\text{relevance}} \ge 0.85$ (prestige signals cannot overpower topical match).
+  - *Trust Orthogonality*: Predatory risk scoring is independent of ranking urgency and cannot be bypassed by personalization.
+  - *Deadline Integrity*: Expired opportunities (`EXPIRED`) are strictly excluded from recommendation feeds and cannot be resurrected.
+  - *Readiness Gating*: Submissions cannot transition to `READY` without all required documents in `READY` status.
+  - *Deduplication Idempotency*: Notification and calendar projection engines use deterministic SHA-256 keys to guarantee zero duplicates.
+- **Test Coverage**: 1,008+ backend unit, integration, invariant, and performance tests plus 389 scraper tests passing continuously.

@@ -20,8 +20,21 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.calendar import CalendarEventType
+from app.models.research_profile import ResearchProfileModel
 from app.schemas.calendar import ResearcherCalendarViewResponse
 from app.services.research_calendar_service import ResearchCalendarService
+from app.schemas.notification import (
+    NotificationListResponse,
+    NotificationPreferenceRead,
+    NotificationPreferenceUpdate,
+    NotificationRead,
+    NotificationUnreadCountResponse,
+    ReminderRuleCreate,
+    ReminderRuleListResponse,
+    ReminderRuleRead,
+    ReminderRuleUpdate,
+)
+from app.services.notification_service import NotificationService
 from app.schemas.personalized_candidate import (
     PersonalizedCandidateSetResponse,
 )
@@ -1252,6 +1265,255 @@ def export_researcher_calendar_ics(
             "Cache-Control": "no-cache, no-store, must-revalidate",
         },
     )
+
+
+# ----------------------------------------------------------------------------
+# Phase 4.5: Researcher Notifications & Reminder Rules Endpoints
+# ----------------------------------------------------------------------------
+
+def _resolve_researcher_profile_auth(
+    researcher_id: uuid.UUID,
+    x_user_id: uuid.UUID | None,
+    db: Session,
+) -> ResearchProfileModel:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to access this researcher resource.",
+        )
+    return profile
+
+
+@router.get(
+    "/{researcher_id}/notifications",
+    response_model=NotificationListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="List notifications for a researcher",
+)
+def get_researcher_notifications(
+    researcher_id: uuid.UUID,
+    unread_only: bool = Query(default=False),
+    notification_type: str | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> NotificationListResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    items, total, unread = NotificationService.list_notifications(
+        db=db,
+        profile_id=profile.id,
+        unread_only=unread_only,
+        notification_type=notification_type,
+        limit=limit,
+        offset=offset,
+    )
+    return NotificationListResponse(
+        notifications=[NotificationRead.model_validate(n) for n in items],
+        total=total,
+        unread_count=unread,
+    )
+
+
+@router.get(
+    "/{researcher_id}/notifications/unread-count",
+    response_model=NotificationUnreadCountResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get unread notifications count for a researcher",
+)
+def get_researcher_unread_count(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> NotificationUnreadCountResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    count = NotificationService.get_unread_count(db, profile.id)
+    return NotificationUnreadCountResponse(
+        profile_id=profile.id,
+        unread_count=count,
+    )
+
+
+@router.post(
+    "/{researcher_id}/notifications/{notification_id}/read",
+    response_model=NotificationRead,
+    status_code=status.HTTP_200_OK,
+    summary="Mark a researcher notification as read",
+)
+def mark_researcher_notification_read(
+    researcher_id: uuid.UUID,
+    notification_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> NotificationRead:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    try:
+        notif = NotificationService.mark_as_read(db, profile.id, notification_id)
+        return NotificationRead.model_validate(notif)
+    except PermissionError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Notification belongs to another researcher.",
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
+
+@router.post(
+    "/{researcher_id}/notifications/read-all",
+    response_model=dict[str, int],
+    status_code=status.HTTP_200_OK,
+    summary="Mark all researcher notifications as read",
+)
+def mark_all_researcher_notifications_read(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> dict[str, int]:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    count = NotificationService.mark_all_as_read(db, profile.id)
+    return {"marked_read_count": count}
+
+
+@router.get(
+    "/{researcher_id}/notification-preferences",
+    response_model=NotificationPreferenceRead,
+    status_code=status.HTTP_200_OK,
+    summary="Get researcher notification preferences",
+)
+def get_researcher_notification_preferences(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> NotificationPreferenceRead:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    prefs = NotificationService.get_or_create_preferences(db, profile.id)
+    return NotificationPreferenceRead.model_validate(prefs)
+
+
+@router.patch(
+    "/{researcher_id}/notification-preferences",
+    response_model=NotificationPreferenceRead,
+    status_code=status.HTTP_200_OK,
+    summary="Update researcher notification preferences",
+)
+def update_researcher_notification_preferences(
+    researcher_id: uuid.UUID,
+    payload: NotificationPreferenceUpdate,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> NotificationPreferenceRead:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    prefs = NotificationService.update_preferences(db, profile.id, payload)
+    return NotificationPreferenceRead.model_validate(prefs)
+
+
+@router.get(
+    "/{researcher_id}/reminder-rules",
+    response_model=ReminderRuleListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="List researcher reminder rules",
+)
+def list_researcher_reminder_rules(
+    researcher_id: uuid.UUID,
+    is_active: bool | None = Query(default=None),
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> ReminderRuleListResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    rules = NotificationService.list_reminder_rules(db, profile.id, is_active=is_active)
+    if not rules:
+        rules = NotificationService.bootstrap_default_reminder_rules(db, profile.id)
+    return ReminderRuleListResponse(
+        rules=[ReminderRuleRead.model_validate(r) for r in rules],
+        total=len(rules),
+    )
+
+
+@router.post(
+    "/{researcher_id}/reminder-rules",
+    response_model=ReminderRuleRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create researcher reminder rule",
+)
+def create_researcher_reminder_rule(
+    researcher_id: uuid.UUID,
+    payload: ReminderRuleCreate,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> ReminderRuleRead:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    rule = NotificationService.create_reminder_rule(db, profile.id, payload)
+    return ReminderRuleRead.model_validate(rule)
+
+
+@router.patch(
+    "/{researcher_id}/reminder-rules/{rule_id}",
+    response_model=ReminderRuleRead,
+    status_code=status.HTTP_200_OK,
+    summary="Update researcher reminder rule",
+)
+def update_researcher_reminder_rule(
+    researcher_id: uuid.UUID,
+    rule_id: uuid.UUID,
+    payload: ReminderRuleUpdate,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> ReminderRuleRead:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    try:
+        rule = NotificationService.update_reminder_rule(db, profile.id, rule_id, payload)
+        return ReminderRuleRead.model_validate(rule)
+    except PermissionError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Reminder rule belongs to another researcher.",
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
+
+@router.delete(
+    "/{researcher_id}/reminder-rules/{rule_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    summary="Delete researcher reminder rule",
+)
+def delete_researcher_reminder_rule(
+    researcher_id: uuid.UUID,
+    rule_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> Response:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    try:
+        NotificationService.delete_reminder_rule(db, profile.id, rule_id)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except PermissionError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: Reminder rule belongs to another researcher.",
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
 
 
 
