@@ -75,3 +75,82 @@ export interface BatchOpportunityPreferenceMatchResponse {
   assessments: PreferencePersonalizationAssessment[];
   evaluated_count: number;
 }
+
+// =============================================================================
+// Phase 5.3 — Personalization Scoring & Explainability Types
+// =============================================================================
+
+export interface PersonalizationContribution {
+  dimension: PreferenceDimension;
+  match_type: PreferenceMatchType;
+  polarity: SignalPolarity;
+  weight: number;
+  raw_contribution: number;
+  normalized_contribution: number;
+  preference_value: string;
+  opportunity_value: string | null;
+  evidence: string;
+  explanation: string;
+}
+
+export interface PersonalizationDimensionScore {
+  dimension: PreferenceDimension;
+  score: number;
+  weight: number;
+  weighted_score: number;
+  status: PreferenceMatchType;
+  explanation: string;
+}
+
+export interface PersonalizationScoreBreakdown {
+  dimension_scores: Record<PreferenceDimension, PersonalizationDimensionScore>;
+  positive_contributions: PersonalizationContribution[];
+  negative_contributions: PersonalizationContribution[];
+  neutral_contributions: PersonalizationContribution[];
+  unresolved_contributions: PersonalizationContribution[];
+  total_positive_weight: number;
+  total_negative_weight: number;
+  active_dimensions_count: number;
+}
+
+export interface PersonalizationExplanation {
+  summary: string;
+  positive_reasons: string[];
+  negative_reasons: string[];
+  unresolved_reasons: string[];
+  insufficient_evidence_reasons: string[];
+  neutral_reasons: string[];
+}
+
+export interface PersonalizationScore {
+  bounded_score: number;
+  normalized_score: number;
+  absolute_score: number;
+  raw_score: number;
+  positive_contribution: number;
+  negative_penalty: number;
+  confidence: number;
+  match_state: PreferenceMatchType;
+}
+
+export interface PersonalizationAssessment {
+  profile_id: string;
+  opportunity_id: string;
+  personalization_score: number;
+  score: PersonalizationScore;
+  breakdown: PersonalizationScoreBreakdown;
+  explanation: PersonalizationExplanation;
+  preference_assessment: PreferencePersonalizationAssessment;
+  evaluated_at: string;
+}
+
+export interface BatchPersonalizationRequest {
+  opportunity_ids: string[];
+}
+
+export interface BatchPersonalizationResponse {
+  profile_id: string;
+  assessments: PersonalizationAssessment[];
+  evaluated_count: number;
+}
+

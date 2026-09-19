@@ -426,12 +426,28 @@ Facilitates institutional and cross-disciplinary collaboration within verified a
   - Zero behavioral learning, zero collaborative filtering, zero embeddings, zero ML personalization, zero opaque ranking boosts.
   - All 25 safety invariants verified with dedicated test suite (`test_preference_interpretation.py`).
 
+#### Phase 5.3 — Personalization-Aware Opportunity Scoring & Explainability [COMPLETE]
+- **Deterministic Personalization Scorer & Domain Breakdown**:
+  - `PersonalizationScorer` computes bounded, dimension-aware personalization scores ($0.0 \le s \le 1.0$) consuming Phase 5.2 explicit preference signals.
+  - Centralized `PersonalizationScoringConfig` defining explicit, normalized weights across all 9 dimensions (`KEYWORD`: 0.20, `RESEARCH_DOMAIN`: 0.20, `OPPORTUNITY_TYPE`: 0.15, `COUNTRY`: 0.10, `REGION`: 0.05, `INSTITUTION`: 0.10, `FUNDING`: 0.10, `ACADEMIC_LEVEL`: 0.05, `CAREER_STAGE`: 0.05).
+  - Explicit exclusion penalties, dual-evidence conflict preservation, and missing-data safety (`INSUFFICIENT_EVIDENCE` contributes 0.0, never negative).
+  - Structured `PersonalizationScoreBreakdown` partitioning dimension contributions into positive, negative, neutral, and unresolved buckets.
+- **REST APIs**:
+  - `GET /api/v1/researchers/{id}/opportunities/{opp_id}/personalization`: Single opportunity evaluation returning complete `PersonalizationAssessment`.
+  - `POST /api/v1/researchers/{id}/opportunities/personalization`: Batch scoring endpoint evaluating up to 100 opportunities in memory with zero N+1 queries.
+- **Next.js App Router Integration**:
+  - `PersonalizationScoreBadge` component displaying percentage match, confidence, and interactive popover with detailed dimension contributions and natural language explanations.
+  - Integrated into `UnifiedResearchIntelligenceView` alongside recommendation cards with zero ranking reordering.
+- **Strict Phase Boundary & Invariants**:
+  - Zero behavioral learning, zero click/bookmark tracking, zero collaborative filtering, zero embeddings, zero ML personalization, zero opaque ranking overrides.
+  - All 20 safety invariants verified with dedicated test suite (`test_personalization_scoring.py`).
+
 #### Future Phase 5 Modules (Planned)
-- **Phase 5.3 — Adaptive & Behavioral Personalization**: Contextual learning, click/bookmark signals, and balanced ranking integration.
-- **Phase 5.4 — Faculty Research Opportunities**: Structured listings posted by faculty members for open research slots, thesis topics, and specialized projects.
-- **Phase 5.5 — Collaborative Project Postings**: Multi-student or inter-departmental research project announcements seeking collaborators.
-- **Phase 5.6 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
-- **Phase 5.7 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
+- **Phase 5.4 — Adaptive & Behavioral Personalization**: Contextual learning, click/bookmark signals, and balanced ranking integration.
+- **Phase 5.5 — Faculty Research Opportunities**: Structured listings posted by faculty members for open research slots, thesis topics, and specialized projects.
+- **Phase 5.6 — Collaborative Project Postings**: Multi-student or inter-departmental research project announcements seeking collaborators.
+- **Phase 5.7 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
+- **Phase 5.8 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
 
 ---
 

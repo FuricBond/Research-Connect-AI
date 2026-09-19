@@ -30,12 +30,14 @@ import {
   Zap,
 } from "lucide-react";
 import {
+  fetchBatchOpportunityPersonalization,
   fetchBatchOpportunityPreferenceMatches,
   getOpportunityIntelligence,
   getUnifiedRecommendations,
   getUnifiedResearchIntelligence,
 } from "../../services/api";
 import { PreferenceMatchBadge } from "../personalization/PreferenceMatchBadge";
+import { PersonalizationScoreBadge } from "../personalization/PersonalizationScoreBadge";
 import type {
   EvidenceTierBreakdown,
   ResearchIntelligenceSignal,
@@ -44,7 +46,10 @@ import type {
   UnifiedRecommendationResponse,
   UnifiedResearcherContext,
 } from "../../types/research_intelligence";
-import type { PreferencePersonalizationAssessment } from "../../types/personalization";
+import type {
+  PersonalizationAssessment,
+  PreferencePersonalizationAssessment,
+} from "../../types/personalization";
 
 interface UnifiedResearchIntelligenceViewProps {
   profileId: string;
@@ -70,6 +75,7 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
   const [recsError, setRecsError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [preferenceMatches, setPreferenceMatches] = useState<Record<string, PreferencePersonalizationAssessment>>({});
+  const [personalizationScores, setPersonalizationScores] = useState<Record<string, PersonalizationAssessment>>({});
 
   // Detailed Intelligence Modal/Drawer State
   const [selectedIntel, setSelectedIntel] = useState<UnifiedOpportunityIntelligence | null>(null);
@@ -110,11 +116,9 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
         );
         setRecsData(data);
         if (data.recommendations.length > 0) {
-          fetchBatchOpportunityPreferenceMatches(
-            profileId,
-            data.recommendations.map((r) => r.opportunity_id),
-            userId
-          )
+          const oppIds = data.recommendations.map((r) => r.opportunity_id);
+
+          fetchBatchOpportunityPreferenceMatches(profileId, oppIds, userId)
             .then((res) => {
               const map: Record<string, PreferencePersonalizationAssessment> = {};
               for (const a of res.assessments) {
@@ -124,6 +128,18 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
             })
             .catch((err) => {
               console.warn("Could not fetch preference matches:", err);
+            });
+
+          fetchBatchOpportunityPersonalization(profileId, oppIds, userId)
+            .then((res) => {
+              const map: Record<string, PersonalizationAssessment> = {};
+              for (const a of res.assessments) {
+                map[a.opportunity_id] = a;
+              }
+              setPersonalizationScores(map);
+            })
+            .catch((err) => {
+              console.warn("Could not fetch personalization scores:", err);
             });
         }
       } catch (err: unknown) {
@@ -466,6 +482,7 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
                           </span>
                         )}
                         <PreferenceMatchBadge assessment={preferenceMatches[item.opportunity_id] || null} />
+                        <PersonalizationScoreBadge assessment={personalizationScores[item.opportunity_id] || null} />
                       </div>
 
                       <h3

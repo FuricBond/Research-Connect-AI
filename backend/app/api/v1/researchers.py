@@ -26,6 +26,10 @@ from app.models.research_profile import ResearchProfileModel
 from app.personalization import (
     BatchOpportunityPreferenceMatchRequest,
     BatchOpportunityPreferenceMatchResponse,
+    BatchPersonalizationRequest,
+    BatchPersonalizationResponse,
+    PersonalizationAssessment,
+    PersonalizationScorer,
     PreferenceInterpreter,
     PreferencePersonalizationAssessment,
 )
@@ -1800,6 +1804,92 @@ def batch_opportunity_preference_matches(
         assessments=ordered_assessments,
         evaluated_count=len(ordered_assessments),
     )
+
+
+@router.get(
+    "/{researcher_id}/opportunities/{opportunity_id}/personalization",
+    response_model=PersonalizationAssessment,
+    status_code=status.HTTP_200_OK,
+    summary="Get personalization score and explainability breakdown for an opportunity",
+    description="Computes a bounded, deterministic personalization score and structured explanation breakdown for a specific opportunity against explicit researcher preferences.",
+)
+def get_opportunity_personalization(
+    researcher_id: uuid.UUID,
+    opportunity_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationAssessment:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    stmt = (
+        select(OpportunityModel)
+        .where(OpportunityModel.id == opportunity_id)
+        .options(
+            selectinload(OpportunityModel.topic_associations).joinedload(
+                OpportunityTopicModel.topic
+            )
+        )
+    )
+    opp = db.execute(stmt).scalar_one_or_none()
+    if not opp:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Opportunity {opportunity_id} not found",
+        )
+
+    structured_prefs = ResearcherPreferenceService.get_structured_preferences(db, profile.id)
+    return PersonalizationScorer.score_opportunity(
+        profile_id=profile.id,
+        preferences=structured_prefs,
+        opportunity=opp,
+    )
+
+
+@router.post(
+    "/{researcher_id}/opportunities/personalization",
+    response_model=BatchPersonalizationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Batch evaluate personalization scores and breakdowns for opportunities",
+    description="Scores a list of opportunities in memory against researcher explicit preferences with zero N+1 queries.",
+)
+def batch_opportunity_personalization(
+    researcher_id: uuid.UUID,
+    payload: BatchPersonalizationRequest,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> BatchPersonalizationResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+
+    stmt = (
+        select(OpportunityModel)
+        .where(OpportunityModel.id.in_(payload.opportunity_ids))
+        .options(
+            selectinload(OpportunityModel.topic_associations).joinedload(
+                OpportunityTopicModel.topic
+            )
+        )
+    )
+    opps = list(db.execute(stmt).scalars().unique().all())
+
+    structured_prefs = ResearcherPreferenceService.get_structured_preferences(db, profile.id)
+
+    batch_results = PersonalizationScorer.score_opportunities_batch(
+        profile_id=profile.id,
+        preferences=structured_prefs,
+        opportunities=opps,
+    )
+
+    ordered_assessments = [
+        batch_results[opp_id]
+        for opp_id in payload.opportunity_ids
+        if opp_id in batch_results
+    ]
+
+    return BatchPersonalizationResponse(
+        profile_id=profile.id,
+        assessments=ordered_assessments,
+        evaluated_count=len(ordered_assessments),
+    )
+
 
 
 

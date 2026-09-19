@@ -176,3 +176,186 @@ class BatchOpportunityPreferenceMatchResponse(BaseModel):
         description="Evaluation assessments for each requested opportunity",
     )
     evaluated_count: int = Field(..., description="Number of opportunities evaluated")
+
+
+# =============================================================================
+# Phase 5.3 — Personalization-Aware Opportunity Scoring & Explainability Models
+# =============================================================================
+
+
+class PersonalizationContribution(BaseModel):
+    """
+    Structured contribution of a single preference dimension to the personalization score.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    dimension: PreferenceDimension = Field(..., description="Evaluated preference dimension")
+    match_type: PreferenceMatchType = Field(..., description="Dimension match outcome")
+    polarity: SignalPolarity = Field(..., description="Signal polarity")
+    weight: float = Field(..., ge=0.0, le=1.0, description="Dimension base weight in [0.0, 1.0]")
+    raw_contribution: float = Field(..., description="Signed raw contribution")
+    normalized_contribution: float = Field(..., description="Contribution normalized by active weights")
+    preference_value: str = Field(..., description="Explicit preference value")
+    opportunity_value: str | None = Field(None, description="Evaluated opportunity value")
+    evidence: str = Field(..., description="Factual evidence")
+    explanation: str = Field(..., description="Deterministic explanation")
+
+
+class PersonalizationDimensionScore(BaseModel):
+    """
+    Aggregate score and status for a single preference dimension.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    dimension: PreferenceDimension = Field(..., description="Evaluated preference dimension")
+    score: float = Field(..., ge=0.0, le=1.0, description="Dimension score in [0.0, 1.0]")
+    weight: float = Field(..., ge=0.0, le=1.0, description="Dimension weight")
+    weighted_score: float = Field(..., description="Dimension score multiplied by weight")
+    status: PreferenceMatchType = Field(..., description="Dimension match status")
+    explanation: str = Field(..., description="Human-readable explanation")
+
+
+class PersonalizationScoreBreakdown(BaseModel):
+    """
+    Comprehensive breakdown of personalization scoring across dimensions and polarities.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    dimension_scores: dict[PreferenceDimension, PersonalizationDimensionScore] = Field(
+        default_factory=dict,
+        description="Per-dimension scores and statuses",
+    )
+    positive_contributions: list[PersonalizationContribution] = Field(
+        default_factory=list,
+        description="Dimensions with positive preferred matches",
+    )
+    negative_contributions: list[PersonalizationContribution] = Field(
+        default_factory=list,
+        description="Dimensions with explicit exclusion penalties",
+    )
+    neutral_contributions: list[PersonalizationContribution] = Field(
+        default_factory=list,
+        description="Dimensions with neutral / unspecified preferences",
+    )
+    unresolved_contributions: list[PersonalizationContribution] = Field(
+        default_factory=list,
+        description="Dimensions with conflicts or insufficient evidence",
+    )
+    total_positive_weight: float = Field(0.0, ge=0.0, description="Sum of positive weights")
+    total_negative_weight: float = Field(0.0, ge=0.0, description="Sum of negative weights")
+    active_dimensions_count: int = Field(0, description="Number of active preference dimensions evaluated")
+
+
+class PersonalizationExplanation(BaseModel):
+    """
+    Multi-faceted, deterministic explanation of personalization scoring.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    summary: str = Field(..., description="Executive summary of personalization score")
+    positive_reasons: list[str] = Field(default_factory=list, description="Reasons for positive score contributions")
+    negative_reasons: list[str] = Field(default_factory=list, description="Reasons for negative score penalties")
+    unresolved_reasons: list[str] = Field(default_factory=list, description="Reasons for unresolved/conflict signals")
+    insufficient_evidence_reasons: list[str] = Field(
+        default_factory=list,
+        description="Dimensions where opportunity evidence was missing",
+    )
+    neutral_reasons: list[str] = Field(default_factory=list, description="Dimensions without explicit preferences")
+
+
+class PersonalizationScore(BaseModel):
+    """
+    Calculated personalization score with bounding and confidence metrics.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    bounded_score: float = Field(
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Authoritative bounded personalization score in [0.0, 1.0]",
+    )
+    normalized_score: float = Field(
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Score normalized relative to active preferences in [0.0, 1.0]",
+    )
+    absolute_score: float = Field(
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Score relative to all 9 dimensions in [0.0, 1.0]",
+    )
+    raw_score: float = Field(
+        ...,
+        description="Signed net contribution (positive minus negative)",
+    )
+    positive_contribution: float = Field(..., ge=0.0, description="Sum of positive contributions")
+    negative_penalty: float = Field(..., ge=0.0, description="Sum of negative penalties")
+    confidence: float = Field(
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Evidence completeness confidence in [0.0, 1.0]",
+    )
+    match_state: PreferenceMatchType = Field(..., description="Overall match state from Phase 5.2")
+
+
+class PersonalizationAssessment(BaseModel):
+    """
+    Complete Phase 5.3 Personalization Assessment combining score, breakdown, explanations,
+    and underlying Phase 5.2 preference match signals.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    profile_id: uuid.UUID = Field(..., description="Canonical ResearchProfileModel ID")
+    opportunity_id: uuid.UUID = Field(..., description="Canonical OpportunityModel ID")
+    personalization_score: float = Field(
+        ...,
+        ge=0.0,
+        le=1.0,
+        description="Top-level bounded score in [0.0, 1.0]",
+    )
+    score: PersonalizationScore = Field(..., description="Detailed score metrics")
+    breakdown: PersonalizationScoreBreakdown = Field(..., description="Structured dimension breakdown")
+    explanation: PersonalizationExplanation = Field(..., description="Deterministic natural-language explanations")
+    preference_assessment: PreferencePersonalizationAssessment = Field(
+        ...,
+        description="Underlying Phase 5.2 preference evaluation",
+    )
+    evaluated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Timestamp of evaluation",
+    )
+
+
+class BatchPersonalizationRequest(BaseModel):
+    """Payload for batch personalization scoring."""
+
+    opportunity_ids: list[uuid.UUID] = Field(
+        ...,
+        min_length=1,
+        max_length=100,
+        description="List of opportunity IDs to score in batch",
+    )
+
+
+class BatchPersonalizationResponse(BaseModel):
+    """Response container for batch personalization scoring."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    profile_id: uuid.UUID = Field(..., description="Canonical ResearchProfileModel ID")
+    assessments: list[PersonalizationAssessment] = Field(
+        default_factory=list,
+        description="Personalization assessments for each requested opportunity",
+    )
+    evaluated_count: int = Field(..., description="Number of opportunities evaluated")
+
