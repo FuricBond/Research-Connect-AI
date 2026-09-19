@@ -110,8 +110,15 @@ from app.services.personalized_candidate_generation_service import (
 )
 from app.services.recommendation_history_service import RecommendationHistoryService
 from app.services.researcher_intelligence_service import ResearcherIntelligenceService
+from app.services.researcher_interaction_service import ResearcherInteractionService
 from app.services.researcher_preference_service import ResearcherPreferenceService
 from app.services.researcher_profile_service import ResearcherProfileService
+from app.schemas.researcher_interaction import (
+    InteractionCreateRequest,
+    InteractionResponse,
+    OpportunityInteractionHistoryResponse,
+    ResearcherInteractionSummaryResponse,
+)
 
 
 
@@ -1889,6 +1896,97 @@ def batch_opportunity_personalization(
         assessments=ordered_assessments,
         evaluated_count=len(ordered_assessments),
     )
+
+
+# ----------------------------------------------------------------------------
+# Phase 5.4: Researcher Feedback & Interaction Signal Endpoints
+# ----------------------------------------------------------------------------
+
+@router.post(
+    "/{researcher_id}/opportunities/{opportunity_id}/interactions",
+    response_model=InteractionResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Record a researcher-opportunity interaction",
+    description="Records an auditable researcher interaction (e.g. VIEWED, OPENED, SAVED, DISMISSED, HIDDEN, INTERESTED, NOT_INTERESTED, APPLIED, SHARED) with idempotency protection.",
+)
+def record_opportunity_interaction(
+    researcher_id: uuid.UUID,
+    opportunity_id: uuid.UUID,
+    payload: InteractionCreateRequest,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> InteractionResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    try:
+        return ResearcherInteractionService.record_interaction(
+            db=db,
+            profile_id=profile.id,
+            opportunity_id=opportunity_id,
+            payload=payload,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
+
+@router.get(
+    "/{researcher_id}/opportunities/{opportunity_id}/interactions",
+    response_model=OpportunityInteractionHistoryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get interaction history for an opportunity",
+    description="Retrieves the chronological list of interaction events recorded by this researcher for a specific opportunity.",
+)
+def get_opportunity_interactions(
+    researcher_id: uuid.UUID,
+    opportunity_id: uuid.UUID,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> OpportunityInteractionHistoryResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    try:
+        return ResearcherInteractionService.get_opportunity_interactions(
+            db=db,
+            profile_id=profile.id,
+            opportunity_id=opportunity_id,
+            limit=limit,
+            offset=offset,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
+
+@router.get(
+    "/{researcher_id}/interactions/summary",
+    response_model=ResearcherInteractionSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get researcher interaction signals summary",
+    description="Retrieves aggregated counts, positive/negative breakdown, and recent interaction events across all opportunities for a researcher.",
+)
+def get_researcher_interaction_summary(
+    researcher_id: uuid.UUID,
+    recent_limit: int = Query(default=10, ge=1, le=50),
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> ResearcherInteractionSummaryResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    try:
+        return ResearcherInteractionService.get_researcher_interaction_summary(
+            db=db,
+            profile_id=profile.id,
+            recent_limit=recent_limit,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
 
 
 

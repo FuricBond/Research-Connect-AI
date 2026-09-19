@@ -38,6 +38,7 @@ import {
 } from "../../services/api";
 import { PreferenceMatchBadge } from "../personalization/PreferenceMatchBadge";
 import { PersonalizationScoreBadge } from "../personalization/PersonalizationScoreBadge";
+import { OpportunityInteractionBar } from "../personalization/OpportunityInteractionBar";
 import type {
   EvidenceTierBreakdown,
   ResearchIntelligenceSignal,
@@ -580,6 +581,16 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
                         </button>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Phase 5.4: Researcher Interaction Bar */}
+                  <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2 flex-wrap">
+                    <OpportunityInteractionBar
+                      profileId={profileId}
+                      opportunityId={item.opportunity_id}
+                      userId={userId}
+                      initialSaved={item.workspace_context.is_saved}
+                    />
                   </div>
 
                   {/* Collapsible 6-Tier Evidence Breakdown */}

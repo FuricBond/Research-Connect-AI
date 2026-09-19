@@ -154,3 +154,66 @@ export interface BatchPersonalizationResponse {
   evaluated_count: number;
 }
 
+// =============================================================================
+// Phase 5.4 — Researcher Feedback & Interaction Signal Types
+// =============================================================================
+
+export type InteractionType =
+  | "VIEWED"
+  | "OPENED"
+  | "SAVED"
+  | "DISMISSED"
+  | "HIDDEN"
+  | "INTERESTED"
+  | "NOT_INTERESTED"
+  | "APPLIED"
+  | "SHARED";
+
+export interface InteractionCreateRequest {
+  interaction_type: InteractionType;
+  source?: string;
+  client_event_id?: string;
+  metadata_payload?: Record<string, unknown>;
+}
+
+export interface InteractionResponse {
+  id: string;
+  profile_id: string;
+  opportunity_id: string;
+  interaction_type: InteractionType;
+  is_explicit_feedback: boolean;
+  source: string;
+  client_event_id?: string | null;
+  metadata_payload: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface OpportunityInteractionHistoryResponse {
+  opportunity_id: string;
+  profile_id: string;
+  interactions: InteractionResponse[];
+  total_count: number;
+  limit: number;
+  offset: number;
+}
+
+export interface ResearcherInteractionSummaryResponse {
+  profile_id: string;
+  total_interactions: number;
+  positive_explicit_count: number;
+  negative_explicit_count: number;
+  saved_count: number;
+  dismissed_count: number;
+  hidden_count: number;
+  interested_count: number;
+  not_interested_count: number;
+  viewed_count: number;
+  opened_count: number;
+  applied_count: number;
+  shared_count: number;
+  counts_by_type: Record<string, number>;
+  most_recent_interaction?: InteractionResponse | null;
+  recent_interactions: InteractionResponse[];
+  interaction_strength_signal?: number | null;
+}
+

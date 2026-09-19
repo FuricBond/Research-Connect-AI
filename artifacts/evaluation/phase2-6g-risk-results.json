@@ -1,6 +1,6 @@
 {
   "phase": "2.6G",
-  "timestamp": "2026-09-19T17:25:46Z",
+  "timestamp": "2026-09-19T17:44:25Z",
   "dataset_summary": {
     "total_fixtures": 108,
     "label_distribution": {
@@ -447,43 +447,43 @@
   "performance": {
     "batch_10": {
       "candidate_count": 10,
-      "evidence_extraction_ms": 1.581,
-      "risk_scoring_ms": 0.156,
-      "explainability_ms": 0.944,
-      "total_pipeline_ms": 2.681,
-      "per_candidate_overhead_ms": 0.2681
+      "evidence_extraction_ms": 2.908,
+      "risk_scoring_ms": 0.358,
+      "explainability_ms": 2.079,
+      "total_pipeline_ms": 5.346,
+      "per_candidate_overhead_ms": 0.5346
     },
     "batch_50": {
       "candidate_count": 50,
-      "evidence_extraction_ms": 9.166,
-      "risk_scoring_ms": 0.656,
-      "explainability_ms": 4.051,
-      "total_pipeline_ms": 13.872,
-      "per_candidate_overhead_ms": 0.2774
+      "evidence_extraction_ms": 14.639,
+      "risk_scoring_ms": 0.634,
+      "explainability_ms": 7.235,
+      "total_pipeline_ms": 22.508,
+      "per_candidate_overhead_ms": 0.4502
     },
     "batch_100": {
       "candidate_count": 100,
-      "evidence_extraction_ms": 16.292,
-      "risk_scoring_ms": 1.295,
-      "explainability_ms": 8.571,
-      "total_pipeline_ms": 26.157,
-      "per_candidate_overhead_ms": 0.2616
+      "evidence_extraction_ms": 30.951,
+      "risk_scoring_ms": 2.714,
+      "explainability_ms": 11.377,
+      "total_pipeline_ms": 45.042,
+      "per_candidate_overhead_ms": 0.4504
     },
     "batch_200": {
       "candidate_count": 200,
-      "evidence_extraction_ms": 102.003,
-      "risk_scoring_ms": 3.149,
-      "explainability_ms": 15.741,
-      "total_pipeline_ms": 120.893,
-      "per_candidate_overhead_ms": 0.6045
+      "evidence_extraction_ms": 54.188,
+      "risk_scoring_ms": 4.906,
+      "explainability_ms": 26.427,
+      "total_pipeline_ms": 85.521,
+      "per_candidate_overhead_ms": 0.4276
     },
     "batch_1000": {
       "candidate_count": 1000,
-      "evidence_extraction_ms": 161.784,
-      "risk_scoring_ms": 13.777,
-      "explainability_ms": 83.615,
-      "total_pipeline_ms": 259.176,
-      "per_candidate_overhead_ms": 0.2592
+      "evidence_extraction_ms": 286.2,
+      "risk_scoring_ms": 31.117,
+      "explainability_ms": 137.685,
+      "total_pipeline_ms": 455.002,
+      "per_candidate_overhead_ms": 0.455
     }
   },
   "production_recommendation": {

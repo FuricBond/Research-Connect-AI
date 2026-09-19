@@ -442,12 +442,31 @@ Facilitates institutional and cross-disciplinary collaboration within verified a
   - Zero behavioral learning, zero click/bookmark tracking, zero collaborative filtering, zero embeddings, zero ML personalization, zero opaque ranking overrides.
   - All 20 safety invariants verified with dedicated test suite (`test_personalization_scoring.py`).
 
+#### Phase 5.4 — Researcher Feedback & Interaction Signal Foundation [COMPLETE]
+- **Auditable Append-Only Persistence Model**:
+  - `researcher_interactions` normalized table with composite indexes (`(profile_id, created_at)`, `(profile_id, opportunity_id, interaction_type)`, `(opportunity_id, interaction_type)`, `(profile_id, client_event_id)`).
+  - Historical interaction events are append-only and auditable; never mutated when preferences or recommendations change.
+- **Explicit Feedback vs. Passive Observation Semantics**:
+  - Explicit signals (`INTERESTED`, `NOT_INTERESTED`, `DISMISSED`, `HIDDEN`, `SAVED`, `APPLIED`, `SHARED`): Intentional researcher feedback.
+  - Passive observations (`VIEWED`, `OPENED`): Strictly informational telemetry; never treated as preference or affinity.
+  - Inviolability: Zero mutation of explicit preferences in `ResearcherPreferenceModel`, zero modification of Phase 4 ranking formulas, Phase 2.6 risk, or Phase 2.7 deadline intelligence.
+- **REST APIs**:
+  - `POST /api/v1/researchers/{id}/opportunities/{opp_id}/interactions`: Idempotent interaction recording with client event ID and rapid-fire deduplication.
+  - `GET /api/v1/researchers/{id}/opportunities/{opp_id}/interactions`: Chronological interaction history for an opportunity.
+  - `GET /api/v1/researchers/{id}/interactions/summary`: Aggregated interaction counts, positive/negative breakdown, and recent events (zero N+1 queries).
+- **Next.js App Router Integration**:
+  - Reusable, accessible `OpportunityInteractionBar` component with Save, Interested, Not Interested, Dismiss, Hide, and Share actions.
+  - Integrated into `UnifiedResearchIntelligenceView` cards with optimistic feedback and double-click prevention.
+- **Strict Phase Boundary & Invariants**:
+  - Zero collaborative filtering, zero embeddings, zero vector databases, zero ML personalization, zero LLM calls, zero external analytics.
+  - All 25 safety invariants verified with dedicated test suite (`test_researcher_interactions.py`).
+
 #### Future Phase 5 Modules (Planned)
-- **Phase 5.4 — Adaptive & Behavioral Personalization**: Contextual learning, click/bookmark signals, and balanced ranking integration.
-- **Phase 5.5 — Faculty Research Opportunities**: Structured listings posted by faculty members for open research slots, thesis topics, and specialized projects.
-- **Phase 5.6 — Collaborative Project Postings**: Multi-student or inter-departmental research project announcements seeking collaborators.
-- **Phase 5.7 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
-- **Phase 5.8 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
+- **Phase 5.5 — Adaptive & Behavioral Personalization**: Contextual learning, feedback weight integration, and balanced ranking integration.
+- **Phase 5.6 — Faculty Research Opportunities**: Structured listings posted by faculty members for open research slots, thesis topics, and specialized projects.
+- **Phase 5.7 — Collaborative Project Postings**: Multi-student or inter-departmental research project announcements seeking collaborators.
+- **Phase 5.8 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
+- **Phase 5.9 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
 
 ---
 

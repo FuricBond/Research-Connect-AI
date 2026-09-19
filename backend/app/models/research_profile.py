@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from app.models.research_knowledge import InstitutionModel, ResearcherModel
     from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
     from app.models.recommendation_history import ResearcherRecommendationSnapshotModel
+    from app.models.researcher_interaction import ResearcherInteractionModel
     from app.models.user import UserModel
 
 
@@ -145,6 +146,10 @@ class ResearchProfileModel(Base, TimestampMixin):
         cascade="all, delete-orphan",
     )
     recommendation_snapshots: Mapped[list["ResearcherRecommendationSnapshotModel"]] = relationship(
+        back_populates="researcher_profile",
+        cascade="all, delete-orphan",
+    )
+    interactions: Mapped[list["ResearcherInteractionModel"]] = relationship(
         back_populates="researcher_profile",
         cascade="all, delete-orphan",
     )

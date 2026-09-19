@@ -73,6 +73,13 @@ from app.schemas.researcher_feedback import (
     FeedbackType,
     FeedbackUpdateRequest,
 )
+from app.schemas.researcher_interaction import (
+    InteractionCreateRequest,
+    InteractionResponse,
+    InteractionType as Phase5InteractionType,
+    OpportunityInteractionHistoryResponse,
+    ResearcherInteractionSummaryResponse,
+)
 from app.schemas.recommendation_history import (
     RecommendationHistoryListResponse,
     RecommendationItemSnapshotSchema,
@@ -161,6 +168,12 @@ __all__ = [
     "FeedbackListResponse",
     "BehavioralSignalSchema",
     "FeedbackSummaryResponse",
+    # Phase 5.4 Researcher Feedback & Interaction Schemas
+    "InteractionCreateRequest",
+    "InteractionResponse",
+    "Phase5InteractionType",
+    "OpportunityInteractionHistoryResponse",
+    "ResearcherInteractionSummaryResponse",
     # Phase 3.7 Recommendation History & Evaluation Schemas
     "RecommendationOpportunityBriefSchema",
     "RecommendationItemSnapshotSchema",
