@@ -241,7 +241,7 @@ researchconnect-ai/
 | **4.4** | **Research Calendar & Deadline Planning** (`ResearchCalendarModel`, canonical deadline projection, custom planning events, RFC 5545 `.ics` export, visual calendar) | ✅ Complete |
 | **4.5** | **Deadline Reminders, Notifications & Scheduled Alerts** (Multi-channel delivery, deterministic SHA-256 deduplication, zero N+1 scheduler, notification center & preferences) | ✅ Complete |
 | **4.6** | **Collaborative Research Management** (Workspace members & RBAC, cryptographic invitations, collaborative tasks, append-only activity feed, Next.js `/workspace/[id]` collaboration UI) | ✅ Complete |
-| **4.7** | **Evaluation & Production Hardening** (Multi-user isolation verification, audit trail verification, database query performance, stress testing) | ⚪ Planned |
+| **4.7** | **Research Intelligence Integration & Production Hardening** (Unified intelligence service, signal provenance, identity resolution, 6-tier explainability, unified recommendations, Next.js UI integration, zero N+1 queries) | ✅ Complete |
 
 ---
 

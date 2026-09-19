@@ -17,6 +17,7 @@ import { PersonalizedRankingPreview } from "../../components/researcher/Personal
 import { PersonalizationSummaryView } from "../../components/researcher/PersonalizationSummaryView";
 import { FeedbackHistoryView } from "../../components/researcher/FeedbackHistoryView";
 import { RecommendationHistoryView } from "../../components/researcher/RecommendationHistoryView";
+import { UnifiedResearchIntelligenceView } from "../../components/researcher/UnifiedResearchIntelligenceView";
 import {
 
   createResearcherPreference,
@@ -450,6 +451,14 @@ export default function ResearcherPage() {
           onDeletePreference={handleDeletePreference}
           userId={profile.user_id}
         />
+        {/* Phase 4.7: Unified Research Intelligence & Recommendations */}
+        <div style={{ marginTop: "36px" }}>
+          <UnifiedResearchIntelligenceView
+            key={`unified-intel-${feedbackRefreshKey}`}
+            profileId={profile.id}
+            userId={profile.user_id}
+          />
+        </div>
         <div style={{ marginTop: "36px" }}>
           <PersonalizedCandidatePreview
             candidatesResponse={candidates}

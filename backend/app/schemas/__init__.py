@@ -178,7 +178,33 @@ __all__ = [
     "RecommendationExplanationSchema",
     "LearnedSignalItemSchema",
     "PersonalizationSummaryResponse",
+    # Phase 4.7 Research Intelligence Integration Schemas
+    "SignalProvenanceType",
+    "SignalSource",
+    "EvidenceTierType",
+    "ResearchIntelligenceSignalSchema",
+    "IdentityResolutionStatus",
+    "UnifiedResearcherContextSchema",
+    "OpportunityWorkspaceContextSchema",
+    "EvidenceTierBreakdownSchema",
+    "UnifiedRecommendationItemSchema",
+    "UnifiedRecommendationResponseSchema",
+    "UnifiedOpportunityIntelligenceSchema",
 ]
+
+from app.schemas.research_intelligence import (
+    EvidenceTierBreakdownSchema,
+    EvidenceTierType,
+    IdentityResolutionStatus,
+    OpportunityWorkspaceContextSchema,
+    ResearchIntelligenceSignalSchema,
+    SignalProvenanceType,
+    SignalSource,
+    UnifiedOpportunityIntelligenceSchema,
+    UnifiedRecommendationItemSchema,
+    UnifiedRecommendationResponseSchema,
+    UnifiedResearcherContextSchema,
+)
 
 
 

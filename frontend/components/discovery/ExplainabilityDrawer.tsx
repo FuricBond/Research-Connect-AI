@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import type { ExplanationSchema } from "../../types/discovery";
 import type { DeadlineObservation, OpportunityDeadline, RiskExplanation } from "../../types/opportunity";
+import type { UnifiedOpportunityIntelligence } from "../../types/research_intelligence";
 import { DeadlineTimeline } from "./DeadlineTimeline";
 
 interface ExplainabilityDrawerProps {
@@ -34,8 +35,10 @@ interface ExplainabilityDrawerProps {
   entityType?: "research_work" | "opportunity";
   riskExplanation?: RiskExplanation | null;
   deadlineExplanation?: OpportunityDeadline | null;
-  initialTab?: "match" | "risk" | "deadline";
+  unifiedIntelligence?: UnifiedOpportunityIntelligence | null;
+  initialTab?: "match" | "risk" | "deadline" | "unified";
 }
+
 
 const SIGNAL_LABELS: Record<string, string> = {
   semantic_similarity: "Semantic Relevance",
@@ -61,22 +64,27 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
   entityType = "research_work",
   riskExplanation,
   deadlineExplanation,
+  unifiedIntelligence,
   initialTab = "match",
 }) => {
-  const [activeTab, setActiveTab] = useState<"match" | "risk" | "deadline">("match");
+  const [activeTab, setActiveTab] = useState<"match" | "risk" | "deadline" | "unified">("match");
 
   // Sync initial tab when drawer opens
   useEffect(() => {
     if (isOpen) {
-      if (initialTab === "deadline" && deadlineExplanation) {
+      if (initialTab === "unified" && unifiedIntelligence) {
+        setActiveTab("unified");
+      } else if (initialTab === "deadline" && deadlineExplanation) {
         setActiveTab("deadline");
       } else if (initialTab === "risk" || (!explanation && riskExplanation)) {
         setActiveTab("risk");
+      } else if (unifiedIntelligence && !explanation) {
+        setActiveTab("unified");
       } else {
         setActiveTab("match");
       }
     }
-  }, [isOpen, initialTab, explanation, riskExplanation, deadlineExplanation]);
+  }, [isOpen, initialTab, explanation, riskExplanation, deadlineExplanation, unifiedIntelligence]);
 
   // Handle ESC key to close drawer
   useEffect(() => {
@@ -100,7 +108,8 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
 
   const hasRisk = Boolean(riskExplanation);
   const hasDeadline = Boolean(deadlineExplanation);
-  const isOpp = entityType === "opportunity" || hasRisk || hasDeadline;
+  const hasUnified = Boolean(unifiedIntelligence);
+  const isOpp = entityType === "opportunity" || hasRisk || hasDeadline || hasUnified;
 
   return (
     <div className="drawer-overlay" onClick={onClose} role="dialog" aria-modal="true">
@@ -115,7 +124,9 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
             <div className="drawer-eyebrow">
               <Sparkles size={14} />
               <span>
-                {activeTab === "deadline"
+                {activeTab === "unified"
+                  ? "Unified Multi-Tier Research Intelligence (Phase 4.7)"
+                  : activeTab === "deadline"
                   ? "Academic Deadlines & Milestone Intelligence (Phase 2.7F)"
                   : activeTab === "risk"
                   ? "Trust & Publication Integrity (Phase 2.6F)"
@@ -136,9 +147,22 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
           </button>
         </div>
 
-        {/* Tab Navigation (for opportunities with trust/risk/deadline data) */}
-        {isOpp && (hasRisk || hasDeadline) && (
+        {/* Tab Navigation (for opportunities with trust/risk/deadline/unified data) */}
+        {isOpp && (hasRisk || hasDeadline || hasUnified) && (
           <div className="drawer-tabs-bar" role="tablist">
+            {hasUnified && (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "unified"}
+                className={`drawer-tab-btn ${activeTab === "unified" ? "active" : ""}`}
+                onClick={() => setActiveTab("unified")}
+              >
+                <Sparkles size={14} />
+                <span>Unified Evidence</span>
+                <span className="drawer-tab-badge">Phase 4.7</span>
+              </button>
+            )}
             {explanation && (
               <button
                 type="button"
@@ -151,6 +175,7 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                 <span>Matching Relevance</span>
               </button>
             )}
+
             {hasRisk && (
               <button
                 type="button"
@@ -209,11 +234,104 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
         )}
 
         <div className="drawer-body">
+          {/* TAB 0: UNIFIED RESEARCH INTELLIGENCE (Phase 4.7) */}
+          {activeTab === "unified" && unifiedIntelligence && (
+            <div className="space-y-4">
+              {/* Score & Dominance Overview Card */}
+              <div className="drawer-metric-card">
+                <div className="metric-item">
+                  <span className="metric-label">Composite Score</span>
+                  <span className="metric-value">
+                    {(unifiedIntelligence.composite_score * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">Relevance (≥85%)</span>
+                  <span className="metric-value">
+                    {(unifiedIntelligence.relevance_score * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">Personalization (≤15%)</span>
+                  <span className="metric-value">
+                    {(unifiedIntelligence.personalization_score * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <div className="metric-item">
+                  <span className="metric-label">Identity Status</span>
+                  <span className="math-verified-badge">
+                    <ShieldCheck size={12} /> {unifiedIntelligence.identity_status.replace(/_/g, " ")}
+                  </span>
+                </div>
+              </div>
+
+              {/* Workspace Context Banner if applicable */}
+              {unifiedIntelligence.workspace_context.is_saved && (
+                <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg flex items-center justify-between text-xs text-purple-900">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 size={14} className="text-purple-600" />
+                    <span>
+                      Saved in Workspace • Status: <strong>{unifiedIntelligence.workspace_context.saved_status || "Active"}</strong>
+                    </span>
+                  </div>
+                  {unifiedIntelligence.workspace_context.has_active_submission && (
+                    <span className="font-semibold text-purple-800">
+                      Submission: {unifiedIntelligence.workspace_context.submission_stage} (
+                      {unifiedIntelligence.workspace_context.submission_readiness_score?.toFixed(0)}% Readiness)
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* 6-Tier Evidence Breakdown */}
+              <section className="drawer-section">
+                <h3 className="section-title">
+                  <Sparkles size={16} />
+                  <span>Structured Multi-Tier Evidence Breakdown</span>
+                </h3>
+                <div className="space-y-3 mt-3">
+                  {unifiedIntelligence.evidence_tiers.map((tier, idx) => (
+                    <div
+                      key={idx}
+                      className={`evidence-card p-3 rounded-lg border ${
+                        tier.is_active ? "border-indigo-100 bg-slate-50/50" : "border-gray-100 bg-gray-50/30 opacity-60"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between text-xs font-semibold text-gray-900">
+                        <span>{tier.tier_title}</span>
+                        <span className="text-indigo-600 font-mono">
+                          +{(tier.score_contribution * 100).toFixed(1)}% (Conf: {(tier.confidence * 100).toFixed(0)}%)
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 mt-1 leading-relaxed">{tier.summary}</p>
+
+                      {tier.signals.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
+                          {tier.signals.map((sig, sIdx) => (
+                            <div key={sIdx} className="flex items-center justify-between text-[11px] text-gray-500">
+                              <span>
+                                • <strong>{sig.evidence || sig.signal_type}</strong> ({sig.source})
+                              </span>
+                              <span className="font-mono">
+                                Str: {(sig.strength * 100).toFixed(0)}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </div>
+          )}
+
           {/* TAB 1: MATCHING RELEVANCE (Phase 2.5) */}
           {activeTab === "match" && explanation && (
             <>
               {/* Score & Rank Overview Card */}
               <div className="drawer-metric-card">
+
                 <div className="metric-item">
                   <span className="metric-label">Composite Rank</span>
                   <span className="metric-value">#{explanation.rank}</span>

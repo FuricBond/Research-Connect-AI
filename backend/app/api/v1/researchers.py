@@ -76,9 +76,17 @@ from app.schemas.recommendation_explanation import (
     PersonalizationSummaryResponse,
     RecommendationExplanationSchema,
 )
+from app.schemas.research_intelligence import (
+    UnifiedOpportunityIntelligenceSchema,
+    UnifiedRecommendationResponseSchema,
+    UnifiedResearcherContextSchema,
+)
 from app.services.feedback_service import ResearcherFeedbackService
 from app.services.personalization_explanation_service import (
     PersonalizationExplanationService,
+)
+from app.services.research_intelligence_integration_service import (
+    ResearchIntelligenceIntegrationService,
 )
 from app.services.personalization_ranking_service import (
     PersonalizationRankingService,
@@ -1513,6 +1521,85 @@ def delete_researcher_reminder_rule(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(err),
         )
+
+
+# ----------------------------------------------------------------------------
+# Phase 4.7: Unified Research Intelligence & Recommendations Endpoints
+# ----------------------------------------------------------------------------
+
+
+@router.get(
+    "/{researcher_id}/intelligence/unified",
+    response_model=UnifiedResearcherContextSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Get unified research intelligence context",
+    description="Retrieve comprehensive researcher intelligence context including profile signals, interest topics, explicit preferences, behavioral signals, and identity resolution status.",
+)
+def get_unified_research_intelligence(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> UnifiedResearcherContextSchema:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return ResearchIntelligenceIntegrationService.build_unified_researcher_context(db, profile.id)
+
+
+@router.get(
+    "/{researcher_id}/recommendations/unified",
+    response_model=UnifiedRecommendationResponseSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Get unified research-intelligence recommendations",
+    description="Retrieve hybrid ranked opportunities enriched with researcher intelligence, bounded personalization, deadline & risk context, workspace status, and 6-tier explainability evidence.",
+)
+def get_unified_recommendations(
+    researcher_id: uuid.UUID,
+    limit: int = Query(default=20, ge=1, le=100, description="Max number of recommendations to return"),
+    offset: int = Query(default=0, ge=0, description="Pagination offset"),
+    opportunity_type: str | None = Query(default=None),
+    delivery_mode: str | None = Query(default=None),
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> UnifiedRecommendationResponseSchema:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return ResearchIntelligenceIntegrationService.get_unified_recommendations(
+        db=db,
+        profile_id=profile.id,
+        limit=limit,
+        offset=offset,
+        opportunity_type=opportunity_type,
+        delivery_mode=delivery_mode,
+    )
+
+
+@router.get(
+    "/{researcher_id}/recommendations/unified/{opportunity_id}/intelligence",
+    response_model=UnifiedOpportunityIntelligenceSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Get unified intelligence and evidence for a specific opportunity",
+    description="Retrieve full multi-tier evidence explanation (relevance, researcher match, research interests, preferences, deadline, risk, workspace context) for an opportunity in the context of this researcher.",
+)
+def get_opportunity_intelligence(
+    researcher_id: uuid.UUID,
+    opportunity_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> UnifiedOpportunityIntelligenceSchema:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    try:
+        intel = ResearchIntelligenceIntegrationService.explain_opportunity_intelligence(
+            db=db,
+            profile_id=profile.id,
+            opportunity_id=opportunity_id,
+        )
+        return intel
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
+
+
+
 
 
 

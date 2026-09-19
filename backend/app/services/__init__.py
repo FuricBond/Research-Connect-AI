@@ -46,6 +46,10 @@ from app.services.similar_research_service import (
     similar_research_service,
 )
 
+from app.services.research_intelligence_integration_service import (
+    ResearchIntelligenceIntegrationService,
+)
+
 __all__ = [
     # Opportunity service
     "DeliveryMode",
@@ -89,7 +93,10 @@ __all__ = [
     "RecommendationHistoryService",
     # Personalization explanation service (Phase 3.8)
     "PersonalizationExplanationService",
+    # Research intelligence integration service (Phase 4.7)
+    "ResearchIntelligenceIntegrationService",
 ]
+
 
 
 

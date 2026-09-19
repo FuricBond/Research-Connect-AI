@@ -87,6 +87,12 @@ import type {
   WorkspaceTaskListResponse,
   WorkspaceTaskUpdatePayload,
 } from "../types/collaboration";
+import type {
+  UnifiedResearcherContext,
+  UnifiedRecommendationResponse,
+  UnifiedOpportunityIntelligence,
+} from "../types/research_intelligence";
+
 
 // NEXT_PUBLIC_API_URL replaces former VITE_API_URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -1998,6 +2004,55 @@ export async function addWorkspaceComment(
     { method: "POST", headers, body: JSON.stringify(payload), signal }
   );
 }
+
+// ----------------------------------------------------------------------------
+// Phase 4.7: Unified Research Intelligence API Methods
+// ----------------------------------------------------------------------------
+
+export async function getUnifiedResearchIntelligence(
+  researcherId: string,
+  userId?: string,
+  signal?: AbortSignal
+): Promise<UnifiedResearcherContext> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  return fetchJson<UnifiedResearcherContext>(
+    `/api/v1/researchers/${researcherId}/intelligence/unified`,
+    { headers, signal }
+  );
+}
+
+export async function getUnifiedRecommendations(
+  researcherId: string,
+  params?: { query?: string; limit?: number; include_evidence?: boolean },
+  userId?: string,
+  signal?: AbortSignal
+): Promise<UnifiedRecommendationResponse> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  const searchParams = new URLSearchParams();
+  if (params?.query) searchParams.set("query", params.query);
+  if (params?.limit !== undefined) searchParams.set("limit", String(params.limit));
+  if (params?.include_evidence !== undefined) searchParams.set("include_evidence", String(params.include_evidence));
+  const queryString = searchParams.toString();
+  const url = `/api/v1/researchers/${researcherId}/recommendations/unified${queryString ? `?${queryString}` : ""}`;
+  return fetchJson<UnifiedRecommendationResponse>(url, { headers, signal });
+}
+
+export async function getOpportunityIntelligence(
+  researcherId: string,
+  opportunityId: string,
+  userId?: string,
+  signal?: AbortSignal
+): Promise<UnifiedOpportunityIntelligence> {
+  const headers: Record<string, string> = {};
+  if (userId) headers["X-User-ID"] = userId;
+  return fetchJson<UnifiedOpportunityIntelligence>(
+    `/api/v1/researchers/${researcherId}/recommendations/unified/${opportunityId}/intelligence`,
+    { headers, signal }
+  );
+}
+
 
 
 
