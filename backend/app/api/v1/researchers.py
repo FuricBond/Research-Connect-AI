@@ -53,10 +53,12 @@ from app.schemas.researcher_intelligence import (
     ResearcherInterestItemSchema,
 )
 from app.schemas.researcher_preference import (
+    BulkPreferencesUpdateSchema,
     ResearcherPreferenceCreateSchema,
     ResearcherPreferenceIntelligenceResponse,
     ResearcherPreferenceItemSchema,
     ResearcherPreferenceUpdateSchema,
+    StructuredPreferencesResponseSchema,
 )
 from app.schemas.researcher_feedback import (
     BehavioralSignalSchema,
@@ -343,13 +345,14 @@ def get_preference_intelligence(
     response_model=list[ResearcherPreferenceItemSchema],
     status_code=status.HTTP_200_OK,
     summary="List researcher preferences",
-    description="List persisted preference items with optional category, source, and active status filters.",
+    description="List persisted preference items with optional category, source, active status, and preference type filters.",
 )
 def list_researcher_preferences(
     researcher_id: uuid.UUID,
     category: Annotated[str | None, Query(description="Filter by category")] = None,
     source: Annotated[str | None, Query(description="Filter by source (EXPLICIT, INFERRED, etc.)")] = None,
     is_active: Annotated[bool | None, Query(description="Filter by active status")] = None,
+    preference_type: Annotated[str | None, Query(description="Filter by preference type (PREFERRED, EXCLUDED)")] = None,
     db: Session = Depends(get_db),
 ) -> list[ResearcherPreferenceItemSchema]:
     profile = ResearcherProfileService.get_profile(db, researcher_id)
@@ -367,6 +370,7 @@ def list_researcher_preferences(
         category=category,
         source=source,
         is_active=is_active,
+        preference_type=preference_type,
     )
 
     return [
@@ -374,6 +378,7 @@ def list_researcher_preferences(
             id=m.id,
             profile_id=m.profile_id,
             category=m.category,
+            preference_type=m.preference_type,
             preference_key=m.preference_key,
             preference_value=m.preference_value,
             display_label=m.display_label,
@@ -391,6 +396,38 @@ def list_researcher_preferences(
         )
         for m in models
     ]
+
+
+@router.get(
+    "/{researcher_id}/preferences/structured",
+    response_model=StructuredPreferencesResponseSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Get structured researcher preferences",
+    description="Retrieve structured hierarchical preferences partitioned into research interests, opportunities, geography, funding, academic, and exclusions.",
+)
+def get_structured_researcher_preferences(
+    researcher_id: uuid.UUID,
+    db: Session = Depends(get_db),
+) -> StructuredPreferencesResponseSchema:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    try:
+        return ResearcherPreferenceService.get_structured_preferences(
+            db=db,
+            profile_id=profile.id,
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(err),
+        )
 
 
 @router.post(
@@ -433,6 +470,7 @@ def create_researcher_preference(
             id=model.id,
             profile_id=model.profile_id,
             category=model.category,
+            preference_type=model.preference_type,
             preference_key=model.preference_key,
             preference_value=model.preference_value,
             display_label=model.display_label,
@@ -460,12 +498,83 @@ def create_researcher_preference(
         )
 
 
+@router.put(
+    "/{researcher_id}/preferences",
+    response_model=list[ResearcherPreferenceItemSchema],
+    status_code=status.HTTP_200_OK,
+    summary="Bulk update researcher preferences",
+    description="Atomically synchronize multiple preferences. If replace_existing=True, existing explicit preferences are replaced.",
+)
+def bulk_update_researcher_preferences(
+    researcher_id: uuid.UUID,
+    payload: BulkPreferencesUpdateSchema,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> list[ResearcherPreferenceItemSchema]:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+
+    # Ownership validation
+    if x_user_id is not None and profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to modify this researcher profile's preferences.",
+        )
+
+    try:
+        models = ResearcherPreferenceService.bulk_sync_preferences(
+            db=db,
+            profile_id=profile.id,
+            payload=payload,
+            current_user_id=x_user_id,
+        )
+        return [
+            ResearcherPreferenceItemSchema(
+                id=m.id,
+                profile_id=m.profile_id,
+                category=m.category,
+                preference_type=m.preference_type,
+                preference_key=m.preference_key,
+                preference_value=m.preference_value,
+                display_label=m.display_label,
+                canonical_id=m.canonical_id,
+                strength=m.strength,
+                confidence=m.confidence,
+                source=m.source,
+                is_active=m.is_active,
+                recency_score=m.recency_score,
+                provenance=m.provenance,
+                provenance_reasons=(m.provenance or {}).get("reasons", []),
+                last_observed_at=m.last_observed_at,
+                created_at=m.created_at,
+                updated_at=m.updated_at,
+            )
+            for m in models
+        ]
+    except PermissionError as err:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(err),
+        )
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(err),
+        )
+
+
 @router.patch(
     "/{researcher_id}/preferences/{preference_id}",
     response_model=ResearcherPreferenceItemSchema,
     status_code=status.HTTP_200_OK,
     summary="Update researcher preference",
-    description="Partially update an existing preference item (e.g. adjust strength, label, or active status).",
+    description="Partially update an existing preference item (e.g. adjust strength, label, active status, or preference type).",
 )
 def update_researcher_preference(
     researcher_id: uuid.UUID,
@@ -507,6 +616,7 @@ def update_researcher_preference(
             id=model.id,
             profile_id=model.profile_id,
             category=model.category,
+            preference_type=model.preference_type,
             preference_key=model.preference_key,
             preference_value=model.preference_value,
             display_label=model.display_label,

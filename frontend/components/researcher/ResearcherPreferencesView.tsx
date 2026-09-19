@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import {
   AlertTriangle,
   BookmarkCheck,
@@ -8,6 +9,7 @@ import {
   CheckCircle2,
   Clock,
   Compass,
+  ExternalLink,
   Globe,
   HelpCircle,
   Laptop,
@@ -46,6 +48,9 @@ const CANONICAL_OPP_TYPES = [
   { value: "JOURNAL", label: "Journal" },
   { value: "CALL_FOR_PAPERS", label: "Call for Papers" },
   { value: "SPECIAL_ISSUE", label: "Special Issue" },
+  { value: "FELLOWSHIP", label: "Fellowship" },
+  { value: "GRANT", label: "Grant" },
+  { value: "INTERNSHIP", label: "Internship" },
 ];
 
 const CANONICAL_DELIVERY_MODES = [
@@ -402,6 +407,26 @@ export function ResearcherPreferencesView({
               </span>
             </div>
           )}
+
+          <Link
+            href="/researcher/preferences"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "7px 14px",
+              background: "rgba(14, 165, 233, 0.1)",
+              border: "1px solid rgba(14, 165, 233, 0.3)",
+              borderRadius: "var(--radius-md)",
+              fontSize: "13px",
+              fontWeight: 600,
+              color: "var(--primary)",
+              textDecoration: "none",
+            }}
+          >
+            <ExternalLink size={14} />
+            <span>Preference Center</span>
+          </Link>
 
           <button
             onClick={onRefresh}

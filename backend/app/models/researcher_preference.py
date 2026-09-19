@@ -43,6 +43,7 @@ class ResearcherPreferenceModel(Base, TimestampMixin):
         Index("idx_researcher_preferences_category", "category"),
         Index("idx_researcher_preferences_source", "source"),
         Index("idx_researcher_preferences_active", "is_active"),
+        Index("idx_researcher_preferences_type", "preference_type"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -66,6 +67,16 @@ class ResearcherPreferenceModel(Base, TimestampMixin):
         nullable=False,
         index=True,
         comment="Taxonomy category of the preference",
+    )
+
+    # Explicit 3-state orientation: PREFERRED, EXCLUDED (unspecified = absence of row)
+    preference_type: Mapped[str] = mapped_column(
+        String(50),
+        default="PREFERRED",
+        server_default="PREFERRED",
+        nullable=False,
+        index=True,
+        comment="Preference type: PREFERRED or EXCLUDED (Phase 5.1)",
     )
 
     # Specific attribute key (e.g. 'opportunity_type', 'delivery_mode', 'topic', 'location', 'min_days_before_deadline')

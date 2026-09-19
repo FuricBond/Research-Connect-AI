@@ -301,6 +301,7 @@ export async function matchOpportunitiesForResearch(
 
 import type {
   BehavioralSignal,
+  BulkPreferencesUpdatePayload,
   FeedbackCreatePayload,
   FeedbackItem,
   FeedbackListResponse,
@@ -324,6 +325,7 @@ import type {
   ResearcherProfileCreatePayload,
   ResearcherProfileUpdatePayload,
   ResearcherWorkSummary,
+  StructuredPreferencesResponse,
 } from "../types/researcher";
 
 
@@ -428,15 +430,27 @@ export async function fetchResearcherPreferences(
   category?: string,
   source?: string,
   isActive?: boolean,
+  preferenceType?: string,
   signal?: AbortSignal
 ): Promise<ResearcherPreferenceItem[]> {
   const params = new URLSearchParams();
   if (category) params.set("category", category);
   if (source) params.set("source", source);
   if (isActive !== undefined) params.set("is_active", String(isActive));
+  if (preferenceType) params.set("preference_type", preferenceType);
   const query = params.toString();
   return fetchJson<ResearcherPreferenceItem[]>(
     `/api/v1/researchers/${id}/preferences${query ? `?${query}` : ""}`,
+    { signal }
+  );
+}
+
+export async function fetchStructuredResearcherPreferences(
+  id: string,
+  signal?: AbortSignal
+): Promise<StructuredPreferencesResponse> {
+  return fetchJson<StructuredPreferencesResponse>(
+    `/api/v1/researchers/${id}/preferences/structured`,
     { signal }
   );
 }
@@ -455,6 +469,27 @@ export async function createResearcherPreference(
     `/api/v1/researchers/${id}/preferences`,
     {
       method: "POST",
+      headers,
+      body: JSON.stringify(payload),
+      signal,
+    }
+  );
+}
+
+export async function bulkUpdateResearcherPreferences(
+  id: string,
+  payload: BulkPreferencesUpdatePayload,
+  userId?: string,
+  signal?: AbortSignal
+): Promise<ResearcherPreferenceItem[]> {
+  const headers: Record<string, string> = {};
+  if (userId) {
+    headers["X-User-ID"] = userId;
+  }
+  return fetchJson<ResearcherPreferenceItem[]>(
+    `/api/v1/researchers/${id}/preferences`,
+    {
+      method: "PUT",
       headers,
       body: JSON.stringify(payload),
       signal,

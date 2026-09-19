@@ -164,7 +164,7 @@ export interface ResearcherIntelligenceResponse {
   generated_at: string;
 }
 
-// ── Phase 3.3 — Personal Preference Intelligence Types ──────────────────────
+// ── Phase 3.3 / Phase 5.1 — Personal Preference Intelligence Types ──────────
 
 export type PreferenceCategory =
   | "OPPORTUNITY_TYPE"
@@ -173,7 +173,18 @@ export type PreferenceCategory =
   | "LOCATION"
   | "DEADLINE_WINDOW"
   | "OPEN_ACCESS"
-  | "VENUE";
+  | "VENUE"
+  | "KEYWORD"
+  | "RESEARCH_DOMAIN"
+  | "COUNTRY"
+  | "REGION"
+  | "INSTITUTION"
+  | "FUNDING"
+  | "ACADEMIC_LEVEL"
+  | "CAREER_STAGE";
+
+export type PreferenceType = "PREFERRED" | "EXCLUDED";
+export type PreferenceState = "PREFERRED" | "NEUTRAL" | "EXCLUDED";
 
 export type PreferenceSource = "EXPLICIT" | "INFERRED" | "DERIVED_FROM_EXPERTISE";
 
@@ -196,6 +207,7 @@ export interface ResearcherPreferenceItem {
   id: string;
   profile_id: string;
   category: PreferenceCategory;
+  preference_type: PreferenceType;
   preference_key: string;
   preference_value: string;
   display_label: string;
@@ -214,6 +226,7 @@ export interface ResearcherPreferenceItem {
 
 export interface ResearcherPreferenceCreatePayload {
   category: PreferenceCategory;
+  preference_type?: PreferenceType;
   preference_key?: string | null;
   preference_value: string;
   display_label?: string | null;
@@ -223,10 +236,85 @@ export interface ResearcherPreferenceCreatePayload {
 }
 
 export interface ResearcherPreferenceUpdatePayload {
+  preference_type?: PreferenceType | null;
   preference_value?: string | null;
   display_label?: string | null;
   strength?: number | null;
   is_active?: boolean | null;
+}
+
+export interface BulkPreferenceItem {
+  category: PreferenceCategory;
+  preference_type?: PreferenceType;
+  preference_key?: string | null;
+  preference_value: string;
+  display_label?: string | null;
+  canonical_id?: string | null;
+  strength?: number;
+  is_active?: boolean;
+}
+
+export interface BulkPreferencesUpdatePayload {
+  preferences: BulkPreferenceItem[];
+  replace_existing?: boolean;
+}
+
+export interface StructuredResearchInterests {
+  research_domains: string[];
+  topics: string[];
+  keywords: string[];
+  subfields: string[];
+}
+
+export interface StructuredOpportunityPreferences {
+  preferred_types: string[];
+  excluded_types: string[];
+  delivery_modes: string[];
+}
+
+export interface StructuredGeographicPreferences {
+  preferred_countries: string[];
+  excluded_countries: string[];
+  preferred_regions: string[];
+  excluded_regions: string[];
+  preferred_institutions: string[];
+  excluded_institutions: string[];
+}
+
+export interface StructuredFundingPreferences {
+  funding_required: boolean;
+  min_funding_amount?: number | null;
+  max_funding_amount?: number | null;
+  currency: string;
+}
+
+export interface StructuredAcademicPreferences {
+  academic_level?: string | null;
+  career_stage?: string | null;
+  target_categories: string[];
+}
+
+export interface StructuredExclusions {
+  excluded_opportunity_types: string[];
+  excluded_topics: string[];
+  excluded_regions: string[];
+  excluded_countries: string[];
+  excluded_institutions: string[];
+}
+
+export interface StructuredPreferencesResponse {
+  profile_id: string;
+  user_id: string;
+  interests: StructuredResearchInterests;
+  opportunities: StructuredOpportunityPreferences;
+  geography: StructuredGeographicPreferences;
+  funding: StructuredFundingPreferences;
+  academic: StructuredAcademicPreferences;
+  exclusions: StructuredExclusions;
+  raw_preferences: ResearcherPreferenceItem[];
+  summary: PreferenceIntelligenceSummary;
+  completeness: PreferenceCompleteness;
+  updated_at?: string | null;
 }
 
 export interface PreferenceIntelligenceSummary {

@@ -37,15 +37,24 @@ from app.models.researcher_preference import ResearcherPreferenceModel
 from app.models.saved_opportunity import SavedOpportunityModel
 from app.models.topic import TopicModel
 from app.schemas.researcher_preference import (
+    BulkPreferencesUpdateSchema,
     PreferenceCategory,
     PreferenceCompletenessSchema,
     PreferenceConflictSchema,
     PreferenceIntelligenceSummarySchema,
     PreferenceSource,
+    PreferenceType,
     ResearcherPreferenceCreateSchema,
     ResearcherPreferenceIntelligenceResponse,
     ResearcherPreferenceItemSchema,
     ResearcherPreferenceUpdateSchema,
+    StructuredAcademicPreferencesSchema,
+    StructuredExclusionsSchema,
+    StructuredFundingPreferencesSchema,
+    StructuredGeographicPreferencesSchema,
+    StructuredOpportunityPreferencesSchema,
+    StructuredPreferencesResponseSchema,
+    StructuredResearchInterestsSchema,
 )
 
 logger = logging.getLogger(__name__)
@@ -67,6 +76,12 @@ CANONICAL_OPPORTUNITY_TYPES: dict[str, tuple[str, str]] = {
     "SPECIAL ISSUE": ("SPECIAL_ISSUE", "Special Issue"),
     "SPECIAL-ISSUE": ("SPECIAL_ISSUE", "Special Issue"),
     "SPECIAL ISSUES": ("SPECIAL_ISSUE", "Special Issue"),
+    "FELLOWSHIP": ("FELLOWSHIP", "Fellowship"),
+    "FELLOWSHIPS": ("FELLOWSHIP", "Fellowship"),
+    "GRANT": ("GRANT", "Grant"),
+    "GRANTS": ("GRANT", "Grant"),
+    "INTERNSHIP": ("INTERNSHIP", "Internship"),
+    "INTERNSHIPS": ("INTERNSHIP", "Internship"),
 }
 
 # Canonical Delivery Modes supported by the repository
@@ -112,7 +127,7 @@ class ResearcherPreferenceService:
 
         Returns: (category, preference_key, preference_value, display_label, canonical_id)
         """
-        cat_str = (category.value if isinstance(category, PreferenceCategory) else str(category)).strip().upper()
+        cat_str = (category.value if isinstance(category, PreferenceCategory) else category).strip().upper()
         val_clean = raw_value.strip()
 
         if cat_str == PreferenceCategory.OPPORTUNITY_TYPE.value:
@@ -184,6 +199,57 @@ class ResearcherPreferenceService:
             display_label = raw_label or val_clean
             return (cat_str, pref_key, norm_val, display_label, None)
 
+        elif cat_str == PreferenceCategory.KEYWORD.value:
+            pref_key = raw_key or "keyword"
+            norm_val = val_clean.strip().lower()
+            display_label = raw_label or val_clean.strip()
+            return (cat_str, pref_key, norm_val, display_label, None)
+
+        elif cat_str == PreferenceCategory.RESEARCH_DOMAIN.value:
+            pref_key = raw_key or "research_domain"
+            norm_val = val_clean.strip().title()
+            display_label = raw_label or norm_val
+            return (cat_str, pref_key, norm_val, display_label, None)
+
+        elif cat_str == PreferenceCategory.COUNTRY.value:
+            pref_key = raw_key or "country"
+            if len(val_clean) in (2, 3):
+                norm_val = val_clean.upper()
+            else:
+                norm_val = val_clean.title()
+            display_label = raw_label or norm_val
+            return (cat_str, pref_key, norm_val, display_label, None)
+
+        elif cat_str == PreferenceCategory.REGION.value:
+            pref_key = raw_key or "region"
+            norm_val = val_clean.strip().title()
+            display_label = raw_label or norm_val
+            return (cat_str, pref_key, norm_val, display_label, None)
+
+        elif cat_str == PreferenceCategory.INSTITUTION.value:
+            pref_key = raw_key or "institution"
+            norm_val = val_clean.strip()
+            display_label = raw_label or norm_val
+            return (cat_str, pref_key, norm_val, display_label, None)
+
+        elif cat_str == PreferenceCategory.FUNDING.value:
+            pref_key = raw_key or "funding"
+            norm_val = val_clean.strip()
+            display_label = raw_label or norm_val
+            return (cat_str, pref_key, norm_val, display_label, None)
+
+        elif cat_str == PreferenceCategory.ACADEMIC_LEVEL.value:
+            pref_key = raw_key or "academic_level"
+            norm_val = val_clean.strip().upper().replace(" ", "_")
+            display_label = raw_label or norm_val.replace("_", " ").title()
+            return (cat_str, pref_key, norm_val, display_label, None)
+
+        elif cat_str == PreferenceCategory.CAREER_STAGE.value:
+            pref_key = raw_key or "career_stage"
+            norm_val = val_clean.strip().upper().replace(" ", "_")
+            display_label = raw_label or norm_val.replace("_", " ").title()
+            return (cat_str, pref_key, norm_val, display_label, None)
+
         else:
             # Fallback
             return (cat_str, raw_key or "preference", val_clean, raw_label or val_clean, canonical_id)
@@ -229,8 +295,14 @@ class ResearcherPreferenceService:
         existing = db.execute(stmt).scalars().first()
 
         now = datetime.now(timezone.utc)
+        pref_type = (
+            payload.preference_type.value
+            if hasattr(payload.preference_type, "value")
+            else str(payload.preference_type or "PREFERRED")
+        ).upper()
 
         if existing:
+            existing.preference_type = pref_type
             existing.strength = max(0.0, min(1.0, payload.strength))
             existing.is_active = payload.is_active
             existing.display_label = label
@@ -250,6 +322,7 @@ class ResearcherPreferenceService:
         new_pref = ResearcherPreferenceModel(
             profile_id=profile_id,
             category=cat,
+            preference_type=pref_type,
             preference_key=key,
             preference_value=val,
             display_label=label,
@@ -278,6 +351,7 @@ class ResearcherPreferenceService:
         category: str | None = None,
         source: str | None = None,
         is_active: bool | None = None,
+        preference_type: str | None = None,
     ) -> list[ResearcherPreferenceModel]:
         """List persisted preferences with optional filters."""
         stmt = select(ResearcherPreferenceModel).where(
@@ -290,6 +364,8 @@ class ResearcherPreferenceService:
             stmt = stmt.where(ResearcherPreferenceModel.source == source.upper())
         if is_active is not None:
             stmt = stmt.where(ResearcherPreferenceModel.is_active == is_active)
+        if preference_type is not None:
+            stmt = stmt.where(ResearcherPreferenceModel.preference_type == preference_type.upper())
 
         stmt = stmt.order_by(
             ResearcherPreferenceModel.strength.desc(),
@@ -324,6 +400,13 @@ class ResearcherPreferenceService:
             return None
 
         now = datetime.now(timezone.utc)
+
+        if payload.preference_type is not None:
+            pref.preference_type = (
+                payload.preference_type.value
+                if hasattr(payload.preference_type, "value")
+                else str(payload.preference_type)
+            ).upper()
 
         if payload.preference_value is not None:
             cat, key, val, label, cid = cls.normalize_preference(
@@ -381,6 +464,155 @@ class ResearcherPreferenceService:
         db.delete(pref)
         db.commit()
         return True
+
+    @classmethod
+    def bulk_sync_preferences(
+        cls,
+        db: Session,
+        profile_id: uuid.UUID,
+        payload: BulkPreferencesUpdateSchema,
+        current_user_id: uuid.UUID | None = None,
+    ) -> list[ResearcherPreferenceModel]:
+        """
+        Synchronize multiple preferences atomically for a researcher profile.
+        If replace_existing is True, existing EXPLICIT preferences are removed first.
+        """
+        profile = db.get(ResearchProfileModel, profile_id)
+        if not profile:
+            raise ValueError(f"Researcher profile {profile_id} does not exist")
+
+        if current_user_id is not None and profile.user_id != current_user_id:
+            raise PermissionError("Unauthorized: User does not own this researcher profile")
+
+        if payload.replace_existing:
+            # Delete existing explicit preferences
+            db.query(ResearcherPreferenceModel).filter(
+                ResearcherPreferenceModel.profile_id == profile_id,
+                ResearcherPreferenceModel.source == PreferenceSource.EXPLICIT.value,
+            ).delete(synchronize_session=False)
+
+        results: list[ResearcherPreferenceModel] = []
+        for item in payload.preferences:
+            create_payload = ResearcherPreferenceCreateSchema(
+                category=item.category,
+                preference_type=item.preference_type,
+                preference_key=item.preference_key,
+                preference_value=item.preference_value,
+                display_label=item.display_label,
+                canonical_id=item.canonical_id,
+                strength=item.strength,
+                is_active=item.is_active,
+            )
+            pref = cls.create_explicit_preference(
+                db=db,
+                profile_id=profile_id,
+                payload=create_payload,
+                current_user_id=current_user_id,
+            )
+            results.append(pref)
+
+        return results
+
+    @classmethod
+    def get_structured_preferences(
+        cls,
+        db: Session,
+        profile_id: uuid.UUID,
+    ) -> StructuredPreferencesResponseSchema:
+        """
+        Retrieve structured hierarchical preferences partitioned into canonical domain buckets (Phase 5.1).
+        """
+        intel = cls.get_preference_intelligence(db, profile_id)
+        raw_items = intel.explicit_preferences
+
+        interests = StructuredResearchInterestsSchema()
+        opportunities = StructuredOpportunityPreferencesSchema()
+        geography = StructuredGeographicPreferencesSchema()
+        funding = StructuredFundingPreferencesSchema()
+        academic = StructuredAcademicPreferencesSchema()
+        exclusions = StructuredExclusionsSchema()
+
+        for p in raw_items:
+            is_excluded = (p.preference_type == "EXCLUDED")
+
+            # Research Interests
+            if p.category == PreferenceCategory.RESEARCH_DOMAIN.value:
+                interests.research_domains.append(p.preference_value)
+            elif p.category == PreferenceCategory.TOPIC.value:
+                if is_excluded:
+                    exclusions.excluded_topics.append(p.preference_value)
+                else:
+                    interests.topics.append(p.preference_value)
+            elif p.category == PreferenceCategory.KEYWORD.value:
+                interests.keywords.append(p.preference_value)
+
+            # Opportunities
+            elif p.category == PreferenceCategory.OPPORTUNITY_TYPE.value:
+                if is_excluded:
+                    opportunities.excluded_types.append(p.preference_value)
+                    exclusions.excluded_opportunity_types.append(p.preference_value)
+                else:
+                    opportunities.preferred_types.append(p.preference_value)
+            elif p.category == PreferenceCategory.DELIVERY_MODE.value:
+                opportunities.delivery_modes.append(p.preference_value)
+
+            # Geography
+            elif p.category == PreferenceCategory.COUNTRY.value:
+                if is_excluded:
+                    geography.excluded_countries.append(p.preference_value)
+                    exclusions.excluded_countries.append(p.preference_value)
+                else:
+                    geography.preferred_countries.append(p.preference_value)
+            elif p.category == PreferenceCategory.REGION.value or p.category == PreferenceCategory.LOCATION.value:
+                if is_excluded:
+                    geography.excluded_regions.append(p.preference_value)
+                    exclusions.excluded_regions.append(p.preference_value)
+                else:
+                    geography.preferred_regions.append(p.preference_value)
+            elif p.category == PreferenceCategory.INSTITUTION.value:
+                if is_excluded:
+                    geography.excluded_institutions.append(p.preference_value)
+                    exclusions.excluded_institutions.append(p.preference_value)
+                else:
+                    geography.preferred_institutions.append(p.preference_value)
+
+            # Funding
+            elif p.category == PreferenceCategory.FUNDING.value:
+                if p.preference_key == "funding_required":
+                    funding.funding_required = (p.preference_value.lower() == "true")
+                elif p.preference_key == "min_amount":
+                    try:
+                        funding.min_funding_amount = float(p.preference_value)
+                    except ValueError:
+                        pass
+                elif p.preference_key == "max_amount":
+                    try:
+                        funding.max_funding_amount = float(p.preference_value)
+                    except ValueError:
+                        pass
+                elif p.preference_key == "currency":
+                    funding.currency = p.preference_value.upper()
+
+            # Academic
+            elif p.category == PreferenceCategory.ACADEMIC_LEVEL.value:
+                academic.academic_level = p.preference_value
+            elif p.category == PreferenceCategory.CAREER_STAGE.value:
+                academic.career_stage = p.preference_value
+
+        return StructuredPreferencesResponseSchema(
+            profile_id=intel.profile_id,
+            user_id=intel.user_id,
+            interests=interests,
+            opportunities=opportunities,
+            geography=geography,
+            funding=funding,
+            academic=academic,
+            exclusions=exclusions,
+            raw_preferences=raw_items,
+            summary=intel.summary,
+            completeness=intel.completeness,
+            updated_at=datetime.now(timezone.utc),
+        )
 
     # -------------------------------------------------------------------------
     # Inferred Preferences (Activity-Based from SavedOpportunityModel)
@@ -736,6 +968,33 @@ class ResearcherPreferenceService:
                     )
                 )
 
+        # 4. Contradictory Preferred vs Excluded for same category and value (Phase 5.1)
+        pref_vals: dict[str, set[str]] = {}
+        excl_vals: dict[str, set[str]] = {}
+        for p in preferences:
+            if not p.is_active:
+                continue
+            cat = p.category
+            val = p.preference_value.lower()
+            ptype = getattr(p, "preference_type", "PREFERRED")
+            if ptype == "EXCLUDED":
+                excl_vals.setdefault(cat, set()).add(val)
+            else:
+                pref_vals.setdefault(cat, set()).add(val)
+
+        for cat, preferred in pref_vals.items():
+            excluded = excl_vals.get(cat, set())
+            overlap = preferred.intersection(excluded)
+            if overlap:
+                conflicts.append(
+                    PreferenceConflictSchema(
+                        category=cat,
+                        conflicting_values=list(overlap),
+                        reason=f"Entities {list(overlap)} are configured as both preferred and excluded in {cat}.",
+                        is_critical=True,
+                    )
+                )
+
         return conflicts
 
     # -------------------------------------------------------------------------
@@ -790,7 +1049,7 @@ class ResearcherPreferenceService:
 
         score = sum(weights[dim] for dim, present in breakdown.items() if present)
         score = round(min(1.0, max(0.0, score)), 2)
-        percentage = int(round(score * 100))
+        percentage = round(score * 100)
 
         missing = [dim.replace("_", " ").title() for dim, present in breakdown.items() if not present]
 
@@ -850,6 +1109,7 @@ class ResearcherPreferenceService:
                 id=m.id,
                 profile_id=m.profile_id,
                 category=m.category,
+                preference_type=m.preference_type,
                 preference_key=m.preference_key,
                 preference_value=m.preference_value,
                 display_label=m.display_label,

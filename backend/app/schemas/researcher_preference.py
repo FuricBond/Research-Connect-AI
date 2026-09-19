@@ -18,6 +18,29 @@ class PreferenceCategory(str, Enum):
     DEADLINE_WINDOW = "DEADLINE_WINDOW"
     OPEN_ACCESS = "OPEN_ACCESS"
     VENUE = "VENUE"
+    KEYWORD = "KEYWORD"
+    RESEARCH_DOMAIN = "RESEARCH_DOMAIN"
+    COUNTRY = "COUNTRY"
+    REGION = "REGION"
+    INSTITUTION = "INSTITUTION"
+    FUNDING = "FUNDING"
+    ACADEMIC_LEVEL = "ACADEMIC_LEVEL"
+    CAREER_STAGE = "CAREER_STAGE"
+
+
+class PreferenceType(str, Enum):
+    """Orientation of an explicit preference (Phase 5.1)."""
+
+    PREFERRED = "PREFERRED"
+    EXCLUDED = "EXCLUDED"
+
+
+class PreferenceState(str, Enum):
+    """3-state semantic model: Preferred vs Neutral/Unspecified vs Excluded."""
+
+    PREFERRED = "PREFERRED"
+    NEUTRAL = "NEUTRAL"
+    EXCLUDED = "EXCLUDED"
 
 
 class PreferenceSource(str, Enum):
@@ -64,6 +87,7 @@ class ResearcherPreferenceItemSchema(BaseModel):
     id: uuid.UUID
     profile_id: uuid.UUID
     category: str
+    preference_type: str = "PREFERRED"
     preference_key: str
     preference_value: str
     display_label: str
@@ -88,6 +112,7 @@ class ResearcherPreferenceCreateSchema(BaseModel):
     """Payload to declare or record an explicit researcher preference."""
 
     category: PreferenceCategory
+    preference_type: PreferenceType = PreferenceType.PREFERRED
     preference_key: str | None = None
     preference_value: str = Field(..., min_length=1, max_length=255)
     display_label: str | None = Field(None, max_length=255)
@@ -99,10 +124,105 @@ class ResearcherPreferenceCreateSchema(BaseModel):
 class ResearcherPreferenceUpdateSchema(BaseModel):
     """Partial update payload for a preference item."""
 
+    preference_type: PreferenceType | None = None
     preference_value: str | None = Field(None, min_length=1, max_length=255)
     display_label: str | None = Field(None, max_length=255)
     strength: float | None = Field(None, ge=0.0, le=1.0)
     is_active: bool | None = None
+
+
+class BulkPreferenceItemSchema(BaseModel):
+    """Single item in a bulk preference sync."""
+
+    category: PreferenceCategory
+    preference_type: PreferenceType = PreferenceType.PREFERRED
+    preference_key: str | None = None
+    preference_value: str = Field(..., min_length=1, max_length=255)
+    display_label: str | None = Field(None, max_length=255)
+    canonical_id: uuid.UUID | None = None
+    strength: float = Field(1.0, ge=0.0, le=1.0)
+    is_active: bool = True
+
+
+class BulkPreferencesUpdateSchema(BaseModel):
+    """Payload for synchronizing multiple preferences in one atomic transaction."""
+
+    preferences: list[BulkPreferenceItemSchema] = Field(default_factory=list)
+    replace_existing: bool = False
+
+
+class StructuredResearchInterestsSchema(BaseModel):
+    """Research interest preferences."""
+
+    research_domains: list[str] = Field(default_factory=list)
+    topics: list[str] = Field(default_factory=list)
+    keywords: list[str] = Field(default_factory=list)
+    subfields: list[str] = Field(default_factory=list)
+
+
+class StructuredOpportunityPreferencesSchema(BaseModel):
+    """Opportunity format & type preferences."""
+
+    preferred_types: list[str] = Field(default_factory=list)
+    excluded_types: list[str] = Field(default_factory=list)
+    delivery_modes: list[str] = Field(default_factory=list)
+
+
+class StructuredGeographicPreferencesSchema(BaseModel):
+    """Geographic preferences and exclusions."""
+
+    preferred_countries: list[str] = Field(default_factory=list)
+    excluded_countries: list[str] = Field(default_factory=list)
+    preferred_regions: list[str] = Field(default_factory=list)
+    excluded_regions: list[str] = Field(default_factory=list)
+    preferred_institutions: list[str] = Field(default_factory=list)
+    excluded_institutions: list[str] = Field(default_factory=list)
+
+
+class StructuredFundingPreferencesSchema(BaseModel):
+    """Funding requirement and boundary preferences."""
+
+    funding_required: bool = False
+    min_funding_amount: float | None = None
+    max_funding_amount: float | None = None
+    currency: str = "USD"
+
+
+class StructuredAcademicPreferencesSchema(BaseModel):
+    """Academic level and career stage preferences."""
+
+    academic_level: str | None = None
+    career_stage: str | None = None
+    target_categories: list[str] = Field(default_factory=list)
+
+
+class StructuredExclusionsSchema(BaseModel):
+    """Explicitly excluded dimensions."""
+
+    excluded_opportunity_types: list[str] = Field(default_factory=list)
+    excluded_topics: list[str] = Field(default_factory=list)
+    excluded_regions: list[str] = Field(default_factory=list)
+    excluded_countries: list[str] = Field(default_factory=list)
+    excluded_institutions: list[str] = Field(default_factory=list)
+
+
+class StructuredPreferencesResponseSchema(BaseModel):
+    """Structured hierarchical representation of researcher preferences (Phase 5.1)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    profile_id: uuid.UUID
+    user_id: uuid.UUID
+    interests: StructuredResearchInterestsSchema = Field(default_factory=StructuredResearchInterestsSchema)
+    opportunities: StructuredOpportunityPreferencesSchema = Field(default_factory=StructuredOpportunityPreferencesSchema)
+    geography: StructuredGeographicPreferencesSchema = Field(default_factory=StructuredGeographicPreferencesSchema)
+    funding: StructuredFundingPreferencesSchema = Field(default_factory=StructuredFundingPreferencesSchema)
+    academic: StructuredAcademicPreferencesSchema = Field(default_factory=StructuredAcademicPreferencesSchema)
+    exclusions: StructuredExclusionsSchema = Field(default_factory=StructuredExclusionsSchema)
+    raw_preferences: list[ResearcherPreferenceItemSchema] = Field(default_factory=list)
+    summary: PreferenceIntelligenceSummarySchema
+    completeness: PreferenceCompletenessSchema
+    updated_at: datetime | None = None
 
 
 class PreferenceIntelligenceSummarySchema(BaseModel):

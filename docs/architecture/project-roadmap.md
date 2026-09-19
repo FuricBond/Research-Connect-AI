@@ -23,9 +23,10 @@ This document provides the authoritative, comprehensive architectural roadmap an
 | **Phase 4.3** | Document Workflow & Readiness | **COMPLETE** | Document lifecycle & categories, immutable SHA-256 versioning, Submission Readiness Engine, audit trails, migration 0013, doc console UI | 26 Tests |
 | **Phase 4.4** | Research Calendar & iCal Export | **COMPLETE** | Calendar & event models, Phase 2.7 canonical deadline projection, user planning events, deterministic RFC 5545 `.ics` export, migration 0014, `/calendar` UI | 28 Tests |
 | **Phase 4.5** | Deadline Reminders & Alerts | **COMPLETE** | Preference & reminder models, in-app & email providers, SHA-256 deduplication, zero N+1 scheduler (0.73ms/user), migration 0015, `/notifications` UI | 39 Tests |
-| **Phase 4.6** | Research Management Dashboard | **PLANNED** | Unified command center aggregating active submissions, upcoming deadlines, preparation milestones, saved opportunities, and recommendations | Target: Next.js App Router |
-| **Phase 4.7** | Evaluation & Production Hardening | **PLANNED** | Multi-user isolation stress testing, end-to-end workflow benchmarks, audit trail tamper verification, database query profiling | Target: Production Release |
-| **Phase 5** | Community & Collaboration | **PLANNED** | Faculty research slots, collaborative project postings, research internships, RA openings, peer discovery | Planned |
+| **Phase 4.6** | Collaborative Research Management | **COMPLETE** | Multi-user workspaces, RBAC (`OWNER`/`EDITOR`/`CONTRIBUTOR`/`VIEWER`), secure invitations, task tracking, activity trail, migration 0016 | 56 Tests |
+| **Phase 4.7** | Research Intelligence Integration | **COMPLETE** | Authoritative unified integration service connecting Phases 2, 3, 4; signal provenance, canonical identity resolution, 6-tier explainability | 14 Tests |
+| **Phase 5.1** | Researcher Preferences Foundation | **COMPLETE** | Explicit preference foundation, 3-state semantics (Preferred/Neutral/Excluded), extended categories, bulk sync, Next.js `/researcher/preferences` UI, migration 0017 | 14 Tests / 100% Regr |
+| **Phase 5.2** | Community & Collaboration Features | **PLANNED** | Faculty research slots, collaborative project postings, research internships, RA openings, peer discovery | Planned |
 | **Phase 6** | Platform Infrastructure & Governance | **IN PROGRESS** | Role-Based Access Control (Student/Faculty/Admin), JWT/OAuth, rate limiting, structured logging, Docker production specs | Continuous |
 | **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,008+ Passing Tests |
 
@@ -329,7 +330,7 @@ Research Calendar (Phase 4.4) ──────► Advance Reminders & Alerts (
             Unified Dashboard (Phase 4.6)
 ```
 
-#### Completed Subsystems (Phases 4.0–4.5)
+#### Completed Subsystems (Phases 4.0–4.7)
 1. **Phase 4.1 — Opportunity Workspace**:
    - Researcher-scoped tracking across 7 stages: `SAVED`, `CONSIDERING`, `PLANNING`, `APPLIED`, `ACCEPTED`, `REJECTED`, `ARCHIVED`.
    - Private custom notes, priority tags, and strict tenant isolation via `X-User-ID`.
@@ -358,7 +359,6 @@ Research Calendar (Phase 4.4) ──────► Advance Reminders & Alerts (
    - Zero N+1 scheduled reminder engine ($0.73\text{ ms}$ per user across 1,000 researchers).
    - User notification preferences (channels, quiet hours, urgency thresholds) and custom reminder rules (e.g. 14d, 7d, 1d).
    - Accessible via `/api/v1/notifications`, `/notifications`, and `/settings/notifications`.
-
 6. **Phase 4.6 — Collaborative Research Management**:
    - Bounded collaboration model around research workspaces (`SavedOpportunityModel`).
    - `WorkspaceMemberModel`, `WorkspaceInvitationModel`, `WorkspaceTaskModel`, and `WorkspaceActivityModel`.
@@ -368,7 +368,6 @@ Research Calendar (Phase 4.4) ──────► Advance Reminders & Alerts (
    - Append-only structured activity trail and workflow notes.
    - Phase 4.5 notification integration for invitations, role changes, and task assignments.
    - Accessible via `/api/v1/workspaces/{id}/members`, `/invitations`, `/tasks`, `/activity` and `/workspace/[id]`.
-
 7. **Phase 4.7 — Research Intelligence Integration & Production Hardening [COMPLETE]**:
    - Authoritative unified integration service (`ResearchIntelligenceIntegrationService`) connecting Phases 2, 3, and 4.
    - Structured signal provenance (`ResearchIntelligenceSignalSchema`) tracking explicit vs inferred, confidence, strength, and evidence.
@@ -382,13 +381,40 @@ Research Calendar (Phase 4.4) ──────► Advance Reminders & Alerts (
 
 ---
 
-### 6. Community & Academic Collaboration (Phase 5 — Planned)
-Facilitates institutional and cross-disciplinary collaboration within verified academic boundaries.
+### 6. Community & Academic Collaboration (Phase 5)
+Facilitates institutional and cross-disciplinary collaboration within verified academic boundaries, powered by an explicit researcher preference foundation.
 
-- **Faculty Research Opportunities**: Structured listings posted by faculty members for open research slots, thesis topics, and specialized projects.
-- **Collaborative Project Postings**: Multi-student or inter-departmental research project announcements seeking collaborators.
-- **Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
-- **Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
+#### Phase 5.1 — Researcher Preferences Foundation [COMPLETE]
+- **Explicit Domain Model & 3-State Semantics**:
+  - `ResearcherPreferenceModel` extended with `preference_type` (`PREFERRED`, `EXCLUDED`).
+  - Strict 3-state distinction: Preferred $\neq$ Neutral (unspecified) $\neq$ Excluded. Absence of preference is strictly neutral and never treated as negative.
+  - Deleting or omitting preferences safely resets to Neutral without profile deletion or data loss.
+- **Categorical Normalization & Validation**:
+  - Structured preference categories: `TOPIC`, `KEYWORD`, `RESEARCH_DOMAIN`, `OPPORTUNITY_TYPE`, `VENUE_TYPE`, `LOCATION`, `COUNTRY`, `REGION`, `INSTITUTION`, `FUNDING`, `ACADEMIC_LEVEL`, `CAREER_STAGE`.
+  - Canonical opportunity types: `CONFERENCE`, `JOURNAL`, `WORKSHOP`, `SYMPOSIUM`, `FELLOWSHIP`, `GRANT`, `INTERNSHIP`.
+  - Uppercase ISO country code normalization, trimmed whitespace, keyword deduplication, and deterministic conflict detection between `PREFERRED` and `EXCLUDED`.
+- **Database Migration & Safety**:
+  - Non-destructive Alembic migration `0017_phase5_1_researcher_preferences_foundation.py` adding `preference_type` with server default `'PREFERRED'` and check constraint `chk_researcher_preferences_type`.
+  - Composite unique constraint `(profile_id, category, preference_value)` guaranteeing idempotent in-place updates without record duplication.
+- **REST APIs**:
+  - `GET /api/v1/researchers/{id}/preferences` (with optional `preference_type` filter)
+  - `GET /api/v1/researchers/{id}/preferences/structured` (organized by domain categories and exclusions)
+  - `PUT /api/v1/researchers/{id}/preferences` (atomic bulk synchronization with optional `replace_existing`)
+  - `POST /api/v1/researchers/{id}/preferences`
+  - `PATCH /api/v1/researchers/{id}/preferences/{pref_id}`
+  - `DELETE /api/v1/researchers/{id}/preferences/{pref_id}`
+- **Next.js App Router UI**:
+  - Dedicated full-page preference center at `/researcher/preferences` with interactive 3-state controls, academic level & career stage selectors, funding toggles, and explicit exclusions management.
+  - Linked directly from existing `/researcher` overview via `ResearcherPreferencesView.tsx`.
+- **Phase Boundary & Mathematical Invariants**:
+  - 20 safety invariants verified: zero N+1 queries, zero alteration of Phase 2.5/3.5/4 recommendation ranking scores, zero behavioral tracking, collaborative filtering, or ML personalization in Phase 5.1.
+  - 14 dedicated backend tests passed; 100% pass rate on all regression test suites.
+
+#### Future Phase 5 Modules (Planned)
+- **Phase 5.2 — Faculty Research Opportunities**: Structured listings posted by faculty members for open research slots, thesis topics, and specialized projects.
+- **Phase 5.3 — Collaborative Project Postings**: Multi-student or inter-departmental research project announcements seeking collaborators.
+- **Phase 5.4 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
+- **Phase 5.5 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
 
 ---
 
