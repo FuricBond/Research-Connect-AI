@@ -53,6 +53,7 @@ from app.services.adaptive_signal_service import AdaptivePreferenceSignalService
 from app.services.personalization_calibration_service import PersonalizationCalibrationService
 from app.services.personalization_quality_service import PersonalizationQualityService
 from app.services.personalization_governance_service import PersonalizationGovernanceService
+from app.services.personalization_transparency_service import PersonalizationTransparencyService
 from app.services.researcher_interaction_service import ResearcherInteractionService
 
 
@@ -111,6 +112,8 @@ __all__ = [
     "PersonalizationQualityService",
     # Personalization governance service (Phase 5.8)
     "PersonalizationGovernanceService",
+    # Personalization transparency service (Phase 5.9)
+    "PersonalizationTransparencyService",
 ]
 
 

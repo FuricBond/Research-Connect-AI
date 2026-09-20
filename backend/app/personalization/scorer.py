@@ -80,6 +80,7 @@ class PersonalizationScorer:
         calibrations: Sequence[PersonalizationCalibrationSchema] | None = None,
         contextual_adaptations: Sequence[PersonalizationContextualAdaptationSchema] | None = None,
         governance_state: GovernanceGateState | str | None = None,
+        settings: Any = None,
     ) -> PersonalizationAssessment:
         """
         Evaluate and score a single opportunity against researcher explicit preferences,
@@ -132,6 +133,41 @@ class PersonalizationScorer:
             assessment=preference_assessment,
             config=config,
         )
+
+        # Phase 5.9: Researcher Personalization Controls
+        if settings is not None:
+            if not getattr(settings, "personalization_enabled", True):
+                if (
+                    preference_assessment.overall_match_state == PreferenceMatchType.EXCLUDED_MATCH
+                    or preference_assessment.excluded_matches_count > 0
+                    or score.match_state == PreferenceMatchType.EXCLUDED_MATCH
+                ):
+                    final_score = 0.0
+                else:
+                    final_score = 0.50
+
+                explanation = cls._generate_explanation(
+                    score=score,
+                    breakdown=breakdown,
+                    assessment=preference_assessment,
+                )
+                return PersonalizationAssessment(
+                    profile_id=profile_id,
+                    opportunity_id=opportunity.id,
+                    personalization_score=final_score,
+                    score=score,
+                    breakdown=breakdown,
+                    explanation=explanation,
+                    preference_assessment=preference_assessment,
+                    adaptive_score=0.0,
+                    adaptive_contributions=[],
+                    calibration_score=0.0,
+                    contextual_score=0.0,
+                    evaluated_at=datetime.now(timezone.utc),
+                )
+
+            if not getattr(settings, "adaptive_signals_enabled", True):
+                adaptive_signals = None
 
         # 4. Phase 5.5, 5.6, 5.7 & 5.8 — Evaluate additive adaptive contribution, calibration modifier, contextual adaptation, and governance gate
         adaptive_score = 0.0
@@ -307,10 +343,11 @@ class PersonalizationScorer:
         calibrations: Sequence[PersonalizationCalibrationSchema] | None = None,
         contextual_adaptations: Sequence[PersonalizationContextualAdaptationSchema] | None = None,
         governance_state: GovernanceGateState | str | None = None,
+        settings: Any = None,
     ) -> dict[uuid.UUID, PersonalizationAssessment]:
         """
         Score a batch of opportunities in memory against researcher preferences, adaptive signals,
-        calibration modifiers, contextual adaptations, and governance gate with zero N+1 queries.
+        calibration modifiers, contextual adaptations, governance gate, and researcher controls with zero N+1 queries.
         """
         # 1. Batch evaluate Phase 5.2 preference interpretations
         batch_assessments = PreferenceInterpreter.evaluate_opportunities_batch(
@@ -335,6 +372,7 @@ class PersonalizationScorer:
                     calibrations=calibrations,
                     contextual_adaptations=contextual_adaptations,
                     governance_state=governance_state,
+                    settings=settings,
                 )
         return results
 

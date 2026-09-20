@@ -44,6 +44,12 @@ from app.models.personalization_governance import (
     PreferenceAlignmentState,
     SignalFreshnessState,
 )
+from app.models.personalization_transparency import (
+    PersonalizationControlEventModel,
+    PersonalizationControlEventType,
+    PersonalizationImpact,
+    ResearcherPersonalizationSettingsModel,
+)
 from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
 from app.models.recommendation_history import (
     ResearcherRecommendationSnapshotModel,
@@ -193,6 +199,11 @@ __all__ = [
     "SignalFreshnessState",
     "PreferenceAlignmentState",
     "GovernanceEventType",
+    # Personalization Transparency & Researcher Controls (Phase 5.9)
+    "ResearcherPersonalizationSettingsModel",
+    "PersonalizationControlEventModel",
+    "PersonalizationImpact",
+    "PersonalizationControlEventType",
 ]
 
 

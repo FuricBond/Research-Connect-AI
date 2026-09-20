@@ -23,6 +23,10 @@ if TYPE_CHECKING:
         PersonalizationDriftEvaluationModel,
         PersonalizationGovernanceEventModel,
     )
+    from app.models.personalization_transparency import (
+        PersonalizationControlEventModel,
+        ResearcherPersonalizationSettingsModel,
+    )
     from app.models.user import UserModel
 
 
@@ -185,6 +189,15 @@ class ResearchProfileModel(Base, TimestampMixin):
     )
     governance_events: Mapped[list["PersonalizationGovernanceEventModel"]] = relationship(
         back_populates="profile",
+        cascade="all, delete-orphan",
+    )
+    personalization_settings: Mapped[Optional["ResearcherPersonalizationSettingsModel"]] = relationship(
+        back_populates="researcher_profile",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    personalization_control_events: Mapped[list["PersonalizationControlEventModel"]] = relationship(
+        back_populates="researcher_profile",
         cascade="all, delete-orphan",
     )
 

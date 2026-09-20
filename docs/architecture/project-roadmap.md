@@ -33,6 +33,7 @@ This document provides the authoritative, comprehensive architectural roadmap an
 | **Phase 5.6** | Personalization Calibration | **COMPLETE** | Closed-loop causal attribution (14d window), bounded calibration (±0.05), anti-feedback loop safeguards, migration 0020, calibration card UI | 12 Tests / 100% Regr |
 | **Phase 5.7** | Personalization Quality & Contextual Adaptation | **COMPLETE** | Observed lift, contextual partitioning (5 dimensions), 4-level fallback, bounded contextual adaptation (±0.03), migration 0021, quality card UI | 10 Tests / 100% Regr |
 | **Phase 5.8** | Personalization Governance & Drift Detection | **COMPLETE** | Temporal window partitioning (60d/14d), drift classification (STABLE/EMERGING/PERSISTENT/REVERSING), staleness detection, explicit preference protection, multi-dimensional health score, governance gate (ALLOW->SUSPEND), neutral suspension, migration 0022, governance card UI | 10 Tests / 100% Regr |
+| **Phase 5.9** | Personalization Transparency & Controls | **COMPLETE** | Deterministic explanation layer ("Why this recommendation?"), 5 bounded impact tiers, researcher controls (master toggle, adaptive toggle, future feedback toggle), safe reset with state versioning (v1->v2), append-only control audit trail, migration 0023, Next.js explanation modal & settings card UI | 8 Tests / 100% Regr |
 | **Phase 6** | Platform Infrastructure & Governance | **IN PROGRESS** | Role-Based Access Control (Student/Faculty/Admin), JWT/OAuth, rate limiting, structured logging, Docker production specs | Continuous |
 | **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,008+ Passing Tests |
 
@@ -577,10 +578,43 @@ Facilitates institutional and cross-disciplinary collaboration within verified a
   - Zero ML models, zero LLMs, zero vector DBs, zero collaborative filtering, zero cross-user profiling.
   - 10 dedicated unit, integration, benchmark, and multi-tenant authorization tests passing (`test_personalization_governance.py`); scaling benchmarks verified from 10 to 10,000 interactions (~48ms).
 
+#### Phase 5.9 — Personalization Transparency, Researcher Controls & Explanation Layer [COMPLETE]
+- **Deterministic Transparency & Explanation Model**:
+  - `PersonalizationTransparencyEngine` exposes why recommendations were personalized via closed-form deterministic rules ("Why this recommendation?").
+  - Evaluates explicit preferences, adaptive signals, calibrations, contextual quality, and governance state without revealing internal noise or chain-of-thought.
+  - Explanation safety: never claims "you will like this" or "the system knows your interests"; distinguishes core relevance ($\ge 85\%$) from personalization ($\le 15\%$).
+- **Bounded Personalization Impact Classification**:
+  - 5 deterministic impact tiers: `NO_PERSONALIZATION` ($|\Delta| < 0.02$), `LOW_PERSONALIZATION` ($0.02 \le |\Delta| < 0.06$), `MODERATE_PERSONALIZATION` ($0.06 \le |\Delta| < 0.12$), `STRONG_PERSONALIZATION` ($|\Delta| \ge 0.12$), `PERSONALIZATION_SUPPRESSED` (explicit `EXCLUDED` or `SUSPEND` gate).
+- **Researcher Personalization Controls**:
+  - Sovereign controls over personalization behavior: master toggle (`personalization_enabled`), adaptive learning toggle (`adaptive_signals_enabled`), future feedback learning toggle (`feedback_learning_enabled`).
+  - Precedence hierarchy: System Safety > Eligibility > Core Relevance ($\ge 85\%$) > Explicit Preferences > Researcher Controls > Adaptive Signals ($\pm 10\%$) > Calibration ($\pm 5\%$) > Contextual ($\pm 3\%$).
+- **Safe Reset Mechanism & State Versioning**:
+  - Atomically increments `personalization_state_version` ($1 \to 2$).
+  - Neutralizes derived adaptive signals, calibrations, and contextual modifiers.
+  - Strictly preserves researcher accounts, profiles, explicit preferences, recommendation history, and audit logs.
+- **Append-Only Control Audit Trail**:
+  - `personalization_control_events` records all control mutations and resets with previous state, new state, trigger reason, and algorithm version (`5.9.1`).
+- **Database Models & Migration**:
+  - `researcher_personalization_settings` and `personalization_control_events` tables.
+  - Non-destructive Alembic migration `0023_phase5_9_personalization_transparency.py`.
+- **REST APIs**:
+  - `GET /api/v1/researchers/{id}/personalization/settings`: Retrieve settings.
+  - `PATCH /api/v1/researchers/{id}/personalization/settings`: Update settings (toggles).
+  - `POST /api/v1/researchers/{id}/personalization/reset`: Safe reset.
+  - `GET /api/v1/researchers/{id}/personalization/control-history`: Audit history.
+  - `GET /api/v1/researchers/{id}/recommendations/{recommendation_id}/personalization`: "Why this recommendation?" explanation.
+- **Next.js App Router Integration**:
+  - `WhyThisRecommendationModal` component with impact badge, score decomposition (Core Relevance vs Personalization), contributing factors checklist, and academic safety guarantee.
+  - `PersonalizationSettingsCard` component with toggles, state version badge, safe reset modal, and expandable audit history.
+  - Integrated into `UnifiedResearchIntelligenceView` (Section 2.9) with "Why this?" button on each recommendation card.
+- **Strict Phase Boundary & Invariants**:
+  - Zero ML models, zero LLMs, zero vector DBs, zero collaborative filtering, zero cross-user profiling.
+  - 8 dedicated unit, integration, benchmark, and multi-tenant authorization tests passing (`test_personalization_transparency.py`); explanation latency benchmarked at $1.8\text{ ms}$ with zero N+1 queries.
+
 #### Future Phase 5 Modules (Planned)
-- **Phase 5.9 — Faculty Research Opportunities & Project Postings**: Structured listings posted by faculty members for open research slots, thesis topics, and collaborative research project announcements.
-- **Phase 5.10 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
-- **Phase 5.11 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
+- **Phase 5.10 — Faculty Research Opportunities & Project Postings**: Structured listings posted by faculty members for open research slots, thesis topics, and collaborative research project announcements.
+- **Phase 5.11 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
+- **Phase 5.12 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
 
 ---
 

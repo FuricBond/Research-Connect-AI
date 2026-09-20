@@ -118,6 +118,16 @@ from app.schemas.personalization_governance import (
     PersonalizationHealthResponse,
     SignalDriftItem,
 )
+from app.schemas.personalization_transparency import (
+    PersonalizationControlEventSchema,
+    PersonalizationControlEventType,
+    PersonalizationControlHistoryResponse,
+    PersonalizationImpact,
+    PersonalizationResetResponse,
+    RecommendationPersonalizationExplanationResponse,
+    ResearcherPersonalizationSettingsSchema,
+    ResearcherPersonalizationSettingsUpdate,
+)
 from app.schemas.recommendation_history import (
     RecommendationHistoryListResponse,
     RecommendationItemSnapshotSchema,
@@ -275,6 +285,15 @@ __all__ = [
     "UnifiedRecommendationItemSchema",
     "UnifiedRecommendationResponseSchema",
     "UnifiedOpportunityIntelligenceSchema",
+    # Phase 5.9 Personalization Transparency & Controls Schemas
+    "PersonalizationImpact",
+    "PersonalizationControlEventType",
+    "ResearcherPersonalizationSettingsSchema",
+    "ResearcherPersonalizationSettingsUpdate",
+    "PersonalizationControlEventSchema",
+    "PersonalizationControlHistoryResponse",
+    "RecommendationPersonalizationExplanationResponse",
+    "PersonalizationResetResponse",
 ]
 
 from app.schemas.research_intelligence import (

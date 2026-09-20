@@ -640,4 +640,95 @@ export interface GovernanceRecomputeRequest {
   force_recompute?: boolean;
 }
 
+// =============================================================================
+// Phase 5.9 — Personalization Transparency, Researcher Controls & Explanation Layer
+// =============================================================================
+
+export type PersonalizationImpact =
+  | "NO_PERSONALIZATION"
+  | "LOW_PERSONALIZATION"
+  | "MODERATE_PERSONALIZATION"
+  | "STRONG_PERSONALIZATION"
+  | "PERSONALIZATION_SUPPRESSED";
+
+export type PersonalizationControlEventType =
+  | "PERSONALIZATION_ENABLED"
+  | "PERSONALIZATION_DISABLED"
+  | "ADAPTIVE_SIGNALS_ENABLED"
+  | "ADAPTIVE_SIGNALS_DISABLED"
+  | "FEEDBACK_LEARNING_ENABLED"
+  | "FEEDBACK_LEARNING_DISABLED"
+  | "PERSONALIZATION_RESET";
+
+export interface ResearcherPersonalizationSettings {
+  id: string;
+  profile_id: string;
+  personalization_enabled: boolean;
+  adaptive_signals_enabled: boolean;
+  feedback_learning_enabled: boolean;
+  personalization_state_version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ResearcherPersonalizationSettingsUpdate {
+  personalization_enabled?: boolean;
+  adaptive_signals_enabled?: boolean;
+  feedback_learning_enabled?: boolean;
+}
+
+export interface PersonalizationControlEvent {
+  id: string;
+  profile_id: string;
+  event_type: PersonalizationControlEventType;
+  previous_state: Record<string, any>;
+  new_state: Record<string, any>;
+  trigger_reason?: string | null;
+  algorithm_version: string;
+  created_at: string;
+}
+
+export interface PersonalizationControlHistoryResponse {
+  profile_id: string;
+  events: PersonalizationControlEvent[];
+  total: number;
+}
+
+export interface PersonalizationFactor {
+  source: "EXPLICIT_PREFERENCE" | "ADAPTIVE_SIGNAL" | "CALIBRATION" | "CONTEXTUAL_QUALITY" | "GOVERNANCE_STATE";
+  summary: string;
+  polarity: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
+  evidence_basis: string;
+}
+
+export interface RecommendationPersonalizationExplanation {
+  recommendation_id: string;
+  opportunity_id: string;
+  opportunity_title: string;
+  personalization_impact: PersonalizationImpact;
+  base_relevance_score: number;
+  personalization_score: number;
+  final_score: number;
+  factors: PersonalizationFactor[];
+  summary_points: string[];
+  explanation_text: string;
+  governance_state: string;
+  personalization_state_version: number;
+  algorithm_version: string;
+  timestamp: string;
+}
+
+export interface PersonalizationResetResponse {
+  status: string;
+  personalization_state_version: number;
+  adaptive_signals_reset: number;
+  calibration_states_reset: number;
+  contextual_modifiers_reset: number;
+  explicit_preferences_changed: number;
+  researcher_profile_changed: number;
+  message: string;
+  timestamp: string;
+}
+
+
 

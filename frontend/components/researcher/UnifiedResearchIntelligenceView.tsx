@@ -43,6 +43,8 @@ import { AdaptiveSignalsCard } from "../personalization/AdaptiveSignalsCard";
 import { PersonalizationCalibrationCard } from "../personalization/PersonalizationCalibrationCard";
 import { PersonalizationQualityCard } from "../personalization/PersonalizationQualityCard";
 import { PersonalizationGovernanceCard } from "../personalization/PersonalizationGovernanceCard";
+import { PersonalizationSettingsCard } from "../personalization/PersonalizationSettingsCard";
+import { WhyThisRecommendationModal } from "../personalization/WhyThisRecommendationModal";
 import type {
   EvidenceTierBreakdown,
   ResearchIntelligenceSignal,
@@ -81,6 +83,7 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [preferenceMatches, setPreferenceMatches] = useState<Record<string, PreferencePersonalizationAssessment>>({});
   const [personalizationScores, setPersonalizationScores] = useState<Record<string, PersonalizationAssessment>>({});
+  const [whyRecommendationId, setWhyRecommendationId] = useState<string | null>(null);
 
   // Detailed Intelligence Modal/Drawer State
   const [selectedIntel, setSelectedIntel] = useState<UnifiedOpportunityIntelligence | null>(null);
@@ -405,6 +408,9 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
       {/* SECTION 2.8: PERSONALIZATION GOVERNANCE, DRIFT DETECTION & ADAPTATION SAFETY */}
       <PersonalizationGovernanceCard profileId={profileId} userId={userId} className="mb-6" />
 
+      {/* SECTION 2.9: PERSONALIZATION CONTROLS & TRANSPARENCY */}
+      <PersonalizationSettingsCard profileId={profileId} userId={userId} className="mb-6" />
+
       {/* SECTION 3: UNIFIED RECOMMENDATIONS WITH 6-TIER EXPLAINABILITY */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -500,6 +506,14 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
                         )}
                         <PreferenceMatchBadge assessment={preferenceMatches[item.opportunity_id] || null} />
                         <PersonalizationScoreBadge assessment={personalizationScores[item.opportunity_id] || null} />
+                        <button
+                          onClick={() => setWhyRecommendationId(item.opportunity_id)}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors"
+                          title="Why this recommendation?"
+                        >
+                          <Sparkles className="w-3 h-3 text-indigo-500" />
+                          <span>Why this?</span>
+                        </button>
                       </div>
 
                       <h3
@@ -744,6 +758,15 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
           </div>
         </div>
       )}
+
+      {/* SECTION 5: WHY THIS RECOMMENDATION MODAL (PHASE 5.9) */}
+      <WhyThisRecommendationModal
+        isOpen={!!whyRecommendationId}
+        onClose={() => setWhyRecommendationId(null)}
+        researcherId={profileId}
+        recommendationId={whyRecommendationId || ""}
+        userId={userId}
+      />
     </div>
   );
 }

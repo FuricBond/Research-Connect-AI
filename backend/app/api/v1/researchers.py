@@ -146,6 +146,14 @@ from app.schemas.personalization_governance import (
     PersonalizationHealthResponse,
 )
 from app.services.personalization_governance_service import PersonalizationGovernanceService
+from app.schemas.personalization_transparency import (
+    PersonalizationControlHistoryResponse,
+    PersonalizationResetResponse,
+    RecommendationPersonalizationExplanationResponse,
+    ResearcherPersonalizationSettingsSchema,
+    ResearcherPersonalizationSettingsUpdate,
+)
+from app.services.personalization_transparency_service import PersonalizationTransparencyService
 from app.schemas.researcher_interaction import (
     InteractionCreateRequest,
     InteractionResponse,
@@ -2437,6 +2445,126 @@ def recompute_researcher_personalization_health(
         db=db,
         profile_id=profile.id,
     )
+
+
+# ----------------------------------------------------------------------------
+# Phase 5.9: Personalization Transparency, Researcher Controls & Explanation Endpoints
+# ----------------------------------------------------------------------------
+
+@router.get(
+    "/{researcher_id}/personalization/settings",
+    response_model=ResearcherPersonalizationSettingsSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Get researcher personalization controls and state version",
+    description="Retrieves the current personalization toggles (personalization, adaptive signals, feedback learning) and state version.",
+)
+def get_researcher_personalization_settings(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> ResearcherPersonalizationSettingsSchema:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    settings = PersonalizationTransparencyService.get_or_create_settings(db, profile.id)
+    return ResearcherPersonalizationSettingsSchema.model_validate(settings)
+
+
+@router.patch(
+    "/{researcher_id}/personalization/settings",
+    response_model=ResearcherPersonalizationSettingsSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Update researcher personalization controls",
+    description="Updates personalization toggles and logs an append-only control audit event.",
+)
+def update_researcher_personalization_settings(
+    researcher_id: uuid.UUID,
+    payload: ResearcherPersonalizationSettingsUpdate,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> ResearcherPersonalizationSettingsSchema:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    settings = PersonalizationTransparencyService.update_settings(
+        db=db,
+        profile_id=profile.id,
+        payload=payload,
+    )
+    return ResearcherPersonalizationSettingsSchema.model_validate(settings)
+
+
+@router.post(
+    "/{researcher_id}/personalization/reset",
+    response_model=PersonalizationResetResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Reset researcher derived personalization state",
+    description=(
+        "Safely and idempotently neutralizes derived behavioral signals, calibrations, and contextual adaptations "
+        "by incrementing the personalization state version. Strictly preserves accounts, profiles, and explicit preferences."
+    ),
+)
+def reset_researcher_personalization(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationResetResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return PersonalizationTransparencyService.reset_personalization(
+        db=db,
+        profile_id=profile.id,
+    )
+
+
+@router.get(
+    "/{researcher_id}/personalization/control-history",
+    response_model=PersonalizationControlHistoryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get paginated personalization control audit events",
+    description="Retrieves the append-only, immutable audit trail of researcher-initiated personalization control changes and resets.",
+)
+def get_researcher_personalization_control_history(
+    researcher_id: uuid.UUID,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationControlHistoryResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return PersonalizationTransparencyService.get_control_history(
+        db=db,
+        profile_id=profile.id,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get(
+    "/{researcher_id}/recommendations/{recommendation_id}/personalization",
+    response_model=RecommendationPersonalizationExplanationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Why this recommendation? Get transparent personalization explanation",
+    description=(
+        "Explains why a recommendation was personalized, exposing the major contributing factors "
+        "(explicit preferences, adaptive signals, calibration, contextual adaptations, and governance state) "
+        "without internal implementation noise or ML black boxes."
+    ),
+)
+def get_recommendation_personalization_explanation(
+    researcher_id: uuid.UUID,
+    recommendation_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> RecommendationPersonalizationExplanationResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    explanation = PersonalizationTransparencyService.explain_recommendation_personalization(
+        db=db,
+        profile_id=profile.id,
+        recommendation_id=recommendation_id,
+    )
+    if not explanation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Recommendation or opportunity with ID '{recommendation_id}' not found.",
+        )
+    return explanation
+
 
 
 
