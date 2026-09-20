@@ -132,6 +132,13 @@ from app.schemas.personalization_calibration import (
     PersonalizationCalibrationSchema,
 )
 from app.services.personalization_calibration_service import PersonalizationCalibrationService
+from app.schemas.personalization_quality import (
+    ContextualAdaptationsResponse,
+    PersonalizationQualityResponse,
+    QualityRecomputeRequest,
+    SignalQualityResponse,
+)
+from app.services.personalization_quality_service import PersonalizationQualityService
 from app.schemas.researcher_interaction import (
     InteractionCreateRequest,
     InteractionResponse,
@@ -1866,12 +1873,14 @@ def get_opportunity_personalization(
     structured_prefs = ResearcherPreferenceService.get_structured_preferences(db, profile.id)
     adaptive_signals = AdaptivePreferenceSignalService.get_adaptive_signals(db, profile.id)
     calibrations = PersonalizationCalibrationService.get_calibrations(db, profile.id)
+    contextual_adaptations = PersonalizationQualityService.get_contextual_adaptations(db, profile.id)
     return PersonalizationScorer.score_opportunity(
         profile_id=profile.id,
         preferences=structured_prefs,
         opportunity=opp,
         adaptive_signals=adaptive_signals,
         calibrations=calibrations,
+        contextual_adaptations=contextual_adaptations,
     )
 
 
@@ -1904,6 +1913,7 @@ def batch_opportunity_personalization(
     structured_prefs = ResearcherPreferenceService.get_structured_preferences(db, profile.id)
     adaptive_signals = AdaptivePreferenceSignalService.get_adaptive_signals(db, profile.id)
     calibrations = PersonalizationCalibrationService.get_calibrations(db, profile.id)
+    contextual_adaptations = PersonalizationQualityService.get_contextual_adaptations(db, profile.id)
 
     batch_results = PersonalizationScorer.score_opportunities_batch(
         profile_id=profile.id,
@@ -1911,6 +1921,7 @@ def batch_opportunity_personalization(
         opportunities=opps,
         adaptive_signals=adaptive_signals,
         calibrations=calibrations,
+        contextual_adaptations=contextual_adaptations,
     )
 
     ordered_assessments = [
@@ -2209,4 +2220,106 @@ def recompute_researcher_personalization_calibration(
         db=db,
         profile_id=profile.id,
     )
+
+
+# ----------------------------------------------------------------------------
+# Phase 5.7: Personalization Quality & Contextual Adaptation Endpoints
+# ----------------------------------------------------------------------------
+
+@router.get(
+    "/{researcher_id}/personalization/quality",
+    response_model=PersonalizationQualityResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get researcher personalization quality evaluation and lift",
+    description=(
+        "Retrieves deterministic personalization quality metrics, observed personalization lift, "
+        "positive/negative engagement rates, diversity, novelty, and deterministic explanations."
+    ),
+)
+def get_researcher_personalization_quality(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationQualityResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return PersonalizationQualityService.get_quality_response(
+        db=db,
+        profile_id=profile.id,
+    )
+
+
+@router.get(
+    "/{researcher_id}/personalization/quality/contexts",
+    response_model=ContextualAdaptationsResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get contextual adaptation breakdown for researcher",
+    description="Retrieves bounded contextual adaptation records and hierarchical fallback levels across opportunity contexts.",
+)
+def get_researcher_contextual_adaptations(
+    researcher_id: uuid.UUID,
+    context_dimension: str | None = Query(default=None, description="Filter by context dimension (e.g. OPPORTUNITY_TYPE, DEADLINE_HORIZON)"),
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> ContextualAdaptationsResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return PersonalizationQualityService.get_contextual_adaptations_response(
+        db=db,
+        profile_id=profile.id,
+        context_dimension=context_dimension,
+    )
+
+
+@router.get(
+    "/{researcher_id}/personalization/quality/signals",
+    response_model=SignalQualityResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get signal-level personalization quality breakdown",
+    description="Retrieves personalization quality evaluation metrics grouped per individual behavioral signal.",
+)
+def get_researcher_signal_qualities(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> SignalQualityResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return PersonalizationQualityService.get_signal_quality_response(
+        db=db,
+        profile_id=profile.id,
+    )
+
+
+@router.post(
+    "/{researcher_id}/personalization/quality/recompute",
+    response_model=PersonalizationQualityResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Recompute researcher personalization quality evaluation and contextual adaptations",
+    description=(
+        "Recomputes all personalization quality metrics, observed lift, and bounded contextual "
+        "adaptations from recommendation and interaction history deterministically."
+    ),
+)
+def recompute_researcher_personalization_quality(
+    researcher_id: uuid.UUID,
+    payload: QualityRecomputeRequest | None = None,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationQualityResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+
+    ref_time = payload.reference_time if payload else None
+    eval_period = payload.evaluation_period_days if payload and payload.evaluation_period_days is not None else 30.0
+
+    PersonalizationQualityService.recompute_personalization_quality(
+        db=db,
+        profile_id=profile.id,
+        reference_time=ref_time,
+        evaluation_period_days=eval_period,
+    )
+    db.commit()
+
+    return PersonalizationQualityService.get_quality_response(
+        db=db,
+        profile_id=profile.id,
+    )
+
 

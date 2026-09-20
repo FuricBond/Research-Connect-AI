@@ -521,10 +521,35 @@ Facilitates institutional and cross-disciplinary collaboration within verified a
   - Zero ML models, zero LLMs, zero vector DBs, zero collaborative filtering, zero cross-user profiling.
   - 12 dedicated tests passing (`test_personalization_calibration.py`); sub-second scaling benchmarks verified across 10,000 recommendations (~142ms).
 
+#### Phase 5.7 — Personalization Evaluation, Contextual Adaptation & Recommendation Quality Loop [COMPLETE]
+- **Personalization Quality & Empirical Lift Measurement**:
+  - `PersonalizationQualityEngine` directly measures observed personalization lift ($\text{Lift}_{\text{obs}} = \text{Rate}_{\text{personalized}} - \text{Rate}_{\text{baseline}}$), engagement rates, positive/negative feedback rates, diversity (normalized Shannon entropy), and novelty rate without claiming causal certainty.
+- **Contextual Partitioning & Hierarchical Fallback**:
+  - Partitioning behavioral signal performance across 5 dimensions: `OPPORTUNITY_TYPE`, `DEADLINE_HORIZON`, `RISK_TIER`, `RELEVANCE_TIER`, `ACADEMIC_STATUS`.
+  - 4-level deterministic fallback: Level 1 (Exact Context: $N \ge 3$, conf $\ge 0.30$) $\to$ Level 2 (Broad Context / Calibration) $\to$ Level 3 (Adaptive Signal) $\to$ Level 4 (Neutral: $0.0$).
+- **Bounded Adaptation & Invariant Hierarchy**:
+  - Contextual adaptation modifier strictly clamped to $\Delta_{\text{context}} \in [-0.03, +0.03]$.
+  - Combined calibration and contextual modifier clamped to $[-0.05, +0.05]$; total combined adaptive contribution clamped to $[-0.10, +0.10]$, strictly preserving Phase 4 relevance dominance ($\ge 85\%$).
+  - Explicit preferences (Phase 5.1) remain authoritative: explicit `EXCLUDED` forces final score to `0.0`; explicit `PREFERRED` with baseline $\ge 0.50$ is protected from negative suppression.
+- **Database Models & Migration**:
+  - `personalization_quality_evaluations` and `personalization_contextual_adaptations` tables.
+  - Non-destructive Alembic migration `0021_phase5_7_personalization_quality.py`.
+- **REST APIs**:
+  - `GET /api/v1/researchers/{id}/personalization/quality`: Top-level quality metrics, observed lift, diversity, novelty, and deterministic explanations.
+  - `GET /api/v1/researchers/{id}/personalization/quality/contexts`: Contextual adaptations breakdown with dimension filter.
+  - `GET /api/v1/researchers/{id}/personalization/quality/signals`: Signal-level quality breakdown.
+  - `POST /api/v1/researchers/{id}/personalization/quality/recompute`: Idempotent on-demand quality evaluation recomputation.
+- **Next.js App Router Integration**:
+  - `PersonalizationQualityCard` component featuring observed lift badge, engagement/feedback comparisons, diversity/novelty gauges, context breakdown tabs, and interactive recompute action.
+  - Integrated into `UnifiedResearchIntelligenceView` (Section 2.7).
+- **Strict Phase Boundary & Invariants**:
+  - Zero ML models, zero LLMs, zero vector DBs, zero collaborative filtering, zero cross-user profiling.
+  - 10 dedicated unit, integration, benchmark, and multi-tenant authorization tests passing (`test_personalization_quality.py`); sub-second scaling benchmarks verified across 10,000 recommendations (~180ms).
+
 #### Future Phase 5 Modules (Planned)
-- **Phase 5.7 — Faculty Research Opportunities & Project Postings**: Structured listings posted by faculty members for open research slots, thesis topics, and collaborative research project announcements.
-- **Phase 5.8 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
-- **Phase 5.9 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
+- **Phase 5.8 — Faculty Research Opportunities & Project Postings**: Structured listings posted by faculty members for open research slots, thesis topics, and collaborative research project announcements.
+- **Phase 5.9 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
+- **Phase 5.10 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
 
 ---
 

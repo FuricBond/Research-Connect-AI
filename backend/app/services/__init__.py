@@ -51,6 +51,7 @@ from app.services.research_intelligence_integration_service import (
 )
 from app.services.adaptive_signal_service import AdaptivePreferenceSignalService
 from app.services.personalization_calibration_service import PersonalizationCalibrationService
+from app.services.personalization_quality_service import PersonalizationQualityService
 from app.services.researcher_interaction_service import ResearcherInteractionService
 
 
@@ -105,6 +106,8 @@ __all__ = [
     "AdaptivePreferenceSignalService",
     # Personalization calibration service (Phase 5.6)
     "PersonalizationCalibrationService",
+    # Personalization quality service (Phase 5.7)
+    "PersonalizationQualityService",
 ]
 
 

@@ -344,6 +344,10 @@ class PersonalizationAssessment(BaseModel):
         0.0,
         description="Net additive calibration modifier from Phase 5.6 [-0.05, +0.05]",
     )
+    contextual_score: float = Field(
+        0.0,
+        description="Net additive contextual adaptation modifier from Phase 5.7 [-0.03, +0.03]",
+    )
     evaluated_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="Timestamp of evaluation",

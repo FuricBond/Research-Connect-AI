@@ -26,6 +26,12 @@ from app.models.personalization_calibration import (
     PersonalizationCalibrationModel,
     RecommendationFeedbackAttributionModel,
 )
+from app.models.personalization_quality import (
+    ContextualFallbackLevel,
+    PersonalizationContextualAdaptationModel,
+    PersonalizationQualityEvaluationModel,
+    QualityEvaluationState,
+)
 from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
 from app.models.recommendation_history import (
     ResearcherRecommendationSnapshotModel,
@@ -159,6 +165,11 @@ __all__ = [
     "CalibrationState",
     "AttributionConfidence",
     "FeedbackOutcomeType",
+    # Personalization Quality & Contextual Adaptation (Phase 5.7)
+    "PersonalizationQualityEvaluationModel",
+    "PersonalizationContextualAdaptationModel",
+    "QualityEvaluationState",
+    "ContextualFallbackLevel",
 ]
 
 

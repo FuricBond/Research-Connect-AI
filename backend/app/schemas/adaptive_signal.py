@@ -58,6 +58,7 @@ class AdaptivePersonalizationContribution(BaseModel):
     raw_contribution: float
     bounded_contribution: float
     calibration_modifier: float = 0.0
+    contextual_modifier: float = 0.0
     explanation: str
 
     model_config = ConfigDict(from_attributes=True)

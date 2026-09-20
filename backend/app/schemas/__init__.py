@@ -99,6 +99,16 @@ from app.schemas.personalization_calibration import (
     PersonalizationCalibrationSchema,
     RecommendationFeedbackAttributionSchema,
 )
+from app.schemas.personalization_quality import (
+    ContextualAdaptationsResponse,
+    ContextualSummaryItem,
+    PersonalizationContextualAdaptationSchema,
+    PersonalizationQualityEvaluationSchema,
+    PersonalizationQualityResponse,
+    QualityRecomputeRequest,
+    SignalQualityResponse,
+    SignalQualitySummaryItem,
+)
 from app.schemas.recommendation_history import (
     RecommendationHistoryListResponse,
     RecommendationItemSnapshotSchema,
@@ -210,6 +220,15 @@ __all__ = [
     "PersonalizationCalibrationResponse",
     "PersonalizationCalibrationDetailResponse",
     "CalibrationRecomputeRequest",
+    # Phase 5.7 Personalization Quality & Contextual Adaptation Schemas
+    "PersonalizationQualityEvaluationSchema",
+    "PersonalizationContextualAdaptationSchema",
+    "ContextualSummaryItem",
+    "SignalQualitySummaryItem",
+    "PersonalizationQualityResponse",
+    "ContextualAdaptationsResponse",
+    "SignalQualityResponse",
+    "QualityRecomputeRequest",
     # Phase 3.7 Recommendation History & Evaluation Schemas
     "RecommendationOpportunityBriefSchema",
     "RecommendationItemSnapshotSchema",

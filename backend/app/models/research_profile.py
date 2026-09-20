@@ -15,6 +15,10 @@ if TYPE_CHECKING:
     from app.models.researcher_interaction import ResearcherInteractionModel
     from app.models.adaptive_signal import AdaptivePreferenceSignalModel
     from app.models.personalization_calibration import PersonalizationCalibrationModel
+    from app.models.personalization_quality import (
+        PersonalizationContextualAdaptationModel,
+        PersonalizationQualityEvaluationModel,
+    )
     from app.models.user import UserModel
 
 
@@ -161,6 +165,14 @@ class ResearchProfileModel(Base, TimestampMixin):
     )
     personalization_calibrations: Mapped[list["PersonalizationCalibrationModel"]] = relationship(
         back_populates="researcher_profile",
+        cascade="all, delete-orphan",
+    )
+    quality_evaluations: Mapped[list["PersonalizationQualityEvaluationModel"]] = relationship(
+        back_populates="profile",
+        cascade="all, delete-orphan",
+    )
+    contextual_adaptations: Mapped[list["PersonalizationContextualAdaptationModel"]] = relationship(
+        back_populates="profile",
         cascade="all, delete-orphan",
     )
 

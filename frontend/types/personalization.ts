@@ -144,6 +144,7 @@ export interface PersonalizationAssessment {
   adaptive_score?: number;
   adaptive_contributions?: AdaptivePersonalizationContribution[];
   calibration_score?: number;
+  contextual_score?: number;
   evaluated_at: string;
 }
 
@@ -270,6 +271,7 @@ export interface AdaptivePersonalizationContribution {
   raw_contribution: number;
   bounded_contribution: number;
   calibration_modifier?: number;
+  contextual_modifier?: number;
   explanation: string;
 }
 
@@ -375,6 +377,121 @@ export interface PersonalizationCalibrationDetailResponse {
 
 export interface CalibrationRecomputeRequest {
   attribution_window_days?: number;
+}
+
+// =============================================================================
+// Phase 5.7 — Personalization Quality Evaluation & Contextual Adaptation Types
+// =============================================================================
+
+export type QualityEvaluationState =
+  | "INSUFFICIENT_DATA"
+  | "EARLY_SIGNAL"
+  | "EVALUATING"
+  | "STABLE"
+  | "POSITIVE"
+  | "NEGATIVE"
+  | "MIXED";
+
+export type ContextualFallbackLevel =
+  | "RESEARCHER_EXACT_CONTEXT"
+  | "RESEARCHER_BROAD_CONTEXT"
+  | "GLOBAL_SIGNAL_CALIBRATION"
+  | "NEUTRAL";
+
+export interface PersonalizationQualityEvaluation {
+  id: string;
+  profile_id: string;
+  evaluation_period_days: number;
+  recommendations_evaluated_count: number;
+  attributed_interactions_count: number;
+  positive_outcomes_count: number;
+  negative_outcomes_count: number;
+  neutral_outcomes_count: number;
+  observed_engagement_rate: number;
+  observed_positive_rate: number;
+  observed_negative_rate: number;
+  baseline_engagement_rate: number;
+  baseline_positive_rate: number;
+  observed_personalization_lift: number;
+  confidence: number;
+  evaluation_state: QualityEvaluationState;
+  diversity_score: number;
+  novelty_rate: number;
+  contextual_breakdown: Record<string, unknown>;
+  deterministic_explanation: string;
+  algorithm_version: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PersonalizationContextualAdaptation {
+  id: string;
+  profile_id: string;
+  dimension: string;
+  signal_value: string;
+  context_dimension: string;
+  context_value: string;
+  sample_size: number;
+  positive_count: number;
+  negative_count: number;
+  observed_lift: number;
+  confidence: number;
+  fallback_level: ContextualFallbackLevel;
+  contextual_modifier: number;
+  hysteresis_state: string;
+  evaluation_state: QualityEvaluationState;
+  deterministic_explanation: string;
+  algorithm_version: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContextualSummaryItem {
+  context_dimension: string;
+  context_value: string;
+  sample_size: number;
+  positive_rate: number;
+  observed_lift: number;
+  evaluation_state: QualityEvaluationState;
+  explanation: string;
+}
+
+export interface SignalQualitySummaryItem {
+  dimension: string;
+  signal_value: string;
+  sample_size: number;
+  positive_count: number;
+  negative_count: number;
+  observed_lift: number;
+  confidence: number;
+  evaluation_state: QualityEvaluationState;
+  contexts_count: number;
+  explanation: string;
+}
+
+export interface PersonalizationQualityResponse {
+  profile_id: string;
+  evaluation: PersonalizationQualityEvaluation;
+  context_summaries: ContextualSummaryItem[];
+  deterministic_explanation: string;
+}
+
+export interface ContextualAdaptationsResponse {
+  profile_id: string;
+  items: PersonalizationContextualAdaptation[];
+  total_count: number;
+}
+
+export interface SignalQualityResponse {
+  profile_id: string;
+  items: SignalQualitySummaryItem[];
+  total_count: number;
+}
+
+export interface QualityRecomputeRequest {
+  reference_time?: string;
+  evaluation_period_days?: number;
+  force_recompute?: boolean;
 }
 
 

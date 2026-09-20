@@ -51,6 +51,8 @@ from app.personalization.scoring_config import (
     PersonalizationScoringConfig,
 )
 from app.schemas.personalization_calibration import PersonalizationCalibrationSchema
+from app.schemas.personalization_quality import PersonalizationContextualAdaptationSchema
+from app.personalization.quality_engine import PersonalizationQualityEngine
 from app.schemas.researcher_preference import (
     ResearcherPreferenceItemSchema,
     StructuredPreferencesResponseSchema,
@@ -75,10 +77,12 @@ class PersonalizationScorer:
         adaptive_signals: Sequence[AdaptivePreferenceSignal] | None = None,
         adaptive_config: AdaptiveSignalConfig = DEFAULT_ADAPTIVE_CONFIG,
         calibrations: Sequence[PersonalizationCalibrationSchema] | None = None,
+        contextual_adaptations: Sequence[PersonalizationContextualAdaptationSchema] | None = None,
     ) -> PersonalizationAssessment:
         """
         Evaluate and score a single opportunity against researcher explicit preferences,
-        bounded Phase 5.5 adaptive preference signals, and Phase 5.6 calibration modifiers.
+        bounded Phase 5.5 adaptive preference signals, Phase 5.6 calibration modifiers,
+        and Phase 5.7 contextual adaptations.
 
         Parameters
         ----------
@@ -98,11 +102,13 @@ class PersonalizationScorer:
             Adaptive signal scoring configuration.
         calibrations : Sequence of PersonalizationCalibrationSchema, optional
             Materialized personalization calibrations for the researcher.
+        contextual_adaptations : Sequence of PersonalizationContextualAdaptationSchema, optional
+            Materialized contextual adaptations for the researcher.
 
         Returns
         -------
         PersonalizationAssessment
-            Complete score, breakdown, explanations, adaptive contributions, calibration score, and underlying signals.
+            Complete score, breakdown, explanations, adaptive contributions, calibration score, contextual score, and underlying signals.
         """
         # 1. Obtain Phase 5.2 preference match assessment
         if preference_assessment is None:
@@ -125,9 +131,10 @@ class PersonalizationScorer:
             config=config,
         )
 
-        # 4. Phase 5.5 & 5.6 — Evaluate additive adaptive contribution and calibration modifier
+        # 4. Phase 5.5, 5.6 & 5.7 — Evaluate additive adaptive contribution, calibration modifier, and contextual adaptation
         adaptive_score = 0.0
         calibration_score = 0.0
+        contextual_score = 0.0
         adaptive_contributions: list[AdaptivePersonalizationContribution] = []
 
         if adaptive_signals:
@@ -153,6 +160,34 @@ class PersonalizationScorer:
 
                 calibration_score = round(total_calib, 4)
                 raw_adaptive_score = raw_adaptive_score + calibration_score
+
+            # Apply Phase 5.7 contextual adaptation modifiers if available
+            if contextual_adaptations and adaptive_contributions:
+                opp_contexts = PersonalizationQualityEngine._extract_opportunity_contexts(opportunity)
+                context_lookup: dict[tuple[str, str, str, str], float] = {
+                    (a.dimension, a.signal_value, a.context_dimension, a.context_value): a.contextual_modifier
+                    for a in contextual_adaptations
+                }
+                total_context_mod = 0.0
+                for contrib in adaptive_contributions:
+                    dim_str = contrib.dimension.value if hasattr(contrib.dimension, "value") else str(contrib.dimension)
+                    # Look for best matching contextual adaptation across this opportunity's contexts
+                    matching_mods = []
+                    for ctx_dim, ctx_val in opp_contexts:
+                        ctx_key = (dim_str, contrib.signal_value, ctx_dim, ctx_val)
+                        if ctx_key in context_lookup:
+                            matching_mods.append(context_lookup[ctx_key])
+
+                    if matching_mods:
+                        # Use average of matching context modifiers, strictly bounded in [-0.03, +0.03]
+                        avg_ctx_mod = sum(matching_mods) / len(matching_mods)
+                        clamped_ctx_mod = max(-0.03, min(0.03, avg_ctx_mod))
+                        contrib.contextual_modifier = round(clamped_ctx_mod, 4)
+                        contrib.bounded_contribution = round(contrib.bounded_contribution + clamped_ctx_mod, 4)
+                        total_context_mod += clamped_ctx_mod
+
+                contextual_score = round(total_context_mod, 4)
+                raw_adaptive_score = raw_adaptive_score + contextual_score
 
             # Invariant 13 & 1: Explicit preferences remain authoritative.
             # If explicit exclusion is present, adaptive signals CANNOT revive the score from 0.0.
@@ -207,6 +242,7 @@ class PersonalizationScorer:
             adaptive_score=adaptive_score,
             adaptive_contributions=adaptive_contributions,
             calibration_score=calibration_score,
+            contextual_score=contextual_score,
             evaluated_at=datetime.now(timezone.utc),
         )
 
@@ -220,10 +256,11 @@ class PersonalizationScorer:
         adaptive_signals: Sequence[AdaptivePreferenceSignal] | None = None,
         adaptive_config: AdaptiveSignalConfig = DEFAULT_ADAPTIVE_CONFIG,
         calibrations: Sequence[PersonalizationCalibrationSchema] | None = None,
+        contextual_adaptations: Sequence[PersonalizationContextualAdaptationSchema] | None = None,
     ) -> dict[uuid.UUID, PersonalizationAssessment]:
         """
         Score a batch of opportunities in memory against researcher preferences, adaptive signals,
-        and calibration modifiers with zero N+1 queries.
+        calibration modifiers, and contextual adaptations with zero N+1 queries.
         """
         # 1. Batch evaluate Phase 5.2 preference interpretations
         batch_assessments = PreferenceInterpreter.evaluate_opportunities_batch(
@@ -246,8 +283,8 @@ class PersonalizationScorer:
                     adaptive_signals=adaptive_signals,
                     adaptive_config=adaptive_config,
                     calibrations=calibrations,
+                    contextual_adaptations=contextual_adaptations,
                 )
-
         return results
 
 
