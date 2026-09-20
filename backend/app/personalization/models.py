@@ -340,6 +340,10 @@ class PersonalizationAssessment(BaseModel):
         default_factory=list,
         description="Dimension-level adaptive preference contributions",
     )
+    calibration_score: float = Field(
+        0.0,
+        description="Net additive calibration modifier from Phase 5.6 [-0.05, +0.05]",
+    )
     evaluated_at: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),
         description="Timestamp of evaluation",

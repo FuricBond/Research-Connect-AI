@@ -496,9 +496,33 @@ Facilitates institutional and cross-disciplinary collaboration within verified a
   - Zero ML models, zero LLMs, zero vector DBs, zero collaborative filtering, zero cross-user profiling.
   - All 35 safety invariants verified with 17 dedicated tests (`test_adaptive_preference_signals.py`) and 162 regression tests.
 
+#### Phase 5.6 — Adaptive Personalization Calibration & Recommendation Feedback Loop [COMPLETE]
+- **Closed-Loop Feedback & Causal Attribution**:
+  - `PersonalizationCalibrationEngine` directly measures how previously attributed personalization signals perform against subsequent researcher interactions.
+  - 14-day causal attribution window ($t_R \le t_I \le t_R + 14\text{d}$) with deterministic confidence tiers: `DIRECT` ($\le 24\text{h}$, $1.0\times$), `LIKELY` ($\le 7\text{d}$, $0.75\times$), `WEAK` ($\le 14\text{d}$, $0.40\times$), and `UNATTRIBUTED` ($0.0\times$).
+- **Anti-Feedback-Loop Safeguards & Conflict Handling**:
+  - Runaway self-reinforcing loops prevented by capping outcomes at most 1 primary feedback outcome per opportunity per signal per attribution window.
+  - Dual-evidence conflicts preserved and dampened via conflict ratio $R_{\text{conflict}}$ and state multiplier ($0.25\times$).
+- **Bounded Calibration Modifier & Precedence Invariants**:
+  - Net calibration modifier strictly bounded to $\Delta_{\text{calib}} \in [-0.05, +0.05]$.
+  - Total combined adaptive contribution clamped to $[-0.10, +0.10]$, strictly preserving Phase 4 relevance dominance ($\ge 85\%$).
+  - Explicit preferences (Phase 5.1) remain strictly authoritative: explicit `EXCLUDED` forces final score to `0.0`; explicit `PREFERRED` with baseline $\ge 0.50$ is protected from negative suppression.
+- **Database Models & Migration**:
+  - `personalization_calibrations` table with composite unique constraint `(profile_id, dimension, signal_value)` and `recommendation_feedback_attributions` table.
+  - Non-destructive Alembic migration `0020_phase5_6_personalization_calibration.py`.
+- **REST APIs**:
+  - `GET /api/v1/researchers/{id}/personalization/calibration`: List calibrations with dimension/state filters.
+  - `GET /api/v1/researchers/{id}/personalization/calibration/{signal_id}`: Single calibration detail with attribution history.
+  - `POST /api/v1/researchers/{id}/personalization/calibration/recompute`: Idempotent calibration recomputation.
+- **Next.js App Router Integration**:
+  - `PersonalizationCalibrationCard` component featuring status badges, modifier indicators, filter tabs, stats summary, and manual recompute action.
+  - Integrated into `UnifiedResearchIntelligenceView` (Section 2.6).
+- **Strict Phase Boundary & Invariants**:
+  - Zero ML models, zero LLMs, zero vector DBs, zero collaborative filtering, zero cross-user profiling.
+  - 12 dedicated tests passing (`test_personalization_calibration.py`); sub-second scaling benchmarks verified across 10,000 recommendations (~142ms).
+
 #### Future Phase 5 Modules (Planned)
-- **Phase 5.6 — Faculty Research Opportunities**: Structured listings posted by faculty members for open research slots, thesis topics, and specialized projects.
-- **Phase 5.7 — Collaborative Project Postings**: Multi-student or inter-departmental research project announcements seeking collaborators.
+- **Phase 5.7 — Faculty Research Opportunities & Project Postings**: Structured listings posted by faculty members for open research slots, thesis topics, and collaborative research project announcements.
 - **Phase 5.8 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
 - **Phase 5.9 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
 

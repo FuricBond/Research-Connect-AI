@@ -143,6 +143,7 @@ export interface PersonalizationAssessment {
   preference_assessment: PreferencePersonalizationAssessment;
   adaptive_score?: number;
   adaptive_contributions?: AdaptivePersonalizationContribution[];
+  calibration_score?: number;
   evaluated_at: string;
 }
 
@@ -268,6 +269,7 @@ export interface AdaptivePersonalizationContribution {
   weight: number;
   raw_contribution: number;
   bounded_contribution: number;
+  calibration_modifier?: number;
   explanation: string;
 }
 
@@ -290,4 +292,89 @@ export interface AdaptiveSignalExplanationResponse {
 export interface AdaptiveSignalRecomputeRequest {
   force?: boolean;
 }
+
+// =============================================================================
+// Phase 5.6 — Personalization Calibration & Feedback Loop Types
+// =============================================================================
+
+export type CalibrationState =
+  | "INSUFFICIENT_DATA"
+  | "EARLY_SIGNAL"
+  | "CALIBRATING"
+  | "STABLE"
+  | "CONFLICTED";
+
+export type AttributionConfidence =
+  | "DIRECT"
+  | "LIKELY"
+  | "WEAK"
+  | "UNATTRIBUTED";
+
+export type FeedbackOutcomeType =
+  | "STRONG_POSITIVE"
+  | "MODERATE_POSITIVE"
+  | "WEAK_POSITIVE"
+  | "NEGATIVE"
+  | "NEUTRAL";
+
+export interface RecommendationFeedbackAttribution {
+  id: string;
+  profile_id: string;
+  opportunity_id: string;
+  interaction_id?: string | null;
+  dimension: string;
+  signal_value: string;
+  personalization_contribution: number;
+  interaction_type: string;
+  outcome_type: FeedbackOutcomeType;
+  attribution_confidence: AttributionConfidence;
+  attribution_weight: number;
+  decay_adjusted_weight: number;
+  recommendation_timestamp: string;
+  interaction_timestamp: string;
+  algorithm_version: string;
+  created_at: string;
+}
+
+export interface PersonalizationCalibration {
+  id: string;
+  profile_id: string;
+  signal_id?: string | null;
+  dimension: string;
+  signal_value: string;
+  recommendations_influenced_count: number;
+  positive_outcome_count: number;
+  negative_outcome_count: number;
+  neutral_outcome_count: number;
+  accumulated_positive_weight: number;
+  accumulated_negative_weight: number;
+  net_calibration_modifier: number;
+  calibration_confidence: number;
+  calibration_state: CalibrationState;
+  algorithm_version: string;
+  deterministic_explanation: string;
+  latest_feedback_timestamp?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PersonalizationCalibrationResponse {
+  profile_id: string;
+  items: PersonalizationCalibration[];
+  total_count: number;
+  state_counts: Record<string, number>;
+  average_confidence: number;
+  calibrated_signals_count: number;
+}
+
+export interface PersonalizationCalibrationDetailResponse {
+  calibration: PersonalizationCalibration;
+  attributions: RecommendationFeedbackAttribution[];
+  total_attributions: number;
+}
+
+export interface CalibrationRecomputeRequest {
+  attribution_window_days?: number;
+}
+
 

@@ -50,6 +50,7 @@ from app.services.research_intelligence_integration_service import (
     ResearchIntelligenceIntegrationService,
 )
 from app.services.adaptive_signal_service import AdaptivePreferenceSignalService
+from app.services.personalization_calibration_service import PersonalizationCalibrationService
 from app.services.researcher_interaction_service import ResearcherInteractionService
 
 
@@ -102,6 +103,8 @@ __all__ = [
     "ResearcherInteractionService",
     # Adaptive preference signal service (Phase 5.5)
     "AdaptivePreferenceSignalService",
+    # Personalization calibration service (Phase 5.6)
+    "PersonalizationCalibrationService",
 ]
 
 

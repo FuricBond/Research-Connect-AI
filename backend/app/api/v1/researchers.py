@@ -124,6 +124,14 @@ from app.personalization.adaptive_models import (
 )
 from app.schemas.adaptive_signal import AdaptiveSignalRecomputeRequest
 from app.services.adaptive_signal_service import AdaptivePreferenceSignalService
+from app.models.personalization_calibration import CalibrationState
+from app.schemas.personalization_calibration import (
+    CalibrationRecomputeRequest,
+    PersonalizationCalibrationDetailResponse,
+    PersonalizationCalibrationResponse,
+    PersonalizationCalibrationSchema,
+)
+from app.services.personalization_calibration_service import PersonalizationCalibrationService
 from app.schemas.researcher_interaction import (
     InteractionCreateRequest,
     InteractionResponse,
@@ -1857,11 +1865,13 @@ def get_opportunity_personalization(
 
     structured_prefs = ResearcherPreferenceService.get_structured_preferences(db, profile.id)
     adaptive_signals = AdaptivePreferenceSignalService.get_adaptive_signals(db, profile.id)
+    calibrations = PersonalizationCalibrationService.get_calibrations(db, profile.id)
     return PersonalizationScorer.score_opportunity(
         profile_id=profile.id,
         preferences=structured_prefs,
         opportunity=opp,
         adaptive_signals=adaptive_signals,
+        calibrations=calibrations,
     )
 
 
@@ -1893,12 +1903,14 @@ def batch_opportunity_personalization(
 
     structured_prefs = ResearcherPreferenceService.get_structured_preferences(db, profile.id)
     adaptive_signals = AdaptivePreferenceSignalService.get_adaptive_signals(db, profile.id)
+    calibrations = PersonalizationCalibrationService.get_calibrations(db, profile.id)
 
     batch_results = PersonalizationScorer.score_opportunities_batch(
         profile_id=profile.id,
         preferences=structured_prefs,
         opportunities=opps,
         adaptive_signals=adaptive_signals,
+        calibrations=calibrations,
     )
 
     ordered_assessments = [
@@ -2108,3 +2120,93 @@ def recompute_researcher_adaptive_signals(
         items=signals,
         total_count=len(signals),
     )
+
+
+# ----------------------------------------------------------------------------
+# Phase 5.6: Personalization Calibration Endpoints
+# ----------------------------------------------------------------------------
+
+@router.get(
+    "/{researcher_id}/personalization/calibration",
+    response_model=PersonalizationCalibrationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get researcher personalization calibration summary and signals",
+    description="Retrieves aggregated, bounded calibration records measuring feedback performance for personalization signals.",
+)
+def get_researcher_personalization_calibrations(
+    researcher_id: uuid.UUID,
+    dimension: str | None = Query(default=None, description="Filter by signal dimension"),
+    state: CalibrationState | None = Query(default=None, description="Filter by calibration state"),
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationCalibrationResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return PersonalizationCalibrationService.get_calibration_response(
+        db=db,
+        profile_id=profile.id,
+        dimension=dimension,
+        state=state,
+    )
+
+
+@router.get(
+    "/{researcher_id}/personalization/calibration/{signal_id}",
+    response_model=PersonalizationCalibrationDetailResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get a specific personalization signal calibration detail",
+    description="Retrieves calibration details and recent granular attribution events for a specific signal.",
+)
+def get_personalization_calibration_by_signal_id(
+    researcher_id: uuid.UUID,
+    signal_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationCalibrationDetailResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    detail = PersonalizationCalibrationService.get_calibration_by_signal_id(
+        db=db,
+        profile_id=profile.id,
+        signal_id=signal_id,
+    )
+    if not detail:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Calibration record with ID '{signal_id}' not found.",
+        )
+    return detail
+
+
+@router.post(
+    "/{researcher_id}/personalization/calibration/recompute",
+    response_model=PersonalizationCalibrationResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Recompute researcher personalization calibration",
+    description="Recomputes all bounded calibration modifiers and attribution events from recommendation and interaction history deterministically.",
+)
+def recompute_researcher_personalization_calibration(
+    researcher_id: uuid.UUID,
+    payload: CalibrationRecomputeRequest | None = None,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationCalibrationResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+
+    from app.personalization.calibration_config import PersonalizationCalibrationConfig
+    config = PersonalizationCalibrationConfig()
+    if payload and payload.attribution_window_days is not None:
+        config = PersonalizationCalibrationConfig(
+            attribution_window_days=payload.attribution_window_days
+        )
+
+    PersonalizationCalibrationService.recompute_calibrations(
+        db=db,
+        profile_id=profile.id,
+        config=config,
+    )
+    db.commit()
+
+    return PersonalizationCalibrationService.get_calibration_response(
+        db=db,
+        profile_id=profile.id,
+    )
+

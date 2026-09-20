@@ -89,6 +89,16 @@ from app.schemas.adaptive_signal import (
     AdaptiveSignalRecomputeRequest,
     AdaptiveSignalsResponse,
 )
+from app.schemas.personalization_calibration import (
+    AttributionConfidence,
+    CalibrationRecomputeRequest,
+    CalibrationState,
+    FeedbackOutcomeType,
+    PersonalizationCalibrationDetailResponse,
+    PersonalizationCalibrationResponse,
+    PersonalizationCalibrationSchema,
+    RecommendationFeedbackAttributionSchema,
+)
 from app.schemas.recommendation_history import (
     RecommendationHistoryListResponse,
     RecommendationItemSnapshotSchema,
@@ -191,6 +201,15 @@ __all__ = [
     "AdaptiveSignalsResponse",
     "AdaptiveSignalExplanationResponse",
     "AdaptiveSignalRecomputeRequest",
+    # Phase 5.6 Personalization Calibration Schemas
+    "CalibrationState",
+    "AttributionConfidence",
+    "FeedbackOutcomeType",
+    "RecommendationFeedbackAttributionSchema",
+    "PersonalizationCalibrationSchema",
+    "PersonalizationCalibrationResponse",
+    "PersonalizationCalibrationDetailResponse",
+    "CalibrationRecomputeRequest",
     # Phase 3.7 Recommendation History & Evaluation Schemas
     "RecommendationOpportunityBriefSchema",
     "RecommendationItemSnapshotSchema",

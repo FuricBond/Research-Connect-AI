@@ -57,6 +57,7 @@ class AdaptivePersonalizationContribution(BaseModel):
     weight: float
     raw_contribution: float
     bounded_contribution: float
+    calibration_modifier: float = 0.0
     explanation: str
 
     model_config = ConfigDict(from_attributes=True)

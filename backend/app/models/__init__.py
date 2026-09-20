@@ -19,6 +19,13 @@ from app.models.adaptive_signal import (
     AdaptivePreferenceSignalModel,
     AdaptiveSignalDimension,
 )
+from app.models.personalization_calibration import (
+    AttributionConfidence,
+    CalibrationState,
+    FeedbackOutcomeType,
+    PersonalizationCalibrationModel,
+    RecommendationFeedbackAttributionModel,
+)
 from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
 from app.models.recommendation_history import (
     ResearcherRecommendationSnapshotModel,
@@ -142,6 +149,16 @@ __all__ = [
     "ResearchWorkAuthorModel",
     "ResearchWorkInstitutionModel",
     "ResearchWorkTopicModel",
+    # Adaptive Signals (Phase 5.5)
+    "AdaptivePreferenceSignalModel",
+    "AdaptiveSignalDimension",
+    "AdaptiveEvidenceState",
+    # Personalization Calibration (Phase 5.6)
+    "PersonalizationCalibrationModel",
+    "RecommendationFeedbackAttributionModel",
+    "CalibrationState",
+    "AttributionConfidence",
+    "FeedbackOutcomeType",
 ]
 
 

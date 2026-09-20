@@ -50,6 +50,7 @@ from app.personalization.scoring_config import (
     DEFAULT_SCORING_CONFIG,
     PersonalizationScoringConfig,
 )
+from app.schemas.personalization_calibration import PersonalizationCalibrationSchema
 from app.schemas.researcher_preference import (
     ResearcherPreferenceItemSchema,
     StructuredPreferencesResponseSchema,
@@ -73,10 +74,11 @@ class PersonalizationScorer:
         preference_assessment: PreferencePersonalizationAssessment | None = None,
         adaptive_signals: Sequence[AdaptivePreferenceSignal] | None = None,
         adaptive_config: AdaptiveSignalConfig = DEFAULT_ADAPTIVE_CONFIG,
+        calibrations: Sequence[PersonalizationCalibrationSchema] | None = None,
     ) -> PersonalizationAssessment:
         """
-        Evaluate and score a single opportunity against researcher explicit preferences
-        and bounded Phase 5.5 adaptive preference signals.
+        Evaluate and score a single opportunity against researcher explicit preferences,
+        bounded Phase 5.5 adaptive preference signals, and Phase 5.6 calibration modifiers.
 
         Parameters
         ----------
@@ -94,11 +96,13 @@ class PersonalizationScorer:
             Aggregated adaptive preference signals for the researcher.
         adaptive_config : AdaptiveSignalConfig, optional
             Adaptive signal scoring configuration.
+        calibrations : Sequence of PersonalizationCalibrationSchema, optional
+            Materialized personalization calibrations for the researcher.
 
         Returns
         -------
         PersonalizationAssessment
-            Complete score, breakdown, explanations, adaptive contributions, and underlying signals.
+            Complete score, breakdown, explanations, adaptive contributions, calibration score, and underlying signals.
         """
         # 1. Obtain Phase 5.2 preference match assessment
         if preference_assessment is None:
@@ -121,8 +125,9 @@ class PersonalizationScorer:
             config=config,
         )
 
-        # 4. Phase 5.5 — Evaluate additive adaptive contribution
+        # 4. Phase 5.5 & 5.6 — Evaluate additive adaptive contribution and calibration modifier
         adaptive_score = 0.0
+        calibration_score = 0.0
         adaptive_contributions: list[AdaptivePersonalizationContribution] = []
 
         if adaptive_signals:
@@ -131,6 +136,24 @@ class PersonalizationScorer:
                 opportunity=opportunity,
                 config=adaptive_config,
             )
+
+            # Apply Phase 5.6 calibration modifiers if available
+            if calibrations and adaptive_contributions:
+                calib_map: dict[tuple[str, str], float] = {
+                    (c.dimension, c.signal_value): c.net_calibration_modifier
+                    for c in calibrations
+                }
+                total_calib = 0.0
+                for contrib in adaptive_contributions:
+                    dim_str = contrib.dimension.value if hasattr(contrib.dimension, "value") else str(contrib.dimension)
+                    c_mod = calib_map.get((dim_str, contrib.signal_value), 0.0)
+                    contrib.calibration_modifier = round(c_mod, 4)
+                    contrib.bounded_contribution = round(contrib.bounded_contribution + c_mod, 4)
+                    total_calib += c_mod
+
+                calibration_score = round(total_calib, 4)
+                raw_adaptive_score = raw_adaptive_score + calibration_score
+
             # Invariant 13 & 1: Explicit preferences remain authoritative.
             # If explicit exclusion is present, adaptive signals CANNOT revive the score from 0.0.
             if (
@@ -140,14 +163,19 @@ class PersonalizationScorer:
             ):
                 adaptive_score = 0.0
             else:
+                # Clamp within adaptive config bounds [-max_adaptive_contribution, +max_adaptive_contribution]
+                clamped_adaptive = max(
+                    -adaptive_config.max_adaptive_contribution,
+                    min(adaptive_config.max_adaptive_contribution, raw_adaptive_score),
+                )
                 # If explicit PREFERRED matches exist, opposing negative adaptive signals cannot drop the score below 0.50
-                if preference_assessment.positive_matches_count > 0 and raw_adaptive_score < 0.0:
+                if preference_assessment.positive_matches_count > 0 and clamped_adaptive < 0.0:
                     if score.bounded_score >= 0.50:
-                        bounded_adaptive = max(raw_adaptive_score, 0.50 - score.bounded_score)
+                        bounded_adaptive = max(clamped_adaptive, 0.50 - score.bounded_score)
                     else:
-                        bounded_adaptive = raw_adaptive_score
+                        bounded_adaptive = clamped_adaptive
                 else:
-                    bounded_adaptive = raw_adaptive_score
+                    bounded_adaptive = clamped_adaptive
                 adaptive_score = round(bounded_adaptive, 4)
 
         final_personalization_score = round(
@@ -178,6 +206,7 @@ class PersonalizationScorer:
             preference_assessment=preference_assessment,
             adaptive_score=adaptive_score,
             adaptive_contributions=adaptive_contributions,
+            calibration_score=calibration_score,
             evaluated_at=datetime.now(timezone.utc),
         )
 
@@ -190,10 +219,11 @@ class PersonalizationScorer:
         config: PersonalizationScoringConfig = DEFAULT_SCORING_CONFIG,
         adaptive_signals: Sequence[AdaptivePreferenceSignal] | None = None,
         adaptive_config: AdaptiveSignalConfig = DEFAULT_ADAPTIVE_CONFIG,
+        calibrations: Sequence[PersonalizationCalibrationSchema] | None = None,
     ) -> dict[uuid.UUID, PersonalizationAssessment]:
         """
-        Score a batch of opportunities in memory against researcher preferences and adaptive signals
-        with zero N+1 queries.
+        Score a batch of opportunities in memory against researcher preferences, adaptive signals,
+        and calibration modifiers with zero N+1 queries.
         """
         # 1. Batch evaluate Phase 5.2 preference interpretations
         batch_assessments = PreferenceInterpreter.evaluate_opportunities_batch(
@@ -215,6 +245,7 @@ class PersonalizationScorer:
                     preference_assessment=assessment,
                     adaptive_signals=adaptive_signals,
                     adaptive_config=adaptive_config,
+                    calibrations=calibrations,
                 )
 
         return results
