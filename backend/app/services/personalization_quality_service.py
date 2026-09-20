@@ -61,6 +61,40 @@ class PersonalizationQualityService:
     """Service managing personalization quality evaluation and contextual adaptation."""
 
     @classmethod
+    def _to_evaluation_schema(
+        cls,
+        record: PersonalizationQualityEvaluationModel | PersonalizationQualityEvaluationSchema,
+    ) -> PersonalizationQualityEvaluationSchema:
+        """Converts database model to domain schema (or returns schema if already converted)."""
+        if isinstance(record, PersonalizationQualityEvaluationSchema):
+            return record
+        return PersonalizationQualityEvaluationSchema(
+            id=record.id,
+            profile_id=record.profile_id,
+            evaluation_period_days=record.evaluation_window_days,
+            recommendations_evaluated_count=record.total_recommendations_evaluated,
+            attributed_interactions_count=record.total_attributed_interactions,
+            positive_outcomes_count=record.positive_outcome_count,
+            negative_outcomes_count=record.negative_outcome_count,
+            neutral_outcomes_count=record.neutral_outcome_count,
+            observed_engagement_rate=record.engagement_rate or 0.0,
+            observed_positive_rate=record.positive_feedback_rate or 0.0,
+            observed_negative_rate=record.negative_feedback_rate or 0.0,
+            baseline_engagement_rate=0.20,
+            baseline_positive_rate=0.15,
+            observed_personalization_lift=record.observed_personalization_lift or 0.0,
+            confidence=record.confidence,
+            evaluation_state=QualityEvaluationState(record.evaluation_state),
+            diversity_score=record.recommendation_diversity_score or 0.0,
+            novelty_rate=record.novelty_rate or 0.0,
+            contextual_breakdown=record.quality_metrics_breakdown or {},
+            deterministic_explanation=record.deterministic_explanation,
+            algorithm_version=record.algorithm_version,
+            created_at=record.created_at,
+            updated_at=record.updated_at,
+        )
+
+    @classmethod
     def get_latest_quality_evaluation(
         cls,
         db: Session,
@@ -78,31 +112,7 @@ class PersonalizationQualityService:
             )
             record = db.execute(stmt).scalars().first()
             if record:
-                return PersonalizationQualityEvaluationSchema(
-                    id=record.id,
-                    profile_id=record.profile_id,
-                    evaluation_period_days=record.evaluation_window_days,
-                    recommendations_evaluated_count=record.total_recommendations_evaluated,
-                    attributed_interactions_count=record.total_attributed_interactions,
-                    positive_outcomes_count=record.positive_outcome_count,
-                    negative_outcomes_count=record.negative_outcome_count,
-                    neutral_outcomes_count=record.neutral_outcome_count,
-                    observed_engagement_rate=record.engagement_rate or 0.0,
-                    observed_positive_rate=record.positive_feedback_rate or 0.0,
-                    observed_negative_rate=record.negative_feedback_rate or 0.0,
-                    baseline_engagement_rate=0.20,
-                    baseline_positive_rate=0.15,
-                    observed_personalization_lift=record.observed_personalization_lift or 0.0,
-                    confidence=record.confidence,
-                    evaluation_state=QualityEvaluationState(record.evaluation_state),
-                    diversity_score=record.recommendation_diversity_score or 0.0,
-                    novelty_rate=record.novelty_rate or 0.0,
-                    contextual_breakdown=record.quality_metrics_breakdown or {},
-                    deterministic_explanation=record.deterministic_explanation,
-                    algorithm_version=record.algorithm_version,
-                    created_at=record.created_at,
-                    updated_at=record.updated_at,
-                )
+                return cls._to_evaluation_schema(record)
             return None
         except OperationalError as exc:
             logger.warning(f"Could not query personalization_quality_evaluations: {exc}")

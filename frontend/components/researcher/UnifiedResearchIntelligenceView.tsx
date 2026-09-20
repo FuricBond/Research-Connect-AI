@@ -42,6 +42,7 @@ import { OpportunityInteractionBar } from "../personalization/OpportunityInterac
 import { AdaptiveSignalsCard } from "../personalization/AdaptiveSignalsCard";
 import { PersonalizationCalibrationCard } from "../personalization/PersonalizationCalibrationCard";
 import { PersonalizationQualityCard } from "../personalization/PersonalizationQualityCard";
+import { PersonalizationGovernanceCard } from "../personalization/PersonalizationGovernanceCard";
 import type {
   EvidenceTierBreakdown,
   ResearchIntelligenceSignal,
@@ -400,6 +401,9 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
 
       {/* SECTION 2.7: PERSONALIZATION QUALITY & CONTEXTUAL ADAPTATION */}
       <PersonalizationQualityCard profileId={profileId} userId={userId} className="mb-6" />
+
+      {/* SECTION 2.8: PERSONALIZATION GOVERNANCE, DRIFT DETECTION & ADAPTATION SAFETY */}
+      <PersonalizationGovernanceCard profileId={profileId} userId={userId} className="mb-6" />
 
       {/* SECTION 3: UNIFIED RECOMMENDATIONS WITH 6-TIER EXPLAINABILITY */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">

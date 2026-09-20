@@ -19,6 +19,10 @@ if TYPE_CHECKING:
         PersonalizationContextualAdaptationModel,
         PersonalizationQualityEvaluationModel,
     )
+    from app.models.personalization_governance import (
+        PersonalizationDriftEvaluationModel,
+        PersonalizationGovernanceEventModel,
+    )
     from app.models.user import UserModel
 
 
@@ -172,6 +176,14 @@ class ResearchProfileModel(Base, TimestampMixin):
         cascade="all, delete-orphan",
     )
     contextual_adaptations: Mapped[list["PersonalizationContextualAdaptationModel"]] = relationship(
+        back_populates="profile",
+        cascade="all, delete-orphan",
+    )
+    drift_evaluations: Mapped[list["PersonalizationDriftEvaluationModel"]] = relationship(
+        back_populates="profile",
+        cascade="all, delete-orphan",
+    )
+    governance_events: Mapped[list["PersonalizationGovernanceEventModel"]] = relationship(
         back_populates="profile",
         cascade="all, delete-orphan",
     )

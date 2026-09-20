@@ -50,6 +50,7 @@ from app.personalization.scoring_config import (
     DEFAULT_SCORING_CONFIG,
     PersonalizationScoringConfig,
 )
+from app.models.personalization_governance import GovernanceGateState
 from app.schemas.personalization_calibration import PersonalizationCalibrationSchema
 from app.schemas.personalization_quality import PersonalizationContextualAdaptationSchema
 from app.personalization.quality_engine import PersonalizationQualityEngine
@@ -78,6 +79,7 @@ class PersonalizationScorer:
         adaptive_config: AdaptiveSignalConfig = DEFAULT_ADAPTIVE_CONFIG,
         calibrations: Sequence[PersonalizationCalibrationSchema] | None = None,
         contextual_adaptations: Sequence[PersonalizationContextualAdaptationSchema] | None = None,
+        governance_state: GovernanceGateState | str | None = None,
     ) -> PersonalizationAssessment:
         """
         Evaluate and score a single opportunity against researcher explicit preferences,
@@ -131,11 +133,19 @@ class PersonalizationScorer:
             config=config,
         )
 
-        # 4. Phase 5.5, 5.6 & 5.7 — Evaluate additive adaptive contribution, calibration modifier, and contextual adaptation
+        # 4. Phase 5.5, 5.6, 5.7 & 5.8 — Evaluate additive adaptive contribution, calibration modifier, contextual adaptation, and governance gate
         adaptive_score = 0.0
         calibration_score = 0.0
         contextual_score = 0.0
         adaptive_contributions: list[AdaptivePersonalizationContribution] = []
+
+        gov_state = None
+        if governance_state:
+            gov_state = (
+                GovernanceGateState(governance_state)
+                if isinstance(governance_state, str)
+                else governance_state
+            )
 
         if adaptive_signals:
             raw_adaptive_score, adaptive_contributions = AdaptiveSignalEngine.evaluate_opportunity_adaptive_contribution(
@@ -188,6 +198,45 @@ class PersonalizationScorer:
 
                 contextual_score = round(total_context_mod, 4)
                 raw_adaptive_score = raw_adaptive_score + contextual_score
+
+            # Phase 5.8: Governance Gate Enforcement
+            if gov_state == GovernanceGateState.SUSPEND:
+                # Invariant 9: Suspension results in neutral adaptation (0.0), never negative
+                # Invariant 10: Suspension does not disable core ranking
+                calibration_score = 0.0
+                contextual_score = 0.0
+                for contrib in adaptive_contributions:
+                    contrib.calibration_modifier = 0.0
+                    contrib.contextual_modifier = 0.0
+                    contrib.bounded_contribution = 0.0
+                raw_adaptive_score = 0.0
+            elif gov_state == GovernanceGateState.ALLOW_BOUNDED:
+                # 50% damping under conservative bounded adaptation
+                calibration_score = round(calibration_score * 0.50, 4)
+                contextual_score = round(contextual_score * 0.50, 4)
+                for contrib in adaptive_contributions:
+                    contrib.calibration_modifier = round(contrib.calibration_modifier * 0.50, 4)
+                    contrib.contextual_modifier = round(contrib.contextual_modifier * 0.50, 4)
+                    contrib.bounded_contribution = round(contrib.bounded_contribution * 0.50, 4)
+                raw_adaptive_score = raw_adaptive_score * 0.50
+            elif gov_state == GovernanceGateState.HOLD:
+                # 25% damping while holding adaptation
+                calibration_score = round(calibration_score * 0.25, 4)
+                contextual_score = round(contextual_score * 0.25, 4)
+                for contrib in adaptive_contributions:
+                    contrib.calibration_modifier = round(contrib.calibration_modifier * 0.25, 4)
+                    contrib.contextual_modifier = round(contrib.contextual_modifier * 0.25, 4)
+                    contrib.bounded_contribution = round(contrib.bounded_contribution * 0.25, 4)
+                raw_adaptive_score = raw_adaptive_score * 0.25
+            elif gov_state == GovernanceGateState.REDUCE:
+                # 10% damping when reducing adaptation
+                calibration_score = round(calibration_score * 0.10, 4)
+                contextual_score = round(contextual_score * 0.10, 4)
+                for contrib in adaptive_contributions:
+                    contrib.calibration_modifier = round(contrib.calibration_modifier * 0.10, 4)
+                    contrib.contextual_modifier = round(contrib.contextual_modifier * 0.10, 4)
+                    contrib.bounded_contribution = round(contrib.bounded_contribution * 0.10, 4)
+                raw_adaptive_score = raw_adaptive_score * 0.10
 
             # Invariant 13 & 1: Explicit preferences remain authoritative.
             # If explicit exclusion is present, adaptive signals CANNOT revive the score from 0.0.
@@ -257,10 +306,11 @@ class PersonalizationScorer:
         adaptive_config: AdaptiveSignalConfig = DEFAULT_ADAPTIVE_CONFIG,
         calibrations: Sequence[PersonalizationCalibrationSchema] | None = None,
         contextual_adaptations: Sequence[PersonalizationContextualAdaptationSchema] | None = None,
+        governance_state: GovernanceGateState | str | None = None,
     ) -> dict[uuid.UUID, PersonalizationAssessment]:
         """
         Score a batch of opportunities in memory against researcher preferences, adaptive signals,
-        calibration modifiers, and contextual adaptations with zero N+1 queries.
+        calibration modifiers, contextual adaptations, and governance gate with zero N+1 queries.
         """
         # 1. Batch evaluate Phase 5.2 preference interpretations
         batch_assessments = PreferenceInterpreter.evaluate_opportunities_batch(
@@ -284,6 +334,7 @@ class PersonalizationScorer:
                     adaptive_config=adaptive_config,
                     calibrations=calibrations,
                     contextual_adaptations=contextual_adaptations,
+                    governance_state=governance_state,
                 )
         return results
 

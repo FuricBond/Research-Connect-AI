@@ -32,6 +32,18 @@ from app.models.personalization_quality import (
     PersonalizationQualityEvaluationModel,
     QualityEvaluationState,
 )
+from app.models.personalization_governance import (
+    AdaptationState,
+    DriftType,
+    EvidenceStrength,
+    GovernanceEventType,
+    GovernanceGateState,
+    PersonalizationDriftEvaluationModel,
+    PersonalizationGovernanceEventModel,
+    PersonalizationHealthState,
+    PreferenceAlignmentState,
+    SignalFreshnessState,
+)
 from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
 from app.models.recommendation_history import (
     ResearcherRecommendationSnapshotModel,
@@ -170,6 +182,17 @@ __all__ = [
     "PersonalizationContextualAdaptationModel",
     "QualityEvaluationState",
     "ContextualFallbackLevel",
+    # Personalization Governance & Drift Detection (Phase 5.8)
+    "PersonalizationDriftEvaluationModel",
+    "PersonalizationGovernanceEventModel",
+    "PersonalizationHealthState",
+    "GovernanceGateState",
+    "AdaptationState",
+    "DriftType",
+    "EvidenceStrength",
+    "SignalFreshnessState",
+    "PreferenceAlignmentState",
+    "GovernanceEventType",
 ]
 
 

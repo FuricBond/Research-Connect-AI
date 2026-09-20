@@ -139,6 +139,13 @@ from app.schemas.personalization_quality import (
     SignalQualityResponse,
 )
 from app.services.personalization_quality_service import PersonalizationQualityService
+from app.schemas.personalization_governance import (
+    GovernanceRecomputeRequest,
+    PersonalizationDriftResponse,
+    PersonalizationGovernanceHistoryResponse,
+    PersonalizationHealthResponse,
+)
+from app.services.personalization_governance_service import PersonalizationGovernanceService
 from app.schemas.researcher_interaction import (
     InteractionCreateRequest,
     InteractionResponse,
@@ -1874,6 +1881,7 @@ def get_opportunity_personalization(
     adaptive_signals = AdaptivePreferenceSignalService.get_adaptive_signals(db, profile.id)
     calibrations = PersonalizationCalibrationService.get_calibrations(db, profile.id)
     contextual_adaptations = PersonalizationQualityService.get_contextual_adaptations(db, profile.id)
+    governance_state = PersonalizationGovernanceService.get_active_governance_state(db, profile.id)
     return PersonalizationScorer.score_opportunity(
         profile_id=profile.id,
         preferences=structured_prefs,
@@ -1881,6 +1889,7 @@ def get_opportunity_personalization(
         adaptive_signals=adaptive_signals,
         calibrations=calibrations,
         contextual_adaptations=contextual_adaptations,
+        governance_state=governance_state,
     )
 
 
@@ -1914,6 +1923,7 @@ def batch_opportunity_personalization(
     adaptive_signals = AdaptivePreferenceSignalService.get_adaptive_signals(db, profile.id)
     calibrations = PersonalizationCalibrationService.get_calibrations(db, profile.id)
     contextual_adaptations = PersonalizationQualityService.get_contextual_adaptations(db, profile.id)
+    governance_state = PersonalizationGovernanceService.get_active_governance_state(db, profile.id)
 
     batch_results = PersonalizationScorer.score_opportunities_batch(
         profile_id=profile.id,
@@ -1922,6 +1932,7 @@ def batch_opportunity_personalization(
         adaptive_signals=adaptive_signals,
         calibrations=calibrations,
         contextual_adaptations=contextual_adaptations,
+        governance_state=governance_state,
     )
 
     ordered_assessments = [
@@ -2321,5 +2332,111 @@ def recompute_researcher_personalization_quality(
         db=db,
         profile_id=profile.id,
     )
+
+
+# ----------------------------------------------------------------------------
+# Phase 5.8: Personalization Governance, Drift Detection & Adaptation Safety Endpoints
+# ----------------------------------------------------------------------------
+
+@router.get(
+    "/{researcher_id}/personalization/health",
+    response_model=PersonalizationHealthResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get researcher personalization health and governance status",
+    description=(
+        "Retrieves multi-dimensional personalization health state, signal freshness, evidence sufficiency, "
+        "quality stability, preference alignment, governance gate decision, and adaptation level."
+    ),
+)
+def get_researcher_personalization_health(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationHealthResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return PersonalizationGovernanceService.get_health_response(
+        db=db,
+        profile_id=profile.id,
+    )
+
+
+@router.get(
+    "/{researcher_id}/personalization/drift",
+    response_model=PersonalizationDriftResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get researcher behavioral signal drift report",
+    description=(
+        "Retrieves granular signal drift classifications comparing historical vs recent observation windows, "
+        "including emerging, persistent, reversing, and stale signals."
+    ),
+)
+def get_researcher_personalization_drift(
+    researcher_id: uuid.UUID,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationDriftResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return PersonalizationGovernanceService.get_drift_response(
+        db=db,
+        profile_id=profile.id,
+    )
+
+
+@router.get(
+    "/{researcher_id}/personalization/governance",
+    response_model=PersonalizationGovernanceHistoryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Get paginated personalization governance audit events",
+    description="Retrieves the append-only, immutable audit trail of governance gate state changes, suspensions, and recoveries.",
+)
+def get_researcher_governance_events(
+    researcher_id: uuid.UUID,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationGovernanceHistoryResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    return PersonalizationGovernanceService.get_governance_events_response(
+        db=db,
+        profile_id=profile.id,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.post(
+    "/{researcher_id}/personalization/health/recompute",
+    response_model=PersonalizationHealthResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Recompute researcher personalization health and governance gate",
+    description="Deterministically recomputes signal drift, multi-dimensional health, and governance gate state from history.",
+)
+def recompute_researcher_personalization_health(
+    researcher_id: uuid.UUID,
+    payload: GovernanceRecomputeRequest | None = None,
+    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    db: Session = Depends(get_db),
+) -> PersonalizationHealthResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+
+    ref_time = payload.reference_time if payload else None
+    hist_days = payload.historical_window_days if payload and payload.historical_window_days is not None else 60.0
+    recent_days = payload.recent_window_days if payload and payload.recent_window_days is not None else 14.0
+
+    PersonalizationGovernanceService.recompute_governance(
+        db=db,
+        profile_id=profile.id,
+        reference_time=ref_time,
+        historical_window_days=hist_days,
+        recent_window_days=recent_days,
+    )
+    db.commit()
+
+    return PersonalizationGovernanceService.get_health_response(
+        db=db,
+        profile_id=profile.id,
+    )
+
 
 

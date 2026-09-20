@@ -109,6 +109,15 @@ from app.schemas.personalization_quality import (
     SignalQualityResponse,
     SignalQualitySummaryItem,
 )
+from app.schemas.personalization_governance import (
+    GovernanceRecomputeRequest,
+    PersonalizationDriftEvaluationSchema,
+    PersonalizationDriftResponse,
+    PersonalizationGovernanceEventSchema,
+    PersonalizationGovernanceHistoryResponse,
+    PersonalizationHealthResponse,
+    SignalDriftItem,
+)
 from app.schemas.recommendation_history import (
     RecommendationHistoryListResponse,
     RecommendationItemSnapshotSchema,
@@ -229,6 +238,14 @@ __all__ = [
     "ContextualAdaptationsResponse",
     "SignalQualityResponse",
     "QualityRecomputeRequest",
+    # Phase 5.8 Personalization Governance Schemas
+    "SignalDriftItem",
+    "PersonalizationDriftEvaluationSchema",
+    "PersonalizationGovernanceEventSchema",
+    "PersonalizationHealthResponse",
+    "PersonalizationDriftResponse",
+    "PersonalizationGovernanceHistoryResponse",
+    "GovernanceRecomputeRequest",
     # Phase 3.7 Recommendation History & Evaluation Schemas
     "RecommendationOpportunityBriefSchema",
     "RecommendationItemSnapshotSchema",

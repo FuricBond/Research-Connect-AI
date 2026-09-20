@@ -30,7 +30,9 @@ This document provides the authoritative, comprehensive architectural roadmap an
 | **Phase 5.3** | Personalization-Aware Opportunity Scoring | **COMPLETE** | Normalized dimension weights, bounded scoring (0-1), structured contribution breakdown, batch API, Next.js score badge | 20 Invariants Passed |
 | **Phase 5.4** | Researcher Feedback & Interaction Signals | **COMPLETE** | Append-only auditable interaction store, explicit feedback vs passive telemetry, rapid-fire deduplication, migration 0018, interactive feedback bar | 25 Invariants Passed |
 | **Phase 5.5** | Adaptive Preference Signal Aggregation | **COMPLETE** | Deterministic interaction aggregation, temporal decay (30d half-life), bounded additive personalization (±0.10), overreaction protection, migration 0019, Next.js adaptive signals card | 17 Tests / 35 Invariants |
-| **Phase 5.6** | Faculty Research Opportunities | **PLANNED** | Faculty research slots, collaborative project postings, research internships, RA openings, peer discovery | Planned |
+| **Phase 5.6** | Personalization Calibration | **COMPLETE** | Closed-loop causal attribution (14d window), bounded calibration (±0.05), anti-feedback loop safeguards, migration 0020, calibration card UI | 12 Tests / 100% Regr |
+| **Phase 5.7** | Personalization Quality & Contextual Adaptation | **COMPLETE** | Observed lift, contextual partitioning (5 dimensions), 4-level fallback, bounded contextual adaptation (±0.03), migration 0021, quality card UI | 10 Tests / 100% Regr |
+| **Phase 5.8** | Personalization Governance & Drift Detection | **COMPLETE** | Temporal window partitioning (60d/14d), drift classification (STABLE/EMERGING/PERSISTENT/REVERSING), staleness detection, explicit preference protection, multi-dimensional health score, governance gate (ALLOW->SUSPEND), neutral suspension, migration 0022, governance card UI | 10 Tests / 100% Regr |
 | **Phase 6** | Platform Infrastructure & Governance | **IN PROGRESS** | Role-Based Access Control (Student/Faculty/Admin), JWT/OAuth, rate limiting, structured logging, Docker production specs | Continuous |
 | **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,008+ Passing Tests |
 
@@ -546,10 +548,39 @@ Facilitates institutional and cross-disciplinary collaboration within verified a
   - Zero ML models, zero LLMs, zero vector DBs, zero collaborative filtering, zero cross-user profiling.
   - 10 dedicated unit, integration, benchmark, and multi-tenant authorization tests passing (`test_personalization_quality.py`); sub-second scaling benchmarks verified across 10,000 recommendations (~180ms).
 
+#### Phase 5.8 — Personalization Governance, Drift Detection & Adaptation Safety [COMPLETE]
+- **Multi-Dimensional Personalization Health & Drift Detection**:
+  - `PersonalizationGovernanceEngine` monitors behavioral signal drift across temporal windows (Recent: 14d, Historical: 60d, Stale: >180d) with deterministic classifications (`STABLE`, `EMERGING`, `PERSISTENT`, `REVERSING`, `UNKNOWN`).
+  - Stale evidence principle: stale $\neq$ false (signals older than 180 days are flagged as `STALE` without premature automatic deletion).
+  - Multi-dimensional health score ($H \in [0.0, 1.0]$) synthesizing stability ($0.30$), freshness ($0.25$), explicit preference alignment ($0.25$), predictability ($0.10$), and volatility damping ($0.10$).
+- **Governance Gate States & Adaptation Multipliers**:
+  - Automated state machine: `ALLOW` ($1.0\times$), `ALLOW_BOUNDED` ($0.5\times$), `HOLD` ($0.25\times$), `REDUCE` ($0.25\times$), `SUSPEND` ($0.0\times$).
+  - Neutral suspension guarantee: when suspended, adaptive modifiers revert to neutral $0.0$ (never negative).
+  - Hysteresis & recovery: transitioning from `SUSPEND` requires $\ge 5$ stable interactions in the evaluation window.
+- **Explicit Preference Dominance & Authoritative Invariants**:
+  - Behavioral drift can **never** overwrite, mutate, or delete explicit preferences.
+  - Explicit `EXCLUDED` unconditionally forces final score to `0.0`.
+  - Explicit `PREFERRED` with baseline $\ge 0.50$ is protected from negative suppression.
+  - Core relevance dominance ($\ge 85\%$) strictly preserved.
+- **Database Models & Migration**:
+  - `personalization_drift_evaluations` and `personalization_governance_events` tables.
+  - Non-destructive Alembic migration `0022_phase5_8_personalization_governance.py`.
+- **REST APIs**:
+  - `GET /api/v1/researchers/{id}/personalization/health`: Health state, composite score, governance state, adaptation multiplier, and breakdown metrics.
+  - `GET /api/v1/researchers/{id}/personalization/drift`: Signal drift evaluations, temporal partitions, and staleness/alignment statuses.
+  - `GET /api/v1/researchers/{id}/personalization/governance`: Append-only governance audit log of state transitions.
+  - `POST /api/v1/researchers/{id}/personalization/health/recompute`: Idempotent on-demand health and drift recomputation.
+- **Next.js App Router Integration**:
+  - `PersonalizationGovernanceCard` component with health status pill, gate badge, drift/stale/stable tabs, audit timeline, and recompute action.
+  - Integrated into `UnifiedResearchIntelligenceView` (Section 2.8).
+- **Strict Phase Boundary & Invariants**:
+  - Zero ML models, zero LLMs, zero vector DBs, zero collaborative filtering, zero cross-user profiling.
+  - 10 dedicated unit, integration, benchmark, and multi-tenant authorization tests passing (`test_personalization_governance.py`); scaling benchmarks verified from 10 to 10,000 interactions (~48ms).
+
 #### Future Phase 5 Modules (Planned)
-- **Phase 5.8 — Faculty Research Opportunities & Project Postings**: Structured listings posted by faculty members for open research slots, thesis topics, and collaborative research project announcements.
-- **Phase 5.9 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
-- **Phase 5.10 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
+- **Phase 5.9 — Faculty Research Opportunities & Project Postings**: Structured listings posted by faculty members for open research slots, thesis topics, and collaborative research project announcements.
+- **Phase 5.10 — Research Internships & RA Openings**: Curated academic and industrial research internships, research assistantships, and post-doctoral openings.
+- **Phase 5.11 — Peer & Co-Author Discovery**: Matching researchers based on complementary skill sets, shared taxonomy interests, and compatible methodologies.
 
 ---
 

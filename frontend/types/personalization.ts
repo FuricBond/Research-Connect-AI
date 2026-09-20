@@ -494,4 +494,150 @@ export interface QualityRecomputeRequest {
   force_recompute?: boolean;
 }
 
+// =============================================================================
+// Phase 5.8 — Personalization Governance, Drift Detection & Adaptation Safety Types
+// =============================================================================
+
+export type PersonalizationHealthState =
+  | "HEALTHY"
+  | "STABLE"
+  | "DEGRADED"
+  | "INSUFFICIENT_DATA"
+  | "DRIFTING"
+  | "SUSPENDED";
+
+export type GovernanceGateState =
+  | "ALLOW"
+  | "ALLOW_BOUNDED"
+  | "HOLD"
+  | "REDUCE"
+  | "SUSPEND";
+
+export type AdaptationState =
+  | "ACTIVE"
+  | "BOUNDED"
+  | "CONSERVATIVE"
+  | "DAMPENED"
+  | "SUSPENDED";
+
+export type DriftType =
+  | "STABLE"
+  | "EMERGING"
+  | "PERSISTENT"
+  | "REVERSING"
+  | "UNKNOWN";
+
+export type EvidenceStrength =
+  | "INSUFFICIENT"
+  | "LOW"
+  | "MEDIUM"
+  | "HIGH";
+
+export type SignalFreshnessState =
+  | "HEALTHY"
+  | "AGING"
+  | "STALE"
+  | "INSUFFICIENT_DATA";
+
+export type PreferenceAlignmentState =
+  | "ALIGNED"
+  | "DIVERGENT"
+  | "NEUTRAL"
+  | "UNEVALUATED";
+
+export type GovernanceEventType =
+  | "GATE_TRANSITION"
+  | "ADAPTATION_SUSPENSION"
+  | "ADAPTATION_RECOVERY"
+  | "DRIFT_DETECTED"
+  | "SIGNAL_STALE"
+  | "PREFERENCE_PROTECTION_TRIGGERED";
+
+export interface SignalDriftItem {
+  dimension: string;
+  signal_value: string;
+  historical_strength: number;
+  recent_strength: number;
+  difference: number;
+  evidence_strength: EvidenceStrength;
+  drift_type: DriftType;
+  is_stale: boolean;
+  last_evidence_timestamp?: string | null;
+  explanation: string;
+}
+
+export interface PersonalizationDriftEvaluation {
+  id: string;
+  profile_id: string;
+  evaluation_timestamp: string;
+  historical_window_days: number;
+  recent_window_days: number;
+  overall_health_state: PersonalizationHealthState;
+  governance_state: GovernanceGateState;
+  adaptation_state: AdaptationState;
+  signal_freshness: SignalFreshnessState;
+  evidence_sufficiency: EvidenceStrength;
+  quality_stability: string;
+  context_stability: string;
+  preference_alignment: PreferenceAlignmentState;
+  recommendation_diversity: string;
+  drifting_signals_count: number;
+  stale_signals_count: number;
+  active_signals_count: number;
+  drift_details: SignalDriftItem[];
+  health_summary: string;
+  governance_explanation: string;
+  algorithm_version: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PersonalizationGovernanceEvent {
+  id: string;
+  profile_id: string;
+  event_type: GovernanceEventType;
+  previous_state?: string | null;
+  new_state: string;
+  reason: string;
+  affected_dimension?: string | null;
+  affected_signal_value?: string | null;
+  evidence_count: number;
+  reference_time: string;
+  algorithm_version: string;
+  created_at: string;
+}
+
+export interface PersonalizationHealthResponse {
+  profile_id: string;
+  evaluation: PersonalizationDriftEvaluation;
+  overall_health_state: PersonalizationHealthState;
+  governance_state: GovernanceGateState;
+  adaptation_state: AdaptationState;
+  drifting_signals_count: number;
+  stale_signals_count: number;
+  health_summary: string;
+  governance_explanation: string;
+}
+
+export interface PersonalizationDriftResponse {
+  profile_id: string;
+  drifting_signals: SignalDriftItem[];
+  stale_signals: SignalDriftItem[];
+  stable_signals: SignalDriftItem[];
+  total_signals: number;
+}
+
+export interface PersonalizationGovernanceHistoryResponse {
+  profile_id: string;
+  items: PersonalizationGovernanceEvent[];
+  total_count: number;
+}
+
+export interface GovernanceRecomputeRequest {
+  reference_time?: string;
+  historical_window_days?: number;
+  recent_window_days?: number;
+  force_recompute?: boolean;
+}
+
 
