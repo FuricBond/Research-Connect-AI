@@ -119,7 +119,7 @@ class PersonalizationRankingService:
         safe_offset = max(0, offset)
 
         # ── 2. Batch Load Profile and Personalization Context (Zero N+1) ──────
-        profile = db.execute(
+        profile = db.get(ResearchProfileModel, profile_id) or db.execute(
             select(ResearchProfileModel).where(ResearchProfileModel.id == profile_id)
         ).scalar_one_or_none()
         if not profile:
@@ -169,6 +169,84 @@ class PersonalizationRankingService:
             if tt and tt.strip()
         )
 
+        # ── 2a. Phase 5.9 Researcher Personalization Settings ────────────────
+        # Settings take precedence over the API query param: if the researcher has
+        # disabled personalization in their account, it is always off regardless
+        # of what the caller requested. Read-only query to avoid write/commit during ranking.
+        settings = None
+        try:
+            from app.models.personalization_transparency import (
+                ResearcherPersonalizationSettingsModel,
+            )
+            settings = (
+                db.execute(
+                    select(ResearcherPersonalizationSettingsModel).where(
+                        ResearcherPersonalizationSettingsModel.profile_id == profile.id
+                    )
+                )
+                .scalar_one_or_none()
+            )
+        except Exception:
+            settings = None
+
+        if settings is not None and not settings.personalization_enabled:
+            enable_personalization = False
+
+        adaptive_signals_enabled = (
+            settings.adaptive_signals_enabled if settings is not None else True
+        )
+        if not enable_personalization:
+            adaptive_signals_enabled = False
+
+        # ── 2b. Phase 5.8 Governance Gate ─────────────────────────────────────
+        # Governance state is always loaded (cheap single-row lookup) so the
+        # ranking layer can apply the correct damping multiplier.
+        governance_state = None
+        try:
+            from app.services.personalization_governance_service import (
+                PersonalizationGovernanceService,
+            )
+            governance_state = PersonalizationGovernanceService.get_active_governance_state(
+                db, profile.id
+            )
+        except Exception:
+            governance_state = None
+
+        gov_val = (
+            governance_state.value
+            if hasattr(governance_state, "value")
+            else str(governance_state or "")
+        ).upper()
+        if gov_val == "SUSPEND":
+            enable_personalization = False
+            adaptive_signals_enabled = False
+
+        # ── 2c. Phase 5.5 Adaptive Signals ───────────────────────────────────
+        # Loaded directly from database when adaptive signals are enabled and personalization is on.
+        _adaptive_signal_list = []
+        if enable_personalization and adaptive_signals_enabled:
+            try:
+                from app.models.adaptive_signal import AdaptivePreferenceSignalModel
+                from app.schemas.adaptive_signal import AdaptivePreferenceSignal
+                sig_models = (
+                    db.execute(
+                        select(AdaptivePreferenceSignalModel).where(
+                            AdaptivePreferenceSignalModel.profile_id == profile.id
+                        ).order_by(
+                            AdaptivePreferenceSignalModel.weighted_signal_strength.desc(),
+                            AdaptivePreferenceSignalModel.confidence.desc(),
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+                _adaptive_signal_list = [
+                    AdaptivePreferenceSignal.model_validate(m) for m in sig_models
+                ]
+            except Exception:
+                _adaptive_signal_list = []
+        _adaptive_signals_loaded = bool(_adaptive_signal_list)
+
         # Batch load Phase 3.6 behavioral profile
         from app.services.feedback_service import ResearcherFeedbackService
         behavioral_profile = ResearcherFeedbackService.get_behavioral_profile(
@@ -199,6 +277,10 @@ class PersonalizationRankingService:
             behavioral_signals=tuple(behavioral_profile.signals),
             suppressed_opportunity_ids=frozenset(behavioral_profile.suppressed_opportunity_ids),
             is_cold_start=is_cold_start,
+            # Phase 5.8: pass governance gate state into the ranker
+            governance_state=governance_state.value if governance_state is not None else None,
+            # Phase 5.5: pass adaptive signals into the context
+            adaptive_signals=tuple(_adaptive_signal_list),
         )
 
         # ── 3. Candidate Pool Retrieval via Phase 3.4 ─────────────────────────
@@ -308,12 +390,16 @@ class PersonalizationRankingService:
             for rc in ranked_base:
                 base_scores[rc.entity_id] = rc.final_score
 
-        # ── 5. Personalization Ranking Layer (Phase 3.5) ───────────────────────
+        # ── 5. Personalization Ranking Layer (Phase 3.5 / Phase 5) ─────────────
         all_ranked = personalization_ranker.rank(
             candidates=raw_candidates,
             context=context,
             enable_personalization=enable_personalization,
             base_scores=base_scores,
+            opportunity_models=opp_models_map,
+            adaptive_signals=_adaptive_signal_list,
+            governance_state=governance_state.value if governance_state is not None else None,
+            preferences=explicit_prefs,
             limit=safe_limit,
             offset=safe_offset,
             reference_time=ref_time,
@@ -378,6 +464,8 @@ class PersonalizationRankingService:
         # ── 7. Phase 3.7 Recommendation Snapshot Persistence ──────────────────
         if not enable_personalization:
             ranking_version = "phase2-baseline"
+        elif _adaptive_signals_loaded:
+            ranking_version = "phase5-personalized"
         elif len(behavioral_profile.signals) == 0:
             ranking_version = "phase3.5-personalized"
         else:

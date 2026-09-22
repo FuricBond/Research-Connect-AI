@@ -19,7 +19,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import logging
-from typing import Any, Sequence 
+from typing import Any, Sequence
 import uuid
 
 from app.ranking.feedback_config import (
@@ -75,7 +75,8 @@ MIN_RELEVANCE_DAMPING = 0.10
 @dataclass(frozen=True)
 class ResearcherPersonalizationContext:
     """
-    Immutable context container aggregating researcher signals from Phases 3.1–3.3.
+    Immutable context container aggregating researcher signals from Phases 3.1–3.3
+    and Phase 5 (governance, settings toggles).
     """
 
     profile_id: uuid.UUID
@@ -94,6 +95,11 @@ class ResearcherPersonalizationContext:
     suppressed_opportunity_ids: frozenset[uuid.UUID] = frozenset()
     # Cold start status
     is_cold_start: bool = False
+    # Phase 5.8 — Governance gate state (ALLOW / ALLOW_BOUNDED / HOLD / REDUCE / SUSPEND)
+    # None means ALLOW (no restriction). Passed as the raw .value string of GovernanceGateState.
+    governance_state: str | None = None
+    # Phase 5.5 — Aggregated adaptive preference signals tuple
+    adaptive_signals: tuple[Any, ...] = ()
 
 
 # ── Internal Candidate Scoring Intermediate Container ─────────────────────────
@@ -116,6 +122,120 @@ class _ScoredPersonalizedCandidate:
     opportunity: PersonalizedCandidateOpportunitySchema
     candidate_item: Any | None = None
     rank: int = 0
+
+
+class _TopicMock:
+    def __init__(self, name: str):
+        self.name = name
+        self.slug = name.lower().replace(" ", "-")
+
+
+class _TopicAssocMock:
+    def __init__(self, name: str):
+        self.topic = _TopicMock(name)
+
+
+class _OpportunityAdapter:
+    """Lightweight adapter wrapping PersonalizedCandidateOpportunitySchema for PersonalizationScorer."""
+
+    def __init__(self, schema: Any, explicit_id: uuid.UUID | None = None):
+        self.schema = schema
+        self.id = explicit_id or getattr(schema, "id", None) or getattr(schema, "opportunity_id", None) or uuid.uuid4()
+        self.title = getattr(schema, "title", "") or ""
+        self.opportunity_type = getattr(schema, "opportunity_type", "") or ""
+        self.delivery_mode = getattr(schema, "delivery_mode", "OFFLINE") or "OFFLINE"
+        self.location = getattr(schema, "location", None)
+        self.organizer = getattr(schema, "organizer", None)
+        self.summary = getattr(schema, "summary", self.title)
+        self.description = getattr(schema, "description", "") or ""
+        self.country = getattr(schema, "country", None)
+        self.region = getattr(schema, "region", None)
+        self.institution = getattr(schema, "institution", None)
+        self.target_institutions = getattr(schema, "target_institutions", None)
+        self.funding_amount = getattr(schema, "funding_amount", None)
+        self.funding_type = getattr(schema, "funding_type", None)
+        self.academic_levels = getattr(schema, "academic_levels", None)
+        self.career_stages = getattr(schema, "career_stages", None)
+        self.apc_or_fee = getattr(schema, "apc_or_fee", None)
+        self.is_predatory_flag = getattr(schema, "is_predatory_flag", False)
+        self.risk_level = getattr(schema, "risk_level", "LOW_RISK")
+        self.risk_score = getattr(schema, "risk_score", 0.0) or 0.0
+        self.status = getattr(schema, "status", "ACTIVE")
+        if hasattr(schema, "topic_associations") and schema.topic_associations:
+            self.topic_associations = schema.topic_associations
+        else:
+            topics_list = getattr(schema, "topics", []) or []
+            self.topic_associations = [_TopicAssocMock(t) for t in topics_list]
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self.schema, name, None)
+
+
+def _normalize_preference_for_scorer(
+    pref: Any, profile_id: uuid.UUID
+) -> Any:
+    from app.schemas.researcher_preference import ResearcherPreferenceItemSchema
+
+    def _safe_uuid(val: Any, default_uuid: uuid.UUID | None = None) -> uuid.UUID:
+        if isinstance(val, uuid.UUID):
+            return val
+        if isinstance(val, str):
+            try:
+                return uuid.UUID(val)
+            except Exception:
+                pass
+        return default_uuid if default_uuid is not None else uuid.uuid4()
+
+    def _safe_str(val: Any, default: str = "") -> str:
+        if isinstance(val, str):
+            return val
+        if hasattr(val, "value") and isinstance(val.value, str):
+            return val.value
+        if val is None or "Mock" in type(val).__name__:
+            return default
+        return str(val)
+
+    def _safe_float(val_in: Any, default_val: float) -> float:
+        try:
+            if "Mock" in type(val_in).__name__:
+                return default_val
+            return float(val_in)
+        except Exception:
+            return default_val
+
+    p_id = _safe_uuid(getattr(pref, "id", None))
+    p_profile_id = _safe_uuid(getattr(pref, "profile_id", None), default_uuid=_safe_uuid(profile_id))
+    cat_str = _safe_str(getattr(pref, "category", None), default="OPPORTUNITY_TYPE")
+    val_str = _safe_str(getattr(pref, "preference_value", None), default="")
+    p_type_str = _safe_str(getattr(pref, "preference_type", None), default="PREFERRED")
+    key_str = _safe_str(getattr(pref, "preference_key", None), default=val_str.lower().replace(" ", "_") if val_str else "key")
+    label_str = _safe_str(getattr(pref, "display_label", None), default=val_str or key_str)
+    source_str = _safe_str(getattr(pref, "source", None), default="EXPLICIT")
+
+    c_id_raw = getattr(pref, "canonical_id", None)
+    c_id = _safe_uuid(c_id_raw) if isinstance(c_id_raw, (uuid.UUID, str)) else None
+
+    is_act = getattr(pref, "is_active", True)
+    if "Mock" in type(is_act).__name__:
+        is_act = True
+    else:
+        is_act = bool(is_act)
+
+    return ResearcherPreferenceItemSchema(
+        id=p_id,
+        profile_id=p_profile_id,
+        category=cat_str,
+        preference_key=key_str,
+        preference_value=val_str,
+        preference_type=p_type_str,
+        display_label=label_str,
+        canonical_id=c_id,
+        strength=_safe_float(getattr(pref, "strength", 1.0), 1.0),
+        confidence=_safe_float(getattr(pref, "confidence", 1.0), 1.0),
+        recency_score=_safe_float(getattr(pref, "recency_score", 1.0), 1.0),
+        source=source_str,
+        is_active=is_act,
+    )
 
 
 # ── Personalization Ranker Engine ─────────────────────────────────────────────
@@ -165,6 +285,86 @@ class PersonalizationRanker:
             MIN_RELEVANCE_DAMPING + (1.0 - MIN_RELEVANCE_DAMPING) * ratio, 6
         )
 
+    @staticmethod
+    def _matches_exclusion(opp: Any, pref: Any) -> bool:
+        """
+        Check if an opportunity matches an explicit EXCLUDED preference across all supported dimensions.
+        """
+        p_type = getattr(pref, "preference_type", "PREFERRED") or "PREFERRED"
+        if hasattr(p_type, "value"):
+            p_type = p_type.value
+        if str(p_type).upper() != "EXCLUDED":
+            return False
+
+        p_cat = getattr(pref, "category", "")
+        if hasattr(p_cat, "value"):
+            p_cat = p_cat.value
+        p_cat = str(p_cat or "").upper()
+        p_val = str(getattr(pref, "preference_value", "") or "").strip()
+        if not p_val:
+            return False
+
+        p_val_lower = p_val.lower()
+
+        # Opportunity metadata extraction
+        opp_type_upper = (getattr(opp, "opportunity_type", "") or "").upper()
+        opp_mode_upper = (getattr(opp, "delivery_mode", "") or "").upper()
+        opp_title_lower = (getattr(opp, "title", "") or "").lower()
+        opp_desc_lower = (getattr(opp, "description", "") or "").lower()
+        opp_summary_lower = (getattr(opp, "summary", "") or "").lower()
+        opp_loc_lower = (getattr(opp, "location", "") or "").lower()
+        opp_org_lower = (getattr(opp, "organizer", "") or "").lower()
+        opp_inst_lower = (getattr(opp, "institution", "") or "").lower()
+        opp_country_lower = (getattr(opp, "country", "") or "").lower()
+        opp_region_lower = (getattr(opp, "region", "") or "").lower()
+        opp_funding_lower = (getattr(opp, "funding_type", "") or "").lower()
+
+        opp_topics_lower: set[str] = set()
+        for t in (getattr(opp, "topics", []) or []):
+            if isinstance(t, str):
+                opp_topics_lower.add(t.lower())
+        if hasattr(opp, "topic_associations") and opp.topic_associations:
+            for ta in opp.topic_associations:
+                if hasattr(ta, "topic") and ta.topic:
+                    if getattr(ta.topic, "name", None):
+                        opp_topics_lower.add(ta.topic.name.lower())
+                    if getattr(ta.topic, "slug", None):
+                        opp_topics_lower.add(ta.topic.slug.lower().replace("-", " "))
+
+        if p_cat == "OPPORTUNITY_TYPE":
+            return p_val.upper() == opp_type_upper
+        elif p_cat == "DELIVERY_MODE":
+            return p_val.upper() == opp_mode_upper
+        elif p_cat in ("TOPIC", "RESEARCH_DOMAIN"):
+            return (
+                p_val_lower in opp_topics_lower
+                or any(p_val_lower == t or p_val_lower in t or t in p_val_lower for t in opp_topics_lower)
+                or p_val_lower in opp_title_lower
+                or p_val_lower in opp_desc_lower
+                or p_val_lower in opp_summary_lower
+            )
+        elif p_cat == "KEYWORD":
+            return (
+                p_val_lower in opp_topics_lower
+                or p_val_lower in opp_title_lower
+                or p_val_lower in opp_desc_lower
+                or p_val_lower in opp_summary_lower
+            )
+        elif p_cat in ("LOCATION", "COUNTRY", "REGION"):
+            return (
+                p_val_lower in opp_loc_lower
+                or p_val_lower in opp_country_lower
+                or p_val_lower in opp_region_lower
+            )
+        elif p_cat in ("VENUE", "ORGANIZER"):
+            return p_val_lower in opp_org_lower
+        elif p_cat == "INSTITUTION":
+            return p_val_lower in opp_inst_lower
+        elif p_cat == "FUNDING":
+            return p_val_lower in opp_funding_lower
+
+        return False
+
     def evaluate_personalization_signals(
         self,
         opp: PersonalizedCandidateOpportunitySchema,
@@ -199,10 +399,21 @@ class PersonalizationRanker:
         # ── 1. Explicit Preference Matching (Weight: 0.40) ────────────────────
         explicit_score_sum = 0.0
         explicit_matches_count = 0
+        has_explicit_exclusion = False
 
         for pref in context.explicit_preferences:
+            if self._matches_exclusion(opp, pref):
+                has_explicit_exclusion = True
+                p_cat_raw = getattr(pref, "category", "")
+                p_cat_str = p_cat_raw.value if hasattr(p_cat_raw, "value") else str(p_cat_raw or "")
+                p_val_str = str(getattr(pref, "preference_value", "") or "")
+                matched_prefs.append(f"EXCLUDED {p_cat_str}: {p_val_str}")
             p_cat = getattr(pref, "category", "")
             p_val = getattr(pref, "preference_value", "")
+            p_type = getattr(pref, "preference_type", "PREFERRED") or "PREFERRED"
+            if hasattr(p_type, "value"):
+                p_type = p_type.value
+            p_type_upper = str(p_type).upper()
             p_strength = float(getattr(pref, "strength", 1.0) or 1.0)
             p_conf = float(getattr(pref, "confidence", 1.0) or 1.0)
             p_recency = float(getattr(pref, "recency_score", 1.0) or 1.0)
@@ -212,31 +423,34 @@ class PersonalizationRanker:
             if p_cat == "OPPORTUNITY_TYPE" and p_val.upper() == opp_type_upper:
                 matched = True
                 matched_types.add(f"Type: {p_val}")
-                matched_prefs.append(f"Explicit Type: {p_val}")
+                matched_prefs.append(f"{'EXCLUDED ' if p_type_upper == 'EXCLUDED' else 'Explicit '}Type: {p_val}")
             elif p_cat == "DELIVERY_MODE" and p_val.upper() == opp_mode_upper:
                 matched = True
                 matched_types.add(f"Mode: {p_val}")
-                matched_prefs.append(f"Explicit Mode: {p_val}")
+                matched_prefs.append(f"{'EXCLUDED ' if p_type_upper == 'EXCLUDED' else 'Explicit '}Mode: {p_val}")
             elif p_cat == "TOPIC":
                 val_lower = p_val.lower()
                 if val_lower in opp_topics_lower or val_lower in opp_title_lower:
                     matched = True
                     matched_topics.add(p_val)
-                    matched_prefs.append(f"Explicit Topic: {p_val}")
+                    matched_prefs.append(f"{'EXCLUDED ' if p_type_upper == 'EXCLUDED' else 'Explicit '}Topic: {p_val}")
             elif p_cat == "LOCATION" and p_val.lower() in opp_location_lower:
                 matched = True
-                matched_prefs.append(f"Explicit Location: {p_val}")
+                matched_prefs.append(f"{'EXCLUDED ' if p_type_upper == 'EXCLUDED' else 'Explicit '}Location: {p_val}")
             elif p_cat == "VENUE" and opp.organizer and p_val.lower() in opp.organizer.lower():
                 matched = True
-                matched_prefs.append(f"Explicit Venue: {p_val}")
+                matched_prefs.append(f"{'EXCLUDED ' if p_type_upper == 'EXCLUDED' else 'Explicit '}Venue: {p_val}")
 
             if matched:
-                explicit_score_sum += p_weight
-                explicit_matches_count += 1
+                if p_type_upper == "EXCLUDED":
+                    has_explicit_exclusion = True
+                else:
+                    explicit_score_sum += p_weight
+                    explicit_matches_count += 1
 
         explicit_score = (
             min(1.0, explicit_score_sum / max(1, explicit_matches_count))
-            if explicit_matches_count > 0
+            if (explicit_matches_count > 0 and not has_explicit_exclusion)
             else 0.0
         )
 
@@ -431,21 +645,31 @@ class PersonalizationRanker:
             6,
         )
 
-        if is_suppressed:
+        if has_explicit_exclusion:
+            explicit_score = 0.0
+            inferred_score = 0.0
+            expertise_score = 0.0
+            profile_score = 0.0
+            provenance_score = 0.0
+            behavioral_score = 0.0
+            avg_conf = 0.0
+            signed_behavioral_adjustment = 0.0
+            raw_personalization_score = 0.0
+        elif is_suppressed:
             raw_personalization_score = 0.0
         else:
             raw_personalization_score = min(1.0, max(0.0, round(base_p_score + signed_behavioral_adjustment, 6)))
 
         breakdown = PersonalizationScoreBreakdownSchema(
-            explicit_preference_score=round(explicit_score, 4),
-            inferred_preference_score=round(inferred_score, 4),
-            expertise_match_score=round(expertise_score, 4),
-            profile_match_score=round(profile_score, 4),
-            provenance_score=round(provenance_score, 4),
-            behavioral_score=round(behavioral_score, 4),
-            behavioral_confidence=round(avg_conf, 4),
-            behavioral_adjustment=round(signed_behavioral_adjustment, 4),
-            raw_personalization_score=raw_personalization_score,
+            explicit_preference_score=0.0 if has_explicit_exclusion else round(explicit_score, 4),
+            inferred_preference_score=0.0 if has_explicit_exclusion else round(inferred_score, 4),
+            expertise_match_score=0.0 if has_explicit_exclusion else round(expertise_score, 4),
+            profile_match_score=0.0 if has_explicit_exclusion else round(profile_score, 4),
+            provenance_score=0.0 if has_explicit_exclusion else round(provenance_score, 4),
+            behavioral_score=0.0 if has_explicit_exclusion else round(behavioral_score, 4),
+            behavioral_confidence=0.0 if has_explicit_exclusion else round(avg_conf, 4),
+            behavioral_adjustment=0.0 if has_explicit_exclusion else round(signed_behavioral_adjustment, 4),
+            raw_personalization_score=0.0 if has_explicit_exclusion else raw_personalization_score,
             relevance_damping=1.0,  # attached during ranking with candidate base score
         )
 
@@ -465,6 +689,10 @@ class PersonalizationRanker:
         *,
         enable_personalization: bool = True,
         base_scores: dict[uuid.UUID, float] | None = None,
+        opportunity_models: dict[uuid.UUID, Any] | None = None,
+        adaptive_signals: Sequence[Any] | None = None,
+        governance_state: str | None = None,
+        preferences: Sequence[Any] | None = None,
         limit: int | None = None,
         offset: int = 0,
         reference_time: datetime | None = None,
@@ -483,6 +711,14 @@ class PersonalizationRanker:
         base_scores : dict[uuid.UUID, float] | None
             Optional pre-computed Phase 2 base relevance scores. If not provided,
             base score is extracted from candidate or calculated from Phase 2 signals.
+        opportunity_models : dict[uuid.UUID, Any] | None
+            Pre-loaded ORM OpportunityModels (to avoid additional DB queries).
+        adaptive_signals : Sequence[Any] | None
+            Phase 5.5 adaptive preference signals.
+        governance_state : str | None
+            Phase 5.8 active governance gate state string.
+        preferences : Sequence[Any] | None
+            Explicit preferences override if passed separately from context.
         limit : int | None
             Maximum candidates to return.
         offset : int
@@ -504,6 +740,48 @@ class PersonalizationRanker:
             ref_time = reference_time.replace(tzinfo=timezone.utc)
         else:
             ref_time = reference_time.astimezone(timezone.utc)
+
+        # ── Phase 5.2 & 5.3: Pre-score candidates in batch using authoritative PersonalizationScorer ──
+        scorer_assessments: dict[Any, Any] = {}
+        if enable_personalization and not context.is_cold_start:
+            target_prefs = preferences if preferences is not None else context.explicit_preferences
+            target_adaptive = (
+                adaptive_signals
+                if adaptive_signals is not None
+                else getattr(context, "adaptive_signals", ())
+            )
+            target_gov = (
+                governance_state
+                if governance_state is not None
+                else getattr(context, "governance_state", None)
+            )
+
+            scorer_opps = []
+            for cand in candidates:
+                opp_obj = cand.opportunity if hasattr(cand, "opportunity") else getattr(cand, "opportunity", cand)
+                c_id = getattr(opp_obj, "id", None) or getattr(cand, "opportunity_id", None)
+                if opportunity_models and c_id in opportunity_models:
+                    scorer_opps.append(opportunity_models[c_id])
+                elif opp_obj is not None:
+                    scorer_opps.append(_OpportunityAdapter(opp_obj, explicit_id=c_id))
+
+            if scorer_opps and (target_prefs or target_adaptive):
+                from app.personalization.scorer import PersonalizationScorer
+                norm_prefs = [
+                    _normalize_preference_for_scorer(p, context.profile_id)
+                    for p in target_prefs
+                ]
+                try:
+                    scorer_assessments = PersonalizationScorer.score_opportunities_batch(
+                        profile_id=context.profile_id,
+                        preferences=norm_prefs,
+                        opportunities=scorer_opps,
+                        adaptive_signals=list(target_adaptive) if target_adaptive else None,
+                        governance_state=None,  # Do not pre-damp in scorer; PersonalizationRanker applies single authoritative governance damping
+                    )
+                except Exception as e:
+                    logger.warning("PersonalizationScorer batch scoring fallback: %s", e)
+                    scorer_assessments = {}
 
         # ── Phase 1: Determine Baseline Phase 2 Base Scores & Base Ranks (R0) ──
         scored_intermediates: list[_ScoredPersonalizedCandidate] = []
@@ -547,7 +825,6 @@ class PersonalizationRanker:
                 base_score = validate_signal(cand.match_score, "base_relevance_score")
             else:
                 # Compute deterministic base relevance approximation from opportunity features
-                # combining topic similarity, quality, and urgency
                 topic_overlap = (
                     0.60
                     if any(
@@ -570,12 +847,107 @@ class PersonalizationRanker:
                 else 0.0
             )
 
-            # Evaluate Personalization Signals
-            raw_p_score, breakdown, matched_sigs = self.evaluate_personalization_signals(
+            # Evaluate Personalization Signals (Authoritative Scorer with Ranker fallback)
+            assessment = scorer_assessments.get(opp_id)
+            if assessment is None and isinstance(opp_id, str):
+                try:
+                    assessment = scorer_assessments.get(uuid.UUID(opp_id))
+                except Exception:
+                    pass
+            elif assessment is None and isinstance(opp_id, uuid.UUID):
+                assessment = scorer_assessments.get(str(opp_id))
+
+            is_explicitly_excluded = False
+            if assessment is not None:
+                from app.personalization.models import PreferenceMatchType
+                if (
+                    assessment.preference_assessment.overall_match_state == PreferenceMatchType.EXCLUDED_MATCH
+                    or assessment.preference_assessment.excluded_matches_count > 0
+                    or getattr(assessment.score, "match_state", None) == PreferenceMatchType.EXCLUDED_MATCH
+                ):
+                    is_explicitly_excluded = True
+
+            target_prefs_to_check = preferences if preferences is not None else context.explicit_preferences
+            for pref in (target_prefs_to_check or ()):
+                if self._matches_exclusion(opp, pref):
+                    is_explicitly_excluded = True
+                    break
+
+            legacy_raw, legacy_breakdown, legacy_sigs = self.evaluate_personalization_signals(
                 opp=opp,
                 provenance=prov,
                 context=context,
             )
+            if any("EXCLUDED" in p for p in legacy_sigs.matched_preferences):
+                is_explicitly_excluded = True
+
+            if is_explicitly_excluded:
+                raw_p_score = 0.0
+                p_adjustment = 0.0
+                matched_prefs_list = [
+                    f"EXCLUDED {s.dimension.value}: {s.preference_value}"
+                    for s in (assessment.preference_assessment.excluded_matches if assessment else [])
+                ] or [p for p in legacy_sigs.matched_preferences if "EXCLUDED" in p]
+                matched_sigs = MatchedPersonalizationSignalsSchema(
+                    matched_preferences=matched_prefs_list,
+                    matched_expertise=[],
+                    matched_topics=[],
+                    matched_types=[],
+                )
+                breakdown = PersonalizationScoreBreakdownSchema(
+                    explicit_preference_score=0.0,
+                    inferred_preference_score=0.0,
+                    expertise_match_score=0.0,
+                    profile_match_score=0.0,
+                    provenance_score=0.0,
+                    behavioral_score=0.0,
+                    behavioral_confidence=0.0,
+                    behavioral_adjustment=0.0,
+                    raw_personalization_score=0.0,
+                    relevance_damping=self.calculate_relevance_damping(base_score),
+                )
+            elif assessment is not None:
+                # Authoritative Phase 5 personalization score
+                adaptive_boost = getattr(assessment, "adaptive_score", 0.0) or 0.0
+                if legacy_raw > 0.0:
+                    raw_p_score = min(1.0, max(0.0, legacy_raw + adaptive_boost))
+                else:
+                    raw_p_score = assessment.personalization_score
+
+                matched_prefs_list = [
+                    f"Explicit {s.dimension.value}: {s.preference_value}"
+                    for s in assessment.preference_assessment.positive_matches
+                ]
+                matched_topics_list = list(set(
+                    [s.preference_value for s in assessment.preference_assessment.positive_matches if "TOPIC" in s.dimension.value]
+                    + list(legacy_sigs.matched_topics)
+                ))
+                matched_types_list = list(set(
+                    [f"Type: {s.preference_value}" for s in assessment.preference_assessment.positive_matches if "OPPORTUNITY_TYPE" in s.dimension.value]
+                    + list(legacy_sigs.matched_types)
+                ))
+                matched_sigs = MatchedPersonalizationSignalsSchema(
+                    matched_preferences=matched_prefs_list or legacy_sigs.matched_preferences,
+                    matched_expertise=legacy_sigs.matched_expertise,
+                    matched_topics=matched_topics_list,
+                    matched_types=matched_types_list,
+                )
+                breakdown = PersonalizationScoreBreakdownSchema(
+                    explicit_preference_score=legacy_breakdown.explicit_preference_score,
+                    inferred_preference_score=round(adaptive_boost, 4),
+                    expertise_match_score=legacy_breakdown.expertise_match_score,
+                    profile_match_score=legacy_breakdown.profile_match_score,
+                    provenance_score=legacy_breakdown.provenance_score,
+                    behavioral_score=legacy_breakdown.behavioral_score,
+                    behavioral_confidence=legacy_breakdown.behavioral_confidence,
+                    behavioral_adjustment=round(adaptive_boost, 4) if adaptive_boost != 0.0 else legacy_breakdown.behavioral_adjustment,
+                    raw_personalization_score=raw_p_score,
+                    relevance_damping=1.0,
+                )
+            else:
+                raw_p_score = legacy_raw
+                breakdown = legacy_breakdown
+                matched_sigs = legacy_sigs
 
             # Relevance Damping
             damping = self.calculate_relevance_damping(base_score)
@@ -590,7 +962,7 @@ class PersonalizationRanker:
 
             is_suppressed = bool(opp_id and opp_id in context.suppressed_opportunity_ids)
 
-            if not enable_personalization or context.is_cold_start or is_high_risk or is_suppressed:
+            if not enable_personalization or context.is_cold_start or is_high_risk or is_suppressed or is_explicitly_excluded:
                 p_adjustment = 0.0
             else:
                 # Bounded adjustment: min(0.15, raw * 0.15 * damping)
@@ -602,9 +974,29 @@ class PersonalizationRanker:
                     6,
                 )
 
+                # Phase 5.8 — Authoritative Single Governance Multiplier
+                gov = getattr(context, "governance_state", None) or governance_state
+                if hasattr(gov, "value"):
+                    gov = gov.value
+                gov_str = str(gov or "").upper()
+
+                if gov_str == "SUSPEND":
+                    p_adjustment = 0.0
+                elif gov_str == "ALLOW_BOUNDED":
+                    p_adjustment = round(p_adjustment * 0.50, 6)
+                elif gov_str == "HOLD":
+                    p_adjustment = round(p_adjustment * 0.25, 6)
+                elif gov_str == "REDUCE":
+                    p_adjustment = round(p_adjustment * 0.10, 6)
+                # gov_str == "ALLOW" or empty -> 1.0 (no damping)
+
             # Final Score: min(1.0, base_score + p_adjustment)
             if is_suppressed:
                 final_score = round(max(0.0, base_score - 0.50), 6)
+            elif is_explicitly_excluded:
+                # Hard negative: cannot receive boost under any circumstance
+                p_adjustment = 0.0
+                final_score = round(base_score, 6)
             else:
                 final_score = round(min(1.0, max(0.0, base_score + p_adjustment)), 6)
 

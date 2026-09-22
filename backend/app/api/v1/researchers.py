@@ -801,6 +801,32 @@ def get_personalized_candidates(
         )
 
 
+def _resolve_researcher_profile_auth(
+    researcher_id: uuid.UUID,
+    x_user_id: uuid.UUID | None,
+    db: Session,
+) -> ResearchProfileModel:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+    if x_user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required: Please provide an 'X-User-ID' header.",
+        )
+    if profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to access this researcher resource.",
+        )
+    return profile
+
+
 @router.get(
     "/{researcher_id}/personalized-recommendations",
     response_model=PersonalizedRankingResponse,
@@ -829,21 +855,7 @@ def get_personalized_recommendations(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> PersonalizedRankingResponse:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation (Phase 3.5 / 3.4 convention)
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to view this researcher's personalized recommendations.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     try:
         return PersonalizationRankingService.get_personalized_recommendations(
@@ -1449,27 +1461,6 @@ def export_researcher_calendar_ics(
 # ----------------------------------------------------------------------------
 # Phase 4.5: Researcher Notifications & Reminder Rules Endpoints
 # ----------------------------------------------------------------------------
-
-def _resolve_researcher_profile_auth(
-    researcher_id: uuid.UUID,
-    x_user_id: uuid.UUID | None,
-    db: Session,
-) -> ResearchProfileModel:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to access this researcher resource.",
-        )
-    return profile
-
 
 @router.get(
     "/{researcher_id}/notifications",
