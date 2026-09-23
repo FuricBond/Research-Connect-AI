@@ -45,8 +45,14 @@ from app.models.personalization_transparency import (
 from app.models.research_profile import AcademicStatus, ResearchProfileModel
 from app.models.researcher_interest import ResearcherInterestModel
 from app.models.researcher_preference import ResearcherPreferenceModel
+from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
+from app.models.recommendation_history import (
+    ResearcherRecommendationItemModel,
+    ResearcherRecommendationSnapshotModel,
+)
 from app.models.saved_opportunity import SavedOpportunityModel
 from app.models.user import UserModel
+from app.services.research_calendar_service import ResearchCalendarService
 from app.schemas.adaptive_signal import AdaptivePreferenceSignal
 from app.schemas.personalization_calibration import PersonalizationCalibrationSchema
 from app.ranking.personalization_ranker import (
@@ -1399,4 +1405,276 @@ def test_blocker3_case_d_cross_researcher_isolation(client: TestClient, db_sessi
         headers={"X-User-ID": str(user_a.id)},
     )
     assert resp.status_code == 403
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# P0-3 Remediation — 18 Researcher-Specific Endpoints Mandatory Auth & Isolation
+# ═══════════════════════════════════════════════════════════════════════════════
+
+def _setup_p0_3_test_environment(db_session: Session):
+    """Sets up standard entities for testing all 18 endpoints."""
+    user_a = create_user(db_session, email="p0_3_user_a@university.edu")
+    profile_a = create_profile(db_session, user_a)
+
+    user_b = create_user(db_session, email="p0_3_user_b@university.edu")
+    profile_b = create_profile(db_session, user_b)
+
+    opp = create_opportunity(db_session, "P0-3 Test Opportunity")
+
+    pref = ResearcherPreferenceModel(
+        id=uuid.uuid4(),
+        profile_id=profile_a.id,
+        category="TOPIC",
+        preference_type="PREFERRED",
+        preference_key="ai",
+        preference_value="ai",
+        display_label="AI",
+        source="EXPLICIT",
+        strength=1.0,
+        confidence=1.0,
+        is_active=True,
+    )
+    db_session.add(pref)
+    db_session.flush()
+
+    feedback = ResearcherRecommendationFeedbackModel(
+        id=uuid.uuid4(),
+        researcher_id=profile_a.id,
+        opportunity_id=opp.id,
+        feedback_type="VIEW",
+    )
+    db_session.add(feedback)
+    db_session.flush()
+
+    snapshot = ResearcherRecommendationSnapshotModel(
+        id=uuid.uuid4(),
+        researcher_id=profile_a.id,
+        ranking_version="R1_PERSONALIZED_V1",
+        candidate_count=1,
+        returned_count=1,
+        request_hash="p0_3_test_hash",
+    )
+    db_session.add(snapshot)
+    db_session.flush()
+
+    item = ResearcherRecommendationItemModel(
+        id=uuid.uuid4(),
+        snapshot_id=snapshot.id,
+        opportunity_id=opp.id,
+        rank=1,
+        final_score=0.85,
+        base_relevance_score=0.80,
+        personalization_score=0.05,
+        behavioral_adjustment=0.0,
+    )
+    db_session.add(item)
+    db_session.flush()
+
+    ResearchCalendarService.get_or_create_default_calendar(db_session, user_id=user_a.id)
+    ResearchCalendarService.get_or_create_default_calendar(db_session, user_id=user_b.id)
+    db_session.commit()
+
+    return user_a, profile_a, user_b, profile_b, opp, pref, feedback, snapshot
+
+
+def test_p0_3_all_18_endpoints_auth_matrix(client: TestClient, db_session: Session):
+    """
+    Verifies that all 18 researcher-specific endpoints enforce the mandatory
+    authentication contract:
+      - Case A: Missing X-User-ID -> 401 Unauthorized
+      - Case B: Wrong X-User-ID -> 403 Forbidden
+      - Case C: Correct X-User-ID -> Expected success status (200 / 201)
+      - Cross-Researcher Isolation: User A calling Profile B -> 403 Forbidden
+    """
+    user_a, profile_a, user_b, profile_b, opp, pref, feedback, snapshot = _setup_p0_3_test_environment(db_session)
+
+    endpoints = [
+        # 1. POST /{researcher_id}/preferences
+        ("POST", f"/api/v1/researchers/{profile_a.id}/preferences", f"/api/v1/researchers/{profile_b.id}/preferences", {"category": "TOPIC", "preference_type": "PREFERRED", "preference_key": "ml", "preference_value": "ml", "display_label": "ML"}, 201),
+        # 2. PUT /{researcher_id}/preferences
+        ("PUT", f"/api/v1/researchers/{profile_a.id}/preferences", f"/api/v1/researchers/{profile_b.id}/preferences", {"items": [{"category": "TOPIC", "preference_type": "PREFERRED", "preference_key": "ml", "preference_value": "ml", "display_label": "ML"}], "replace_existing": False}, 200),
+        # 3. PATCH /{researcher_id}/preferences/{preference_id}
+        ("PATCH", f"/api/v1/researchers/{profile_a.id}/preferences/{pref.id}", f"/api/v1/researchers/{profile_b.id}/preferences/{pref.id}", {"strength": 0.9}, 200),
+        # 4. DELETE /{researcher_id}/preferences/{preference_id}
+        ("DELETE", f"/api/v1/researchers/{profile_a.id}/preferences/{pref.id}", f"/api/v1/researchers/{profile_b.id}/preferences/{pref.id}", None, 200),
+        # 5. GET /{researcher_id}/personalized-candidates
+        ("GET", f"/api/v1/researchers/{profile_a.id}/personalized-candidates", f"/api/v1/researchers/{profile_b.id}/personalized-candidates", None, 200),
+        # 6. POST /{researcher_id}/feedback
+        ("POST", f"/api/v1/researchers/{profile_a.id}/feedback", f"/api/v1/researchers/{profile_b.id}/feedback", {"opportunity_id": str(opp.id), "feedback_type": "VIEW"}, 201),
+        # 7. GET /{researcher_id}/feedback
+        ("GET", f"/api/v1/researchers/{profile_a.id}/feedback", f"/api/v1/researchers/{profile_b.id}/feedback", None, 200),
+        # 8. DELETE /{researcher_id}/feedback/{feedback_id}
+        ("DELETE", f"/api/v1/researchers/{profile_a.id}/feedback/{feedback.id}", f"/api/v1/researchers/{profile_b.id}/feedback/{feedback.id}", None, 200),
+        # 9. GET /{researcher_id}/feedback/summary
+        ("GET", f"/api/v1/researchers/{profile_a.id}/feedback/summary", f"/api/v1/researchers/{profile_b.id}/feedback/summary", None, 200),
+        # 10. GET /{researcher_id}/feedback/signals
+        ("GET", f"/api/v1/researchers/{profile_a.id}/feedback/signals", f"/api/v1/researchers/{profile_b.id}/feedback/signals", None, 200),
+        # 11. GET /{researcher_id}/recommendation-history
+        ("GET", f"/api/v1/researchers/{profile_a.id}/recommendation-history", f"/api/v1/researchers/{profile_b.id}/recommendation-history", None, 200),
+        # 12. GET /{researcher_id}/recommendation-history/{snapshot_id}
+        ("GET", f"/api/v1/researchers/{profile_a.id}/recommendation-history/{snapshot.id}", f"/api/v1/researchers/{profile_b.id}/recommendation-history/{snapshot.id}", None, 200),
+        # 13. GET /{researcher_id}/recommendation-evaluation
+        ("GET", f"/api/v1/researchers/{profile_a.id}/recommendation-evaluation", f"/api/v1/researchers/{profile_b.id}/recommendation-evaluation", None, 200),
+        # 14. GET /{researcher_id}/personalization-summary
+        ("GET", f"/api/v1/researchers/{profile_a.id}/personalization-summary", f"/api/v1/researchers/{profile_b.id}/personalization-summary", None, 200),
+        # 15. GET /{researcher_id}/personalized-recommendations/{opportunity_id}/explanation
+        ("GET", f"/api/v1/researchers/{profile_a.id}/personalized-recommendations/{opp.id}/explanation", f"/api/v1/researchers/{profile_b.id}/personalized-recommendations/{opp.id}/explanation", None, 200),
+        # 16. GET /{researcher_id}/recommendation-history/{snapshot_id}/items/{opportunity_id}/explanation
+        ("GET", f"/api/v1/researchers/{profile_a.id}/recommendation-history/{snapshot.id}/items/{opp.id}/explanation", f"/api/v1/researchers/{profile_b.id}/recommendation-history/{snapshot.id}/items/{opp.id}/explanation", None, 200),
+        # 17. GET /{researcher_id}/calendar
+        ("GET", f"/api/v1/researchers/{profile_a.id}/calendar", f"/api/v1/researchers/{profile_b.id}/calendar", None, 200),
+        # 18. GET /{researcher_id}/calendar.ics
+        ("GET", f"/api/v1/researchers/{profile_a.id}/calendar.ics", f"/api/v1/researchers/{profile_b.id}/calendar.ics", None, 200),
+    ]
+
+    for idx, (method, path_a, path_b, body, expected_status) in enumerate(endpoints, 1):
+        def _call(p, h=None):
+            if method == "GET":
+                return client.get(p, headers=h)
+            elif method == "POST":
+                return client.post(p, json=body, headers=h)
+            elif method == "PUT":
+                return client.put(p, json=body, headers=h)
+            elif method == "PATCH":
+                return client.patch(p, json=body, headers=h)
+            elif method == "DELETE":
+                return client.delete(p, headers=h)
+            raise ValueError(f"Unknown method {method}")
+
+        # Case A: Missing X-User-ID -> 401
+        res_a = _call(path_a)
+        assert res_a.status_code == 401, f"Endpoint #{idx} {method} {path_a} did not return 401 on missing X-User-ID: {res_a.status_code}"
+        assert "Authentication required" in res_a.json().get("detail", "")
+
+        # Case B: Wrong X-User-ID -> 403
+        res_b = _call(path_a, {"X-User-ID": str(user_b.id)})
+        assert res_b.status_code == 403, f"Endpoint #{idx} {method} {path_a} did not return 403 on wrong X-User-ID: {res_b.status_code}"
+        assert "Forbidden" in res_b.json().get("detail", "")
+
+        # Case C: Correct X-User-ID -> expected_status
+        res_c = _call(path_a, {"X-User-ID": str(user_a.id)})
+        assert res_c.status_code == expected_status, f"Endpoint #{idx} {method} {path_a} did not return {expected_status} on correct X-User-ID: {res_c.status_code}"
+
+        # Cross-Researcher Isolation: User A targeting Profile B with User A's header -> 403
+        res_cross = _call(path_b, {"X-User-ID": str(user_a.id)})
+        assert res_cross.status_code == 403, f"Endpoint #{idx} {method} {path_b} did not isolate Profile B from User A: {res_cross.status_code}"
+
+
+def test_p0_3_calendar_ics_special_export(client: TestClient, db_session: Session):
+    """
+    Mandatory Test for GET /{researcher_id}/calendar.ics:
+      - Missing X-User-ID -> 401 Unauthorized
+      - Wrong X-User-ID -> 403 Forbidden
+      - Correct X-User-ID -> 200 OK with valid iCalendar text/calendar content
+    """
+    user_a = create_user(db_session, email="cal_user_a@university.edu")
+    profile_a = create_profile(db_session, user_a)
+    user_b = create_user(db_session, email="cal_user_b@university.edu")
+    profile_b = create_profile(db_session, user_b)
+    ResearchCalendarService.get_or_create_default_calendar(db_session, user_id=user_a.id)
+    db_session.commit()
+
+    path = f"/api/v1/researchers/{profile_a.id}/calendar.ics"
+
+    # Case A: Missing header
+    res_missing = client.get(path)
+    assert res_missing.status_code == 401
+    assert "Authentication required" in res_missing.json()["detail"]
+
+    # Case B: Wrong header
+    res_wrong = client.get(path, headers={"X-User-ID": str(user_b.id)})
+    assert res_wrong.status_code == 403
+    assert "Forbidden" in res_wrong.json()["detail"]
+
+    # Case C: Correct header
+    res_correct = client.get(path, headers={"X-User-ID": str(user_a.id)})
+    assert res_correct.status_code == 200
+    assert "text/calendar" in res_correct.headers.get("content-type", "")
+    assert f'filename="researcher_{profile_a.id}_calendar.ics"' in res_correct.headers.get("content-disposition", "")
+    assert "BEGIN:VCALENDAR" in res_correct.text
+    assert "END:VCALENDAR" in res_correct.text
+
+    # Cross-Researcher Isolation
+    res_cross = client.get(f"/api/v1/researchers/{profile_b.id}/calendar.ics", headers={"X-User-ID": str(user_a.id)})
+    assert res_cross.status_code == 403
+
+
+def test_p0_3_write_endpoints_unauthenticated_blocked(client: TestClient, db_session: Session):
+    """
+    Mandatory test verifying that unauthenticated write requests cannot mutate state:
+      - preferences (POST, PUT, PATCH, DELETE)
+      - feedback (POST, DELETE)
+    """
+    user_a = create_user(db_session, email="writer_user@university.edu")
+    profile_a = create_profile(db_session, user_a)
+    opp = create_opportunity(db_session, "Write Protected Opp")
+
+    pref = ResearcherPreferenceModel(
+        id=uuid.uuid4(),
+        profile_id=profile_a.id,
+        category="TOPIC",
+        preference_type="PREFERRED",
+        preference_key="bio",
+        preference_value="bio",
+        display_label="Biology",
+        source="EXPLICIT",
+        strength=1.0,
+        confidence=1.0,
+        is_active=True,
+    )
+    db_session.add(pref)
+
+    feedback = ResearcherRecommendationFeedbackModel(
+        id=uuid.uuid4(),
+        researcher_id=profile_a.id,
+        opportunity_id=opp.id,
+        feedback_type="SAVE",
+    )
+    db_session.add(feedback)
+    db_session.commit()
+
+    # 1. Unauthenticated POST preference
+    r_post_pref = client.post(
+        f"/api/v1/researchers/{profile_a.id}/preferences",
+        json={"category": "TOPIC", "preference_type": "PREFERRED", "preference_key": "chem", "preference_value": "chem", "display_label": "Chemistry"},
+    )
+    assert r_post_pref.status_code == 401
+
+    # 2. Unauthenticated PUT preference
+    r_put_pref = client.put(
+        f"/api/v1/researchers/{profile_a.id}/preferences",
+        json={"items": [{"category": "TOPIC", "preference_type": "PREFERRED", "preference_key": "chem", "preference_value": "chem", "display_label": "Chemistry"}], "replace_existing": False},
+    )
+    assert r_put_pref.status_code == 401
+
+    # 3. Unauthenticated PATCH preference
+    r_patch_pref = client.patch(
+        f"/api/v1/researchers/{profile_a.id}/preferences/{pref.id}",
+        json={"strength": 0.5},
+    )
+    assert r_patch_pref.status_code == 401
+
+    # 4. Unauthenticated DELETE preference
+    r_del_pref = client.delete(f"/api/v1/researchers/{profile_a.id}/preferences/{pref.id}")
+    assert r_del_pref.status_code == 401
+
+    # Verify preference was NOT deleted
+    pref_in_db = db_session.get(ResearcherPreferenceModel, pref.id)
+    assert pref_in_db is not None
+
+    # 5. Unauthenticated POST feedback
+    r_post_fb = client.post(
+        f"/api/v1/researchers/{profile_a.id}/feedback",
+        json={"opportunity_id": str(opp.id), "feedback_type": "INTERESTED"},
+    )
+    assert r_post_fb.status_code == 401
+
+    # 6. Unauthenticated DELETE feedback
+    r_del_fb = client.delete(f"/api/v1/researchers/{profile_a.id}/feedback/{feedback.id}")
+    assert r_del_fb.status_code == 401
+
+    # Verify feedback was NOT deleted
+    fb_in_db = db_session.get(ResearcherRecommendationFeedbackModel, feedback.id)
+    assert fb_in_db is not None
+
 

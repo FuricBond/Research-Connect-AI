@@ -161,10 +161,6 @@ from app.schemas.researcher_interaction import (
     ResearcherInteractionSummaryResponse,
 )
 
-
-
-
-
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/researchers", tags=["researchers"])
@@ -491,6 +487,32 @@ def get_structured_researcher_preferences(
         )
 
 
+def _resolve_researcher_profile_auth(
+    researcher_id: uuid.UUID,
+    x_user_id: uuid.UUID | None,
+    db: Session,
+) -> ResearchProfileModel:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+    if x_user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required: Please provide an 'X-User-ID' header.",
+        )
+    if profile.user_id != x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: You do not have permission to access this researcher resource.",
+        )
+    return profile
+
+
 @router.post(
     "/{researcher_id}/preferences",
     response_model=ResearcherPreferenceItemSchema,
@@ -504,21 +526,7 @@ def create_researcher_preference(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> ResearcherPreferenceItemSchema:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to modify this researcher profile's preferences.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     try:
         model = ResearcherPreferenceService.create_explicit_preference(
@@ -572,21 +580,7 @@ def bulk_update_researcher_preferences(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> list[ResearcherPreferenceItemSchema]:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to modify this researcher profile's preferences.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     try:
         models = ResearcherPreferenceService.bulk_sync_preferences(
@@ -644,21 +638,7 @@ def update_researcher_preference(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> ResearcherPreferenceItemSchema:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to modify this researcher profile's preferences.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     try:
         model = ResearcherPreferenceService.update_preference(
@@ -712,21 +692,7 @@ def delete_researcher_preference(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to modify this researcher profile's preferences.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     try:
         deleted = ResearcherPreferenceService.delete_preference(
@@ -769,21 +735,7 @@ def get_personalized_candidates(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> PersonalizedCandidateSetResponse:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation (Phase 3.4 / 3.3 convention)
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to view this researcher's personalized candidate set.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     try:
         return PersonalizedCandidateGenerationService.generate_personalized_candidates(
@@ -799,32 +751,6 @@ def get_personalized_candidates(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(err),
         )
-
-
-def _resolve_researcher_profile_auth(
-    researcher_id: uuid.UUID,
-    x_user_id: uuid.UUID | None,
-    db: Session,
-) -> ResearchProfileModel:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-    if x_user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required: Please provide an 'X-User-ID' header.",
-        )
-    if profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to access this researcher resource.",
-        )
-    return profile
 
 
 @router.get(
@@ -900,21 +826,7 @@ def record_feedback(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> FeedbackItemResponse:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to submit feedback for this researcher.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     try:
         return ResearcherFeedbackService.record_feedback(
@@ -948,21 +860,7 @@ def get_feedback_history(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> FeedbackListResponse:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to view this researcher's feedback history.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     try:
         return ResearcherFeedbackService.get_feedback_history(
@@ -992,21 +890,7 @@ def delete_feedback(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to delete this researcher's feedback.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     deleted = ResearcherFeedbackService.delete_feedback(
         db=db,
@@ -1034,21 +918,7 @@ def get_feedback_summary(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> FeedbackSummaryResponse:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to view this researcher's feedback summary.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     return ResearcherFeedbackService.get_feedback_summary(
         db=db,
@@ -1071,21 +941,7 @@ def get_behavioral_signals(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> list[BehavioralSignalSchema]:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to view this researcher's behavioral signals.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     behavioral_profile = ResearcherFeedbackService.get_behavioral_profile(
         db=db,
@@ -1118,21 +974,7 @@ def get_recommendation_history(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> RecommendationHistoryListResponse:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to view this researcher's recommendation history.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     return RecommendationHistoryService.get_history(
         db=db,
@@ -1161,21 +1003,7 @@ def get_recommendation_snapshot_detail(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> RecommendationSnapshotResponseSchema:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to view this researcher's recommendation snapshot.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     snapshot_detail = RecommendationHistoryService.get_snapshot_detail(
         db=db,
@@ -1212,21 +1040,7 @@ def get_recommendation_evaluation(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> RecommendationEvaluationResponse:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to evaluate this researcher's recommendations.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     return RecommendationHistoryService.evaluate_recommendations(
         db=db,
@@ -1257,21 +1071,7 @@ def get_personalization_summary(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationSummaryResponse:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to view this researcher's personalization summary.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     return PersonalizationExplanationService.get_personalization_summary(
         db=db,
@@ -1297,21 +1097,7 @@ def get_recommendation_explanation(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> RecommendationExplanationSchema:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to inspect this recommendation explanation.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     try:
         return PersonalizationExplanationService.explain_opportunity_for_researcher(
@@ -1343,21 +1129,7 @@ def get_historical_recommendation_explanation(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> RecommendationExplanationSchema:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to inspect this historical recommendation explanation.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     try:
         return PersonalizationExplanationService.explain_historical_recommendation(
@@ -1390,21 +1162,7 @@ def get_researcher_calendar(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> ResearcherCalendarViewResponse:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to access this researcher calendar.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     return ResearchCalendarService.get_researcher_calendar_view(
         db=db,
@@ -1429,21 +1187,7 @@ def export_researcher_calendar_ics(
     x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
-
-    # Ownership validation
-    if x_user_id is not None and profile.user_id != x_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: You do not have permission to export this researcher calendar.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
 
     calendar = ResearchCalendarService.get_or_create_default_calendar(db, user_id=profile.user_id)
     ical_content = ResearchCalendarService.generate_ical_feed(db, calendar.id, user_id=profile.user_id)
