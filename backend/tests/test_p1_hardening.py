@@ -660,3 +660,59 @@ def test_p1_12_user_and_profile_identifiers_still_resolve(
     """Both accepted identifier forms continue to resolve to the canonical user id."""
     assert WorkspaceService.resolve_user_id(db_session, profile.user_id) == profile.user_id
     assert WorkspaceService.resolve_user_id(db_session, profile.id) == profile.user_id
+
+
+# ===========================================================================
+# Profile deletion cascades (found while running the seeder against PostgreSQL)
+# ===========================================================================
+
+
+def test_deleting_a_profile_cascades_its_notifications(
+    db_session: Session, profile: ResearchProfileModel
+):
+    """
+    The schema declares ON DELETE CASCADE on notifications.profile_id, but the ORM relationship
+    carried no delete cascade, so SQLAlchemy tried to NULL a NOT NULL column and any profile
+    deletion failed once the researcher had a notification. Surfaced by the demo seeder's
+    --reset against PostgreSQL, where the constraint is actually enforced.
+    """
+    from app.models.notification import (
+        DeliveryChannel,
+        DeliveryStatus,
+        NotificationModel,
+        NotificationPreferenceModel,
+        NotificationType,
+    )
+
+    now = datetime.now(timezone.utc)
+    db_session.add(
+        NotificationModel(
+            id=uuid.uuid4(),
+            profile_id=profile.id,
+            notification_type=NotificationType.SYSTEM.value,
+            title="Cascade probe",
+            body="Present so the deletion has a child row to handle.",
+            source_type="SYSTEM",
+            scheduled_for=now,
+            delivery_status=DeliveryStatus.PENDING.value,
+            delivery_channel=DeliveryChannel.IN_APP.value,
+            deduplication_key=f"cascade-probe-{uuid.uuid4().hex}",
+            metadata_json={},
+        )
+    )
+    db_session.add(NotificationPreferenceModel(id=uuid.uuid4(), profile_id=profile.id))
+    db_session.commit()
+
+    db_session.delete(profile)
+    db_session.commit()
+
+    remaining = db_session.execute(
+        select(NotificationModel).where(NotificationModel.profile_id == profile.id)
+    ).scalars().all()
+    assert remaining == [], "notifications must be removed with their researcher profile"
+    remaining_prefs = db_session.execute(
+        select(NotificationPreferenceModel).where(
+            NotificationPreferenceModel.profile_id == profile.id
+        )
+    ).scalars().all()
+    assert remaining_prefs == []

@@ -21,6 +21,11 @@ What it creates (idempotently, keyed on stable demo emails and opportunity title
     - Twelve opportunities spanning conferences, journals and workshops, with deadlines
       from "already expired" through "months away", including two venues carrying the
       textual markers the Phase 2.6 risk engine flags as predatory.
+    - Three faculty-authored research postings (Phase 5.10/5.11): a published project, a
+      published research assistantship that accepts applications on the platform, and a
+      draft, so both the discovery and authoring views have something to show.
+    - Peer discoverability for the faculty and student accounts (Phase 5.12), with
+      complementary expertise topics so peer matching returns an explainable result.
 
 What it deliberately does not create:
     - Semantic embeddings. Those need `sentence-transformers` and a model download; run
@@ -51,8 +56,21 @@ from sqlalchemy.orm import Session
 from app.core.security import hash_password
 from app.db.session import SessionLocal
 from app.models.opportunity import OpportunityModel
+from app.models.research_posting import (
+    PostingStatus,
+    PostingType,
+    PostingWorkMode,
+    ResearchPostingModel,
+)
 from app.models.research_profile import AcademicStatus, ResearchProfileModel
+from app.models.researcher_discovery import (
+    CollaborationInterest,
+    CollaborationStatus,
+    ResearcherDiscoverySettingsModel,
+)
+from app.models.researcher_interest import ResearcherInterestModel
 from app.models.researcher_preference import ResearcherPreferenceModel
+from app.models.topic import TopicModel
 from app.models.user import UserModel
 
 logging.basicConfig(
@@ -148,8 +166,116 @@ DEMO_OPPORTUNITIES: list[tuple] = [
      "World Congress Series", "ONLINE", "Online", 9, [], True),
 ]
 
+# (title, type, status, days_until_deadline, accepts_applications, terms)
+# One of each shape a reviewer would want to see: a published supervisor-led project, a funded
+# opening that accepts applications on-platform, and an unpublished draft.
+DEMO_POSTINGS: list[dict] = [
+    {
+        "title": "Doctoral project on neural retrieval evaluation",
+        "posting_type": PostingType.PROJECT,
+        "status": PostingStatus.OPEN,
+        "days_until_deadline": 45,
+        "summary": "Supervised doctoral work on how retrieval systems should be evaluated.",
+        "description": (
+            "We are looking for a doctoral researcher to study evaluation methodology for dense "
+            "retrieval systems, including offline metrics and their correlation with user outcomes."
+        ),
+        "required_skills": ["Python", "Information Retrieval", "Statistics"],
+        "work_mode": PostingWorkMode.HYBRID,
+        "positions": 1,
+        "accepts_applications": False,
+    },
+    {
+        "title": "Research assistantship in retrieval benchmarking",
+        "posting_type": PostingType.RESEARCH_ASSISTANTSHIP,
+        "status": PostingStatus.OPEN,
+        "days_until_deadline": 21,
+        "summary": "Part-time funded assistantship building and running retrieval benchmarks.",
+        "description": (
+            "A funded research assistantship supporting our benchmarking infrastructure. You will "
+            "build reproducible evaluation pipelines and help analyse the results."
+        ),
+        "required_skills": ["Python", "Data Analysis"],
+        "work_mode": PostingWorkMode.ONSITE,
+        "positions": 2,
+        "accepts_applications": True,
+        "compensation_type": "STIPEND",
+        "compensation_amount": 2200,
+        "compensation_currency": "USD",
+        "compensation_period": "MONTH",
+        "commitment_type": "PART_TIME",
+        "hours_per_week": 20,
+        "duration_months": 12,
+        "eligibility": "Enrolled in a postgraduate programme at the time of appointment.",
+    },
+    {
+        "title": "Thesis topic on query understanding for low-resource languages",
+        "posting_type": PostingType.THESIS_TOPIC,
+        "status": PostingStatus.DRAFT,
+        "days_until_deadline": 90,
+        "summary": "An available thesis topic, still being drafted.",
+        "description": (
+            "A proposed thesis topic investigating query understanding where training data is "
+            "scarce. Scope and supervision arrangements are still being finalised."
+        ),
+        "required_skills": ["Natural Language Processing"],
+        "work_mode": PostingWorkMode.REMOTE,
+        "positions": 1,
+        "accepts_applications": False,
+    },
+]
+
+# Expertise topics per demo account. Deliberately overlapping in one area and divergent
+# elsewhere, so Phase 5.12 has both shared and complementary signal to report rather than
+# returning a near-identical profile or an unrelated stranger.
+DEMO_TOPIC_TREE: dict[str, str | None] = {
+    "information-retrieval": None,
+    "dense-retrieval": "information-retrieval",
+    "query-understanding": "information-retrieval",
+    "retrieval-evaluation": "information-retrieval",
+    "human-computer-interaction": None,
+    "accessibility": "human-computer-interaction",
+}
+
+DEMO_EXPERTISE: dict[str, dict[str, float]] = {
+    "demo.faculty@researchconnect.test": {
+        "dense-retrieval": 0.92,
+        "retrieval-evaluation": 0.85,
+    },
+    "demo.student@researchconnect.test": {
+        "retrieval-evaluation": 0.55,
+        "query-understanding": 0.70,
+        "accessibility": 0.65,
+    },
+}
+
+DEMO_DISCOVERY: dict[str, dict] = {
+    "demo.faculty@researchconnect.test": {
+        "collaboration_status": CollaborationStatus.SEEKING_COLLABORATORS,
+        "collaboration_interests": [
+            CollaborationInterest.CO_AUTHORSHIP,
+            CollaborationInterest.JOINT_GRANT,
+            CollaborationInterest.STUDENT_CO_SUPERVISION,
+        ],
+        "show_institution": True,
+        "show_contact_email": False,
+        "collaboration_note": "Interested in co-authoring on retrieval evaluation methodology.",
+    },
+    "demo.student@researchconnect.test": {
+        "collaboration_status": CollaborationStatus.OPEN_TO_ENQUIRIES,
+        "collaboration_interests": [
+            CollaborationInterest.CO_AUTHORSHIP,
+            CollaborationInterest.METHOD_EXCHANGE,
+        ],
+        "show_institution": True,
+        "show_contact_email": False,
+        "collaboration_note": "Looking for a first co-authorship in query understanding.",
+    },
+}
+
 DEMO_EMAILS = tuple(account["email"] for account in DEMO_ACCOUNTS)
 DEMO_TITLES = tuple(row[0] for row in DEMO_OPPORTUNITIES)
+DEMO_POSTING_TITLES = tuple(row["title"] for row in DEMO_POSTINGS)
 
 
 def _delete_demo_rows(db: Session) -> dict[str, int]:
@@ -189,6 +315,37 @@ def _delete_demo_rows(db: Session) -> dict[str, int]:
         select(OpportunityModel).where(OpportunityModel.title.in_(DEMO_TITLES))
     ).scalars().all()
 
+    postings = db.execute(
+        select(ResearchPostingModel).where(ResearchPostingModel.title.in_(DEMO_POSTING_TITLES))
+    ).scalars().all()
+
+    interests = (
+        db.execute(
+            select(ResearcherInterestModel).where(
+                ResearcherInterestModel.profile_id.in_(profile_ids),
+                ResearcherInterestModel.source == "SEED_DEMO",
+            )
+        ).scalars().all()
+        if profile_ids
+        else []
+    )
+
+    discovery = (
+        db.execute(
+            select(ResearcherDiscoverySettingsModel).where(
+                ResearcherDiscoverySettingsModel.profile_id.in_(profile_ids)
+            )
+        ).scalars().all()
+        if profile_ids
+        else []
+    )
+
+    for posting in postings:
+        db.delete(posting)
+    for interest in interests:
+        db.delete(interest)
+    for setting in discovery:
+        db.delete(setting)
     for preference in preferences:
         db.delete(preference)
     for profile in profiles:
@@ -203,6 +360,9 @@ def _delete_demo_rows(db: Session) -> dict[str, int]:
         "profiles": len(profiles),
         "preferences": len(preferences),
         "opportunities": len(opportunities),
+        "postings": len(postings),
+        "interests": len(interests),
+        "discovery_settings": len(discovery),
     }
 
 
@@ -367,7 +527,211 @@ def _seed_opportunities(db: Session, reference_time: datetime, dry_run: bool) ->
     return created, updated
 
 
-REQUIRED_TABLES = ("users", "research_profiles", "researcher_preferences", "opportunities")
+def _seed_topics(db: Session, dry_run: bool) -> int:
+    """Ensures the demo taxonomy exists, creating parents before children."""
+    created = 0
+    # Roots first, so a child's parent_id can always be resolved in one pass.
+    for slug in sorted(DEMO_TOPIC_TREE, key=lambda s: (DEMO_TOPIC_TREE[s] is not None, s)):
+        parent_slug = DEMO_TOPIC_TREE[slug]
+        existing = db.execute(select(TopicModel).where(TopicModel.slug == slug)).scalar_one_or_none()
+        if existing is not None:
+            continue
+        created += 1
+        if dry_run:
+            continue
+        parent_id = None
+        if parent_slug:
+            parent = db.execute(
+                select(TopicModel).where(TopicModel.slug == parent_slug)
+            ).scalar_one_or_none()
+            parent_id = parent.id if parent else None
+        db.add(
+            TopicModel(
+                id=uuid.uuid4(),
+                name=slug.replace("-", " ").title(),
+                slug=slug,
+                parent_id=parent_id,
+            )
+        )
+        db.flush()
+    if not dry_run:
+        db.commit()
+    return created
+
+
+def _seed_expertise(
+    db: Session,
+    profiles: dict[str, ResearchProfileModel],
+    dry_run: bool,
+) -> int:
+    """Records expertise topics so Phase 5.12 peer matching has something to compare."""
+    created = 0
+    for email, topics in DEMO_EXPERTISE.items():
+        profile = profiles.get(email)
+        if profile is None:
+            continue
+        for slug, strength in topics.items():
+            topic = db.execute(
+                select(TopicModel).where(TopicModel.slug == slug)
+            ).scalar_one_or_none()
+            if topic is None:
+                continue
+            existing = db.execute(
+                select(ResearcherInterestModel).where(
+                    ResearcherInterestModel.profile_id == profile.id,
+                    ResearcherInterestModel.topic_slug == slug,
+                )
+            ).scalar_one_or_none()
+            if existing is not None:
+                existing.strength = strength
+                continue
+            created += 1
+            if dry_run:
+                continue
+            db.add(
+                ResearcherInterestModel(
+                    id=uuid.uuid4(),
+                    profile_id=profile.id,
+                    topic_id=topic.id,
+                    topic_name=topic.name,
+                    topic_slug=slug,
+                    strength=strength,
+                    confidence=0.90,
+                    evidence_count=4,
+                    # Strong topics read as expertise; the weaker one as an emerging interest,
+                    # which is what the matcher's strength thresholds are there to distinguish.
+                    classification=(
+                        "PRIMARY_EXPERTISE" if strength >= 0.65 else "EMERGING_INTEREST"
+                    ),
+                    is_primary_expertise=strength >= 0.65,
+                    source="SEED_DEMO",
+                    provenance={"reasons": ["Seeded demo expertise"]},
+                )
+            )
+    if not dry_run:
+        db.commit()
+    return created
+
+
+def _seed_discovery_settings(
+    db: Session,
+    profiles: dict[str, ResearchProfileModel],
+    reference_time: datetime,
+    dry_run: bool,
+) -> int:
+    """
+    Opts the demo researchers into peer discovery.
+
+    Consent is explicit in the product, and it is explicit here too: the seeder is standing in
+    for two researchers who chose to be findable, and the consent timestamp is recorded as such.
+    """
+    created = 0
+    for email, spec in DEMO_DISCOVERY.items():
+        profile = profiles.get(email)
+        if profile is None:
+            continue
+        existing = db.execute(
+            select(ResearcherDiscoverySettingsModel).where(
+                ResearcherDiscoverySettingsModel.profile_id == profile.id
+            )
+        ).scalar_one_or_none()
+        if existing is None:
+            created += 1
+            if dry_run:
+                continue
+            existing = ResearcherDiscoverySettingsModel(id=uuid.uuid4(), profile_id=profile.id)
+            db.add(existing)
+        elif dry_run:
+            continue
+
+        existing.is_discoverable = True
+        existing.collaboration_status = spec["collaboration_status"].value
+        existing.collaboration_interests = [i.value for i in spec["collaboration_interests"]]
+        existing.show_institution = spec["show_institution"]
+        existing.show_contact_email = spec["show_contact_email"]
+        existing.collaboration_note = spec["collaboration_note"]
+        existing.consent_updated_at = reference_time
+    if not dry_run:
+        db.commit()
+    return created
+
+
+def _seed_postings(
+    db: Session,
+    author_profile: ResearchProfileModel | None,
+    reference_time: datetime,
+    dry_run: bool,
+) -> tuple[int, int]:
+    """Creates the demo research postings authored by the faculty account."""
+    if author_profile is None:
+        return 0, 0
+
+    created = updated = 0
+    for spec in DEMO_POSTINGS:
+        posting = db.execute(
+            select(ResearchPostingModel).where(ResearchPostingModel.title == spec["title"])
+        ).scalar_one_or_none()
+
+        if posting is None:
+            created += 1
+            logger.info("creating posting %s", spec["title"])
+            if dry_run:
+                continue
+            posting = ResearchPostingModel(
+                id=uuid.uuid4(),
+                title=spec["title"],
+                author_profile_id=author_profile.id,
+                author_user_id=author_profile.user_id,
+            )
+            db.add(posting)
+        else:
+            updated += 1
+            logger.info("updating posting %s", spec["title"])
+            if dry_run:
+                continue
+
+        status_value = spec["status"]
+        posting.posting_type = spec["posting_type"].value
+        posting.status = status_value.value
+        posting.summary = spec["summary"]
+        posting.description = spec["description"]
+        posting.required_skills = list(spec["required_skills"])
+        posting.institution = author_profile.institution
+        posting.department = author_profile.department
+        posting.location = "Fairview, US"
+        posting.country = "US"
+        posting.work_mode = spec["work_mode"].value
+        posting.positions_available = spec["positions"]
+        posting.application_deadline = reference_time + timedelta(days=spec["days_until_deadline"])
+        posting.expected_start_date = (reference_time + timedelta(days=120)).date()
+        posting.contact_email = "demo.faculty@researchconnect.test"
+        posting.accepts_applications = spec["accepts_applications"]
+        posting.compensation_type = spec.get("compensation_type", "UNSPECIFIED")
+        posting.compensation_amount = spec.get("compensation_amount")
+        posting.compensation_currency = spec.get("compensation_currency")
+        posting.compensation_period = spec.get("compensation_period")
+        posting.commitment_type = spec.get("commitment_type")
+        posting.hours_per_week = spec.get("hours_per_week")
+        posting.duration_months = spec.get("duration_months")
+        posting.eligibility_requirements = spec.get("eligibility")
+        # Published postings need a publication timestamp, since the lifecycle treats it as a
+        # first-publication fact rather than something recomputed on read.
+        if status_value == PostingStatus.OPEN and posting.published_at is None:
+            posting.published_at = reference_time
+
+    if not dry_run:
+        db.commit()
+    return created, updated
+
+
+REQUIRED_TABLES = (
+    "users",
+    "research_profiles",
+    "researcher_preferences",
+    "opportunities",
+    "research_postings",
+    "researcher_discovery_settings",
+)
 
 
 def verify_schema(db: Session) -> list[str]:
@@ -422,12 +786,25 @@ def main() -> int:
         elif not args.dry_run:
             logger.warning("faculty profile missing; skipped preference seeding")
 
+        # Phase 5.10-5.12 surfaces
+        _seed_topics(db, args.dry_run)
+        expertise_created = _seed_expertise(db, profiles, args.dry_run)
+        discovery_created = _seed_discovery_settings(db, profiles, reference_time, args.dry_run)
+        posting_created, posting_updated = _seed_postings(
+            db, faculty_profile, reference_time, args.dry_run
+        )
+
     logger.info(
-        "seed complete: %d accounts, %d preferences created, %d opportunities created, %d updated%s",
+        "seed complete: %d accounts, %d preferences, %d expertise topics, %d discovery opt-ins, "
+        "%d opportunities created (%d updated), %d postings created (%d updated)%s",
         len(profiles),
         pref_created,
+        expertise_created,
+        discovery_created,
         opp_created,
         opp_updated,
+        posting_created,
+        posting_updated,
         " (dry run, nothing written)" if args.dry_run else "",
     )
     if not args.dry_run:

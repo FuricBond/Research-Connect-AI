@@ -155,6 +155,13 @@ from app.schemas.personalization_transparency import (
     ResearcherPersonalizationSettingsUpdate,
 )
 from app.services.personalization_transparency_service import PersonalizationTransparencyService
+from app.models.researcher_discovery import CollaborationInterest
+from app.schemas.researcher_discovery import (
+    DiscoverySettingsSchema,
+    DiscoverySettingsUpdate,
+    PeerMatchResponse,
+)
+from app.services.peer_discovery_service import PeerDiscoveryService
 from app.schemas.researcher_interaction import (
     InteractionCreateRequest,
     InteractionResponse,
@@ -2289,3 +2296,84 @@ def get_recommendation_personalization_explanation(
     return explanation
 
 
+# ----------------------------------------------------------------------------
+# Phase 5.12: Peer & Co-Author Discovery
+# ----------------------------------------------------------------------------
+
+
+@router.get(
+    "/{researcher_id}/discovery-settings",
+    response_model=DiscoverySettingsSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Get peer discoverability settings",
+    description=(
+        "Returns the researcher's own peer-discovery consent and collaboration preferences. "
+        "A researcher who has never chosen is reported as not discoverable; reading this does "
+        "not create a settings row, because reading is not consent."
+    ),
+)
+def get_discovery_settings(
+    researcher_id: uuid.UUID,
+    current_user_id: OptionalUserId = None,
+    db: Session = Depends(get_db),
+) -> DiscoverySettingsSchema:
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
+    return PeerDiscoveryService.get_settings(db, profile.id)
+
+
+@router.patch(
+    "/{researcher_id}/discovery-settings",
+    response_model=DiscoverySettingsSchema,
+    status_code=status.HTTP_200_OK,
+    summary="Update peer discoverability settings",
+    description=(
+        "Updates discoverability, collaboration status, collaboration interests and what peers "
+        "may see. Turning discoverability on or off records a consent timestamp."
+    ),
+)
+def update_discovery_settings(
+    researcher_id: uuid.UUID,
+    payload: DiscoverySettingsUpdate,
+    current_user_id: OptionalUserId = None,
+    db: Session = Depends(get_db),
+) -> DiscoverySettingsSchema:
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
+    return PeerDiscoveryService.update_settings(db, profile.id, payload)
+
+
+@router.get(
+    "/{researcher_id}/peers",
+    response_model=PeerMatchResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Discover peer researchers and potential co-authors",
+    description=(
+        "Deterministically ranks discoverable researchers by shared expertise, complementary "
+        "expertise, taxonomy proximity, methodology overlap and stated collaboration readiness. "
+        "Only researchers who opted in appear, and each peer's institution and contact email are "
+        "shown only if they chose to disclose them. Every suggestion carries its own explanation."
+    ),
+)
+def discover_peers(
+    researcher_id: uuid.UUID,
+    limit: Annotated[int, Query(ge=1, le=50, description="Maximum peers to return")] = 20,
+    collaboration_interest: Annotated[
+        CollaborationInterest | None,
+        Query(description="Only peers open to this kind of collaboration"),
+    ] = None,
+    exclude_same_institution: Annotated[
+        bool, Query(description="Omit peers at your own institution")
+    ] = False,
+    current_user_id: OptionalUserId = None,
+    db: Session = Depends(get_db),
+) -> PeerMatchResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
+    try:
+        return PeerDiscoveryService.find_peers(
+            db,
+            profile.id,
+            limit=limit,
+            collaboration_interest=collaboration_interest,
+            exclude_same_institution=exclude_same_institution,
+        )
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, BookOpen, Briefcase, Calendar, CalendarDays, Compass, FileText, Megaphone, Sparkles, User } from "lucide-react";
+import { Bell, BookOpen, Briefcase, Calendar, CalendarDays, Compass, FileText, Megaphone, Sparkles, User, Users } from "lucide-react";
 
 /**
  * DiscoveryNavbar — migrated from React tab-state to Next.js Link navigation.
@@ -18,6 +18,7 @@ export function DiscoveryNavbar() {
   const isOpportunities = pathname === "/opportunities";
   const isBrowse = pathname === "/browse";
   const isPostings = pathname.startsWith("/postings");
+  const isPeers = pathname.startsWith("/peers");
   const isWorkspace = pathname.startsWith("/workspace");
   const isSubmissions = pathname.startsWith("/submissions");
   const isCalendar = pathname.startsWith("/calendar");
@@ -95,6 +96,15 @@ export function DiscoveryNavbar() {
           <CalendarDays size={16} />
           <span>Research Calendar</span>
           {isCalendar && <span className="nav-pill">Active</span>}
+        </Link>
+
+        <Link
+          href="/peers"
+          className={`discovery-nav-tab ${isPeers ? "active" : ""}`}
+        >
+          <Users size={16} />
+          <span>Find Peers</span>
+          {isPeers && <span className="nav-pill">Active</span>}
         </Link>
 
         <Link

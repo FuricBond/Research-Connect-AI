@@ -18,7 +18,7 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, backref, mapped_column, relationship
 
 from app.models.base import Base
 
@@ -158,7 +158,9 @@ class NotificationPreferenceModel(Base):
     # Relationships
     profile: Mapped[ResearchProfileModel] = relationship(
         "ResearchProfileModel",
-        backref="notification_preference",
+        # The schema declares ON DELETE CASCADE; cascading here too keeps the ORM from trying to
+        # NULL a NOT NULL profile_id when a profile is deleted.
+        backref=backref("notification_preference", uselist=False, cascade="all, delete-orphan"),
     )
 
     def __repr__(self) -> str:
@@ -258,7 +260,7 @@ class ReminderRuleModel(Base):
     # Relationships
     profile: Mapped[ResearchProfileModel] = relationship(
         "ResearchProfileModel",
-        backref="reminder_rules",
+        backref=backref("reminder_rules", cascade="all, delete-orphan"),
     )
 
     def __repr__(self) -> str:
@@ -425,7 +427,7 @@ class NotificationModel(Base):
     # Relationships
     profile: Mapped[ResearchProfileModel] = relationship(
         "ResearchProfileModel",
-        backref="notifications",
+        backref=backref("notifications", cascade="all, delete-orphan"),
     )
     opportunity: Mapped[OpportunityModel | None] = relationship(
         "OpportunityModel",

@@ -79,13 +79,13 @@ The entire intelligence and ranking pipeline is **deterministic, in-memory, and 
 |---|---|---|
 | **Frontend** | Next.js 15.3+, React 19, TypeScript 5.7+ | Next.js App Router, SSR + Client Components, Vanilla CSS design tokens, Lucide React icons |
 | **Backend** | Python 3.11+, FastAPI, Pydantic v2 | Versioned REST API (`/api/v1`), SQLAlchemy 2.0 ORM, Alembic migrations (0001–0023) |
-| **Database** | PostgreSQL 16 + `pgvector` extension | Relational storage, HNSW vector indexes (cosine similarity), GIN full-text search indexes |
+| **Database** | PostgreSQL 16 + `pgvector` extension | Relational storage, HNSW vector indexes (cosine similarity), GIN full-text search indexes, Alembic migrations 0001–0028 |
 | **Embeddings** | `sentence-transformers` · `all-MiniLM-L6-v2` | 384-dimensional dense semantic vectors with content-hash deduplication |
 | **Scraping** | `requests`, `BeautifulSoup4` | Production WikiCFP connector, change detection, and data freshness pipelines |
 | **IR / Evaluation** | `scikit-learn`, custom RRF & IR Metrics | P@K, R@K, MRR, NDCG, Kendall-τ rank correlation, HHI concentration, 16-scenario benchmark suite |
 | **Personalization Engine** | Custom deterministic engine | Adaptive signals, calibration, governance, quality assurance, and transparency controls |
 | **Containerization** | Docker Compose | Local PostgreSQL 16 with pre-configured `pgvector` extension |
-| **Testing** | `pytest` | 92 test modules, 1,290 collected tests — zero-network, in-memory fixtures, plus an opt-in PostgreSQL migration test |
+| **Testing** | `pytest` | 95 test modules, 1,402 collected tests — zero-network, in-memory fixtures, plus opt-in PostgreSQL integration tests |
 | **Knowledge Graph** | `graphify` | Navigable AST + semantic knowledge graph (`graphify-out/`) |
 
 ---
@@ -173,12 +173,14 @@ researchconnect-ai/
 │   │   ├── search/           # Query intelligence & GIN index integration
 │   │   ├── services/         # Domain services (28 service modules)
 │   │   └── main.py           # FastAPI entrypoint, CORS, router registration
-│   ├── tests/                # Pytest suite — 92 modules, 1,290 collected tests
+│   ├── tests/                # Pytest suite — 95 modules, 1,402 collected tests
 │   ├── pytest.ini            # Pytest configuration
 │   └── requirements.txt      # Pinned Python dependencies
 ├── frontend/
 │   ├── app/                  # Next.js 15 App Router routes
 │   │   ├── browse/           # Browse opportunities directory
+│   │   ├── peers/            # Peer & co-author discovery (5.12)
+│   │   ├── postings/         # Faculty research postings & applications (5.10/5.11)
 │   │   ├── calendar/         # Research calendar & deadline planning view
 │   │   ├── notifications/    # Notification center
 │   │   ├── opportunities/    # Opportunity details & deadline intelligence
@@ -278,7 +280,7 @@ researchconnect-ai/
 | **4.6** | **Collaborative Research Management** (Workspace members & RBAC, cryptographic invitations, collaborative tasks, append-only activity feed, Next.js `/workspace/[id]` UI) | ✅ Complete |
 | **4.7** | **Research Intelligence Integration & Production Hardening** (Unified intelligence service, signal provenance, identity resolution, 6-tier explainability, unified recommendations, zero N+1 queries) | ✅ Complete |
 
-### ✅ Phase 5 — Advanced Personalization Engine *(Complete)*
+### ✅ Phase 5 — Advanced Personalization & Academic Collaboration *(Complete)*
 
 | Sub-Phase | Description | Status |
 |---|---|---|
@@ -291,6 +293,9 @@ researchconnect-ai/
 | **5.7** | **Personalization Quality** (`QualityEngine`, diversity, novelty, coverage, serendipity metrics, migration 0021) | ✅ Complete |
 | **5.8** | **Personalization Governance** (`GovernanceEngine`, fairness auditing, safety invariants, compliance audit trails, migration 0022) | ✅ Complete |
 | **5.9** | **Personalization Transparency & Controls** (`TransparencyEngine`, user-facing preference controls, data portability, audit log API, migration 0023) | ✅ Complete |
+| **5.10** | **Faculty Research Postings** (`ResearchPostingModel`, 6-state lifecycle, FACULTY/ADMIN authorship, draft non-disclosure, taxonomy links, migration 0026, `/postings` UI) | ✅ Complete |
+| **5.11** | **Internships, RA Openings & Applications** (structured appointment terms, `ResearchPostingApplicationModel` with role-partitioned transitions, author-private notes, append-only history, migration 0027) | ✅ Complete |
+| **5.12** | **Peer & Co-Author Discovery** (`ResearcherDiscoverySettingsModel` opt-in consent, deterministic `PeerMatchingEngine` balancing shared vs complementary expertise, migration 0028, `/peers` UI) | ✅ Complete |
 
 ### 🚧 Phase 6 — Platform Infrastructure, Security & Correctness Hardening *(In Progress)*
 
@@ -363,7 +368,7 @@ researchconnect-ai/
 
 ## 🧪 Testing & Validation
 
-The backend maintains a comprehensive test suite of **92 test modules** and **1,290 collected tests** (zero-network, in-memory fixtures):
+The backend maintains a comprehensive test suite of **95 test modules** and **1,402 collected tests** (zero-network, in-memory fixtures):
 
 ```bash
 # Run full backend test suite
@@ -433,7 +438,7 @@ pip install -r requirements.txt
 # Copy environment file
 cp ../.env.example .env
 
-# Run database migrations (0001–0025)
+# Run database migrations (0001–0028)
 alembic upgrade head
 
 # Load a deterministic demo dataset: 3 accounts (faculty/student/admin), explicit
@@ -480,7 +485,7 @@ Next.js web application: `http://localhost:3000`
 ### 4. Running Validation
 
 ```bash
-# Backend tests (1,290 tests, zero-network)
+# Backend tests (1,402 tests, zero-network)
 cd backend
 ..\\.venv\\Scripts\\pytest.exe
 

@@ -68,6 +68,11 @@ from app.models.research_posting_application import (
     CompensationType,
     ResearchPostingApplicationModel,
 )
+from app.models.researcher_discovery import (
+    CollaborationInterest,
+    CollaborationStatus,
+    ResearcherDiscoverySettingsModel,
+)
 from app.models.research_submission import (
     ResearchSubmissionModel,
     SubmissionStatus,
@@ -223,6 +228,10 @@ __all__ = [
     "ApplicationStatus",
     "CompensationType",
     "CommitmentType",
+    # Peer & Co-Author Discovery (Phase 5.12)
+    "ResearcherDiscoverySettingsModel",
+    "CollaborationStatus",
+    "CollaborationInterest",
     # Personalization Transparency & Researcher Controls (Phase 5.9)
     "ResearcherPersonalizationSettingsModel",
     "PersonalizationControlEventModel",

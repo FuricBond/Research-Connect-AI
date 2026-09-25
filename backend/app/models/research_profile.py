@@ -28,6 +28,7 @@ if TYPE_CHECKING:
         ResearcherPersonalizationSettingsModel,
     )
     from app.models.research_posting import ResearchPostingModel
+    from app.models.researcher_discovery import ResearcherDiscoverySettingsModel
     from app.models.research_posting_application import ResearchPostingApplicationModel
     from app.models.user import UserModel
 
@@ -204,6 +205,11 @@ class ResearchProfileModel(Base, TimestampMixin):
     )
     posting_applications: Mapped[list["ResearchPostingApplicationModel"]] = relationship(
         back_populates="applicant_profile",
+        cascade="all, delete-orphan",
+    )
+    discovery_settings: Mapped[Optional["ResearcherDiscoverySettingsModel"]] = relationship(
+        back_populates="researcher_profile",
+        uselist=False,
         cascade="all, delete-orphan",
     )
     personalization_control_events: Mapped[list["PersonalizationControlEventModel"]] = relationship(
