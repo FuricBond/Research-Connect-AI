@@ -2,16 +2,27 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, BookOpen, Briefcase, Calendar, CalendarDays, Compass, FileText, Megaphone, Sparkles, User, Users } from "lucide-react";
+import { Bell, BookOpen, Briefcase, Calendar, CalendarDays, Compass, FileText, Megaphone, ShieldCheck, Sparkles, User, Users } from "lucide-react";
+import { useSession } from "../auth/SessionProvider";
 
 /**
  * DiscoveryNavbar — migrated from React tab-state to Next.js Link navigation.
  *
  * Active tab is detected from the current pathname instead of a prop,
  * so it works correctly with server-side rendering and browser history.
+ *
+ * Tabs whose pages need an account appear only once there is one, and the administration
+ * tab only for an ADMIN account. Hiding a tab is a convenience, never a permission: the
+ * pages behind them are guarded and the backend authorises every request.
  */
 export function DiscoveryNavbar() {
   const pathname = usePathname();
+  const { status, hasRole } = useSession();
+
+  // Treat "still restoring" as not signed in: a tab that appears is better than one that
+  // appears and then vanishes.
+  const isAuthenticated = status === "authenticated";
+  const isAdmin = isAuthenticated && hasRole("ADMIN");
 
   const isSearch = pathname === "/";
   const isSimilar = pathname === "/similar";
@@ -23,6 +34,7 @@ export function DiscoveryNavbar() {
   const isSubmissions = pathname.startsWith("/submissions");
   const isCalendar = pathname.startsWith("/calendar");
   const isResearcher = pathname.startsWith("/researcher");
+  const isAdminRoute = pathname.startsWith("/admin");
   const isNotifications = pathname.startsWith("/notifications") || pathname.startsWith("/settings/notifications");
 
   return (
@@ -71,6 +83,8 @@ export function DiscoveryNavbar() {
           {isPostings && <span className="nav-pill">Active</span>}
         </Link>
 
+        {isAuthenticated && (
+          <>
         <Link
           href="/workspace"
           className={`discovery-nav-tab ${isWorkspace ? "active" : ""}`}
@@ -124,6 +138,19 @@ export function DiscoveryNavbar() {
           <span>Notifications</span>
           {isNotifications && <span className="nav-pill">Active</span>}
         </Link>
+          </>
+        )}
+
+        {isAdmin && (
+          <Link
+            href="/admin"
+            className={`discovery-nav-tab ${isAdminRoute ? "active" : ""}`}
+          >
+            <ShieldCheck size={16} />
+            <span>Administration</span>
+            {isAdminRoute && <span className="nav-pill">Active</span>}
+          </Link>
+        )}
       </div>
     </nav>
   );

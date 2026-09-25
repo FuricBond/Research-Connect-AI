@@ -1,6 +1,7 @@
 "use client";
 
 import { GraduationCap } from "lucide-react";
+import { AuthMenu } from "./auth/AuthMenu";
 
 /**
  * AppHeader — static top navigation bar.
@@ -22,6 +23,7 @@ export function AppHeader() {
 
         <div className="header-meta">
           <span className="phase-indicator">Phase 2.7 Intelligence Engine</span>
+          <AuthMenu />
         </div>
       </div>
     </header>

@@ -36,6 +36,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { RequireAuth } from "../../components/auth/RequireAuth";
 
 type ViewMode = "MONTH" | "AGENDA";
 
@@ -54,7 +55,7 @@ const FILTER_OPTIONS: { label: string; value: FilterType }[] = [
 
 const WEEKDAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-export default function CalendarPage() {
+function CalendarPage() {
   const [calendar, setCalendar] = useState<ResearchCalendar | null>(null);
   const [events, setEvents] = useState<ResearchCalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -847,5 +848,14 @@ export default function CalendarPage() {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function CalendarPageRoute() {
+  return (
+    <RequireAuth>
+      <CalendarPage  />
+    </RequireAuth>
   );
 }

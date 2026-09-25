@@ -29,14 +29,17 @@ import {
   fetchResearcherProfile,
   fetchResearcherWorks,
 } from "../../services/api";
-import { clearActiveIdentity, setActiveIdentity } from "../../services/auth";
+import { useSession } from "../../components/auth/SessionProvider";
 import { AlertCircle, Loader2, Sparkles, UserPlus } from "lucide-react";
+import { RequireAuth } from "../../components/auth/RequireAuth";
 
 
 // Default demo ID or fallback initialization for developer/preview usage
 const DEFAULT_DEMO_EMAIL = "researcher@university.edu";
 
-export default function ResearcherPage() {
+function ResearcherPage() {
+  // The signed-in account's profile, created with the account at registration.
+  const { profileId } = useSession();
   const [profile, setProfile] = useState<ResearcherProfile | null>(null);
   const [works, setWorks] = useState<ResearcherWorkSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -175,20 +178,11 @@ export default function ResearcherPage() {
       setLoading(true);
       setError(null);
 
-      // Attempt to load from stored profile ID in localStorage if available
-      const storedId = typeof window !== "undefined" ? localStorage.getItem("researchconnect_active_profile_id") : null;
-
-      if (storedId) {
+      if (profileId) {
         try {
-          const loaded = await fetchResearcherProfile(storedId);
+          const loaded = await fetchResearcherProfile(profileId);
           if (!cancelled) {
             setProfile(loaded);
-            setActiveIdentity({
-              profileId: loaded.id,
-              userId: loaded.user_id,
-              email: loaded.email,
-              name: loaded.full_name,
-            });
             if (loaded.canonical_researcher_id) {
               const loadedWorks = await fetchResearcherWorks(loaded.id).catch(() => []);
               if (!cancelled) setWorks(loadedWorks);
@@ -203,8 +197,9 @@ export default function ResearcherPage() {
             return;
           }
         } catch {
-          // If stored ID not found on server, clear and fall through to initialization prompt
-          clearActiveIdentity();
+          // The account has no readable profile: fall through to the initialization
+          // prompt. The session itself is still valid, so it must not be cleared here —
+          // only a rejected credential clears a session, and the API client reports that.
         }
       }
 
@@ -217,7 +212,7 @@ export default function ResearcherPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [profileId]);
 
 
   const handleCreateDefaultProfile = async (e: React.FormEvent) => {
@@ -236,12 +231,6 @@ export default function ResearcherPage() {
         bio: "Faculty researcher exploring academic discovery systems and hybrid retrieval.",
       });
 
-      setActiveIdentity({
-        profileId: created.id,
-        userId: created.user_id,
-        email: created.email,
-        name: created.full_name,
-      });
       setProfile(created);
       loadIntelligence(created.id, true);
       loadPreferences(created.id, true);
@@ -256,9 +245,6 @@ export default function ResearcherPage() {
 
   const handleProfileUpdated = (updated: ResearcherProfile) => {
     setProfile(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("researchconnect_active_profile_id", updated.id);
-    }
     loadIntelligence(updated.id, true);
     loadPreferences(updated.id, true);
     loadCandidates(updated.id, undefined, true);
@@ -514,4 +500,10 @@ export default function ResearcherPage() {
 }
 
 
-
+export default function ResearcherPageRoute() {
+  return (
+    <RequireAuth>
+      <ResearcherPage  />
+    </RequireAuth>
+  );
+}

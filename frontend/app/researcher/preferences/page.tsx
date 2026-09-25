@@ -53,6 +53,8 @@ import {
   fetchStructuredResearcherPreferences,
   updateResearcherPreference,
 } from "../../../services/api";
+import { RequireAuth } from "../../../components/auth/RequireAuth";
+import { useSession } from "../../../components/auth/SessionProvider";
 
 const CANONICAL_OPP_TYPES = [
   { value: "CONFERENCE", label: "Conference" },
@@ -96,7 +98,8 @@ const ACADEMIC_LEVELS = [
   { value: "INDUSTRY_RESEARCHER", label: "Industry Researcher" },
 ];
 
-export default function ResearcherPreferencesPage() {
+function ResearcherPreferencesPage() {
+  const { profileId } = useSession();
   const [profile, setProfile] = useState<ResearcherProfile | null>(null);
   const [structuredPrefs, setStructuredPrefs] = useState<StructuredPreferencesResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -126,14 +129,17 @@ export default function ResearcherPreferencesPage() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch current researcher profile
-      const demoEmail = "researcher@university.edu";
+      // 1. Fetch the signed-in account's own profile. This previously looked up a
+      //    fixed demo email, so the page edited whichever account happened to own that
+      //    address rather than the caller's — which the backend now refuses outright.
       let prof: ResearcherProfile | null = null;
-      try {
-        prof = await fetchResearcherProfile(demoEmail);
-        setProfile(prof);
-      } catch {
-        // Not found or network error
+      if (profileId) {
+        try {
+          prof = await fetchResearcherProfile(profileId);
+          setProfile(prof);
+        } catch {
+          // Not found or network error
+        }
       }
 
       if (prof) {
@@ -154,7 +160,7 @@ export default function ResearcherPreferencesPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [profileId]);
 
   useEffect(() => {
     loadData();
@@ -1361,5 +1367,14 @@ export default function ResearcherPreferencesPage() {
 
       </div>
     </div>
+  );
+}
+
+
+export default function ResearcherPreferencesPageRoute() {
+  return (
+    <RequireAuth>
+      <ResearcherPreferencesPage  />
+    </RequireAuth>
   );
 }

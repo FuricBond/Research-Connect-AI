@@ -32,7 +32,7 @@ import {
   fetchPostings,
   transitionPosting,
 } from "../../services/api";
-import { getStoredIdentity } from "../../services/auth";
+import { useSession } from "../../components/auth/SessionProvider";
 
 type Mode = "DISCOVER" | "MINE";
 
@@ -73,6 +73,9 @@ const EMPTY_DRAFT: PostingCreatePayload = {
 };
 
 export default function PostingsPage() {
+  // Discovery is public, so this page is not guarded; only the authoring and "my
+  // postings" controls need an account.
+  const { status, hasRole } = useSession();
   const [mode, setMode] = useState<Mode>("DISCOVER");
   const [postings, setPostings] = useState<ResearchPosting[]>([]);
   const [summary, setSummary] = useState<PostingSummaryResponse | null>(null);
@@ -97,11 +100,12 @@ export default function PostingsPage() {
 
   // Authoring is a faculty/admin capability. The server enforces this regardless; the UI
   // only avoids offering an action that would certainly be refused.
-  const [canAuthor, setCanAuthor] = useState(false);
+  const isSignedIn = status === "authenticated";
+  const canAuthor = isSignedIn && hasRole("FACULTY", "ADMIN");
+
   useEffect(() => {
-    const role = getStoredIdentity().role;
-    setCanAuthor(role === "FACULTY" || role === "ADMIN");
-  }, []);
+    if (!isSignedIn && mode === "MINE") setMode("DISCOVER");
+  }, [isSignedIn, mode]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -232,16 +236,20 @@ export default function PostingsPage() {
         >
           Discover
         </button>
-        <button
-          type="button"
-          className={`postings-mode-tab${mode === "MINE" ? " active" : ""}`}
-          onClick={() => setMode("MINE")}
-        >
-          My postings
-        </button>
-        <Link href="/postings/applications" className="postings-mode-tab">
-          My applications
-        </Link>
+        {isSignedIn && (
+          <>
+            <button
+              type="button"
+              className={`postings-mode-tab${mode === "MINE" ? " active" : ""}`}
+              onClick={() => setMode("MINE")}
+            >
+              My postings
+            </button>
+            <Link href="/postings/applications" className="postings-mode-tab">
+              My applications
+            </Link>
+          </>
+        )}
       </nav>
 
       {showForm && canAuthor && (

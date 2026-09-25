@@ -22,11 +22,14 @@ import {
   fetchPeerMatches,
   updateDiscoverySettings,
 } from "../../services/api";
-import { getStoredIdentity } from "../../services/auth";
+import { useSession } from "../../components/auth/SessionProvider";
+import { RequireAuth } from "../../components/auth/RequireAuth";
 
-export default function PeerDiscoveryPage() {
-  const [profileId, setProfileId] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | undefined>(undefined);
+function PeerDiscoveryPage() {
+  const { profileId, user } = useSession();
+  // Kept for the developer-identity fallback: with a bearer token present the API client
+  // drops the X-User-ID header, so this never travels alongside one.
+  const userId = user?.id;
 
   const [settings, setSettings] = useState<DiscoverySettings | null>(null);
   const [result, setResult] = useState<PeerMatchResponse | null>(null);
@@ -36,12 +39,6 @@ export default function PeerDiscoveryPage() {
 
   const [interestFilter, setInterestFilter] = useState<CollaborationInterest | "">("");
   const [excludeSameInstitution, setExcludeSameInstitution] = useState(false);
-
-  useEffect(() => {
-    const identity = getStoredIdentity();
-    setProfileId(identity.profileId);
-    setUserId(identity.userId ?? undefined);
-  }, []);
 
   const load = useCallback(async () => {
     if (!profileId) {
@@ -304,5 +301,14 @@ export default function PeerDiscoveryPage() {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function PeerDiscoveryPageRoute() {
+  return (
+    <RequireAuth>
+      <PeerDiscoveryPage  />
+    </RequireAuth>
   );
 }

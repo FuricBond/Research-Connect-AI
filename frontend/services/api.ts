@@ -1,4 +1,14 @@
 import type {
+  AdminUserListResponse,
+  AdminUserRead,
+  AdminUserUpdate,
+  AuthenticatedUser,
+  LoginPayload,
+  PlatformRole,
+  RegisterPayload,
+  TokenResponse,
+} from "../types/auth";
+import type {
   OpportunityDeadline,
   OpportunityListResponse,
   OpportunityRead,
@@ -174,6 +184,54 @@ import { getAuthHeaders } from "./auth";
 // NEXT_PUBLIC_API_URL replaces former VITE_API_URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+// ── Phase 6.2 — Session expiry notification ──────────────────────────────────
+//
+// `fetchJson` cannot decide what an expired session means: it does not know which
+// route the person is on, and redirecting from here would fight the router. It only
+// reports, and the session provider (the single owner of auth state) reacts.
+
+type UnauthorizedHandler = () => void;
+
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+
+/** Registers the single listener notified when an authenticated request is rejected. */
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+  unauthorizedHandler = handler;
+}
+
+// Sign-in and registration answer 401 and 409 as ordinary form errors. Reporting those
+// as a lost session would clear the credentials the caller is in the middle of
+// establishing, so they are excluded.
+const SESSION_EXEMPT_PATHS = ["/api/v1/auth/login", "/api/v1/auth/register"];
+
+function notifyUnauthorized(path: string, sentBearerToken: boolean): void {
+  if (!sentBearerToken) return;
+  if (SESSION_EXEMPT_PATHS.some((exempt) => path.startsWith(exempt))) return;
+  unauthorizedHandler?.();
+}
+
+/**
+ * Pulls a human-readable message out of an error body. FastAPI sends a string `detail`
+ * for raised HTTPExceptions but a list of per-field objects for request validation, and
+ * showing "[object Object]" to someone mistyping their email is not acceptable.
+ */
+function extractErrorDetail(body: unknown, fallback: string): string {
+  if (body === null || typeof body !== "object") return fallback;
+  const detail = (body as { detail?: unknown }).detail;
+  if (typeof detail === "string" && detail.trim() !== "") return detail;
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((entry) =>
+        entry !== null && typeof entry === "object" && typeof (entry as { msg?: unknown }).msg === "string"
+          ? ((entry as { msg: string }).msg)
+          : null
+      )
+      .filter((msg): msg is string => msg !== null);
+    if (messages.length > 0) return messages.join(" ");
+  }
+  return fallback;
+}
+
 export class ApiError extends Error {
   public status: number;
   public detail?: string;
@@ -226,16 +284,21 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     let detail = `Request failed with status ${response.status}`;
     try {
-      const errJson = await response.json();
-      if (errJson && typeof errJson.detail === "string") {
-        detail = errJson.detail;
-      }
+      detail = extractErrorDetail(await response.json(), detail);
     } catch {
       // Non-JSON error body fallback
     }
 
     if (response.status === 429) {
-      detail = "Rate limit exceeded (maximum 60 discovery requests/minute). Please slow down and try again shortly.";
+      // The discovery endpoints and the authentication endpoints have separate limits,
+      // so the message must not name one while describing the other.
+      detail = detail.trim() !== "" && !detail.startsWith("Request failed")
+        ? detail
+        : "Rate limit exceeded. Please slow down and try again shortly.";
+    }
+
+    if (response.status === 401) {
+      notifyUnauthorized(path, headers["Authorization"] !== undefined);
     }
 
     throw new ApiError(response.status, detail, detail);
@@ -246,6 +309,72 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return response.json() as Promise<T>;
+}
+
+// ── Phase 6.2 — Authentication API ───────────────────────────────────────────
+//
+// Contracts come from backend/app/api/v1/auth.py and are mounted at /api/v1 only
+// (unlike the discovery routers, which are also mounted at /api).
+
+/**
+ * Exchanges credentials for a signed bearer token. Throws `ApiError` with status 401
+ * for bad credentials and 429 when the login rate limit is hit.
+ */
+export async function login(
+  payload: LoginPayload,
+  signal?: AbortSignal
+): Promise<TokenResponse> {
+  return fetchJson<TokenResponse>("/api/v1/auth/login", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    signal,
+  });
+}
+
+/**
+ * Creates an account and its researcher profile, and returns a token: registration
+ * authenticates, so no second sign-in round trip is needed. 409 means the email is taken.
+ */
+export async function register(
+  payload: RegisterPayload,
+  signal?: AbortSignal
+): Promise<TokenResponse> {
+  return fetchJson<TokenResponse>("/api/v1/auth/register", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    signal,
+  });
+}
+
+/** Verifies the stored credentials against the backend and returns the live account. */
+export async function getCurrentUser(signal?: AbortSignal): Promise<AuthenticatedUser> {
+  return fetchJson<AuthenticatedUser>("/api/v1/auth/me", { signal });
+}
+
+// ── Phase 6.2 — Platform administration API (ADMIN only) ─────────────────────
+
+export async function fetchAdminUsers(
+  params: { role?: PlatformRole; search?: string; limit?: number; offset?: number } = {},
+  signal?: AbortSignal
+): Promise<AdminUserListResponse> {
+  const query = new URLSearchParams();
+  if (params.role) query.set("role", params.role);
+  if (params.search) query.set("search", params.search);
+  query.set("limit", String(params.limit ?? 50));
+  query.set("offset", String(params.offset ?? 0));
+  return fetchJson<AdminUserListResponse>(`/api/v1/admin/users?${query.toString()}`, { signal });
+}
+
+export async function updateAdminUser(
+  userId: string,
+  payload: AdminUserUpdate,
+  signal?: AbortSignal
+): Promise<AdminUserRead> {
+  return fetchJson<AdminUserRead>(`/api/v1/admin/users/${userId}`, {
+    method: "PATCH",
+    body: JSON.stringify(payload),
+    signal,
+  });
 }
 
 // ── Legacy Opportunities API ──────────────────────────────────────────────────

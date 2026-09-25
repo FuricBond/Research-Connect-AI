@@ -59,6 +59,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import { RequireAuth } from "../../../../components/auth/RequireAuth";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -128,7 +129,7 @@ function getStepState(
 
 type TabKey = "overview" | "documents" | "readiness" | "history";
 
-export default function SubmissionManagementPage({ params }: PageProps) {
+function SubmissionManagementPage({ params }: PageProps) {
   const { id: workspaceItemId } = React.use(params);
 
   const [workspaceItem, setWorkspaceItem] = useState<WorkspaceItem | null>(null);
@@ -1867,5 +1868,14 @@ export default function SubmissionManagementPage({ params }: PageProps) {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function SubmissionManagementPageRoute(props: PageProps) {
+  return (
+    <RequireAuth>
+      <SubmissionManagementPage {...props} />
+    </RequireAuth>
   );
 }

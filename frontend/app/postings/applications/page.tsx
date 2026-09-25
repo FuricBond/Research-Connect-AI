@@ -16,6 +16,7 @@ import {
   fetchMyApplications,
   transitionApplication,
 } from "../../../services/api";
+import { RequireAuth } from "../../../components/auth/RequireAuth";
 
 const STATUS_FILTERS: (ApplicationStatus | "")[] = [
   "",
@@ -29,7 +30,7 @@ const STATUS_FILTERS: (ApplicationStatus | "")[] = [
   "WITHDRAWN",
 ];
 
-export default function MyApplicationsPage() {
+function MyApplicationsPage() {
   const [applications, setApplications] = useState<PostingApplication[]>([]);
   const [summary, setSummary] = useState<ApplicationSummaryResponse | null>(null);
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | "">("");
@@ -159,5 +160,14 @@ export default function MyApplicationsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function MyApplicationsPageRoute() {
+  return (
+    <RequireAuth>
+      <MyApplicationsPage  />
+    </RequireAuth>
   );
 }

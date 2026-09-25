@@ -29,8 +29,9 @@ import {
   OffsetUnit,
 } from "@/types/notification";
 import "@/styles/notifications.css";
+import { RequireAuth } from "../../../components/auth/RequireAuth";
 
-export default function NotificationSettingsPage() {
+function NotificationSettingsPage() {
   const [preferences, setPreferences] = useState<NotificationPreference | null>(null);
   const [rules, setRules] = useState<ReminderRule[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -386,5 +387,14 @@ export default function NotificationSettingsPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+
+export default function NotificationSettingsPageRoute() {
+  return (
+    <RequireAuth>
+      <NotificationSettingsPage  />
+    </RequireAuth>
   );
 }

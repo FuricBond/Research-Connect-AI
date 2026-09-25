@@ -56,6 +56,7 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { RequireAuth } from "../../../components/auth/RequireAuth";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -63,7 +64,7 @@ interface PageProps {
 
 type TabKey = "overview" | "tasks" | "members" | "invitations" | "activity";
 
-export default function WorkspaceCollaborationPage({ params }: PageProps) {
+function WorkspaceCollaborationPage({ params }: PageProps) {
   const { id: workspaceId } = React.use(params);
 
   const [workspaceItem, setWorkspaceItem] = useState<WorkspaceItem | null>(null);
@@ -970,5 +971,14 @@ export default function WorkspaceCollaborationPage({ params }: PageProps) {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function WorkspaceCollaborationPageRoute(props: PageProps) {
+  return (
+    <RequireAuth>
+      <WorkspaceCollaborationPage {...props} />
+    </RequireAuth>
   );
 }

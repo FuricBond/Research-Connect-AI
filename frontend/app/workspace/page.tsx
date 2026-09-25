@@ -37,6 +37,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { RequireAuth } from "../../components/auth/RequireAuth";
 
 type FilterTab = "ALL" | WorkspaceStatus;
 
@@ -51,7 +52,7 @@ const PIPELINE_TABS: { label: string; value: FilterTab }[] = [
   { label: "Archived", value: "ARCHIVED" },
 ];
 
-export default function WorkspacePage() {
+function WorkspacePage() {
   const [items, setItems] = useState<WorkspaceItem[]>([]);
   const [summary, setSummary] = useState<WorkspaceSummaryResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -708,5 +709,14 @@ export default function WorkspacePage() {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function WorkspacePageRoute() {
+  return (
+    <RequireAuth>
+      <WorkspacePage  />
+    </RequireAuth>
   );
 }

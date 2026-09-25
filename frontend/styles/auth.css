@@ -1,0 +1,411 @@
+/* Phase 6.2 — Authentication, session and administration styling.
+   Follows the same token-with-fallback convention as postings.css and peers.css. */
+
+/* ── Shared session states (route guard) ── */
+
+.auth-pending,
+.auth-denied {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px dashed var(--color-border, #e2e8f0);
+  border-radius: 10px;
+  padding: 2rem 1.25rem;
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.875rem;
+  justify-content: center;
+}
+
+.auth-denied {
+  align-items: flex-start;
+  justify-content: flex-start;
+  border-style: solid;
+  border-color: #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+  text-align: left;
+}
+
+.auth-denied-title {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+}
+
+.auth-denied-body {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.auth-spinner {
+  animation: auth-spin 0.9s linear infinite;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-spinner {
+    animation: none;
+  }
+}
+
+/* ── Sign-in and registration ── */
+
+.auth-page {
+  display: flex;
+  justify-content: center;
+  padding: 2.5rem 0 3rem;
+  min-height: 55vh;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 12px;
+  background: var(--color-surface, #ffffff);
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.07));
+  padding: 1.75rem;
+}
+
+.auth-card-wide {
+  max-width: 560px;
+}
+
+.auth-card-head h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+}
+
+.auth-card-subtitle {
+  margin: 0 0 1.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--color-text-muted, #64748b);
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.auth-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 0.9rem;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.auth-field label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text, #334155);
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.auth-field-hint {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--color-text-muted, #94a3b8);
+}
+
+.auth-field input,
+.auth-field select {
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  background: var(--color-surface, #ffffff);
+  color: inherit;
+}
+
+.auth-field input:focus-visible,
+.auth-field select:focus-visible {
+  outline: 2px solid var(--primary, #0f766e);
+  outline-offset: 1px;
+}
+
+.auth-field input:disabled,
+.auth-field select:disabled {
+  background: var(--bg-muted, #f1f5f9);
+  cursor: not-allowed;
+}
+
+.auth-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--primary, #0f766e);
+  border-radius: 6px;
+  background: var(--primary, #0f766e);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-submit:hover:not(:disabled) {
+  background: var(--primary-hover, #115e59);
+}
+
+.auth-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.auth-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.auth-alt {
+  margin: 1.1rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #64748b);
+  text-align: center;
+}
+
+.auth-link {
+  color: var(--primary, #0f766e);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Header identity control ── */
+
+/* The header previously held a single badge; it now also carries the identity control. */
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.auth-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* Reserves the control's width while the stored session is being verified, so the
+   header does not jump when the name arrives. */
+.auth-menu-placeholder {
+  min-width: 132px;
+  min-height: 30px;
+}
+
+.auth-menu-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.25;
+}
+
+.auth-menu-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-main, #0f172a);
+}
+
+.auth-menu-role {
+  font-size: 0.7rem;
+  color: var(--text-muted, #64748b);
+}
+
+.auth-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-surface, #ffffff);
+  color: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.auth-menu-btn:hover:not(:disabled) {
+  border-color: var(--primary, #0f766e);
+  color: var(--primary, #0f766e);
+}
+
+.auth-menu-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.auth-menu-btn.primary {
+  background: var(--primary, #0f766e);
+  border-color: var(--primary, #0f766e);
+  color: #ffffff;
+}
+
+.auth-menu-btn.primary:hover {
+  background: var(--primary-hover, #115e59);
+  color: #ffffff;
+}
+
+/* ── Administration table ── */
+
+.auth-admin {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-admin-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.auth-admin-head h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.3rem;
+}
+
+.auth-admin-subtitle {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+.auth-admin-filters {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.auth-admin-search {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 1 1 220px;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  background: var(--color-surface, #ffffff);
+  color: var(--color-text-muted, #64748b);
+}
+
+.auth-admin-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--text-main, #0f172a);
+  width: 100%;
+}
+
+.auth-admin-filters select {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: var(--color-surface, #ffffff);
+  color: inherit;
+}
+
+.auth-admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.auth-admin-table th,
+.auth-admin-table td {
+  text-align: left;
+  padding: 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  vertical-align: middle;
+}
+
+.auth-admin-table th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted, #94a3b8);
+}
+
+.auth-admin-table select {
+  padding: 0.3rem 0.45rem;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  background: var(--color-surface, #ffffff);
+  color: inherit;
+}
+
+.auth-admin-row-pending {
+  opacity: 0.55;
+}
+
+.auth-admin-name {
+  display: block;
+  font-weight: 600;
+  color: var(--text-main, #0f172a);
+}
+
+.auth-admin-email {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--color-text-muted, #64748b);
+}
+
+.auth-admin-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.auth-admin-toggle span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.auth-admin-empty {
+  border: 1px dashed var(--color-border, #e2e8f0);
+  border-radius: 10px;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--color-text-muted, #64748b);
+  font-size: 0.875rem;
+}

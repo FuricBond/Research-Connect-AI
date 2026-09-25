@@ -27,8 +27,9 @@ import {
 } from "@/services/api";
 import { NotificationItem, NotificationType } from "@/types/notification";
 import "@/styles/notifications.css";
+import { RequireAuth } from "../../components/auth/RequireAuth";
 
-export default function NotificationsPage() {
+function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -363,5 +364,14 @@ export default function NotificationsPage() {
         )}
       </main>
     </div>
+  );
+}
+
+
+export default function NotificationsPageRoute() {
+  return (
+    <RequireAuth>
+      <NotificationsPage  />
+    </RequireAuth>
   );
 }
