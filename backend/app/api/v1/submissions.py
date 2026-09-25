@@ -8,7 +8,7 @@ Provides researcher-scoped submission endpoints:
   - Retrieving and modifying submission draft metadata
   - Deterministic state machine status transitions
   - Deleting submissions (DRAFT or WITHDRAWN only)
-  - Enforcing strict researcher isolation via X-User-ID header
+  - Enforcing strict researcher isolation via the authenticated identity (Phase 6)
 """
 from __future__ import annotations
 
@@ -16,14 +16,13 @@ import logging
 from typing import Annotated
 import uuid
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import OptionalUserId, require_user_id
 from app.db.session import get_db
 from app.models.research_submission import SubmissionStatus, SubmissionType
 from app.models.submission_document import DocumentStatus, DocumentType
-from app.models.user import UserModel
 from app.schemas.research_submission import (
     ResearchSubmissionCreate,
     ResearchSubmissionListResponse,
@@ -46,34 +45,10 @@ from app.services.research_submission_service import (
     InvalidSubmissionTransitionError,
     ResearchSubmissionService,
 )
-from app.services.workspace_service import WorkspaceService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/submissions", tags=["submissions"])
-
-
-def resolve_current_user(
-    db: Session,
-    x_user_id: uuid.UUID | None,
-) -> uuid.UUID:
-    """
-    Resolves the authenticated user ID from the X-User-ID header or falls back to
-    the single active user in developer mode.
-    """
-    if x_user_id is not None:
-        return WorkspaceService.resolve_user_id(db, x_user_id)
-
-    fallback_user = db.execute(
-        select(UserModel).order_by(UserModel.created_at.asc())
-    ).scalars().first()
-    if fallback_user is not None:
-        return fallback_user.id
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Authentication required: Please provide an 'X-User-ID' header.",
-    )
 
 
 @router.post(
@@ -85,10 +60,10 @@ def resolve_current_user(
 )
 def create_submission(
     payload: ResearchSubmissionCreate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearchSubmissionRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         submission = ResearchSubmissionService.create_submission(db, user_id, payload)
         return ResearchSubmissionService.build_submission_read(submission)
@@ -114,10 +89,10 @@ def list_submissions(
     sort_order: Annotated[str, Query(description="Sort order: asc, desc")] = "desc",
     limit: Annotated[int, Query(ge=1, le=100, description="Page size limit")] = 50,
     offset: Annotated[int, Query(ge=0, description="Offset")] = 0,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearchSubmissionListResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     return ResearchSubmissionService.list_submissions(
         db=db,
         user_id=user_id,
@@ -140,10 +115,10 @@ def list_submissions(
     description="Get statistical counts of research submissions grouped by status and submission type.",
 )
 def get_submission_summary(
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> SubmissionSummaryResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     return ResearchSubmissionService.get_summary(db, user_id)
 
 
@@ -156,10 +131,10 @@ def get_submission_summary(
 )
 def get_submission(
     submission_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearchSubmissionRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         submission = ResearchSubmissionService.get_submission(db, user_id, submission_id)
         if submission is None:
@@ -182,10 +157,10 @@ def get_submission(
 def update_submission(
     submission_id: uuid.UUID,
     payload: ResearchSubmissionUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearchSubmissionRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         updated = ResearchSubmissionService.update_submission(db, user_id, submission_id, payload)
         return ResearchSubmissionService.build_submission_read(updated)
@@ -205,10 +180,10 @@ def update_submission(
 def transition_submission_status(
     submission_id: uuid.UUID,
     payload: SubmissionStatusTransition,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearchSubmissionRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         item = ResearchSubmissionService.transition_status(
             db=db,
@@ -234,10 +209,10 @@ def transition_submission_status(
 )
 def delete_submission(
     submission_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         ResearchSubmissionService.delete_submission(db, user_id, submission_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -262,10 +237,10 @@ def delete_submission(
 def create_submission_document(
     submission_id: uuid.UUID,
     payload: SubmissionDocumentCreate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> SubmissionDocumentRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         return ResearchSubmissionDocumentService.create_document(
             db=db,
@@ -292,10 +267,10 @@ def list_submission_documents(
     document_type: Annotated[DocumentType | None, Query(description="Filter by document category")] = None,
     is_required: Annotated[bool | None, Query(description="Filter by required flag")] = None,
     include_archived: Annotated[bool, Query(description="Include archived documents")] = True,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> SubmissionDocumentListResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         return ResearchSubmissionDocumentService.list_documents(
             db=db,
@@ -322,10 +297,10 @@ def list_submission_documents(
 def get_submission_document(
     submission_id: uuid.UUID,
     document_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> SubmissionDocumentRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         doc = ResearchSubmissionDocumentService.get_document(
             db=db,
@@ -356,10 +331,10 @@ def update_submission_document(
     submission_id: uuid.UUID,
     document_id: uuid.UUID,
     payload: SubmissionDocumentUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> SubmissionDocumentRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         return ResearchSubmissionDocumentService.update_document(
             db=db,
@@ -383,10 +358,10 @@ def update_submission_document(
 def delete_submission_document(
     submission_id: uuid.UUID,
     document_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         ResearchSubmissionDocumentService.delete_document(
             db=db,
@@ -411,10 +386,10 @@ def delete_submission_document(
 def list_document_versions(
     submission_id: uuid.UUID,
     document_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> list[SubmissionDocumentVersionRead]:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         return ResearchSubmissionDocumentService.list_document_versions(
             db=db,
@@ -440,10 +415,10 @@ def list_document_versions(
 )
 def evaluate_submission_readiness(
     submission_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> SubmissionReadinessResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         return ResearchSubmissionDocumentService.evaluate_readiness(
             db=db,
@@ -470,10 +445,10 @@ def get_submission_history(
     submission_id: uuid.UUID,
     limit: Annotated[int, Query(ge=1, le=100, description="Max events to return")] = 50,
     offset: Annotated[int, Query(ge=0, description="Pagination offset")] = 0,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> SubmissionHistoryResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         return ResearchSubmissionDocumentService.get_submission_history(
             db=db,

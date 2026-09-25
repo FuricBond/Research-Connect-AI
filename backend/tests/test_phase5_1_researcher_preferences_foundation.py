@@ -537,7 +537,10 @@ def test_api_list_preferences_with_type_filter(client: TestClient, base_profile:
     )
 
     # Filter by PREFERRED
-    res_pref = client.get(f"/api/v1/researchers/{base_profile.id}/preferences?preference_type=PREFERRED")
+    res_pref = client.get(
+        f"/api/v1/researchers/{base_profile.id}/preferences?preference_type=PREFERRED",
+        headers={"X-User-ID": str(base_profile.user_id)},
+    )
     assert res_pref.status_code == 200
     data_pref = res_pref.json()
     assert len(data_pref) == 1
@@ -545,7 +548,10 @@ def test_api_list_preferences_with_type_filter(client: TestClient, base_profile:
     assert data_pref[0]["preference_type"] == "PREFERRED"
 
     # Filter by EXCLUDED
-    res_excl = client.get(f"/api/v1/researchers/{base_profile.id}/preferences?preference_type=EXCLUDED")
+    res_excl = client.get(
+        f"/api/v1/researchers/{base_profile.id}/preferences?preference_type=EXCLUDED",
+        headers={"X-User-ID": str(base_profile.user_id)},
+    )
     assert res_excl.status_code == 200
     data_excl = res_excl.json()
     assert len(data_excl) == 1
@@ -574,7 +580,10 @@ def test_api_get_structured_preferences(client: TestClient, base_profile: Resear
         headers={"X-User-ID": str(base_profile.user_id)},
     )
 
-    res = client.get(f"/api/v1/researchers/{base_profile.id}/preferences/structured")
+    res = client.get(
+        f"/api/v1/researchers/{base_profile.id}/preferences/structured",
+        headers={"X-User-ID": str(base_profile.user_id)},
+    )
     assert res.status_code == 200
     data = res.json()
     assert "Artificial Intelligence" in data["interests"]["research_domains"]

@@ -383,8 +383,16 @@ def test_researcher_scoped_endpoints_and_cross_tenant_isolation(
     assert bob_cross_patch_rule.status_code == 403
 
 
-def test_schedule_run_api_endpoint(client: TestClient, alice: UserModel):
-    # Alice triggers scheduler run
+def test_schedule_run_api_endpoint(client: TestClient, db_session: Session, alice: UserModel):
+    # Phase 6: the global scheduler trigger is restricted to administrators
+    non_admin = client.post(
+        "/api/v1/notifications/trigger-reminders",
+        headers={"X-User-ID": str(alice.id)},
+    )
+    assert non_admin.status_code == 403
+
+    alice.role = "ADMIN"
+    db_session.commit()
     resp = client.post(
         "/api/v1/notifications/trigger-reminders",
         headers={"X-User-ID": str(alice.id)},

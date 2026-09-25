@@ -8,7 +8,29 @@ class Settings(BaseSettings):
         "postgresql+psycopg://researchconnect:researchconnect"
         "@localhost:5432/researchconnect"
     )
-    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    # Next.js dev server (Phase 2.4K migrated the frontend from Vite :5173 to Next.js :3000)
+    cors_origins: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+
+    # Phase 6 — Authentication & identity
+    # HS256 signing secret. Leave empty in development to use an ephemeral per-process
+    # key (tokens are invalidated on restart). Mandatory (>= 32 chars) when APP_ENV=production.
+    auth_secret_key: str = ""
+    auth_algorithm: str = "HS256"
+    auth_issuer: str = "researchconnect-ai"
+    auth_access_token_expire_minutes: int = 480
+    auth_bcrypt_rounds: int = 12
+    auth_login_rate_limit_per_minute: int = 10
+    # Developer-only: trust a raw X-User-ID header as identity and allow anonymous
+    # profile bootstrap. Spoofable by design — refused at startup when APP_ENV=production.
+    auth_dev_identity_enabled: bool = False
+
+    # Honour X-Forwarded-For / X-Real-IP for client identification (rate limiting).
+    # Enable only when the API sits behind a reverse proxy that overwrites these headers.
+    trust_proxy_headers: bool = False
+
+    # Phase 6 — Structured logging
+    log_level: str = "INFO"
+    log_format: str = "text"  # text | json
 
     # Phase 2.2A — OpenAlex API configuration
     openalex_api_base_url: str = "https://api.openalex.org"

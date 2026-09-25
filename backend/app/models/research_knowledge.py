@@ -37,6 +37,7 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     DateTime,
+    FetchedValue,
     ForeignKey,
     Index,
     Integer,
@@ -408,10 +409,14 @@ class ResearchWorkModel(Base, TimestampMixin):
     )
 
     # ── Phase 2.4I — Full-Text Search Vector ─────────────────────────────────
+    # Migration 0007 creates this as GENERATED ALWAYS ... STORED, so PostgreSQL owns the
+    # value: FetchedValue keeps the ORM from ever writing it (an explicit NULL is rejected).
     fts_vector: Mapped[Any | None] = mapped_column(
         TSVector,
         nullable=True,
         deferred=True,
+        server_default=FetchedValue(),
+        server_onupdate=FetchedValue(),
         comment="Generated stored tsvector for weighted full-text search",
     )
 

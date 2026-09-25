@@ -15,10 +15,12 @@ import logging
 from typing import Annotated, Any
 import uuid
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
-from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy.orm import Session, selectinload
 
+from app.api.deps import OptionalUserId
+from app.core.config import settings
 from app.db.session import get_db
 from app.models.calendar import CalendarEventType
 from app.models.opportunity import OpportunityModel, OpportunityTopicModel
@@ -129,7 +131,6 @@ from app.schemas.personalization_calibration import (
     CalibrationRecomputeRequest,
     PersonalizationCalibrationDetailResponse,
     PersonalizationCalibrationResponse,
-    PersonalizationCalibrationSchema,
 )
 from app.services.personalization_calibration_service import PersonalizationCalibrationService
 from app.schemas.personalization_quality import (
@@ -175,10 +176,20 @@ router = APIRouter(prefix="/researchers", tags=["researchers"])
 )
 def create_researcher_profile(
     payload: ResearcherProfileCreate,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearcherProfileRead:
+    # Authenticated callers create their own profile. Anonymous bootstrap (which links or
+    # creates a password-less account by email) survives only in developer identity mode;
+    # everyone else registers through /auth/register.
+    if current_user_id is None and not settings.auth_dev_identity_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required. Register an account via /auth/register.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
     try:
-        profile = ResearcherProfileService.create_profile(db, payload)
+        profile = ResearcherProfileService.create_profile(db, payload, user_id=current_user_id)
         return ResearcherProfileService.build_profile_read(profile)
     except ValueError as err:
         raise HTTPException(
@@ -196,17 +207,10 @@ def create_researcher_profile(
 )
 def get_researcher_profile(
     researcher_id: uuid.UUID,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearcherProfileRead:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        # Fallback: check if the researcher_id matches user_id
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return ResearcherProfileService.build_profile_read(profile)
 
 
@@ -220,9 +224,11 @@ def get_researcher_profile(
 def update_researcher_profile(
     researcher_id: uuid.UUID,
     payload: ResearcherProfileUpdate,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearcherProfileRead:
-    profile = ResearcherProfileService.update_profile(db, researcher_id, payload)
+    owned = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
+    profile = ResearcherProfileService.update_profile(db, owned.id, payload)
     if not profile:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -242,16 +248,10 @@ def get_researcher_publications(
     researcher_id: uuid.UUID,
     limit: Annotated[int, Query(ge=1, le=100, description="Max works to return")] = 20,
     offset: Annotated[int, Query(ge=0, description="Offset")] = 0,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> list[ResearcherWorkSummarySchema]:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return ResearcherProfileService.get_researcher_works(
         db, profile.id, limit=limit, offset=offset
     )
@@ -266,16 +266,10 @@ def get_researcher_publications(
 )
 def get_researcher_profile_completeness(
     researcher_id: uuid.UUID,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ProfileCompletenessSchema:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return ResearcherProfileService.compute_profile_completeness(profile)
 
 
@@ -295,12 +289,14 @@ def get_researcher_intelligence(
         False,
         description="Force recomputation of intelligence instead of reading persisted records",
     ),
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearcherIntelligenceResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     try:
         return ResearcherIntelligenceService.get_researcher_intelligence(
             db=db,
-            identifier=researcher_id,
+            identifier=profile.id,
             refresh=refresh,
         )
     except ValueError as err:
@@ -319,12 +315,14 @@ def get_researcher_intelligence(
 )
 def get_researcher_interests(
     researcher_id: uuid.UUID,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> list[ResearcherInterestItemSchema]:
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     try:
         return ResearcherIntelligenceService.get_researcher_interests(
             db=db,
-            identifier=researcher_id,
+            identifier=profile.id,
         )
     except ValueError as err:
         raise HTTPException(
@@ -342,12 +340,14 @@ def get_researcher_interests(
 )
 def get_researcher_expertise(
     researcher_id: uuid.UUID,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> list[ResearcherInterestItemSchema]:
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     try:
         return ResearcherIntelligenceService.get_researcher_expertise(
             db=db,
-            identifier=researcher_id,
+            identifier=profile.id,
         )
     except ValueError as err:
         raise HTTPException(
@@ -374,16 +374,10 @@ def get_researcher_expertise(
 )
 def get_preference_intelligence(
     researcher_id: uuid.UUID,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearcherPreferenceIntelligenceResponse:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         return ResearcherPreferenceService.get_preference_intelligence(
@@ -410,16 +404,10 @@ def list_researcher_preferences(
     source: Annotated[str | None, Query(description="Filter by source (EXPLICIT, INFERRED, etc.)")] = None,
     is_active: Annotated[bool | None, Query(description="Filter by active status")] = None,
     preference_type: Annotated[str | None, Query(description="Filter by preference type (PREFERRED, EXCLUDED)")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> list[ResearcherPreferenceItemSchema]:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     models = ResearcherPreferenceService.list_preferences(
         db=db,
@@ -464,16 +452,10 @@ def list_researcher_preferences(
 )
 def get_structured_researcher_preferences(
     researcher_id: uuid.UUID,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> StructuredPreferencesResponseSchema:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         return ResearcherPreferenceService.get_structured_preferences(
@@ -489,7 +471,7 @@ def get_structured_researcher_preferences(
 
 def _resolve_researcher_profile_auth(
     researcher_id: uuid.UUID,
-    x_user_id: uuid.UUID | None,
+    current_user_id: uuid.UUID | None,
     db: Session,
 ) -> ResearchProfileModel:
     profile = ResearcherProfileService.get_profile(db, researcher_id)
@@ -500,12 +482,12 @@ def _resolve_researcher_profile_auth(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Researcher profile with ID '{researcher_id}' not found.",
         )
-    if x_user_id is None:
+    if current_user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required: Please provide an 'X-User-ID' header.",
+            detail="Authentication required.",
         )
-    if profile.user_id != x_user_id:
+    if profile.user_id != current_user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden: You do not have permission to access this researcher resource.",
@@ -523,17 +505,17 @@ def _resolve_researcher_profile_auth(
 def create_researcher_preference(
     researcher_id: uuid.UUID,
     payload: ResearcherPreferenceCreateSchema,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearcherPreferenceItemSchema:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         model = ResearcherPreferenceService.create_explicit_preference(
             db=db,
             profile_id=profile.id,
             payload=payload,
-            current_user_id=x_user_id,
+            current_user_id=current_user_id,
         )
         return ResearcherPreferenceItemSchema(
             id=model.id,
@@ -577,17 +559,17 @@ def create_researcher_preference(
 def bulk_update_researcher_preferences(
     researcher_id: uuid.UUID,
     payload: BulkPreferencesUpdateSchema,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> list[ResearcherPreferenceItemSchema]:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         models = ResearcherPreferenceService.bulk_sync_preferences(
             db=db,
             profile_id=profile.id,
             payload=payload,
-            current_user_id=x_user_id,
+            current_user_id=current_user_id,
         )
         return [
             ResearcherPreferenceItemSchema(
@@ -635,10 +617,10 @@ def update_researcher_preference(
     researcher_id: uuid.UUID,
     preference_id: uuid.UUID,
     payload: ResearcherPreferenceUpdateSchema,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearcherPreferenceItemSchema:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         model = ResearcherPreferenceService.update_preference(
@@ -646,7 +628,7 @@ def update_researcher_preference(
             profile_id=profile.id,
             preference_id=preference_id,
             payload=payload,
-            current_user_id=x_user_id,
+            current_user_id=current_user_id,
         )
         if not model:
             raise HTTPException(
@@ -689,17 +671,17 @@ def update_researcher_preference(
 def delete_researcher_preference(
     researcher_id: uuid.UUID,
     preference_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         deleted = ResearcherPreferenceService.delete_preference(
             db=db,
             profile_id=profile.id,
             preference_id=preference_id,
-            current_user_id=x_user_id,
+            current_user_id=current_user_id,
         )
         if not deleted:
             raise HTTPException(
@@ -732,10 +714,10 @@ def get_personalized_candidates(
     include_inferred: Annotated[bool, Query(description="Include inferred preference candidates")] = True,
     include_expertise: Annotated[bool, Query(description="Include scholarly expertise candidates")] = True,
     include_fallback: Annotated[bool, Query(description="Include cold-start discovery fallback")] = True,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizedCandidateSetResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         return PersonalizedCandidateGenerationService.generate_personalized_candidates(
@@ -778,10 +760,10 @@ def get_personalized_recommendations(
     delivery_mode: Annotated[str | None, Query(description="Filter by delivery mode (ONLINE, OFFLINE, HYBRID)")] = None,
     persist_snapshot: Annotated[bool, Query(description="Record persistent recommendation snapshot for history/evaluation")] = True,
     session_id: Annotated[str | None, Query(description="Optional client session identifier for attribution")] = None,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizedRankingResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         return PersonalizationRankingService.get_personalized_recommendations(
@@ -823,10 +805,10 @@ def get_personalized_recommendations(
 def record_feedback(
     researcher_id: uuid.UUID,
     payload: FeedbackCreateRequest,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> FeedbackItemResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         return ResearcherFeedbackService.record_feedback(
@@ -857,10 +839,10 @@ def get_feedback_history(
     offset: Annotated[int, Query(ge=0, description="Page offset")] = 0,
     feedback_type: Annotated[str | None, Query(description="Filter by type (VIEW, SAVE, DISMISS, etc.)")] = None,
     opportunity_id: Annotated[uuid.UUID | None, Query(description="Filter by opportunity ID")] = None,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> FeedbackListResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         return ResearcherFeedbackService.get_feedback_history(
@@ -887,10 +869,10 @@ def get_feedback_history(
 def delete_feedback(
     researcher_id: uuid.UUID,
     feedback_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> dict[str, Any]:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     deleted = ResearcherFeedbackService.delete_feedback(
         db=db,
@@ -915,10 +897,10 @@ def delete_feedback(
 )
 def get_feedback_summary(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> FeedbackSummaryResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     return ResearcherFeedbackService.get_feedback_summary(
         db=db,
@@ -938,10 +920,10 @@ def get_feedback_summary(
 )
 def get_behavioral_signals(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> list[BehavioralSignalSchema]:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     behavioral_profile = ResearcherFeedbackService.get_behavioral_profile(
         db=db,
@@ -971,10 +953,10 @@ def get_recommendation_history(
     ranking_version: Annotated[str | None, Query(description="Filter by ranking algorithm version")] = None,
     from_date: Annotated[datetime | None, Query(description="Filter snapshots created on or after this timestamp")] = None,
     to_date: Annotated[datetime | None, Query(description="Filter snapshots created on or before this timestamp")] = None,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> RecommendationHistoryListResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     return RecommendationHistoryService.get_history(
         db=db,
@@ -1000,10 +982,10 @@ def get_recommendation_history(
 def get_recommendation_snapshot_detail(
     researcher_id: uuid.UUID,
     snapshot_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> RecommendationSnapshotResponseSchema:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     snapshot_detail = RecommendationHistoryService.get_snapshot_detail(
         db=db,
@@ -1037,10 +1019,10 @@ def get_recommendation_evaluation(
     from_date: Annotated[datetime | None, Query(description="Evaluation window start")] = None,
     to_date: Annotated[datetime | None, Query(description="Evaluation window end")] = None,
     include_comparison: Annotated[bool, Query(description="Include comparative breakdown across ranking versions")] = True,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> RecommendationEvaluationResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     return RecommendationHistoryService.evaluate_recommendations(
         db=db,
@@ -1068,10 +1050,10 @@ def get_recommendation_evaluation(
 )
 def get_personalization_summary(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationSummaryResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     return PersonalizationExplanationService.get_personalization_summary(
         db=db,
@@ -1094,10 +1076,10 @@ def get_personalization_summary(
 def get_recommendation_explanation(
     researcher_id: uuid.UUID,
     opportunity_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> RecommendationExplanationSchema:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         return PersonalizationExplanationService.explain_opportunity_for_researcher(
@@ -1126,10 +1108,10 @@ def get_historical_recommendation_explanation(
     researcher_id: uuid.UUID,
     snapshot_id: uuid.UUID,
     opportunity_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> RecommendationExplanationSchema:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     try:
         return PersonalizationExplanationService.explain_historical_recommendation(
@@ -1159,10 +1141,10 @@ def get_researcher_calendar(
     event_type: CalendarEventType | None = Query(default=None, description="Filter by event category"),
     opportunity_id: uuid.UUID | None = Query(default=None, description="Filter by opportunity ID"),
     submission_id: uuid.UUID | None = Query(default=None, description="Filter by submission ID"),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearcherCalendarViewResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     return ResearchCalendarService.get_researcher_calendar_view(
         db=db,
@@ -1184,10 +1166,10 @@ def get_researcher_calendar(
 )
 def export_researcher_calendar_ics(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     calendar = ResearchCalendarService.get_or_create_default_calendar(db, user_id=profile.user_id)
     ical_content = ResearchCalendarService.generate_ical_feed(db, calendar.id, user_id=profile.user_id)
@@ -1218,10 +1200,10 @@ def get_researcher_notifications(
     notification_type: str | None = Query(default=None),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> NotificationListResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     items, total, unread = NotificationService.list_notifications(
         db=db,
         profile_id=profile.id,
@@ -1245,10 +1227,10 @@ def get_researcher_notifications(
 )
 def get_researcher_unread_count(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> NotificationUnreadCountResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     count = NotificationService.get_unread_count(db, profile.id)
     return NotificationUnreadCountResponse(
         profile_id=profile.id,
@@ -1265,10 +1247,10 @@ def get_researcher_unread_count(
 def mark_researcher_notification_read(
     researcher_id: uuid.UUID,
     notification_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> NotificationRead:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     try:
         notif = NotificationService.mark_as_read(db, profile.id, notification_id)
         return NotificationRead.model_validate(notif)
@@ -1292,10 +1274,10 @@ def mark_researcher_notification_read(
 )
 def mark_all_researcher_notifications_read(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> dict[str, int]:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     count = NotificationService.mark_all_as_read(db, profile.id)
     return {"marked_read_count": count}
 
@@ -1308,10 +1290,10 @@ def mark_all_researcher_notifications_read(
 )
 def get_researcher_notification_preferences(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> NotificationPreferenceRead:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     prefs = NotificationService.get_or_create_preferences(db, profile.id)
     return NotificationPreferenceRead.model_validate(prefs)
 
@@ -1325,10 +1307,10 @@ def get_researcher_notification_preferences(
 def update_researcher_notification_preferences(
     researcher_id: uuid.UUID,
     payload: NotificationPreferenceUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> NotificationPreferenceRead:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     prefs = NotificationService.update_preferences(db, profile.id, payload)
     return NotificationPreferenceRead.model_validate(prefs)
 
@@ -1342,10 +1324,10 @@ def update_researcher_notification_preferences(
 def list_researcher_reminder_rules(
     researcher_id: uuid.UUID,
     is_active: bool | None = Query(default=None),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ReminderRuleListResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     rules = NotificationService.list_reminder_rules(db, profile.id, is_active=is_active)
     if not rules:
         rules = NotificationService.bootstrap_default_reminder_rules(db, profile.id)
@@ -1364,10 +1346,10 @@ def list_researcher_reminder_rules(
 def create_researcher_reminder_rule(
     researcher_id: uuid.UUID,
     payload: ReminderRuleCreate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ReminderRuleRead:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     rule = NotificationService.create_reminder_rule(db, profile.id, payload)
     return ReminderRuleRead.model_validate(rule)
 
@@ -1382,10 +1364,10 @@ def update_researcher_reminder_rule(
     researcher_id: uuid.UUID,
     rule_id: uuid.UUID,
     payload: ReminderRuleUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ReminderRuleRead:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     try:
         rule = NotificationService.update_reminder_rule(db, profile.id, rule_id, payload)
         return ReminderRuleRead.model_validate(rule)
@@ -1410,10 +1392,10 @@ def update_researcher_reminder_rule(
 def delete_researcher_reminder_rule(
     researcher_id: uuid.UUID,
     rule_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     try:
         NotificationService.delete_reminder_rule(db, profile.id, rule_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -1443,10 +1425,10 @@ def delete_researcher_reminder_rule(
 )
 def get_unified_research_intelligence(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> UnifiedResearcherContextSchema:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return ResearchIntelligenceIntegrationService.build_unified_researcher_context(db, profile.id)
 
 
@@ -1463,10 +1445,10 @@ def get_unified_recommendations(
     offset: int = Query(default=0, ge=0, description="Pagination offset"),
     opportunity_type: str | None = Query(default=None),
     delivery_mode: str | None = Query(default=None),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> UnifiedRecommendationResponseSchema:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return ResearchIntelligenceIntegrationService.get_unified_recommendations(
         db=db,
         profile_id=profile.id,
@@ -1487,10 +1469,10 @@ def get_unified_recommendations(
 def get_opportunity_intelligence(
     researcher_id: uuid.UUID,
     opportunity_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> UnifiedOpportunityIntelligenceSchema:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     try:
         intel = ResearchIntelligenceIntegrationService.explain_opportunity_intelligence(
             db=db,
@@ -1515,10 +1497,10 @@ def get_opportunity_intelligence(
 def get_opportunity_preference_match(
     researcher_id: uuid.UUID,
     opportunity_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PreferencePersonalizationAssessment:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     stmt = (
         select(OpportunityModel)
         .where(OpportunityModel.id == opportunity_id)
@@ -1553,10 +1535,10 @@ def get_opportunity_preference_match(
 def batch_opportunity_preference_matches(
     researcher_id: uuid.UUID,
     payload: BatchOpportunityPreferenceMatchRequest,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> BatchOpportunityPreferenceMatchResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     
     stmt = (
         select(OpportunityModel)
@@ -1600,10 +1582,10 @@ def batch_opportunity_preference_matches(
 def get_opportunity_personalization(
     researcher_id: uuid.UUID,
     opportunity_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationAssessment:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     stmt = (
         select(OpportunityModel)
         .where(OpportunityModel.id == opportunity_id)
@@ -1646,10 +1628,10 @@ def get_opportunity_personalization(
 def batch_opportunity_personalization(
     researcher_id: uuid.UUID,
     payload: BatchPersonalizationRequest,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> BatchPersonalizationResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     stmt = (
         select(OpportunityModel)
@@ -1691,7 +1673,6 @@ def batch_opportunity_personalization(
     )
 
 
-
 # ----------------------------------------------------------------------------
 # Phase 5.4: Researcher Feedback & Interaction Signal Endpoints
 # ----------------------------------------------------------------------------
@@ -1707,10 +1688,10 @@ def record_opportunity_interaction(
     researcher_id: uuid.UUID,
     opportunity_id: uuid.UUID,
     payload: InteractionCreateRequest,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> InteractionResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     try:
         return ResearcherInteractionService.record_interaction(
             db=db,
@@ -1737,10 +1718,10 @@ def get_opportunity_interactions(
     opportunity_id: uuid.UUID,
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> OpportunityInteractionHistoryResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     try:
         return ResearcherInteractionService.get_opportunity_interactions(
             db=db,
@@ -1766,10 +1747,10 @@ def get_opportunity_interactions(
 def get_researcher_interaction_summary(
     researcher_id: uuid.UUID,
     recent_limit: int = Query(default=10, ge=1, le=50),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearcherInteractionSummaryResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     try:
         return ResearcherInteractionService.get_researcher_interaction_summary(
             db=db,
@@ -1798,10 +1779,10 @@ def get_researcher_adaptive_signals(
     researcher_id: uuid.UUID,
     dimension: AdaptiveSignalDimension | None = Query(default=None, description="Filter by signal dimension"),
     state: AdaptiveEvidenceState | None = Query(default=None, description="Filter by evidence state"),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> AdaptiveSignalsResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     signals = AdaptivePreferenceSignalService.get_adaptive_signals(
         db=db,
         profile_id=profile.id,
@@ -1824,10 +1805,10 @@ def get_researcher_adaptive_signals(
 )
 def get_researcher_adaptive_signals_explanation(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> AdaptiveSignalExplanationResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return AdaptivePreferenceSignalService.get_adaptive_signals_summary_explanation(
         db=db,
         profile_id=profile.id,
@@ -1844,10 +1825,10 @@ def get_researcher_adaptive_signals_explanation(
 def get_adaptive_signal_by_id(
     researcher_id: uuid.UUID,
     signal_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> AdaptivePreferenceSignal:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     signal = AdaptivePreferenceSignalService.get_adaptive_signal_by_id(
         db=db,
         profile_id=profile.id,
@@ -1871,10 +1852,10 @@ def get_adaptive_signal_by_id(
 def recompute_researcher_adaptive_signals(
     researcher_id: uuid.UUID,
     payload: AdaptiveSignalRecomputeRequest | None = None,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> AdaptiveSignalsResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     signals = AdaptivePreferenceSignalService.recompute_adaptive_signals(
         db=db,
         profile_id=profile.id,
@@ -1902,10 +1883,10 @@ def get_researcher_personalization_calibrations(
     researcher_id: uuid.UUID,
     dimension: str | None = Query(default=None, description="Filter by signal dimension"),
     state: CalibrationState | None = Query(default=None, description="Filter by calibration state"),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationCalibrationResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return PersonalizationCalibrationService.get_calibration_response(
         db=db,
         profile_id=profile.id,
@@ -1924,10 +1905,10 @@ def get_researcher_personalization_calibrations(
 def get_personalization_calibration_by_signal_id(
     researcher_id: uuid.UUID,
     signal_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationCalibrationDetailResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     detail = PersonalizationCalibrationService.get_calibration_by_signal_id(
         db=db,
         profile_id=profile.id,
@@ -1951,10 +1932,10 @@ def get_personalization_calibration_by_signal_id(
 def recompute_researcher_personalization_calibration(
     researcher_id: uuid.UUID,
     payload: CalibrationRecomputeRequest | None = None,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationCalibrationResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     from app.personalization.calibration_config import PersonalizationCalibrationConfig
     config = PersonalizationCalibrationConfig()
@@ -1992,10 +1973,10 @@ def recompute_researcher_personalization_calibration(
 )
 def get_researcher_personalization_quality(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationQualityResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return PersonalizationQualityService.get_quality_response(
         db=db,
         profile_id=profile.id,
@@ -2012,10 +1993,10 @@ def get_researcher_personalization_quality(
 def get_researcher_contextual_adaptations(
     researcher_id: uuid.UUID,
     context_dimension: str | None = Query(default=None, description="Filter by context dimension (e.g. OPPORTUNITY_TYPE, DEADLINE_HORIZON)"),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ContextualAdaptationsResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return PersonalizationQualityService.get_contextual_adaptations_response(
         db=db,
         profile_id=profile.id,
@@ -2032,10 +2013,10 @@ def get_researcher_contextual_adaptations(
 )
 def get_researcher_signal_qualities(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> SignalQualityResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return PersonalizationQualityService.get_signal_quality_response(
         db=db,
         profile_id=profile.id,
@@ -2055,10 +2036,10 @@ def get_researcher_signal_qualities(
 def recompute_researcher_personalization_quality(
     researcher_id: uuid.UUID,
     payload: QualityRecomputeRequest | None = None,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationQualityResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     ref_time = payload.reference_time if payload else None
     eval_period = payload.evaluation_period_days if payload and payload.evaluation_period_days is not None else 30.0
@@ -2093,10 +2074,10 @@ def recompute_researcher_personalization_quality(
 )
 def get_researcher_personalization_health(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationHealthResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return PersonalizationGovernanceService.get_health_response(
         db=db,
         profile_id=profile.id,
@@ -2115,10 +2096,10 @@ def get_researcher_personalization_health(
 )
 def get_researcher_personalization_drift(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationDriftResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return PersonalizationGovernanceService.get_drift_response(
         db=db,
         profile_id=profile.id,
@@ -2136,10 +2117,10 @@ def get_researcher_governance_events(
     researcher_id: uuid.UUID,
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationGovernanceHistoryResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return PersonalizationGovernanceService.get_governance_events_response(
         db=db,
         profile_id=profile.id,
@@ -2158,10 +2139,10 @@ def get_researcher_governance_events(
 def recompute_researcher_personalization_health(
     researcher_id: uuid.UUID,
     payload: GovernanceRecomputeRequest | None = None,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationHealthResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
 
     ref_time = payload.reference_time if payload else None
     hist_days = payload.historical_window_days if payload and payload.historical_window_days is not None else 60.0
@@ -2195,10 +2176,10 @@ def recompute_researcher_personalization_health(
 )
 def get_researcher_personalization_settings(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearcherPersonalizationSettingsSchema:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     settings = PersonalizationTransparencyService.get_or_create_settings(db, profile.id)
     return ResearcherPersonalizationSettingsSchema.model_validate(settings)
 
@@ -2213,10 +2194,10 @@ def get_researcher_personalization_settings(
 def update_researcher_personalization_settings(
     researcher_id: uuid.UUID,
     payload: ResearcherPersonalizationSettingsUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearcherPersonalizationSettingsSchema:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     settings = PersonalizationTransparencyService.update_settings(
         db=db,
         profile_id=profile.id,
@@ -2237,10 +2218,10 @@ def update_researcher_personalization_settings(
 )
 def reset_researcher_personalization(
     researcher_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationResetResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return PersonalizationTransparencyService.reset_personalization(
         db=db,
         profile_id=profile.id,
@@ -2258,10 +2239,10 @@ def get_researcher_personalization_control_history(
     researcher_id: uuid.UUID,
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> PersonalizationControlHistoryResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     return PersonalizationTransparencyService.get_control_history(
         db=db,
         profile_id=profile.id,
@@ -2284,10 +2265,10 @@ def get_researcher_personalization_control_history(
 def get_recommendation_personalization_explanation(
     researcher_id: uuid.UUID,
     recommendation_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> RecommendationPersonalizationExplanationResponse:
-    profile = _resolve_researcher_profile_auth(researcher_id, x_user_id, db)
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
     explanation = PersonalizationTransparencyService.explain_recommendation_personalization(
         db=db,
         profile_id=profile.id,
@@ -2299,7 +2280,5 @@ def get_recommendation_personalization_explanation(
             detail=f"Recommendation or opportunity with ID '{recommendation_id}' not found.",
         )
     return explanation
-
-
 
 

@@ -29,6 +29,7 @@ import {
   fetchResearcherProfile,
   fetchResearcherWorks,
 } from "../../services/api";
+import { clearActiveIdentity, setActiveIdentity } from "../../services/auth";
 import { AlertCircle, Loader2, Sparkles, UserPlus } from "lucide-react";
 
 
@@ -182,6 +183,12 @@ export default function ResearcherPage() {
           const loaded = await fetchResearcherProfile(storedId);
           if (!cancelled) {
             setProfile(loaded);
+            setActiveIdentity({
+              profileId: loaded.id,
+              userId: loaded.user_id,
+              email: loaded.email,
+              name: loaded.full_name,
+            });
             if (loaded.canonical_researcher_id) {
               const loadedWorks = await fetchResearcherWorks(loaded.id).catch(() => []);
               if (!cancelled) setWorks(loadedWorks);
@@ -197,9 +204,7 @@ export default function ResearcherPage() {
           }
         } catch {
           // If stored ID not found on server, clear and fall through to initialization prompt
-          if (typeof window !== "undefined") {
-            localStorage.removeItem("researchconnect_active_profile_id");
-          }
+          clearActiveIdentity();
         }
       }
 
@@ -231,9 +236,12 @@ export default function ResearcherPage() {
         bio: "Faculty researcher exploring academic discovery systems and hybrid retrieval.",
       });
 
-      if (typeof window !== "undefined") {
-        localStorage.setItem("researchconnect_active_profile_id", created.id);
-      }
+      setActiveIdentity({
+        profileId: created.id,
+        userId: created.user_id,
+        email: created.email,
+        name: created.full_name,
+      });
       setProfile(created);
       loadIntelligence(created.id, true);
       loadPreferences(created.id, true);

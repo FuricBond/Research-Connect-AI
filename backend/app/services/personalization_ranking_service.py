@@ -256,13 +256,25 @@ class PersonalizationRankingService:
             explicit_preferences=explicit_prefs,
         )
 
+        # Phase 5.5/5.8/5.9 Settings Invariant:
+        # If personalization, adaptive signals, or feedback learning is disabled in settings,
+        # behavioral signals must not influence scoring. Suppressed IDs are retained.
+        feedback_learning_on = (
+            enable_personalization
+            and adaptive_signals_enabled
+            and (settings.feedback_learning_enabled if settings is not None else True)
+        )
+        effective_behavioral_signals = (
+            tuple(behavioral_profile.signals) if feedback_learning_on else ()
+        )
+
         is_cold_start = (
             len(explicit_prefs) == 0
             and len(inferred_prefs) == 0
             and len(expertise_items) == 0
             and len(profile_keywords) == 0
             and len(profile_target_types) == 0
-            and len(behavioral_profile.signals) == 0
+            and len(effective_behavioral_signals) == 0
         )
 
         context = ResearcherPersonalizationContext(
@@ -274,7 +286,7 @@ class PersonalizationRankingService:
             target_opportunity_types=profile_target_types,
             institution=profile.institution,
             academic_status=profile.academic_status,
-            behavioral_signals=tuple(behavioral_profile.signals),
+            behavioral_signals=effective_behavioral_signals,
             suppressed_opportunity_ids=frozenset(behavioral_profile.suppressed_opportunity_ids),
             is_cold_start=is_cold_start,
             # Phase 5.8: pass governance gate state into the ranker

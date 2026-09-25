@@ -677,7 +677,10 @@ def test_api_preference_endpoints(client: TestClient, db_session: Session, setup
     user, profile = setup_researcher
 
     # 1. GET /preference-intelligence
-    res = client.get(f"/api/v1/researchers/{profile.id}/preference-intelligence")
+    res = client.get(
+        f"/api/v1/researchers/{profile.id}/preference-intelligence",
+        headers={"X-User-ID": str(user.id)},
+    )
     assert res.status_code == 200
     data = res.json()
     assert data["profile_id"] == str(profile.id)
@@ -708,7 +711,10 @@ def test_api_preference_endpoints(client: TestClient, db_session: Session, setup
     pref_id = created_item["id"]
 
     # 4. GET /preferences
-    res_list = client.get(f"/api/v1/researchers/{profile.id}/preferences")
+    res_list = client.get(
+        f"/api/v1/researchers/{profile.id}/preferences",
+        headers={"X-User-ID": str(user.id)},
+    )
     assert res_list.status_code == 200
     assert len(res_list.json()) == 1
 
@@ -731,5 +737,8 @@ def test_api_preference_endpoints(client: TestClient, db_session: Session, setup
     assert res_del.json()["deleted"] is True
 
     # 7. Verify deletion
-    res_list_after = client.get(f"/api/v1/researchers/{profile.id}/preferences")
+    res_list_after = client.get(
+        f"/api/v1/researchers/{profile.id}/preferences",
+        headers={"X-User-ID": str(user.id)},
+    )
     assert len(res_list_after.json()) == 0

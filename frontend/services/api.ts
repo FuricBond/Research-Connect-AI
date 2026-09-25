@@ -148,8 +148,7 @@ import type {
   RecommendationPersonalizationExplanation,
   PersonalizationResetResponse,
 } from "../types/personalization";
-
-
+import { getAuthHeaders } from "./auth";
 
 // NEXT_PUBLIC_API_URL replaces former VITE_API_URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -168,12 +167,31 @@ export class ApiError extends Error {
 
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const url = `${API_URL}${path}`;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (init?.headers) {
+    if (init.headers instanceof Headers) {
+      init.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+    } else if (Array.isArray(init.headers)) {
+      init.headers.forEach(([key, value]) => {
+        headers[key] = value;
+      });
+    } else {
+      Object.assign(headers, init.headers);
+    }
+  }
+
+  if (!headers["X-User-ID"] && !headers["Authorization"]) {
+    const authHeaders = getAuthHeaders();
+    Object.assign(headers, authHeaders);
+  }
+
   const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
     ...init,
+    headers,
   });
 
   if (!response.ok) {
@@ -192,6 +210,10 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
     }
 
     throw new ApiError(response.status, detail, detail);
+  }
+
+  if (response.status === 204) {
+    return undefined as unknown as T;
   }
 
   return response.json() as Promise<T>;
@@ -1621,12 +1643,17 @@ export async function projectOpportunityToCalendar(
 ): Promise<OpportunityProjectResponse> {
   const headers: Record<string, string> = {};
   if (userId) headers["X-User-ID"] = userId;
-  return fetchJson<OpportunityProjectResponse>(`/api/v1/calendar/${calendarId}/project-opportunity`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(payload),
-    signal,
-  });
+  const q = new URLSearchParams();
+  if (payload.submission_id) q.set("submission_id", payload.submission_id);
+  const queryStr = q.toString() ? `?${q.toString()}` : "";
+  return fetchJson<OpportunityProjectResponse>(
+    `/api/v1/calendar/${calendarId}/opportunities/${payload.opportunity_id}/project${queryStr}`,
+    {
+      method: "POST",
+      headers,
+      signal,
+    }
+  );
 }
 
 export async function fetchResearcherCalendar(
@@ -1915,8 +1942,6 @@ export async function createWorkspaceInvitation(
 }
 
 export async function acceptWorkspaceInvitation(
-  workspaceId: string,
-  invitationId: string,
   token: string,
   userId?: string,
   signal?: AbortSignal
@@ -1924,21 +1949,20 @@ export async function acceptWorkspaceInvitation(
   const headers: Record<string, string> = {};
   if (userId) headers["X-User-ID"] = userId;
   return fetchJson<WorkspaceMember>(
-    `/api/v1/workspaces/${workspaceId}/invitations/${invitationId}/accept?token=${encodeURIComponent(token)}`,
+    `/api/v1/workspaces/invitations/${encodeURIComponent(token)}/accept`,
     { method: "POST", headers, signal }
   );
 }
 
 export async function declineWorkspaceInvitation(
-  workspaceId: string,
-  invitationId: string,
+  token: string,
   userId?: string,
   signal?: AbortSignal
-): Promise<WorkspaceInvitation> {
+): Promise<void> {
   const headers: Record<string, string> = {};
   if (userId) headers["X-User-ID"] = userId;
-  return fetchJson<WorkspaceInvitation>(
-    `/api/v1/workspaces/${workspaceId}/invitations/${invitationId}/decline`,
+  return fetchJson<void>(
+    `/api/v1/workspaces/invitations/${encodeURIComponent(token)}/decline`,
     { method: "POST", headers, signal }
   );
 }
@@ -1948,12 +1972,12 @@ export async function revokeWorkspaceInvitation(
   invitationId: string,
   userId?: string,
   signal?: AbortSignal
-): Promise<WorkspaceInvitation> {
+): Promise<void> {
   const headers: Record<string, string> = {};
   if (userId) headers["X-User-ID"] = userId;
-  return fetchJson<WorkspaceInvitation>(
-    `/api/v1/workspaces/${workspaceId}/invitations/${invitationId}/revoke`,
-    { method: "POST", headers, signal }
+  return fetchJson<void>(
+    `/api/v1/workspaces/${workspaceId}/invitations/${invitationId}`,
+    { method: "DELETE", headers, signal }
   );
 }
 

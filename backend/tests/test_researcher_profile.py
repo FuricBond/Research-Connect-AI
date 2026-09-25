@@ -476,12 +476,12 @@ class TestResearcherProfileAPI:
         profile = ResearcherProfileService.create_profile(db_session, create_payload)
 
         # GET by profile ID
-        res = client.get(f"/api/v1/researchers/{profile.id}")
+        res = client.get(f"/api/v1/researchers/{profile.id}", headers={"X-User-ID": str(profile.user_id)})
         assert res.status_code == 200
         assert res.json()["full_name"] == "Claude Shannon"
 
         # GET by user ID (fallback)
-        res_user = client.get(f"/api/v1/researchers/{profile.user_id}")
+        res_user = client.get(f"/api/v1/researchers/{profile.user_id}", headers={"X-User-ID": str(profile.user_id)})
         assert res_user.status_code == 200
         assert res_user.json()["id"] == str(profile.id)
 
@@ -504,7 +504,11 @@ class TestResearcherProfileAPI:
             "bio": "Crystallography of biological molecules.",
             "keywords": ["insulin", "vitamin b12"],
         }
-        res = client.patch(f"/api/v1/researchers/{profile.id}", json=patch_payload)
+        res = client.patch(
+            f"/api/v1/researchers/{profile.id}",
+            json=patch_payload,
+            headers={"X-User-ID": str(profile.user_id)},
+        )
         assert res.status_code == 200
         data = res.json()
         assert data["academic_status"] == "FACULTY"
@@ -520,7 +524,10 @@ class TestResearcherProfileAPI:
         )
         profile = ResearcherProfileService.create_profile(db_session, create_payload)
 
-        res = client.get(f"/api/v1/researchers/{profile.id}/completeness")
+        res = client.get(
+            f"/api/v1/researchers/{profile.id}/completeness",
+            headers={"X-User-ID": str(profile.user_id)},
+        )
         assert res.status_code == 200
         data = res.json()
         assert "score" in data

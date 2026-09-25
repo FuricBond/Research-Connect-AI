@@ -20,7 +20,7 @@ Endpoints tested:
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import uuid
 
 from fastapi.testclient import TestClient
@@ -137,9 +137,9 @@ def opportunity(db_session: Session) -> OpportunityModel:
         description="Premier conference in machine learning and computational neuroscience.",
         location="New Orleans, USA",
         opportunity_type="CONFERENCE",
-        submission_deadline=datetime(2026, 9, 22, 23, 59, 59, tzinfo=timezone.utc),
-        notification_date=datetime(2026, 11, 20, 0, 0, 0, tzinfo=timezone.utc),
-        event_start_date=datetime(2026, 12, 10, 0, 0, 0, tzinfo=timezone.utc).date(),
+        submission_deadline=datetime.now(timezone.utc) + timedelta(days=60),
+        notification_date=datetime.now(timezone.utc) + timedelta(days=120),
+        event_start_date=(datetime.now(timezone.utc) + timedelta(days=150)).date(),
         source_id=None,
         raw_source_id="wikicfp_neurips_2026",
     )

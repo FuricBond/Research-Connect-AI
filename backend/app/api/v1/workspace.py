@@ -9,7 +9,7 @@ Provides researcher-scoped workspace endpoints:
   - Deterministic state machine status transitions
   - Archiving and unarchiving
   - Deleting/removing from workspace
-  - Enforcing strict researcher isolation via X-User-ID header
+  - Enforcing strict researcher isolation via the authenticated identity (Phase 6)
 """
 from __future__ import annotations
 
@@ -17,13 +17,11 @@ import logging
 from typing import Annotated
 import uuid
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import OptionalUserId, require_user_id
 from app.db.session import get_db
-from app.models.saved_opportunity import SavedOpportunityModel
-from app.models.user import UserModel
 from app.schemas.research_submission import ResearchSubmissionListResponse
 from app.schemas.workspace import (
     WorkspaceItemCreate,
@@ -43,30 +41,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/workspace", tags=["workspace"])
 
 
-def resolve_current_user(
-    db: Session,
-    x_user_id: uuid.UUID | None,
-) -> uuid.UUID:
-    """
-    Resolves the authenticated user ID from the X-User-ID header or falls back to
-    the single active user in developer mode.
-    """
-    if x_user_id is not None:
-        return WorkspaceService.resolve_user_id(db, x_user_id)
-
-    # Fallback in demo/local development if no X-User-ID is explicitly provided
-    fallback_user = db.execute(
-        select(UserModel).order_by(UserModel.created_at.asc())
-    ).scalars().first()
-    if fallback_user is not None:
-        return fallback_user.id
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Authentication required: Please provide an 'X-User-ID' header.",
-    )
-
-
 @router.post(
     "",
     response_model=WorkspaceItemRead,
@@ -77,10 +51,10 @@ def resolve_current_user(
 def add_to_workspace(
     payload: WorkspaceItemCreate,
     response: Response,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceItemRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         item, is_new = WorkspaceService.add_opportunity(db, user_id, payload)
         if not is_new:
@@ -107,10 +81,10 @@ def list_workspace(
     sort_order: Annotated[str, Query(description="Sort order: asc, desc")] = "desc",
     limit: Annotated[int, Query(ge=1, le=100, description="Page size limit")] = 50,
     offset: Annotated[int, Query(ge=0, description="Offset")] = 0,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceListResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     return WorkspaceService.list_workspace_items(
         db=db,
         user_id=user_id,
@@ -134,10 +108,10 @@ def list_workspace(
     description="Get statistical counts of items grouped by status and priority for the authenticated researcher.",
 )
 def get_workspace_summary(
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceSummaryResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     return WorkspaceService.get_summary(db, user_id)
 
 
@@ -150,10 +124,10 @@ def get_workspace_summary(
 )
 def get_workspace_item(
     item_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceItemRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         item = WorkspaceService.get_workspace_item(db, user_id, item_id)
         if item is None:
@@ -176,10 +150,10 @@ def get_workspace_item(
 def update_workspace_item(
     item_id: uuid.UUID,
     payload: WorkspaceItemUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceItemRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         updated = WorkspaceService.update_workspace_item(db, user_id, item_id, payload)
         return WorkspaceService.build_workspace_item_read(updated)
@@ -199,10 +173,10 @@ def update_workspace_item(
 def transition_workspace_status(
     item_id: uuid.UUID,
     payload: WorkspaceStatusTransition,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceItemRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         item = WorkspaceService.transition_status(
             db=db,
@@ -229,10 +203,10 @@ def transition_workspace_status(
 )
 def archive_workspace_item(
     item_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceItemRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         item = WorkspaceService.archive_item(db, user_id, item_id)
         return WorkspaceService.build_workspace_item_read(item)
@@ -254,10 +228,10 @@ def archive_workspace_item(
 def unarchive_workspace_item(
     item_id: uuid.UUID,
     target_status: Annotated[WorkspaceStatus, Query(description="Target active state")] = WorkspaceStatus.SAVED,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceItemRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         item = WorkspaceService.unarchive_item(db, user_id, item_id, target_status)
         return WorkspaceService.build_workspace_item_read(item)
@@ -277,10 +251,10 @@ def unarchive_workspace_item(
 )
 def remove_from_workspace(
     item_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         WorkspaceService.remove_item(db, user_id, item_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -299,10 +273,10 @@ def remove_from_workspace(
 )
 def list_workspace_item_submissions(
     item_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ResearchSubmissionListResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         workspace_item = WorkspaceService.get_workspace_item(db, user_id, item_id)
         if workspace_item is None:

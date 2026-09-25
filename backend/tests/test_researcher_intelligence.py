@@ -641,7 +641,10 @@ class TestResearcherIntelligenceAPI:
             db_session, scholar, "Neural Network Compression", "Deep Learning", year=2024
         )
 
-        response = client.get(f"/api/v1/researchers/{profile.id}/research-intelligence")
+        response = client.get(
+            f"/api/v1/researchers/{profile.id}/research-intelligence",
+            headers={"X-User-ID": str(profile.user_id)},
+        )
         assert response.status_code == 200
         data = response.json()
         assert data["researcher_id"] == str(profile.id)
@@ -661,11 +664,17 @@ class TestResearcherIntelligenceAPI:
                 db_session, scholar, f"Robotics Vision {i}", "Robotics", year=2023
             )
 
-        resp_interests = client.get(f"/api/v1/researchers/{profile.id}/interests")
+        resp_interests = client.get(
+            f"/api/v1/researchers/{profile.id}/interests",
+            headers={"X-User-ID": str(profile.user_id)},
+        )
         assert resp_interests.status_code == 200
         assert isinstance(resp_interests.json(), list)
 
-        resp_expertise = client.get(f"/api/v1/researchers/{profile.id}/expertise")
+        resp_expertise = client.get(
+            f"/api/v1/researchers/{profile.id}/expertise",
+            headers={"X-User-ID": str(profile.user_id)},
+        )
         assert resp_expertise.status_code == 200
         assert isinstance(resp_expertise.json(), list)
 

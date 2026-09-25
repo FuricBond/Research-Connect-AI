@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from pathlib import Path
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import Connection, engine_from_config, pool, text
 
 # Ensure backend root is on sys.path
 backend_dir = Path(__file__).resolve().parent.parent
@@ -53,6 +53,26 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def _ensure_wide_version_table(connection: Connection) -> None:
+    """
+    Alembic's default ``alembic_version.version_num`` is VARCHAR(32), but most revision IDs
+    here are longer (e.g. ``0023_phase5_9_personalization_transparency``), which makes a
+    fresh ``upgrade head`` fail. Revisions cannot be renamed without breaking existing
+    databases, so the version table is created (or widened) before migrating instead.
+    """
+    if connection.dialect.name != "postgresql":
+        return
+    connection.execute(
+        text(
+            "CREATE TABLE IF NOT EXISTS alembic_version ("
+            "version_num VARCHAR(255) NOT NULL, "
+            "CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num))"
+        )
+    )
+    connection.execute(text("ALTER TABLE alembic_version ALTER COLUMN version_num TYPE VARCHAR(255)"))
+    connection.commit()
+
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
@@ -66,6 +86,7 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
+        _ensure_wide_version_table(connection)
         context.configure(
             connection=connection,
             target_metadata=target_metadata,

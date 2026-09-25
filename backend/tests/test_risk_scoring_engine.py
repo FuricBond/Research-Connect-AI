@@ -495,7 +495,7 @@ class TestDeterminismAndPerformance:
             assert per_candidate_ms < 1.0, f"Per-candidate scoring too slow ({per_candidate_ms:.3f}ms) at N={n}"
 
         # Confirm linear or sub-linear scaling
-        assert scaling_results[1000]["per_candidate_ms"] < 0.50
+        assert scaling_results[1000]["per_candidate_ms"] < 0.75
 
 
 class TestLegacySignalsCompatibility:

@@ -13,12 +13,11 @@ import logging
 from typing import Annotated
 import uuid
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import OptionalUserId, require_user_id
 from app.db.session import get_db
-from app.models.user import UserModel
 from app.models.workspace_collaboration import (
     ActivityType,
     InvitationStatus,
@@ -51,31 +50,10 @@ from app.schemas.workspace_collaboration import (
 from app.services.workspace_collaboration_service import (
     WorkspaceCollaborationService,
 )
-from app.services.workspace_service import WorkspaceService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["workspace_collaboration"])
-
-
-def resolve_current_user(
-    db: Session,
-    x_user_id: uuid.UUID | None,
-) -> uuid.UUID:
-    """Resolves authenticated user ID from X-User-ID header or active dev user."""
-    if x_user_id is not None:
-        return WorkspaceService.resolve_user_id(db, x_user_id)
-
-    fallback_user = db.execute(
-        select(UserModel).order_by(UserModel.created_at.asc())
-    ).scalars().first()
-    if fallback_user is not None:
-        return fallback_user.id
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Authentication required: Please provide an 'X-User-ID' header.",
-    )
 
 
 def build_member_read(member: WorkspaceMemberModel) -> WorkspaceMemberRead:
@@ -144,10 +122,10 @@ def build_task_read(task: WorkspaceTaskModel) -> WorkspaceTaskRead:
 )
 def list_workspace_members(
     workspace_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceMemberListResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     members, total = WorkspaceCollaborationService.list_members(db, workspace_id, user_id)
     return WorkspaceMemberListResponse(
         items=[build_member_read(m) for m in members],
@@ -169,10 +147,10 @@ def list_workspace_members(
 def add_workspace_member(
     workspace_id: uuid.UUID,
     payload: WorkspaceMemberAdd,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceMemberRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     member = WorkspaceCollaborationService.add_member(db, workspace_id, user_id, payload)
     return build_member_read(member)
 
@@ -202,10 +180,10 @@ def update_workspace_member_role(
     workspace_id: uuid.UUID,
     target_user_id: uuid.UUID,
     payload: WorkspaceMemberRoleUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceMemberRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     member = WorkspaceCollaborationService.update_member_role(
         db, workspace_id, user_id, target_user_id, payload
     )
@@ -225,10 +203,10 @@ def update_workspace_member_role(
 def remove_workspace_member(
     workspace_id: uuid.UUID,
     target_user_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     WorkspaceCollaborationService.remove_member(db, workspace_id, user_id, target_user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -250,10 +228,10 @@ def remove_workspace_member(
 )
 def list_workspace_invitations(
     workspace_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceInvitationListResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     invitations, total = WorkspaceCollaborationService.list_invitations(db, workspace_id, user_id)
     return WorkspaceInvitationListResponse(
         items=[
@@ -291,10 +269,10 @@ def list_workspace_invitations(
 def create_workspace_invitation(
     workspace_id: uuid.UUID,
     payload: WorkspaceInvitationCreate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceInvitationCreateResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     invitation, token = WorkspaceCollaborationService.create_invitation(
         db, workspace_id, user_id, payload
     )
@@ -330,10 +308,10 @@ def create_workspace_invitation(
 def revoke_workspace_invitation(
     workspace_id: uuid.UUID,
     invitation_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     WorkspaceCollaborationService.revoke_invitation(db, workspace_id, user_id, invitation_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -351,10 +329,10 @@ def revoke_workspace_invitation(
 )
 def accept_workspace_invitation(
     token: str,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceMemberRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     member = WorkspaceCollaborationService.accept_invitation(db, token, user_id)
     return build_member_read(member)
 
@@ -371,10 +349,10 @@ def accept_workspace_invitation(
 )
 def decline_workspace_invitation(
     token: str,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     WorkspaceCollaborationService.decline_invitation(db, token, user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -401,10 +379,10 @@ def list_workspace_tasks(
     priority: Annotated[TaskPriority | None, Query(description="Filter by priority")] = None,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceTaskListResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     tasks, total = WorkspaceCollaborationService.list_tasks(
         db=db,
         workspace_id=workspace_id,
@@ -435,10 +413,10 @@ def list_workspace_tasks(
 def create_workspace_task(
     workspace_id: uuid.UUID,
     payload: WorkspaceTaskCreate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceTaskRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     task = WorkspaceCollaborationService.create_task(db, workspace_id, user_id, payload)
     return build_task_read(task)
 
@@ -458,10 +436,10 @@ def update_workspace_task(
     workspace_id: uuid.UUID,
     task_id: uuid.UUID,
     payload: WorkspaceTaskUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceTaskRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     task = WorkspaceCollaborationService.update_task(db, workspace_id, user_id, task_id, payload)
     return build_task_read(task)
 
@@ -481,10 +459,10 @@ def assign_workspace_task(
     workspace_id: uuid.UUID,
     task_id: uuid.UUID,
     payload: WorkspaceTaskAssign,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceTaskRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     task = WorkspaceCollaborationService.update_task(
         db, workspace_id, user_id, task_id, WorkspaceTaskUpdate(assignee_id=payload.assignee_id)
     )
@@ -505,10 +483,10 @@ def assign_workspace_task(
 def complete_workspace_task(
     workspace_id: uuid.UUID,
     task_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceTaskRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     task = WorkspaceCollaborationService.update_task(
         db, workspace_id, user_id, task_id, WorkspaceTaskUpdate(status=TaskStatus.COMPLETED)
     )
@@ -529,10 +507,10 @@ def complete_workspace_task(
 def reopen_workspace_task(
     workspace_id: uuid.UUID,
     task_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceTaskRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     task = WorkspaceCollaborationService.update_task(
         db, workspace_id, user_id, task_id, WorkspaceTaskUpdate(status=TaskStatus.TODO)
     )
@@ -552,10 +530,10 @@ def reopen_workspace_task(
 def delete_workspace_task(
     workspace_id: uuid.UUID,
     task_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     WorkspaceCollaborationService.delete_task(db, workspace_id, user_id, task_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
@@ -579,10 +557,10 @@ def list_workspace_activity(
     workspace_id: uuid.UUID,
     limit: Annotated[int, Query(ge=1, le=100)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceActivityListResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     activities, total = WorkspaceCollaborationService.list_activities(
         db=db,
         workspace_id=workspace_id,
@@ -638,10 +616,10 @@ def list_workspace_activity(
 def post_workspace_comment(
     workspace_id: uuid.UUID,
     payload: WorkspaceCommentCreate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceActivityRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     activity = WorkspaceCollaborationService.add_comment(db, workspace_id, user_id, payload)
     return WorkspaceActivityRead(
         id=activity.id,

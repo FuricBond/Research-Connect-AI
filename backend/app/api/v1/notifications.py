@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime
 import logging
-from typing import Annotated
 import uuid
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.api.deps import AdminUser, OptionalUserId, require_user_id
 from app.db.session import get_db
 from app.models.research_profile import ResearchProfileModel
 from app.models.user import UserModel
@@ -26,7 +25,6 @@ from app.schemas.notification import (
 )
 from app.services.notification_service import NotificationService
 from app.services.reminder_scheduler_service import ReminderSchedulerService
-from app.services.workspace_service import WorkspaceService
 
 logger = logging.getLogger(__name__)
 
@@ -35,31 +33,10 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 def resolve_current_user(
     db: Session,
-    x_user_id: uuid.UUID | None,
+    current_user_id: uuid.UUID | None,
 ) -> UserModel:
-    """
-    Resolves the authenticated user from the X-User-ID header or falls back to
-    the primary active user in developer mode.
-    """
-    if x_user_id is not None:
-        user = db.get(UserModel, x_user_id)
-        if user:
-            return user
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User with ID '{x_user_id}' not found.",
-        )
-
-    fallback_user = db.execute(
-        select(UserModel).order_by(UserModel.created_at.asc())
-    ).scalars().first()
-    if fallback_user is not None:
-        return fallback_user
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Authentication required: Please provide an 'X-User-ID' header.",
-    )
+    """Loads the authenticated caller's account (401 for anonymous requests)."""
+    return db.get(UserModel, require_user_id(current_user_id))
 
 
 def resolve_profile_for_user(
@@ -98,10 +75,10 @@ def list_notifications(
     notification_type: str | None = Query(default=None, description="Filter by notification type"),
     limit: int = Query(default=50, ge=1, le=200),
     offset: int = Query(default=0, ge=0),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> NotificationListResponse:
-    user = resolve_current_user(db, x_user_id)
+    user = resolve_current_user(db, current_user_id)
     profile = resolve_profile_for_user(db, user)
 
     items, total, unread = NotificationService.list_notifications(
@@ -126,10 +103,10 @@ def list_notifications(
     summary="Get unread notifications count",
 )
 def get_unread_count(
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> NotificationUnreadCountResponse:
-    user = resolve_current_user(db, x_user_id)
+    user = resolve_current_user(db, current_user_id)
     profile = resolve_profile_for_user(db, user)
 
     count = NotificationService.get_unread_count(db, profile.id)
@@ -147,10 +124,10 @@ def get_unread_count(
 )
 def mark_notification_read(
     notification_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> NotificationRead:
-    user = resolve_current_user(db, x_user_id)
+    user = resolve_current_user(db, current_user_id)
     profile = resolve_profile_for_user(db, user)
 
     try:
@@ -175,10 +152,10 @@ def mark_notification_read(
     summary="Mark all notifications as read",
 )
 def mark_all_notifications_read(
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> dict[str, int]:
-    user = resolve_current_user(db, x_user_id)
+    user = resolve_current_user(db, current_user_id)
     profile = resolve_profile_for_user(db, user)
 
     count = NotificationService.mark_all_as_read(db, profile.id)
@@ -196,10 +173,10 @@ def mark_all_notifications_read(
     summary="Get notification preferences",
 )
 def get_preferences(
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> NotificationPreferenceRead:
-    user = resolve_current_user(db, x_user_id)
+    user = resolve_current_user(db, current_user_id)
     profile = resolve_profile_for_user(db, user)
 
     prefs = NotificationService.get_or_create_preferences(db, profile.id)
@@ -214,10 +191,10 @@ def get_preferences(
 )
 def update_preferences(
     payload: NotificationPreferenceUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> NotificationPreferenceRead:
-    user = resolve_current_user(db, x_user_id)
+    user = resolve_current_user(db, current_user_id)
     profile = resolve_profile_for_user(db, user)
 
     prefs = NotificationService.update_preferences(db, profile.id, payload)
@@ -236,10 +213,10 @@ def update_preferences(
 )
 def list_rules(
     is_active: bool | None = Query(default=None),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ReminderRuleListResponse:
-    user = resolve_current_user(db, x_user_id)
+    user = resolve_current_user(db, current_user_id)
     profile = resolve_profile_for_user(db, user)
 
     rules = NotificationService.list_reminder_rules(db, profile.id, is_active=is_active)
@@ -260,10 +237,10 @@ def list_rules(
 )
 def create_rule(
     payload: ReminderRuleCreate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ReminderRuleRead:
-    user = resolve_current_user(db, x_user_id)
+    user = resolve_current_user(db, current_user_id)
     profile = resolve_profile_for_user(db, user)
 
     rule = NotificationService.create_reminder_rule(db, profile.id, payload)
@@ -279,10 +256,10 @@ def create_rule(
 def update_rule(
     rule_id: uuid.UUID,
     payload: ReminderRuleUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> ReminderRuleRead:
-    user = resolve_current_user(db, x_user_id)
+    user = resolve_current_user(db, current_user_id)
     profile = resolve_profile_for_user(db, user)
 
     try:
@@ -308,10 +285,10 @@ def update_rule(
 )
 def delete_rule(
     rule_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    user = resolve_current_user(db, x_user_id)
+    user = resolve_current_user(db, current_user_id)
     profile = resolve_profile_for_user(db, user)
 
     try:
@@ -338,9 +315,10 @@ def delete_rule(
     response_model=ReminderRunSummaryResponse,
     status_code=status.HTTP_200_OK,
     summary="Execute scheduled reminder pass",
-    description="Admin / worker trigger to discover and dispatch all due deadline reminders.",
+    description="Administrator trigger to discover and dispatch all due deadline reminders (ADMIN role required).",
 )
 def trigger_reminders(
+    admin: AdminUser,
     db: Session = Depends(get_db),
 ) -> ReminderRunSummaryResponse:
     summary = ReminderSchedulerService.run_scheduled_reminders(db)

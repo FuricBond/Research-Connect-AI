@@ -2,16 +2,14 @@ from __future__ import annotations
 
 from datetime import datetime
 import logging
-from typing import Annotated
 import uuid
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, Response, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
+from app.api.deps import OptionalUserId, require_user_id
 from app.db.session import get_db
 from app.models.calendar import CalendarEventType
-from app.models.user import UserModel
 from app.schemas.calendar import (
     CalendarCreate,
     CalendarEventCreate,
@@ -24,34 +22,10 @@ from app.schemas.calendar import (
     OpportunityProjectResponse,
 )
 from app.services.research_calendar_service import ResearchCalendarService
-from app.services.workspace_service import WorkspaceService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
-
-
-def resolve_current_user(
-    db: Session,
-    x_user_id: uuid.UUID | None,
-) -> uuid.UUID:
-    """
-    Resolves the authenticated user ID from the X-User-ID header or falls back to
-    the single active user in developer mode.
-    """
-    if x_user_id is not None:
-        return WorkspaceService.resolve_user_id(db, x_user_id)
-
-    fallback_user = db.execute(
-        select(UserModel).order_by(UserModel.created_at.asc())
-    ).scalars().first()
-    if fallback_user is not None:
-        return fallback_user.id
-
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Authentication required: Please provide an 'X-User-ID' header.",
-    )
 
 
 # ============================================================================
@@ -67,10 +41,10 @@ def resolve_current_user(
 )
 def create_calendar(
     payload: CalendarCreate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> CalendarRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     cal = ResearchCalendarService.create_calendar(db, user_id=user_id, payload=payload)
     return ResearchCalendarService.build_calendar_read(cal)
 
@@ -83,10 +57,10 @@ def create_calendar(
     description="Retrieve all research planning calendars owned by the authenticated researcher.",
 )
 def list_calendars(
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> CalendarListResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     calendars = ResearchCalendarService.list_calendars(db, user_id=user_id)
     items = [ResearchCalendarService.build_calendar_read(cal, event_count=len(cal.events)) for cal in calendars]
     return CalendarListResponse(items=items, total=len(items))
@@ -100,10 +74,10 @@ def list_calendars(
     description="Retrieve or lazily create the researcher's default research planning calendar.",
 )
 def get_default_calendar(
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> CalendarRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     cal = ResearchCalendarService.get_or_create_default_calendar(db, user_id=user_id)
     return ResearchCalendarService.build_calendar_read(cal, event_count=len(cal.events))
 
@@ -117,10 +91,10 @@ def get_default_calendar(
 )
 def get_calendar(
     calendar_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> CalendarRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         cal = ResearchCalendarService.get_calendar(db, calendar_id, user_id)
         return ResearchCalendarService.build_calendar_read(cal, event_count=len(cal.events))
@@ -140,10 +114,10 @@ def get_calendar(
 def update_calendar(
     calendar_id: uuid.UUID,
     payload: CalendarUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> CalendarRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         cal = ResearchCalendarService.update_calendar(db, calendar_id, user_id, payload)
         return ResearchCalendarService.build_calendar_read(cal, event_count=len(cal.events))
@@ -167,10 +141,10 @@ def update_calendar(
 def create_event(
     calendar_id: uuid.UUID,
     payload: CalendarEventCreate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> CalendarEventRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         event = ResearchCalendarService.create_user_event(db, calendar_id, user_id, payload)
         return ResearchCalendarService.build_event_read(event)
@@ -194,10 +168,10 @@ def list_events(
     event_type: CalendarEventType | None = Query(default=None, description="Filter by event category"),
     opportunity_id: uuid.UUID | None = Query(default=None, description="Filter by linked opportunity"),
     submission_id: uuid.UUID | None = Query(default=None, description="Filter by linked submission tracker"),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> CalendarEventListResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         events = ResearchCalendarService.list_events(
             db=db,
@@ -227,10 +201,10 @@ def list_events(
 def get_event(
     calendar_id: uuid.UUID,
     event_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> CalendarEventRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         ev = ResearchCalendarService.get_event(db, calendar_id, event_id, user_id)
         return ResearchCalendarService.build_event_read(ev)
@@ -251,10 +225,10 @@ def update_event(
     calendar_id: uuid.UUID,
     event_id: uuid.UUID,
     payload: CalendarEventUpdate,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> CalendarEventRead:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         ev = ResearchCalendarService.update_event(db, calendar_id, event_id, user_id, payload)
         return ResearchCalendarService.build_event_read(ev)
@@ -273,10 +247,10 @@ def update_event(
 def delete_event(
     calendar_id: uuid.UUID,
     event_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         ResearchCalendarService.delete_event(db, calendar_id, event_id, user_id)
         return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -301,10 +275,10 @@ def project_opportunity(
     calendar_id: uuid.UUID,
     opportunity_id: uuid.UUID,
     submission_id: uuid.UUID | None = Query(default=None, description="Optional associated submission ID"),
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> OpportunityProjectResponse:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         return ResearchCalendarService.project_opportunity_to_calendar(
             db=db,
@@ -327,10 +301,10 @@ def project_opportunity(
 )
 def export_calendar_ics(
     calendar_id: uuid.UUID,
-    x_user_id: Annotated[uuid.UUID | None, Header(alias="X-User-ID")] = None,
+    current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> Response:
-    user_id = resolve_current_user(db, x_user_id)
+    user_id = require_user_id(current_user_id)
     try:
         ical_content = ResearchCalendarService.generate_ical_feed(db, calendar_id, user_id)
         return Response(

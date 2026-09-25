@@ -12,9 +12,8 @@ from dataclasses import dataclass
 import logging
 import threading
 import time
-from typing import Callable
 
-from fastapi import HTTPException, Request, Response, status
+from fastapi import Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from app.core.config import settings
@@ -117,14 +116,26 @@ rate_limiter = SlidingWindowRateLimiter(
 )
 
 
+# Phase 6 — dedicated limiter for credential endpoints (login brute-force protection)
+login_rate_limiter = SlidingWindowRateLimiter(
+    requests_per_window=getattr(settings, "auth_login_rate_limit_per_minute", 10),
+    window_seconds=60,
+)
+
+
 def get_client_ip(request: Request) -> str:
-    """Extract client IP from request headers or transport socket."""
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    real_ip = request.headers.get("x-real-ip")
-    if real_ip:
-        return real_ip.strip()
+    """
+    Extract the client IP. Forwarding headers are client-controlled, so they are only
+    honoured behind a trusted reverse proxy (TRUST_PROXY_HEADERS=true); otherwise a
+    caller could rotate them to evade rate limits.
+    """
+    if getattr(settings, "trust_proxy_headers", False):
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+        real_ip = request.headers.get("x-real-ip")
+        if real_ip:
+            return real_ip.strip()
     if request.client and request.client.host:
         return request.client.host
     return "127.0.0.1"
@@ -150,9 +161,6 @@ class DiscoveryRateLimitMiddleware(BaseHTTPMiddleware):
     ) -> Response:
         # Check if rate limiting is enabled and applies to this path
         if not getattr(settings, "discovery_rate_limiting_enabled", True):
-            return await call_next(request)
-
-        if request.headers.get("x-bypass-rate-limit") == "true":
             return await call_next(request)
 
         # Check path prefix (handle /api/v1/discovery and /api/discovery)
