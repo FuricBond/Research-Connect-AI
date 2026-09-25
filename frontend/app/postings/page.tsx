@@ -1,10 +1,14 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import "../../styles/postings.css";
 import { AlertCircle, Loader2, Plus, RefreshCw, Search, X } from "lucide-react";
 import { PostingCard } from "../../components/postings/PostingCard";
 import type {
+  CommitmentType,
+  CompensationType,
+  OpeningTermsUpdate,
   PostingCreatePayload,
   PostingFilterParams,
   PostingStatus,
@@ -13,7 +17,13 @@ import type {
   PostingWorkMode,
   ResearchPosting,
 } from "../../types/posting";
-import { POSTING_TYPE_LABELS, WORK_MODE_LABELS } from "../../types/posting";
+import {
+  COMMITMENT_TYPE_LABELS,
+  COMPENSATION_TYPE_LABELS,
+  POSTING_TYPE_LABELS,
+  STRUCTURED_OPENING_TYPES,
+  WORK_MODE_LABELS,
+} from "../../types/posting";
 import {
   createPosting,
   deletePosting,
@@ -26,8 +36,32 @@ import { getStoredIdentity } from "../../services/auth";
 
 type Mode = "DISCOVER" | "MINE";
 
-const POSTING_TYPES: PostingType[] = ["PROJECT", "THESIS_TOPIC", "COLLABORATION", "LAB_ROTATION"];
+const POSTING_TYPES: PostingType[] = [
+  "PROJECT",
+  "THESIS_TOPIC",
+  "COLLABORATION",
+  "LAB_ROTATION",
+  "INTERNSHIP",
+  "RESEARCH_ASSISTANTSHIP",
+  "POSTDOC",
+];
 const WORK_MODES: PostingWorkMode[] = ["ONSITE", "REMOTE", "HYBRID"];
+const COMPENSATION_TYPES: CompensationType[] = [
+  "UNSPECIFIED",
+  "STIPEND",
+  "SALARY",
+  "HOURLY",
+  "SCHOLARSHIP",
+  "GRANT_FUNDED",
+  "UNPAID",
+];
+const COMMITMENT_TYPES: CommitmentType[] = ["FULL_TIME", "PART_TIME", "FLEXIBLE"];
+const COMPENSATION_PERIODS = ["MONTH", "YEAR", "WEEK", "HOUR", "TOTAL"];
+
+const EMPTY_TERMS: OpeningTermsUpdate = {
+  compensation_type: "UNSPECIFIED",
+  accepts_applications: false,
+};
 
 const EMPTY_DRAFT: PostingCreatePayload = {
   title: "",
@@ -57,6 +91,7 @@ export default function PostingsPage() {
   const [showForm, setShowForm] = useState(false);
   const [draft, setDraft] = useState<PostingCreatePayload>(EMPTY_DRAFT);
   const [skillsInput, setSkillsInput] = useState("");
+  const [terms, setTerms] = useState<OpeningTermsUpdate>(EMPTY_TERMS);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -141,6 +176,7 @@ export default function PostingsPage() {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
+      const isStructured = STRUCTURED_OPENING_TYPES.includes(draft.posting_type);
       await createPosting({
         ...draft,
         summary: draft.summary?.trim() || null,
@@ -148,9 +184,13 @@ export default function PostingsPage() {
         application_deadline: draft.application_deadline
           ? new Date(draft.application_deadline).toISOString()
           : null,
+        // Appointment terms are only meaningful for funded openings. The server ignores them
+        // for supervisor-led categories, so sending them would be misleading noise.
+        opening_terms: isStructured ? terms : undefined,
       });
       setDraft(EMPTY_DRAFT);
       setSkillsInput("");
+      setTerms(EMPTY_TERMS);
       setShowForm(false);
       setMode("MINE");
       await load();
@@ -199,6 +239,9 @@ export default function PostingsPage() {
         >
           My postings
         </button>
+        <Link href="/postings/applications" className="postings-mode-tab">
+          My applications
+        </Link>
       </nav>
 
       {showForm && canAuthor && (
@@ -329,6 +372,155 @@ export default function PostingsPage() {
               placeholder="Python, PyTorch, Information Retrieval"
             />
           </div>
+
+          {STRUCTURED_OPENING_TYPES.includes(draft.posting_type) && (
+            <>
+              <p className="posting-owner-note">
+                This category is a funded appointment, so applicants will look for its terms.
+                “Unpaid” is worth stating explicitly rather than leaving blank.
+              </p>
+              <div className="posting-form-grid">
+                <div className="posting-field">
+                  <label htmlFor="terms-compensation-type">Compensation</label>
+                  <select
+                    id="terms-compensation-type"
+                    value={terms.compensation_type ?? "UNSPECIFIED"}
+                    onChange={(e) =>
+                      setTerms({ ...terms, compensation_type: e.target.value as CompensationType })
+                    }
+                  >
+                    {COMPENSATION_TYPES.map((t) => (
+                      <option key={t} value={t}>
+                        {COMPENSATION_TYPE_LABELS[t]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="posting-field">
+                  <label htmlFor="terms-amount">Amount</label>
+                  <input
+                    id="terms-amount"
+                    type="number"
+                    min={0}
+                    value={terms.compensation_amount ?? ""}
+                    onChange={(e) =>
+                      setTerms({
+                        ...terms,
+                        compensation_amount: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
+                  />
+                </div>
+                <div className="posting-field">
+                  <label htmlFor="terms-currency">
+                    Currency <span className="posting-field-hint">3-letter code</span>
+                  </label>
+                  <input
+                    id="terms-currency"
+                    maxLength={3}
+                    value={terms.compensation_currency ?? ""}
+                    onChange={(e) =>
+                      setTerms({ ...terms, compensation_currency: e.target.value || null })
+                    }
+                    placeholder="USD"
+                  />
+                </div>
+                <div className="posting-field">
+                  <label htmlFor="terms-period">Per</label>
+                  <select
+                    id="terms-period"
+                    value={terms.compensation_period ?? ""}
+                    onChange={(e) =>
+                      setTerms({ ...terms, compensation_period: e.target.value || null })
+                    }
+                  >
+                    <option value="">Not specified</option>
+                    {COMPENSATION_PERIODS.map((p) => (
+                      <option key={p} value={p}>
+                        {p.charAt(0) + p.slice(1).toLowerCase()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="posting-field">
+                  <label htmlFor="terms-commitment">Commitment</label>
+                  <select
+                    id="terms-commitment"
+                    value={terms.commitment_type ?? ""}
+                    onChange={(e) =>
+                      setTerms({
+                        ...terms,
+                        commitment_type: (e.target.value || null) as CommitmentType | null,
+                      })
+                    }
+                  >
+                    <option value="">Not specified</option>
+                    {COMMITMENT_TYPES.map((c) => (
+                      <option key={c} value={c}>
+                        {COMMITMENT_TYPE_LABELS[c]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="posting-field">
+                  <label htmlFor="terms-hours">Hours per week</label>
+                  <input
+                    id="terms-hours"
+                    type="number"
+                    min={1}
+                    max={80}
+                    value={terms.hours_per_week ?? ""}
+                    onChange={(e) =>
+                      setTerms({
+                        ...terms,
+                        hours_per_week: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
+                  />
+                </div>
+                <div className="posting-field">
+                  <label htmlFor="terms-duration">Duration in months</label>
+                  <input
+                    id="terms-duration"
+                    type="number"
+                    min={1}
+                    max={120}
+                    value={terms.duration_months ?? ""}
+                    onChange={(e) =>
+                      setTerms({
+                        ...terms,
+                        duration_months: e.target.value ? Number(e.target.value) : null,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="posting-field">
+                <label htmlFor="terms-eligibility">
+                  Eligibility{" "}
+                  <span className="posting-field-hint">enrolment, visa or degree requirements</span>
+                </label>
+                <textarea
+                  id="terms-eligibility"
+                  value={terms.eligibility_requirements ?? ""}
+                  onChange={(e) =>
+                    setTerms({ ...terms, eligibility_requirements: e.target.value || null })
+                  }
+                  style={{ minHeight: "70px" }}
+                />
+              </div>
+
+              <label className="postings-checkbox">
+                <input
+                  type="checkbox"
+                  checked={terms.accepts_applications ?? false}
+                  onChange={(e) => setTerms({ ...terms, accepts_applications: e.target.checked })}
+                />
+                Accept applications through this platform
+              </label>
+            </>
+          )}
 
           {formError && (
             <div className="postings-error" role="alert">

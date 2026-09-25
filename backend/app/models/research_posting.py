@@ -42,6 +42,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
+    from app.models.research_posting_application import ResearchPostingApplicationModel
     from app.models.research_profile import ResearchProfileModel
     from app.models.topic import TopicModel
     from app.models.user import UserModel
@@ -51,15 +52,30 @@ class PostingType(str, Enum):
     """
     Categories of platform-authored research posting.
 
-    Phase 5.10 activates the supervisor-led categories. Phase 5.11 extends this vocabulary
-    with the structured-opening categories (internships, assistantships, post-docs), which
-    additionally carry compensation, duration and eligibility fields.
+    Phase 5.10 introduced the supervisor-led categories. Phase 5.11 adds the structured-opening
+    categories, which are appointments with terms: they additionally carry compensation,
+    commitment, duration and eligibility fields.
     """
 
+    # Phase 5.10 — supervisor-led opportunities
     PROJECT = "PROJECT"
     THESIS_TOPIC = "THESIS_TOPIC"
     COLLABORATION = "COLLABORATION"
     LAB_ROTATION = "LAB_ROTATION"
+    # Phase 5.11 — structured openings
+    INTERNSHIP = "INTERNSHIP"
+    RESEARCH_ASSISTANTSHIP = "RESEARCH_ASSISTANTSHIP"
+    POSTDOC = "POSTDOC"
+
+    @classmethod
+    def structured_openings(cls) -> frozenset["PostingType"]:
+        """
+        Categories that represent a funded appointment rather than an open invitation.
+
+        These are the types for which compensation and commitment are meaningful, and for
+        which the platform accepts applications.
+        """
+        return frozenset({cls.INTERNSHIP, cls.RESEARCH_ASSISTANTSHIP, cls.POSTDOC})
 
 
 class PostingStatus(str, Enum):
@@ -95,7 +111,8 @@ class ResearchPostingModel(Base, TimestampMixin):
     __tablename__ = "research_postings"
     __table_args__ = (
         CheckConstraint(
-            "posting_type IN ('PROJECT', 'THESIS_TOPIC', 'COLLABORATION', 'LAB_ROTATION')",
+            "posting_type IN ('PROJECT', 'THESIS_TOPIC', 'COLLABORATION', 'LAB_ROTATION', "
+            "'INTERNSHIP', 'RESEARCH_ASSISTANTSHIP', 'POSTDOC')",
             name="chk_research_postings_type",
         ),
         CheckConstraint(
@@ -109,6 +126,24 @@ class ResearchPostingModel(Base, TimestampMixin):
         CheckConstraint(
             "positions_available >= 1",
             name="chk_research_postings_positions_positive",
+        ),
+        # Phase 5.11 — structured opening terms
+        CheckConstraint(
+            "compensation_type IN ('STIPEND', 'SALARY', 'HOURLY', 'SCHOLARSHIP', "
+            "'GRANT_FUNDED', 'UNPAID', 'UNSPECIFIED')",
+            name="chk_research_postings_compensation_type",
+        ),
+        CheckConstraint(
+            "commitment_type IS NULL OR commitment_type IN ('FULL_TIME', 'PART_TIME', 'FLEXIBLE')",
+            name="chk_research_postings_commitment_type",
+        ),
+        CheckConstraint(
+            "duration_months IS NULL OR duration_months >= 1",
+            name="chk_research_postings_duration_positive",
+        ),
+        CheckConstraint(
+            "compensation_amount IS NULL OR compensation_amount >= 0",
+            name="chk_research_postings_compensation_non_negative",
         ),
         Index("idx_research_postings_status_type", "status", "posting_type"),
         Index("idx_research_postings_author", "author_profile_id"),
@@ -215,12 +250,60 @@ class ResearchPostingModel(Base, TimestampMixin):
         server_default="0",
     )
 
+    # ── Phase 5.11 — structured opening terms ─────────────────────────────────
+    # Meaningful for internships, assistantships and post-docs. Left at UNSPECIFIED / NULL for
+    # the Phase 5.10 supervisor-led categories, where there is no appointment to fund.
+    compensation_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="UNSPECIFIED",
+        server_default="UNSPECIFIED",
+        comment="How the appointment is funded; UNPAID is stated explicitly, never implied by a blank",
+    )
+    compensation_amount: Mapped[float | None] = mapped_column(
+        Numeric(12, 2),
+        nullable=True,
+        comment="Amount per compensation_period in compensation_currency",
+    )
+    compensation_currency: Mapped[str | None] = mapped_column(
+        String(3),
+        nullable=True,
+        comment="ISO 4217 currency code",
+    )
+    compensation_period: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+        comment="Period the amount covers, e.g. MONTH, YEAR, HOUR, TOTAL",
+    )
+    commitment_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    hours_per_week: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    duration_months: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    eligibility_requirements: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment="Formal eligibility, e.g. enrolment status, visa or degree requirements",
+    )
+    accepts_applications: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+        comment=(
+            "Whether applications are handled on the platform. When false, applicants are "
+            "directed to contact_email or external_url instead."
+        ),
+    )
+
     # ── Relationships ─────────────────────────────────────────────────────────
     author_profile: Mapped["ResearchProfileModel"] = relationship(
         back_populates="research_postings",
     )
     author_user: Mapped["UserModel"] = relationship()
     topic_associations: Mapped[list["ResearchPostingTopicModel"]] = relationship(
+        back_populates="posting",
+        cascade="all, delete-orphan",
+    )
+    applications: Mapped[list["ResearchPostingApplicationModel"]] = relationship(
         back_populates="posting",
         cascade="all, delete-orphan",
     )

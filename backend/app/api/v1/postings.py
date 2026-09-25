@@ -9,6 +9,15 @@ FastAPI Router for Phase 5.10 Faculty Research Postings.
   PATCH  /postings/{id}                 Edit (author only)
   POST   /postings/{id}/transition      Lifecycle transition (author only)
   DELETE /postings/{id}                 Delete a DRAFT (author only)
+
+Phase 5.11 — applications to research openings:
+
+  POST /postings/{id}/applications              Apply to an open funded opening
+  GET  /postings/{id}/applications              Review applications (author only)
+  GET  /postings/applications/mine              The applicant's own applications
+  GET  /postings/applications/mine/summary      Counts by status for the applicant
+  GET  /postings/applications/{id}              Read one (applicant or author)
+  POST /postings/applications/{id}/transition   Advance it, role-partitioned
 """
 from __future__ import annotations
 
@@ -33,6 +42,25 @@ from app.schemas.research_posting import (
     ResearchPostingRead,
     ResearchPostingUpdate,
 )
+from app.models.research_posting_application import (
+    ApplicationStatus,
+    ResearchPostingApplicationModel,
+)
+from app.schemas.research_posting_application import (
+    ApplicationCreate,
+    ApplicationDecision,
+    ApplicationListResponse,
+    ApplicationRead,
+    ApplicationSummaryResponse,
+)
+from app.services.research_posting_application_service import (
+    ApplicationNotAcceptedError,
+    ApplicationNotFoundError,
+    ApplicationPermissionError,
+    DuplicateApplicationError,
+    InvalidApplicationTransitionError,
+    ResearchPostingApplicationService,
+)
 from app.services.research_posting_service import (
     InvalidPostingTransitionError,
     PostingNotFoundError,
@@ -47,7 +75,7 @@ router = APIRouter(prefix="/postings", tags=["postings"])
 OptionalUser = Annotated[UserModel | None, Depends(get_optional_current_user)]
 
 
-def _resolve_author_profile(db: Session, user: UserModel) -> ResearchProfileModel:
+def _resolve_researcher_profile(db: Session, user: UserModel) -> ResearchProfileModel:
     """A posting is authored by an academic identity, so the account needs a profile."""
     profile = db.execute(
         select(ResearchProfileModel).where(ResearchProfileModel.user_id == user.id)
@@ -114,7 +142,7 @@ def list_my_postings(
     offset: Annotated[int, Query(ge=0)] = 0,
     db: Session = Depends(get_db),
 ) -> ResearchPostingListResponse:
-    profile = _resolve_author_profile(db, current_user)
+    profile = _resolve_researcher_profile(db, current_user)
     return ResearchPostingService.list_postings(
         db,
         requesting_user=current_user,
@@ -139,7 +167,7 @@ def get_my_posting_summary(
     current_user: CurrentUser,
     db: Session = Depends(get_db),
 ) -> PostingSummaryResponse:
-    profile = _resolve_author_profile(db, current_user)
+    profile = _resolve_researcher_profile(db, current_user)
     return ResearchPostingService.get_author_summary(db, profile.id)
 
 
@@ -158,7 +186,7 @@ def create_posting(
     current_user: CurrentUser,
     db: Session = Depends(get_db),
 ) -> ResearchPostingRead:
-    profile = _resolve_author_profile(db, current_user)
+    profile = _resolve_researcher_profile(db, current_user)
     try:
         posting = ResearchPostingService.create_posting(db, profile, current_user, payload)
     except PostingPermissionError as err:
@@ -184,7 +212,30 @@ def get_posting(
         posting = ResearchPostingService.get_posting(db, posting_id, requesting_user=current_user)
     except PostingNotFoundError as err:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
-    return ResearchPostingService.build_posting_read(posting, requesting_user=current_user)
+
+    # Surface the reader's own application, if any, so the page can show its status instead of
+    # offering an "Apply" button that would be refused as a duplicate.
+    viewer_application_id = None
+    viewer_application_status = None
+    if current_user is not None:
+        own = db.execute(
+            select(
+                ResearchPostingApplicationModel.id,
+                ResearchPostingApplicationModel.status,
+            ).where(
+                ResearchPostingApplicationModel.posting_id == posting_id,
+                ResearchPostingApplicationModel.applicant_user_id == current_user.id,
+            )
+        ).first()
+        if own is not None:
+            viewer_application_id, viewer_application_status = own
+
+    return ResearchPostingService.build_posting_read(
+        posting,
+        requesting_user=current_user,
+        viewer_application_id=viewer_application_id,
+        viewer_application_status=viewer_application_status,
+    )
 
 
 @router.patch(
@@ -256,3 +307,169 @@ def delete_posting(
     except InvalidPostingTransitionError as err:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(err))
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# ============================================================================
+# Phase 5.11 — Applications to research openings
+# ============================================================================
+
+
+@router.post(
+    "/{posting_id}/applications",
+    response_model=ApplicationRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Apply to a research opening",
+    description=(
+        "Submits an application to an OPEN internship, assistantship or post-doc opening that "
+        "handles applications on the platform. Re-applying after withdrawing reuses the same record."
+    ),
+)
+def apply_to_posting(
+    posting_id: uuid.UUID,
+    payload: ApplicationCreate,
+    current_user: CurrentUser,
+    db: Session = Depends(get_db),
+) -> ApplicationRead:
+    profile = _resolve_researcher_profile(db, current_user)
+    try:
+        application = ResearchPostingApplicationService.submit_application(
+            db, posting_id, profile, current_user, payload
+        )
+    except ApplicationNotFoundError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+    except ApplicationPermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+    except DuplicateApplicationError as err:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(err))
+    except ApplicationNotAcceptedError as err:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+    return ResearchPostingApplicationService.build_application_read(
+        application, current_user, "APPLICANT"
+    )
+
+
+@router.get(
+    "/{posting_id}/applications",
+    response_model=ApplicationListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Review applications to a posting",
+    description="Lists a posting's applications. Restricted to the posting's author.",
+)
+def list_posting_applications(
+    posting_id: uuid.UUID,
+    current_user: CurrentUser,
+    application_status: Annotated[
+        ApplicationStatus | None, Query(alias="status", description="Filter by application status")
+    ] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    db: Session = Depends(get_db),
+) -> ApplicationListResponse:
+    try:
+        return ResearchPostingApplicationService.list_applications_for_posting(
+            db, posting_id, current_user, status=application_status, limit=limit, offset=offset
+        )
+    except ApplicationNotFoundError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+    except ApplicationPermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+
+
+@router.get(
+    "/applications/mine",
+    response_model=ApplicationListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="List the authenticated researcher's applications",
+)
+def list_my_applications(
+    current_user: CurrentUser,
+    application_status: Annotated[
+        ApplicationStatus | None, Query(alias="status", description="Filter by application status")
+    ] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    db: Session = Depends(get_db),
+) -> ApplicationListResponse:
+    profile = _resolve_researcher_profile(db, current_user)
+    return ResearchPostingApplicationService.list_my_applications(
+        db, profile.id, current_user, status=application_status, limit=limit, offset=offset
+    )
+
+
+@router.get(
+    "/applications/mine/summary",
+    response_model=ApplicationSummaryResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Summarize the authenticated researcher's applications",
+)
+def get_my_application_summary(
+    current_user: CurrentUser,
+    db: Session = Depends(get_db),
+) -> ApplicationSummaryResponse:
+    profile = _resolve_researcher_profile(db, current_user)
+    return ResearchPostingApplicationService.summarize_my_applications(db, profile.id)
+
+
+@router.get(
+    "/applications/{application_id}",
+    response_model=ApplicationRead,
+    status_code=status.HTTP_200_OK,
+    summary="Get an application",
+    description=(
+        "Readable by the applicant and by the posting's author. The author's private reviewer "
+        "note is never returned to the applicant."
+    ),
+)
+def get_application(
+    application_id: uuid.UUID,
+    current_user: CurrentUser,
+    db: Session = Depends(get_db),
+) -> ApplicationRead:
+    try:
+        application, actor_role = ResearchPostingApplicationService.get_application(
+            db, application_id, current_user
+        )
+    except ApplicationNotFoundError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+    return ResearchPostingApplicationService.build_application_read(
+        application, current_user, actor_role
+    )
+
+
+@router.post(
+    "/applications/{application_id}/transition",
+    response_model=ApplicationRead,
+    status_code=status.HTTP_200_OK,
+    summary="Advance an application",
+    description=(
+        "Applies a lifecycle transition. Review decisions belong to the posting's author; "
+        "withdrawal and the response to an offer belong to the applicant."
+    ),
+)
+def transition_application(
+    application_id: uuid.UUID,
+    payload: ApplicationDecision,
+    current_user: CurrentUser,
+    db: Session = Depends(get_db),
+) -> ApplicationRead:
+    try:
+        _, actor_role = ResearchPostingApplicationService.get_application(
+            db, application_id, current_user
+        )
+        application = ResearchPostingApplicationService.transition_application(
+            db,
+            application_id,
+            current_user,
+            payload.target_status,
+            decision_reason=payload.decision_reason,
+            reviewer_note=payload.reviewer_note,
+        )
+    except ApplicationNotFoundError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+    except ApplicationPermissionError as err:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))
+    except InvalidApplicationTransitionError as err:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+    return ResearchPostingApplicationService.build_application_read(
+        application, current_user, actor_role
+    )

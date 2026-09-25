@@ -1,7 +1,7 @@
 {
   "metadata": {
     "phase": "2.7G",
-    "timestamp": "2026-09-25T09:23:52.807479+00:00",
+    "timestamp": "2026-09-25T09:45:26.020402+00:00",
     "framework_version": "ResearchConnect AI 2.7",
     "python_version": "3.13.5"
   },
@@ -122,38 +122,38 @@
   "performance": {
     "N=10": {
       "batch_size": 10,
-      "total_time_ms": 5.152,
-      "p50_latency_ms": 0.5046,
-      "p95_latency_ms": 0.5741,
-      "avg_per_candidate_ms": 0.5152
+      "total_time_ms": 4.987,
+      "p50_latency_ms": 0.4884,
+      "p95_latency_ms": 0.5688,
+      "avg_per_candidate_ms": 0.4987
     },
     "N=50": {
       "batch_size": 50,
-      "total_time_ms": 24.946,
-      "p50_latency_ms": 0.4876,
-      "p95_latency_ms": 0.5546,
-      "avg_per_candidate_ms": 0.4989
+      "total_time_ms": 25.416,
+      "p50_latency_ms": 0.4818,
+      "p95_latency_ms": 0.6432,
+      "avg_per_candidate_ms": 0.5083
     },
     "N=100": {
       "batch_size": 100,
-      "total_time_ms": 49.761,
-      "p50_latency_ms": 0.4903,
-      "p95_latency_ms": 0.5659,
-      "avg_per_candidate_ms": 0.4976
+      "total_time_ms": 49.476,
+      "p50_latency_ms": 0.4838,
+      "p95_latency_ms": 0.5496,
+      "avg_per_candidate_ms": 0.4948
     },
     "N=200": {
       "batch_size": 200,
-      "total_time_ms": 100.3,
-      "p50_latency_ms": 0.4922,
-      "p95_latency_ms": 0.5524,
-      "avg_per_candidate_ms": 0.5015
+      "total_time_ms": 102.416,
+      "p50_latency_ms": 0.4871,
+      "p95_latency_ms": 0.5937,
+      "avg_per_candidate_ms": 0.5121
     },
     "N=1000": {
       "batch_size": 1000,
-      "total_time_ms": 505.387,
-      "p50_latency_ms": 0.4878,
-      "p95_latency_ms": 0.5867,
-      "avg_per_candidate_ms": 0.5054
+      "total_time_ms": 502.958,
+      "p50_latency_ms": 0.4883,
+      "p95_latency_ms": 0.571,
+      "avg_per_candidate_ms": 0.503
     }
   },
   "database_safety": {

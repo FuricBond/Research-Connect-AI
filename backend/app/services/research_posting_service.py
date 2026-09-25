@@ -29,6 +29,7 @@ from app.models.research_posting import (
 from app.models.research_profile import ResearchProfileModel
 from app.models.topic import TopicModel
 from app.models.user import UserModel
+from app.schemas.research_posting_application import OpeningTermsSchema, OpeningTermsUpdate
 from app.schemas.research_posting import (
     PostingSummaryResponse,
     PostingTopicSchema,
@@ -338,6 +339,7 @@ class ResearchPostingService:
             contact_email=payload.contact_email,
             external_url=payload.external_url,
         )
+        cls._apply_opening_terms(posting, payload.opening_terms)
         db.add(posting)
         db.flush()
 
@@ -370,6 +372,9 @@ class ResearchPostingService:
 
         data = payload.model_dump(exclude_unset=True)
         topic_ids = data.pop("topic_ids", None)
+        data.pop("opening_terms", None)
+        if payload.opening_terms is not None:
+            cls._apply_opening_terms(posting, payload.opening_terms)
 
         for field, value in data.items():
             if field == "posting_type" and value is not None:
@@ -463,6 +468,34 @@ class ResearchPostingService:
     # ── Helpers ──────────────────────────────────────────────────────────────
 
     @staticmethod
+    def _apply_opening_terms(
+        posting: ResearchPostingModel,
+        terms: OpeningTermsUpdate | None,
+    ) -> None:
+        """
+        Applies Phase 5.11 appointment terms, leaving unsupplied fields untouched.
+
+        On-platform applications are only permitted for structured openings: enabling them for a
+        supervisor-led posting would promise a workflow that `assert_posting_accepts_applications`
+        refuses, so the flag is forced off rather than accepted and later contradicted.
+        """
+        if terms is None:
+            return
+        supplied = terms.model_dump(exclude_unset=True)
+        for field, value in supplied.items():
+            if field == "compensation_type" and value is not None:
+                posting.compensation_type = value.value if hasattr(value, "value") else str(value)
+            elif field == "commitment_type":
+                posting.commitment_type = (
+                    value.value if hasattr(value, "value") else (str(value) if value else None)
+                )
+            else:
+                setattr(posting, field, value)
+
+        if PostingType(posting.posting_type) not in PostingType.structured_openings():
+            posting.accepts_applications = False
+
+    @staticmethod
     def _replace_topics(
         db: Session,
         posting: ResearchPostingModel,
@@ -503,6 +536,8 @@ class ResearchPostingService:
         *,
         requesting_user: UserModel | None = None,
         reference_time: datetime | None = None,
+        viewer_application_id: uuid.UUID | None = None,
+        viewer_application_status: str | None = None,
     ) -> ResearchPostingRead:
         now = reference_time or datetime.now(timezone.utc)
 
@@ -563,6 +598,24 @@ class ResearchPostingService:
             contact_email=posting.contact_email,
             external_url=posting.external_url,
             topics=topics,
+            opening_terms=OpeningTermsSchema(
+                compensation_type=posting.compensation_type,
+                compensation_amount=(
+                    float(posting.compensation_amount)
+                    if posting.compensation_amount is not None
+                    else None
+                ),
+                compensation_currency=posting.compensation_currency,
+                compensation_period=posting.compensation_period,
+                commitment_type=posting.commitment_type,
+                hours_per_week=posting.hours_per_week,
+                duration_months=posting.duration_months,
+                eligibility_requirements=posting.eligibility_requirements,
+                accepts_applications=posting.accepts_applications,
+                is_structured_opening=(
+                    PostingType(posting.posting_type) in PostingType.structured_openings()
+                ),
+            ),
             application_count=posting.application_count,
             published_at=posting.published_at,
             closed_at=posting.closed_at,
@@ -574,4 +627,6 @@ class ResearchPostingService:
             days_until_deadline=days_remaining,
             allowed_transitions=cls.get_allowed_transitions(posting.status),
             is_owner=bool(requesting_user is not None and posting.author_user_id == requesting_user.id),
+            viewer_application_id=viewer_application_id,
+            viewer_application_status=viewer_application_status,
         )

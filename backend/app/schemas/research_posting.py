@@ -9,6 +9,7 @@ import uuid
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models.research_posting import PostingStatus, PostingType, PostingWorkMode
+from app.schemas.research_posting_application import OpeningTermsSchema, OpeningTermsUpdate
 
 _EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 MAX_SKILLS = 25
@@ -144,6 +145,13 @@ class ResearchPostingCreate(ResearchPostingBase):
     """
 
     topic_ids: list[uuid.UUID] = Field(default_factory=list, max_length=MAX_TOPICS)
+    opening_terms: OpeningTermsUpdate | None = Field(
+        default=None,
+        description=(
+            "Phase 5.11 appointment terms. Meaningful for internships, assistantships and "
+            "post-docs; ignored for supervisor-led categories."
+        ),
+    )
 
     @field_validator("application_deadline")
     @classmethod
@@ -179,6 +187,7 @@ class ResearchPostingUpdate(BaseModel):
     contact_email: str | None = Field(default=None, max_length=255)
     external_url: str | None = None
     topic_ids: list[uuid.UUID] | None = Field(default=None, max_length=MAX_TOPICS)
+    opening_terms: OpeningTermsUpdate | None = None
 
     @field_validator("title", "summary", "preferred_qualifications", "description")
     @classmethod
@@ -242,6 +251,7 @@ class ResearchPostingRead(BaseModel):
     contact_email: str | None = None
     external_url: str | None = None
     topics: list[PostingTopicSchema] = Field(default_factory=list)
+    opening_terms: OpeningTermsSchema
     application_count: int = 0
     published_at: datetime | None = None
     closed_at: datetime | None = None
@@ -266,6 +276,14 @@ class ResearchPostingRead(BaseModel):
     is_owner: bool = Field(
         default=False,
         description="True when the requesting researcher authored this posting",
+    )
+    viewer_application_id: uuid.UUID | None = Field(
+        default=None,
+        description="The requesting researcher's own application to this posting, if any",
+    )
+    viewer_application_status: str | None = Field(
+        default=None,
+        description="Status of the requesting researcher's own application, if any",
     )
 
 

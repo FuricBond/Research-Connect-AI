@@ -62,6 +62,12 @@ from app.models.research_posting import (
     ResearchPostingModel,
     ResearchPostingTopicModel,
 )
+from app.models.research_posting_application import (
+    ApplicationStatus,
+    CommitmentType,
+    CompensationType,
+    ResearchPostingApplicationModel,
+)
 from app.models.research_submission import (
     ResearchSubmissionModel,
     SubmissionStatus,
@@ -212,6 +218,11 @@ __all__ = [
     "PostingType",
     "PostingStatus",
     "PostingWorkMode",
+    # Research Posting Applications (Phase 5.11)
+    "ResearchPostingApplicationModel",
+    "ApplicationStatus",
+    "CompensationType",
+    "CommitmentType",
     # Personalization Transparency & Researcher Controls (Phase 5.9)
     "ResearcherPersonalizationSettingsModel",
     "PersonalizationControlEventModel",

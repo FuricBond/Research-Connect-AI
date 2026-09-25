@@ -1,6 +1,6 @@
 {
   "benchmark_phase": "Phase 2.5G \u2014 Empirical Evaluation, Ablation & Benchmark Hardening",
-  "timestamp": "2026-09-25T09:22:33.439508+00:00",
+  "timestamp": "2026-09-25T09:44:05.254299+00:00",
   "environment": {
     "os": "Windows",
     "os_release": "11",
@@ -13,7 +13,7 @@
   "phase_2_5g": {
     "phase": "2.5G",
     "benchmark_phase": "Phase 2.5G \u2014 Empirical Evaluation, Ablation & Benchmark Hardening",
-    "timestamp": "2026-09-25T09:22:33.437162+00:00",
+    "timestamp": "2026-09-25T09:44:05.252092+00:00",
     "dataset": {
       "total_queries": 108,
       "total_candidates": 324,
@@ -485,106 +485,106 @@
       "determinism_pass_rate": 1.0,
       "diversity_attribution_reconciled_rate": 1.0,
       "latency_profile": {
-        "mean_ranking_batch_ms": 0.064,
-        "mean_explanation_batch_ms": 0.112,
-        "per_candidate_overhead_ms": 0.0643
+        "mean_ranking_batch_ms": 0.066,
+        "mean_explanation_batch_ms": 0.115,
+        "per_candidate_overhead_ms": 0.0662
       }
     },
     "latency": {
       "batch_10": {
         "candidate_count": 10,
         "hybrid_ranking_latency_ms": {
-          "p50": 0.269,
-          "p95": 0.332,
-          "mean": 0.273
+          "p50": 0.268,
+          "p95": 0.302,
+          "mean": 0.271
         },
         "diversity_reranking_latency_ms": {
-          "p50": 1.267,
-          "p95": 1.61,
-          "mean": 1.297
+          "p50": 1.24,
+          "p95": 1.453,
+          "mean": 1.272
         },
         "explainability_latency_ms": {
-          "p50": 0.678,
-          "p95": 1.1,
-          "mean": 0.716,
-          "per_candidate_overhead_ms": 0.0716
+          "p50": 0.673,
+          "p95": 0.814,
+          "mean": 0.684,
+          "per_candidate_overhead_ms": 0.0684
         },
         "end_to_end_latency_ms": {
-          "p50": 2.251,
-          "p95": 2.58,
-          "mean": 2.289
+          "p50": 2.209,
+          "p95": 2.453,
+          "mean": 2.228
         }
       },
       "batch_50": {
         "candidate_count": 50,
         "hybrid_ranking_latency_ms": {
-          "p50": 1.087,
-          "p95": 1.868,
-          "mean": 1.149
+          "p50": 1.146,
+          "p95": 2.366,
+          "mean": 1.356
         },
         "diversity_reranking_latency_ms": {
-          "p50": 2.878,
-          "p95": 3.254,
-          "mean": 2.907
+          "p50": 3.176,
+          "p95": 5.793,
+          "mean": 3.822
         },
         "explainability_latency_ms": {
-          "p50": 1.319,
-          "p95": 1.383,
-          "mean": 1.318,
-          "per_candidate_overhead_ms": 0.0264
+          "p50": 1.512,
+          "p95": 3.048,
+          "mean": 1.863,
+          "per_candidate_overhead_ms": 0.0373
         },
         "end_to_end_latency_ms": {
-          "p50": 5.281,
-          "p95": 6.507,
-          "mean": 5.375
+          "p50": 5.988,
+          "p95": 10.899,
+          "mean": 7.042
         }
       },
       "batch_100": {
         "candidate_count": 100,
         "hybrid_ranking_latency_ms": {
-          "p50": 2.069,
-          "p95": 3.052,
-          "mean": 2.147
+          "p50": 2.154,
+          "p95": 4.917,
+          "mean": 2.851
         },
         "diversity_reranking_latency_ms": {
-          "p50": 2.857,
-          "p95": 3.209,
-          "mean": 2.916
+          "p50": 2.946,
+          "p95": 6.441,
+          "mean": 3.821
         },
         "explainability_latency_ms": {
-          "p50": 1.324,
-          "p95": 1.541,
-          "mean": 1.36,
-          "per_candidate_overhead_ms": 0.0136
+          "p50": 1.389,
+          "p95": 3.103,
+          "mean": 1.803,
+          "per_candidate_overhead_ms": 0.018
         },
         "end_to_end_latency_ms": {
-          "p50": 6.373,
-          "p95": 7.671,
-          "mean": 6.424
+          "p50": 7.562,
+          "p95": 13.369,
+          "mean": 8.476
         }
       },
       "batch_200": {
         "candidate_count": 200,
         "hybrid_ranking_latency_ms": {
-          "p50": 4.021,
-          "p95": 4.523,
-          "mean": 4.089
+          "p50": 4.429,
+          "p95": 9.52,
+          "mean": 5.061
         },
         "diversity_reranking_latency_ms": {
-          "p50": 2.913,
-          "p95": 3.161,
-          "mean": 2.935
+          "p50": 3.194,
+          "p95": 5.559,
+          "mean": 3.545
         },
         "explainability_latency_ms": {
-          "p50": 1.323,
-          "p95": 1.502,
-          "mean": 1.349,
-          "per_candidate_overhead_ms": 0.0067
+          "p50": 1.365,
+          "p95": 2.778,
+          "mean": 1.58,
+          "per_candidate_overhead_ms": 0.0079
         },
         "end_to_end_latency_ms": {
-          "p50": 8.346,
-          "p95": 8.782,
-          "mean": 8.374
+          "p50": 9.249,
+          "p95": 14.12,
+          "mean": 10.187
         }
       }
     },
@@ -859,9 +859,9 @@
       }
     },
     "latency_profile_ms": {
-      "baseline_hybrid_p50": 0.231,
-      "reranker_inference_p50": 85.495,
-      "reranker_inference_p95": 95.459
+      "baseline_hybrid_p50": 0.232,
+      "reranker_inference_p50": 87.456,
+      "reranker_inference_p95": 97.526
     }
   },
   "diversity_novelty_evaluation": {
@@ -898,9 +898,9 @@
       "H_combined_diversity_plus_novelty": 1.0
     },
     "latency_profile_ms": {
-      "median_p50": 0.195,
-      "p95": 0.208,
-      "mean": 0.193
+      "median_p50": 0.196,
+      "p95": 0.252,
+      "mean": 0.194
     }
   },
   "retrieval_evaluation": {
@@ -1015,38 +1015,38 @@
     "determinism_pass_rate": 1.0,
     "diversity_attribution_reconciled_rate": 1.0,
     "latency_profile": {
-      "mean_ranking_batch_ms": 0.069,
-      "mean_explanation_batch_ms": 0.121,
-      "per_candidate_overhead_ms": 0.0694
+      "mean_ranking_batch_ms": 0.077,
+      "mean_explanation_batch_ms": 0.133,
+      "per_candidate_overhead_ms": 0.0765
     }
   },
   "api_latencies": {
     "research_search": {
       "iterations": 30,
-      "p50_ms": 1.977,
-      "p95_ms": 2.619,
-      "p99_ms": 39.046,
-      "mean_ms": 3.245,
-      "min_ms": 1.722,
-      "max_ms": 39.046
+      "p50_ms": 2.107,
+      "p95_ms": 20.389,
+      "p99_ms": 43.038,
+      "mean_ms": 4.069,
+      "min_ms": 1.741,
+      "max_ms": 43.038
     },
     "similar_research": {
       "iterations": 30,
-      "p50_ms": 1.816,
-      "p95_ms": 2.22,
-      "p99_ms": 7.253,
-      "mean_ms": 2.043,
-      "min_ms": 1.729,
-      "max_ms": 7.253
+      "p50_ms": 1.93,
+      "p95_ms": 2.587,
+      "p99_ms": 7.535,
+      "mean_ms": 2.153,
+      "min_ms": 1.716,
+      "max_ms": 7.535
     },
     "opportunity_matching": {
       "iterations": 30,
-      "p50_ms": 1.842,
-      "p95_ms": 2.143,
-      "p99_ms": 3.893,
-      "mean_ms": 1.925,
-      "min_ms": 1.734,
-      "max_ms": 3.893
+      "p50_ms": 1.92,
+      "p95_ms": 3.831,
+      "p99_ms": 15.269,
+      "mean_ms": 2.446,
+      "min_ms": 1.732,
+      "max_ms": 15.269
     }
   },
   "concurrency_profile": {
@@ -1055,32 +1055,32 @@
       "total_requests": 4,
       "successful_requests": 4,
       "error_rate": 0.0,
-      "total_duration_sec": 0.0132,
-      "throughput_qps": 303.4
+      "total_duration_sec": 0.0128,
+      "throughput_qps": 311.6
     },
     "concurrency_5": {
       "concurrent_virtual_clients": 5,
       "total_requests": 20,
       "successful_requests": 20,
       "error_rate": 0.0,
-      "total_duration_sec": 0.039,
-      "throughput_qps": 512.5
+      "total_duration_sec": 0.0385,
+      "throughput_qps": 520.1
     },
     "concurrency_10": {
       "concurrent_virtual_clients": 10,
       "total_requests": 40,
       "successful_requests": 40,
       "error_rate": 0.0,
-      "total_duration_sec": 0.0773,
-      "throughput_qps": 517.5
+      "total_duration_sec": 0.0766,
+      "throughput_qps": 522.4
     },
     "concurrency_25": {
       "concurrent_virtual_clients": 25,
       "total_requests": 100,
       "successful_requests": 100,
       "error_rate": 0.0,
-      "total_duration_sec": 0.2083,
-      "throughput_qps": 480.1
+      "total_duration_sec": 0.1912,
+      "throughput_qps": 523.1
     }
   }
 }
