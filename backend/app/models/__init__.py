@@ -55,6 +55,13 @@ from app.models.recommendation_history import (
     ResearcherRecommendationSnapshotModel,
     ResearcherRecommendationItemModel,
 )
+from app.models.research_posting import (
+    PostingStatus,
+    PostingType,
+    PostingWorkMode,
+    ResearchPostingModel,
+    ResearchPostingTopicModel,
+)
 from app.models.research_submission import (
     ResearchSubmissionModel,
     SubmissionStatus,
@@ -199,6 +206,12 @@ __all__ = [
     "SignalFreshnessState",
     "PreferenceAlignmentState",
     "GovernanceEventType",
+    # Faculty Research Postings (Phase 5.10)
+    "ResearchPostingModel",
+    "ResearchPostingTopicModel",
+    "PostingType",
+    "PostingStatus",
+    "PostingWorkMode",
     # Personalization Transparency & Researcher Controls (Phase 5.9)
     "ResearcherPersonalizationSettingsModel",
     "PersonalizationControlEventModel",

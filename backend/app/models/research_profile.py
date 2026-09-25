@@ -27,6 +27,7 @@ if TYPE_CHECKING:
         PersonalizationControlEventModel,
         ResearcherPersonalizationSettingsModel,
     )
+    from app.models.research_posting import ResearchPostingModel
     from app.models.user import UserModel
 
 
@@ -194,6 +195,10 @@ class ResearchProfileModel(Base, TimestampMixin):
     personalization_settings: Mapped[Optional["ResearcherPersonalizationSettingsModel"]] = relationship(
         back_populates="researcher_profile",
         uselist=False,
+        cascade="all, delete-orphan",
+    )
+    research_postings: Mapped[list["ResearchPostingModel"]] = relationship(
+        back_populates="author_profile",
         cascade="all, delete-orphan",
     )
     personalization_control_events: Mapped[list["PersonalizationControlEventModel"]] = relationship(
