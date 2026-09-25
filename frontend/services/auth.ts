@@ -86,9 +86,12 @@ export function getAuthHeaders(): Record<string, string> {
   const profileId = getActiveProfileId();
 
   if (token) {
+    // JWT Bearer token is the production authentication mechanism.
+    // When a token is present, do NOT also send X-User-ID to avoid ambiguity.
     headers["Authorization"] = `Bearer ${token}`;
-  }
-  if (userId) {
+  } else if (userId) {
+    // Fallback: developer-mode only (AUTH_DEV_IDENTITY_ENABLED=true on backend).
+    // Only used when no JWT is available (e.g., pre-login dev sessions).
     headers["X-User-ID"] = userId;
   } else if (profileId) {
     headers["X-User-ID"] = profileId;

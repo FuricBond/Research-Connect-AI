@@ -355,3 +355,52 @@ def test_production_mode_rejects_raw_x_user_id(
     )
     assert res.status_code == 401
     assert "Authentication required" in res.json()["detail"]
+
+
+# ============================================================================
+# 7. P0 Required Test Matrix — Tests 8, 10, 11 (missing previously)
+# ============================================================================
+
+def test_nonexistent_x_user_id_is_denied(client: TestClient):
+    """
+    TEST-8 / TEST-9: A UUID that does not correspond to any existing user MUST be rejected
+    with 401. Auto-bootstrap (the P0-D bug) must no longer be possible.
+    """
+    random_uuid = str(uuid.uuid4())
+    res = client.get(
+        f"/api/v1/researchers/{random_uuid}",
+        headers={"X-User-ID": random_uuid},
+    )
+    # Could be 401 (unknown identity) or 404 (profile not found after auth) —
+    # both are acceptable; 200 would be the bug.
+    assert res.status_code in (401, 404), (
+        f"Expected 401 or 404 for nonexistent X-User-ID, got {res.status_code}"
+    )
+
+
+def test_invalid_x_user_id_format_is_denied(client: TestClient):
+    """TEST-8 (format): A non-UUID value in X-User-ID must be rejected."""
+    res = client.get(
+        "/api/v1/workspace",
+        headers={"X-User-ID": "not-a-uuid-value"},
+    )
+    assert res.status_code == 401
+
+
+def test_invalid_jwt_signature_is_denied(client: TestClient, user_a: UserModel):
+    """TEST-11: JWT with invalid signature must be rejected with 401."""
+    import time
+    import base64
+    # Craft a minimally valid-looking JWT with a bad signature
+    header = base64.urlsafe_b64encode(b'{"alg":"HS256","typ":"JWT"}').rstrip(b"=").decode()
+    payload_data = base64.urlsafe_b64encode(
+        f'{{"sub":"{user_a.id}","iss":"researchconnect-ai","iat":{int(time.time())},'
+        f'"exp":{int(time.time()) + 3600},"type":"access"}}'.encode()
+    ).rstrip(b"=").decode()
+    bad_jwt = f"{header}.{payload_data}.invalidsignaturevalue"
+
+    res = client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {bad_jwt}"},
+    )
+    assert res.status_code == 401

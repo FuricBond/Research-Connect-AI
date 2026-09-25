@@ -835,12 +835,16 @@ def test_governance_apis(client, sample_user_and_profile, sample_opportunities):
     assert data_rec["profile_id"] == researcher_id
 
     # 5. Multi-tenant Authorization: unauthorized user ID
+    # An unknown UUID returns 401 (identity not found, no auto-bootstrap — P0-D fix).
+    # A known but different user would return 403. Both protect the resource.
     bad_headers = {"X-User-ID": str(uuid.uuid4())}
     res_unauth = client.get(
         f"/api/v1/researchers/{researcher_id}/personalization/health",
         headers=bad_headers,
     )
-    assert res_unauth.status_code == 403
+    assert res_unauth.status_code in (401, 403), (
+        f"Expected 401 or 403 for unauthorized access, got {res_unauth.status_code}"
+    )
 
 
 def test_performance_and_scaling_benchmarks():

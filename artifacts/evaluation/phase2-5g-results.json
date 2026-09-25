@@ -1,7 +1,7 @@
 {
   "phase": "2.5G",
   "benchmark_phase": "Phase 2.5G \u2014 Empirical Evaluation, Ablation & Benchmark Hardening",
-  "timestamp": "2026-09-25T04:57:24.662919+00:00",
+  "timestamp": "2026-09-25T06:20:35.637261+00:00",
   "dataset": {
     "total_queries": 108,
     "total_candidates": 324,
@@ -475,104 +475,104 @@
     "latency_profile": {
       "mean_ranking_batch_ms": 0.062,
       "mean_explanation_batch_ms": 0.108,
-      "per_candidate_overhead_ms": 0.0623
+      "per_candidate_overhead_ms": 0.0622
     }
   },
   "latency": {
     "batch_10": {
       "candidate_count": 10,
       "hybrid_ranking_latency_ms": {
-        "p50": 0.262,
-        "p95": 0.271,
-        "mean": 0.264
+        "p50": 0.263,
+        "p95": 0.448,
+        "mean": 0.275
       },
       "diversity_reranking_latency_ms": {
-        "p50": 1.234,
-        "p95": 1.334,
-        "mean": 1.251
+        "p50": 1.237,
+        "p95": 1.618,
+        "mean": 1.269
       },
       "explainability_latency_ms": {
-        "p50": 0.654,
-        "p95": 0.826,
-        "mean": 0.663,
-        "per_candidate_overhead_ms": 0.0663
+        "p50": 0.65,
+        "p95": 0.784,
+        "mean": 0.659,
+        "per_candidate_overhead_ms": 0.0659
       },
       "end_to_end_latency_ms": {
-        "p50": 2.148,
-        "p95": 2.308,
-        "mean": 2.178
+        "p50": 2.147,
+        "p95": 2.851,
+        "mean": 2.203
       }
     },
     "batch_50": {
       "candidate_count": 50,
       "hybrid_ranking_latency_ms": {
         "p50": 1.083,
-        "p95": 1.132,
-        "mean": 1.088
+        "p95": 2.387,
+        "mean": 1.175
       },
       "diversity_reranking_latency_ms": {
-        "p50": 2.822,
-        "p95": 3.108,
-        "mean": 2.854
+        "p50": 2.891,
+        "p95": 4.684,
+        "mean": 3.026
       },
       "explainability_latency_ms": {
-        "p50": 1.283,
-        "p95": 1.535,
-        "mean": 1.318,
-        "per_candidate_overhead_ms": 0.0264
+        "p50": 1.288,
+        "p95": 2.583,
+        "mean": 1.377,
+        "per_candidate_overhead_ms": 0.0275
       },
       "end_to_end_latency_ms": {
-        "p50": 5.207,
-        "p95": 5.651,
-        "mean": 5.26
+        "p50": 5.24,
+        "p95": 8.35,
+        "mean": 5.578
       }
     },
     "batch_100": {
       "candidate_count": 100,
       "hybrid_ranking_latency_ms": {
-        "p50": 2.037,
-        "p95": 2.372,
-        "mean": 2.075
+        "p50": 2.072,
+        "p95": 2.341,
+        "mean": 2.091
       },
       "diversity_reranking_latency_ms": {
-        "p50": 2.83,
-        "p95": 3.035,
-        "mean": 2.862
+        "p50": 2.904,
+        "p95": 3.045,
+        "mean": 2.919
       },
       "explainability_latency_ms": {
-        "p50": 1.272,
-        "p95": 1.34,
-        "mean": 1.28,
-        "per_candidate_overhead_ms": 0.0128
+        "p50": 1.311,
+        "p95": 1.519,
+        "mean": 1.328,
+        "per_candidate_overhead_ms": 0.0133
       },
       "end_to_end_latency_ms": {
-        "p50": 6.211,
-        "p95": 6.488,
-        "mean": 6.217
+        "p50": 6.307,
+        "p95": 6.576,
+        "mean": 6.339
       }
     },
     "batch_200": {
       "candidate_count": 200,
       "hybrid_ranking_latency_ms": {
-        "p50": 3.981,
-        "p95": 4.307,
-        "mean": 4.008
+        "p50": 4.07,
+        "p95": 4.482,
+        "mean": 4.102
       },
       "diversity_reranking_latency_ms": {
-        "p50": 2.833,
-        "p95": 2.927,
-        "mean": 2.839
+        "p50": 2.91,
+        "p95": 3.031,
+        "mean": 2.924
       },
       "explainability_latency_ms": {
-        "p50": 1.275,
-        "p95": 1.329,
-        "mean": 1.282,
-        "per_candidate_overhead_ms": 0.0064
+        "p50": 1.338,
+        "p95": 1.431,
+        "mean": 1.34,
+        "per_candidate_overhead_ms": 0.0067
       },
       "end_to_end_latency_ms": {
-        "p50": 8.099,
-        "p95": 8.408,
-        "mean": 8.129
+        "p50": 8.324,
+        "p95": 8.696,
+        "mean": 8.367
       }
     }
   },

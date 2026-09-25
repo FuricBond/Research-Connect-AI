@@ -933,12 +933,16 @@ def test_rest_api_get_personalized_recommendations(client: TestClient, db_sessio
     assert "ablation_summary" in data
 
     # 2. Forbidden access with different user ID
+    # After P0-D fix: nonexistent UUID → 401 (unknown identity, no auto-bootstrap).
+    # A known different user → 403 (forbidden). Both protect the resource.
     forbidden_user_id = uuid.uuid4()
     resp_forbidden = client.get(
         f"/api/v1/researchers/{profile.id}/personalized-recommendations",
         headers={"X-User-ID": str(forbidden_user_id)},
     )
-    assert resp_forbidden.status_code == 403
+    assert resp_forbidden.status_code in (401, 403), (
+        f"Expected 401 or 403 for unauthorized access, got {resp_forbidden.status_code}"
+    )
 
     # 3. Non-existent researcher profile
     non_existent_id = uuid.uuid4()

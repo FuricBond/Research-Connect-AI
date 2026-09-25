@@ -11,3 +11,5 @@ requests==2.32.3
 beautifulsoup4==4.12.3
 pytest==8.3.4
 sentence-transformers==3.3.1
+bcrypt==5.0.0
+PyJWT==2.15.0

@@ -39,12 +39,28 @@ def _unauthorized(detail: str) -> HTTPException:
 
 
 def _resolve_dev_identity(db: Session, raw_header: str) -> UserModel:
+    """
+    Developer-mode identity resolver.
+
+    SECURITY CONTRACT:
+    - Parses the header value as a UUID.
+    - Looks up an existing UserModel by that UUID directly.
+    - Falls back to looking up a ResearchProfileModel whose ``id`` or ``user_id`` matches,
+      then loads the profile's backing user.
+    - If no existing user is found: raises 401.  Identity auto-bootstrap is PROHIBITED.
+
+    This function may only run when ``AUTH_DEV_IDENTITY_ENABLED=true``, which is blocked
+    at startup when ``APP_ENV=production``.
+    """
     try:
         identifier = uuid.UUID(raw_header.strip())
     except ValueError:
         raise _unauthorized("Invalid X-User-ID header.")
 
+    # 1. Direct user lookup
     user = db.get(UserModel, identifier)
+
+    # 2. Fallback: resolve via researcher profile
     if user is None:
         profile = db.execute(
             select(ResearchProfileModel).where(
@@ -56,21 +72,11 @@ def _resolve_dev_identity(db: Session, raw_header: str) -> UserModel:
         ).scalars().first()
         if profile is not None:
             user = db.get(UserModel, profile.user_id)
+
+    # 3. Reject unknown identities — no auto-bootstrap
     if user is None:
-        user = UserModel(
-            id=identifier,
-            email=f"dev-{identifier.hex[:8]}@dev.local",
-            hashed_password="auth_placeholder",
-            full_name=f"Dev User {identifier.hex[:6]}",
-            role="STUDENT",
-            is_active=True,
-        )
-        db.add(user)
-        try:
-            db.flush()
-        except Exception:
-            db.rollback()
-            raise _unauthorized("Unknown identity.")
+        raise _unauthorized("Unknown identity.")
+
     return user
 
 
