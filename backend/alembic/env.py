@@ -3,7 +3,7 @@ from logging.config import fileConfig
 from pathlib import Path
 
 from alembic import context
-from sqlalchemy import Connection, engine_from_config, pool
+from sqlalchemy import Connection, engine_from_config, pool, text
 
 # Ensure backend root is on sys.path
 backend_dir = Path(__file__).resolve().parent.parent
@@ -59,30 +59,24 @@ def _ensure_wide_version_table(connection: Connection) -> None:
     here are longer (e.g. ``0023_phase5_9_personalization_transparency``), which makes a
     fresh ``upgrade head`` fail.
 
-    We perform this DDL in a dedicated sub-transaction so the COMMIT does not interfere
-    with the outer Alembic migration transaction.  Using ``execution_options(isolation_level=
-    "AUTOCOMMIT")`` via a new engine-level connection is the safest approach with psycopg3.
+    This must be committed before Alembic configures its migration transaction.  Otherwise
+    Alembic creates its default VARCHAR(32) version table after revision 0001 and cannot
+    record the longer revision IDs in this project.
     """
     if connection.dialect.name != "postgresql":
         return
 
-    # Run the pre-flight DDL in AUTOCOMMIT mode through a fresh raw DBAPI connection
-    # so we do not disturb the Alembic migration transaction context.
-    raw_conn = connection.engine.raw_connection()
-    try:
-        raw_conn.autocommit = True
-        with raw_conn.cursor() as cur:
-            cur.execute(
-                "CREATE TABLE IF NOT EXISTS alembic_version ("
-                "version_num VARCHAR(255) NOT NULL, "
-                "CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num))"
-            )
-            cur.execute(
-                "ALTER TABLE alembic_version ALTER COLUMN version_num TYPE VARCHAR(255)"
-            )
-    finally:
-        raw_conn.autocommit = False
-        raw_conn.close()
+    connection.execute(
+        text(
+            "CREATE TABLE IF NOT EXISTS alembic_version ("
+            "version_num VARCHAR(255) NOT NULL, "
+            "CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num))"
+        )
+    )
+    connection.execute(
+        text("ALTER TABLE alembic_version ALTER COLUMN version_num TYPE VARCHAR(255)")
+    )
+    connection.commit()
 
 
 def run_migrations_online() -> None:

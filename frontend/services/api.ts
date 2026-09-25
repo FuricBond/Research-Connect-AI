@@ -184,8 +184,16 @@ async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
     }
   }
 
-  if (!headers["X-User-ID"] && !headers["Authorization"]) {
-    const authHeaders = getAuthHeaders();
+  const authHeaders = getAuthHeaders();
+  if (headers["Authorization"] || authHeaders["Authorization"]) {
+    // A Bearer token is authoritative in production.  Several legacy wrapper
+    // methods still accept a developer user ID, so remove that fallback header
+    // whenever either an explicit or stored Bearer token is available.
+    delete headers["X-User-ID"];
+    if (!headers["Authorization"]) {
+      headers["Authorization"] = authHeaders["Authorization"];
+    }
+  } else if (!headers["X-User-ID"]) {
     Object.assign(headers, authHeaders);
   }
 
@@ -2663,6 +2671,5 @@ export async function fetchRecommendationPersonalizationExplanation(
     { headers, signal }
   );
 }
-
 
 
