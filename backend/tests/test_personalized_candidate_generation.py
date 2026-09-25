@@ -772,10 +772,12 @@ def test_api_get_personalized_candidates_success(client: TestClient, db_session:
     assert data["researcher_id"] == str(profile.id)
 
 
-def test_api_get_personalized_candidates_forbidden(client: TestClient, db_session: Session):
+def test_api_get_personalized_candidates_forbidden(
+    client: TestClient, db_session: Session, intruder_identity: UserModel
+):
     user = create_test_user(db_session)
     profile = create_test_profile(db_session, user)
-    other_user_id = uuid.uuid4()
+    other_user_id = intruder_identity.id
 
     resp = client.get(
         f"/api/v1/researchers/{profile.id}/personalized-candidates",

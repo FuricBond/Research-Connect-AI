@@ -34,7 +34,7 @@ This document provides the authoritative, comprehensive architectural roadmap an
 | **Phase 5.7** | Personalization Quality & Contextual Adaptation | **COMPLETE** | Observed lift, contextual partitioning (5 dimensions), 4-level fallback, bounded contextual adaptation (±0.03), migration 0021, quality card UI | 10 Tests / 100% Regr |
 | **Phase 5.8** | Personalization Governance & Drift Detection | **COMPLETE** | Temporal window partitioning (60d/14d), drift classification (STABLE/EMERGING/PERSISTENT/REVERSING), staleness detection, explicit preference protection, multi-dimensional health score, governance gate (ALLOW->SUSPEND), neutral suspension, migration 0022, governance card UI | 10 Tests / 100% Regr |
 | **Phase 5.9** | Personalization Transparency & Controls | **COMPLETE** | Deterministic explanation layer ("Why this recommendation?"), 5 bounded impact tiers, researcher controls (master toggle, adaptive toggle, future feedback toggle), safe reset with state versioning (v1->v2), append-only control audit trail, migration 0023, Next.js explanation modal & settings card UI | 8 Tests / 100% Regr |
-| **Phase 6** | Platform Infrastructure & Governance | **IN PROGRESS** | Role-Based Access Control (Student/Faculty/Admin), JWT/OAuth, rate limiting, structured logging, Docker production specs | Continuous |
+| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder. Remaining: Dockerfiles, frontend auth UI, scheduler | 1,277 Tests |
 | **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,008+ Passing Tests |
 
 ---
@@ -619,14 +619,39 @@ Facilitates institutional and cross-disciplinary collaboration within verified a
 ---
 
 ### 7. Platform Infrastructure, Governance & Security (Phase 6)
-Core infrastructure, identity, security, access control, and deployment operations.
+Core infrastructure, identity, security, access control, and correctness hardening.
 
-- **Authentication & Identity**: JWT/OAuth2 authentication with bcrypt password hashing and session management.
-- **Role-Based Access Control (RBAC)**: Strict separation of permissions across `STUDENT`, `FACULTY`, and `ADMIN` roles.
-- **Multi-Tenant Isolation**: Hardened tenant scoping via `X-User-ID` headers across all user-facing services and database queries.
-- **API Protection**: Strict Pydantic input validation, CORS protection, sliding-window rate limiting, and secure environment configuration.
-- **Structured Logging & Observability**: Formatted JSON logging with correlation IDs and audit trails for compliance.
-- **Containerization & Deployment**: Docker Compose local development and lightweight multi-stage Dockerfiles for cloud deployment.
+#### 7.1 Authentication, Authorization & Identity [COMPLETE]
+- **Single identity dependency** (`app/api/deps.py`): one place establishes who is calling. A signed HS256 bearer token from `/api/v1/auth/login` is the production mechanism; the raw `X-User-ID` header is honoured only under `AUTH_DEV_IDENTITY_ENABLED=true`, which is refused at startup when `APP_ENV=production`.
+- **No fallback identity**: the five routers that each resolved an absent header to *the oldest user in the database* (87 handlers, silently acting as another researcher) were replaced by the shared dependency. Missing credentials are `401`, credentials resolving to no account are `401`, a non-owner is `403`.
+- **Credentials**: bcrypt password hashing with a constant-work comparison for unknown accounts, so login latency does not disclose which emails are registered. Accounts predating Phase 6 carry a non-bcrypt placeholder and can never authenticate with a password.
+- **Role-Based Access Control**: `STUDENT`, `FACULTY`, `ADMIN` enforced by a dependency factory; the user row is re-read per request so role changes and deactivation apply immediately. The global reminder dispatcher, previously callable anonymously, now requires `ADMIN`.
+- **Ownership on previously open routes**: ten researcher routes — including an anonymous profile `PATCH` and anonymous reads of preferences and preference intelligence — now enforce owner authorization.
+- **API protection**: login rate limiting, security headers, and forwarding headers honoured only behind a trusted proxy (`TRUST_PROXY_HEADERS`) so a caller cannot rotate them to evade limits.
+- **Structured logging & observability**: JSON or text logging with a per-request correlation ID propagated as `X-Request-ID` and one access-log record per request.
+
+#### 7.2 Database & Deployment Correctness [COMPLETE]
+- **Long revision identifiers**: 19 of 25 migration IDs exceed Alembic's default `VARCHAR(32)` version column, so a fresh `alembic upgrade head` failed on the second revision and rolled back to zero tables. The version table is created or widened before migrating, in both `env.py` and `init.sql`, without renaming any existing revision.
+- **Generated column mapping**: `fts_vector` is `GENERATED ALWAYS … STORED` in migration `0007` but was mapped as an ordinary nullable column, so every ORM insert sent `NULL` and PostgreSQL rejected it, blocking all WikiCFP, OpenAlex and Crossref ingestion. It is now mapped as database-owned (`FetchedValue`), which emits no DDL and so remains SQLite-safe for the test suite.
+- **Missing migration**: the Phase 3.6 feedback and Phase 3.7 recommendation-history tables were added to the ORM without a migration, so the core recommendation endpoints returned `500` on PostgreSQL. Migration `0024` creates all three exactly as the models define them.
+- **Regression coverage**: a PostgreSQL integration test runs `alembic upgrade head` against a real database and skips when none is reachable — the gap that let all three defects ship.
+
+#### 7.3 Personalization Correctness Hardening [COMPLETE]
+- **Live ranking consumes the full Phase 5 stack**: Phase 5.6 calibrations and Phase 5.7 contextual adaptations previously existed only in the explanation endpoints, so the explanation a researcher read could disagree with the ranking they were served. Both now flow into the live scorer under the same adaptive-learning consent gate, bounded as before (±0.05 and ±0.03 within the ±0.10 adaptive envelope, then the ≤0.15 personalization cap).
+- **Researcher controls are authoritative everywhere**: the per-opportunity explanation endpoints receive the same control row the ranking honours, and behavioural signals are withheld when personalization, adaptive learning, or feedback learning is disabled.
+- **Durable reset**: a reset records `personalization_reset_at` (migration `0025`). Interactions and feedback stay append-only for audit, but every derived-signal recomputation excludes pre-reset evidence, so a reset is no longer undone by the next recompute. Derived governance drift evaluations are cleared too, so a stale `SUSPEND` gate cannot outlive the reset.
+- **Fail closed**: an unreadable control row disables personalization for that request and an unreadable governance gate damps to `HOLD`, rather than silently granting `ALLOW`. A table that was never created is distinguished from a failed read and correctly yields the documented defaults.
+- **Effective risk reaches base ranking**: `opportunities.risk_score` is never written by ingestion, so the base quality signal's predatory penalty read a column fixed at `0.00`. The in-memory Phase 2.6 assessment from candidate generation now reaches the Phase 2 ranker, taking the stricter of the stored and assessed values.
+- **Governance tracks its signals**: recomputing adaptive signals also refreshes the governance evaluation, instead of leaving the gate stale until a health endpoint is read.
+- **Identifier validation**: `resolve_user_id` rejects an identifier matching no account and no profile rather than passing it through as an owner id.
+
+#### 7.4 Demonstrability [COMPLETE]
+- **Deterministic seeder** (`backend/scripts/seed_demo_data.py`): idempotent, offline, `--reset` and `--dry-run` supported. Creates three accounts covering every platform role with working credentials, explicit preferences including one exclusion, and twelve opportunities spanning conferences, journals and workshops with deadlines from already-expired to months away — two of which carry textual markers the Phase 2.6 engine independently scores as high risk, so trust and deadline intelligence have something to act on.
+
+#### 7.5 Deferred
+- **Containerization**: `docker-compose.yml` provisions PostgreSQL with `pgvector`. Backend and frontend Dockerfiles and a full-stack compose profile are not yet written; both services run on the host.
+- **Frontend authentication UI**: the backend auth API and the browser identity/token client exist, but there is no login, registration or administration page yet, so a browser session still bootstraps a developer identity.
+- **Scheduled execution**: reminder dispatch and governance recomputation are triggered by an administrator endpoint and by adaptive recomputation; no background scheduler is configured.
 
 ---
 

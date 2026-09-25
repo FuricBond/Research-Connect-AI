@@ -50,6 +50,28 @@ from app.services.personalized_candidate_generation_service import (
 logger = logging.getLogger(__name__)
 
 
+def _is_missing_table_error(exc: BaseException) -> bool:
+    """
+    True when a database error means the queried table does not exist.
+
+    A table that was never created carries a different meaning from a read that failed:
+    the former says the feature is not deployed in this schema, so the documented defaults
+    apply, while the latter leaves the researcher's true state unknown and must fail closed.
+    Covers PostgreSQL (psycopg ``UndefinedTable``) and SQLite ("no such table").
+    """
+    for err in (exc, getattr(exc, "orig", None)):
+        if err is None:
+            continue
+        if type(err).__name__ in ("UndefinedTable", "NoSuchTableError"):
+            return True
+        message = str(err).lower()
+        if "no such table" in message or "undefinedtable" in message:
+            return True
+        if "relation" in message and "does not exist" in message:
+            return True
+    return False
+
+
 class PersonalizationRankingService:
     """
     Production-grade service orchestrating Phase 3.5 Personalized Ranking.
@@ -174,6 +196,7 @@ class PersonalizationRankingService:
         # disabled personalization in their account, it is always off regardless
         # of what the caller requested. Read-only query to avoid write/commit during ranking.
         settings = None
+        settings_lookup_failed = False
         try:
             from app.models.personalization_transparency import (
                 ResearcherPersonalizationSettingsModel,
@@ -186,9 +209,26 @@ class PersonalizationRankingService:
                 )
                 .scalar_one_or_none()
             )
-        except Exception:
+        except Exception as exc:
+            # Fail closed: if the researcher's own controls cannot be read we must not
+            # assume consent to personalize. A missing row or an undeployed table is
+            # different from a failed read — both mean "never configured", so the
+            # documented defaults apply.
             settings = None
+            if _is_missing_table_error(exc):
+                logger.debug(
+                    "Personalization settings table absent; applying default controls",
+                    extra={"profile_id": str(profile.id)},
+                )
+            else:
+                settings_lookup_failed = True
+                logger.warning(
+                    "Personalization settings lookup failed; disabling personalization for this request",
+                    extra={"profile_id": str(profile.id), "error": str(exc)},
+                )
 
+        if settings_lookup_failed:
+            enable_personalization = False
         if settings is not None and not settings.personalization_enabled:
             enable_personalization = False
 
@@ -209,8 +249,25 @@ class PersonalizationRankingService:
             governance_state = PersonalizationGovernanceService.get_active_governance_state(
                 db, profile.id
             )
-        except Exception:
-            governance_state = None
+        except Exception as exc:
+            # Fail closed: an unreadable governance gate must not silently grant the
+            # unrestricted ALLOW multiplier. HOLD keeps personalization available but
+            # damped to 0.25x until the gate can be evaluated again. An undeployed
+            # governance table instead means no gate has ever been recorded (ALLOW).
+            if _is_missing_table_error(exc):
+                governance_state = None
+                logger.debug(
+                    "Governance tables absent; no gate recorded for this researcher",
+                    extra={"profile_id": str(profile.id)},
+                )
+            else:
+                from app.models.personalization_governance import GovernanceGateState
+
+                governance_state = GovernanceGateState.HOLD
+                logger.warning(
+                    "Governance gate lookup failed; damping personalization to HOLD",
+                    extra={"profile_id": str(profile.id), "error": str(exc)},
+                )
 
         gov_val = (
             governance_state.value
@@ -247,6 +304,71 @@ class PersonalizationRankingService:
                 _adaptive_signal_list = []
         _adaptive_signals_loaded = bool(_adaptive_signal_list)
 
+        # ── 2d. Phase 5.6 Calibrations & Phase 5.7 Contextual Adaptations ────
+        # These derived modifiers were previously computed only for the per-opportunity
+        # explanation endpoints, so the explanation a researcher read could disagree with
+        # the ranking they were served. They are loaded on the live path under the same
+        # adaptive-signals consent gate, and remain bounded by the scorer (+/-0.05 and
+        # +/-0.03 respectively, combined within the +/-0.10 adaptive envelope).
+        _calibration_list: list[Any] = []
+        _contextual_list: list[Any] = []
+        if enable_personalization and adaptive_signals_enabled:
+            try:
+                from app.models.personalization_calibration import (
+                    PersonalizationCalibrationModel,
+                )
+                from app.schemas.personalization_calibration import (
+                    PersonalizationCalibrationSchema,
+                )
+
+                calibration_models = (
+                    db.execute(
+                        select(PersonalizationCalibrationModel).where(
+                            PersonalizationCalibrationModel.profile_id == profile.id
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+                _calibration_list = [
+                    PersonalizationCalibrationSchema.model_validate(m)
+                    for m in calibration_models
+                ]
+            except Exception as exc:
+                _calibration_list = []
+                logger.warning(
+                    "Calibration load failed; ranking without calibration modifiers",
+                    extra={"profile_id": str(profile.id), "error": str(exc)},
+                )
+
+            try:
+                from app.models.personalization_quality import (
+                    PersonalizationContextualAdaptationModel,
+                )
+                from app.schemas.personalization_quality import (
+                    PersonalizationContextualAdaptationSchema,
+                )
+
+                contextual_models = (
+                    db.execute(
+                        select(PersonalizationContextualAdaptationModel).where(
+                            PersonalizationContextualAdaptationModel.profile_id == profile.id
+                        )
+                    )
+                    .scalars()
+                    .all()
+                )
+                _contextual_list = [
+                    PersonalizationContextualAdaptationSchema.model_validate(m)
+                    for m in contextual_models
+                ]
+            except Exception as exc:
+                _contextual_list = []
+                logger.warning(
+                    "Contextual adaptation load failed; ranking without contextual modifiers",
+                    extra={"profile_id": str(profile.id), "error": str(exc)},
+                )
+
         # Batch load Phase 3.6 behavioral profile
         from app.services.feedback_service import ResearcherFeedbackService
         behavioral_profile = ResearcherFeedbackService.get_behavioral_profile(
@@ -254,6 +376,11 @@ class PersonalizationRankingService:
             researcher_id=profile.id,
             reference_time=ref_time,
             explicit_preferences=explicit_prefs,
+            # The Phase 5.9 reset cutoff comes from the settings row already loaded above,
+            # so honouring it costs no extra query on the live ranking path.
+            reset_cutoff=(
+                settings.personalization_reset_at if settings is not None else None
+            ),
         )
 
         # Phase 5.5/5.8/5.9 Settings Invariant:
@@ -371,6 +498,19 @@ class PersonalizationRankingService:
         for c in raw_candidates:
             opp_model = opp_models_map.get(c.opportunity.id)
             if opp_model:
+                # Phase 2.6 risk is assessed in memory during candidate generation; the
+                # stored opportunities.risk_score column is never written by ingestion, so
+                # reading it here left the base quality signal's predatory penalty inert.
+                # The effective assessment is used instead, taking the stricter of the two.
+                cand_opp = c.opportunity
+                stored_risk = float(opp_model.risk_score or 0.0)
+                assessed_risk = (
+                    float(cand_opp.risk_score) if cand_opp.risk_score is not None else 0.0
+                )
+                effective_risk_score = max(stored_risk, assessed_risk)
+                effective_predatory = bool(
+                    opp_model.is_predatory_flag or cand_opp.is_predatory_flag
+                )
                 phase2_candidates.append(
                     {
                         "entity_id": opp_model.id,
@@ -381,8 +521,8 @@ class PersonalizationRankingService:
                         "entity": opp_model,
                         "candidate": opp_model,
                         "indexing": opp_model.indexing,
-                        "is_predatory_flag": opp_model.is_predatory_flag,
-                        "risk_score": float(opp_model.risk_score or 0.0),
+                        "is_predatory_flag": effective_predatory,
+                        "risk_score": effective_risk_score,
                         "submission_deadline": opp_model.submission_deadline,
                         "status": opp_model.status,
                     }
@@ -410,6 +550,8 @@ class PersonalizationRankingService:
             base_scores=base_scores,
             opportunity_models=opp_models_map,
             adaptive_signals=_adaptive_signal_list,
+            calibrations=_calibration_list,
+            contextual_adaptations=_contextual_list,
             governance_state=governance_state.value if governance_state is not None else None,
             preferences=explicit_prefs,
             limit=safe_limit,

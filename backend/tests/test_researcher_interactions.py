@@ -611,13 +611,22 @@ def test_api_nonexistent_resources(client: TestClient, test_users_and_profiles, 
     )
     assert resp1.status_code == status.HTTP_404_NOT_FOUND
 
-    # Non-existent researcher
+    # Non-existent researcher, requested by an authenticated caller
     resp2 = client.post(
+        f"/api/v1/researchers/{random_id}/opportunities/{test_opportunities['opp_1'].id}/interactions",
+        json={"interaction_type": "VIEWED"},
+        headers={"X-User-ID": str(user_a.id)},
+    )
+    assert resp2.status_code == status.HTTP_404_NOT_FOUND
+
+    # Phase 6: an identity that resolves to no account is rejected before the route runs,
+    # so a missing researcher is never confirmed to an unauthenticated caller.
+    resp3 = client.post(
         f"/api/v1/researchers/{random_id}/opportunities/{test_opportunities['opp_1'].id}/interactions",
         json={"interaction_type": "VIEWED"},
         headers={"X-User-ID": str(random_id)},
     )
-    assert resp2.status_code == status.HTTP_404_NOT_FOUND
+    assert resp3.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 def test_api_summary_endpoint(client: TestClient, test_users_and_profiles, test_opportunities):

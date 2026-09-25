@@ -16,6 +16,7 @@ from typing import Any, Sequence
 import uuid
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.opportunity import OpportunityModel, OpportunityTopicModel
@@ -42,11 +43,41 @@ from app.schemas.researcher_feedback import (
 
 logger = logging.getLogger(__name__)
 
+# Sentinel distinguishing "caller supplied no cutoff, resolve it" from an explicit None
+# meaning "this researcher has never reset".
+_UNSET = object()
+
 
 class ResearcherFeedbackService:
     """
     Service managing persistent researcher feedback and behavioral learning (Phase 3.6).
     """
+
+    @staticmethod
+    def resolve_reset_cutoff(db: Session, profile_id: uuid.UUID) -> datetime | None:
+        """
+        Returns the researcher's last personalization reset instant, or None when they have
+        never reset. Tolerates deployments and narrow test schemas where the Phase 5.9
+        settings table is absent, in which case there is no cutoff to apply.
+        """
+        from app.models.personalization_transparency import (
+            ResearcherPersonalizationSettingsModel,
+        )
+
+        try:
+            return db.execute(
+                select(ResearcherPersonalizationSettingsModel.personalization_reset_at).where(
+                    ResearcherPersonalizationSettingsModel.profile_id == profile_id
+                )
+            ).scalar_one_or_none()
+        except SQLAlchemyError:
+            # Deliberately no rollback: this is a read-only probe and callers may hold
+            # uncommitted work in the same session that a rollback would silently discard.
+            logger.debug(
+                "Personalization settings unavailable; treating researcher as never reset",
+                extra={"profile_id": str(profile_id)},
+            )
+            return None
 
     @classmethod
     def record_feedback(
@@ -310,11 +341,19 @@ class ResearcherFeedbackService:
         researcher_id: uuid.UUID,
         reference_time: datetime | None = None,
         explicit_preferences: Sequence[ResearcherPreferenceModel] | None = None,
+        reset_cutoff: datetime | None | object = _UNSET,
     ) -> BehavioralProfile:
         """
         Compute deterministic behavioral profile for researcher.
 
         Batch loads all feedback events and opportunities in a single query (zero N+1).
+
+        Parameters
+        ----------
+        reset_cutoff:
+            Feedback recorded at or before this instant is excluded (Phase 5.9 reset).
+            Pass an explicit value (including None for "no cutoff") to avoid the extra
+            settings lookup; omit it to have the cutoff resolved here.
         """
         profile = db.execute(
             select(ResearchProfileModel).where(ResearchProfileModel.id == researcher_id)
@@ -338,8 +377,15 @@ class ResearcherFeedbackService:
         else:
             explicit_prefs = list(explicit_preferences)
 
-        # Batch load all feedback with eager opportunity & topic associations (zero N+1)
-        feedback_events = db.execute(
+        # Batch load feedback with eager opportunity & topic associations (zero N+1),
+        # excluding events at or before the researcher's last personalization reset
+        # (Phase 5.9). The rows remain for audit; a reset means they stop shaping ranking.
+        # Callers that already hold the settings row pass the cutoff in so this stays a
+        # single-query path.
+        if reset_cutoff is _UNSET:
+            reset_cutoff = cls.resolve_reset_cutoff(db, profile.id)
+
+        feedback_stmt = (
             select(ResearcherRecommendationFeedbackModel)
             .options(
                 joinedload(ResearcherRecommendationFeedbackModel.opportunity)
@@ -348,7 +394,12 @@ class ResearcherFeedbackService:
             )
             .where(ResearcherRecommendationFeedbackModel.researcher_id == profile.id)
             .order_by(ResearcherRecommendationFeedbackModel.created_at.asc())
-        ).unique().scalars().all()
+        )
+        if reset_cutoff is not None:
+            feedback_stmt = feedback_stmt.where(
+                ResearcherRecommendationFeedbackModel.created_at > reset_cutoff
+            )
+        feedback_events = db.execute(feedback_stmt).unique().scalars().all()
 
         return FeedbackEngine.aggregate_feedback(
             researcher_id=profile.id,

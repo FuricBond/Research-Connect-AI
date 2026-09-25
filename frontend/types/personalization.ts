@@ -724,6 +724,13 @@ export interface PersonalizationResetResponse {
   adaptive_signals_reset: number;
   calibration_states_reset: number;
   contextual_modifiers_reset: number;
+  /** Derived governance drift evaluations cleared, so a stale gate cannot outlive the reset. */
+  drift_evaluations_reset: number;
+  /**
+   * Cutoff recorded by this reset. Interactions and feedback at or before it are retained
+   * for audit but are excluded from all derived-signal recomputation.
+   */
+  reset_at: string | null;
   explicit_preferences_changed: number;
   researcher_profile_changed: number;
   message: string;

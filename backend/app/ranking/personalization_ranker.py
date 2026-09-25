@@ -691,6 +691,8 @@ class PersonalizationRanker:
         base_scores: dict[uuid.UUID, float] | None = None,
         opportunity_models: dict[uuid.UUID, Any] | None = None,
         adaptive_signals: Sequence[Any] | None = None,
+        calibrations: Sequence[Any] | None = None,
+        contextual_adaptations: Sequence[Any] | None = None,
         governance_state: str | None = None,
         preferences: Sequence[Any] | None = None,
         limit: int | None = None,
@@ -715,6 +717,10 @@ class PersonalizationRanker:
             Pre-loaded ORM OpportunityModels (to avoid additional DB queries).
         adaptive_signals : Sequence[Any] | None
             Phase 5.5 adaptive preference signals.
+        calibrations : Sequence[Any] | None
+            Phase 5.6 calibration records (bounded to +/-0.05 inside the scorer).
+        contextual_adaptations : Sequence[Any] | None
+            Phase 5.7 contextual adaptation records (bounded to +/-0.03 inside the scorer).
         governance_state : str | None
             Phase 5.8 active governance gate state string.
         preferences : Sequence[Any] | None
@@ -777,6 +783,10 @@ class PersonalizationRanker:
                         preferences=norm_prefs,
                         opportunities=scorer_opps,
                         adaptive_signals=list(target_adaptive) if target_adaptive else None,
+                        calibrations=list(calibrations) if calibrations else None,
+                        contextual_adaptations=(
+                            list(contextual_adaptations) if contextual_adaptations else None
+                        ),
                         governance_state=None,  # Do not pre-damp in scorer; PersonalizationRanker applies single authoritative governance damping
                     )
                 except Exception as e:

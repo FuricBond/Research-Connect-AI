@@ -361,18 +361,26 @@ The repository contains **87 Pytest test files** enforcing architectural invaria
 
 ## 9. Current Technical Limitations & Audit Evidence
 
-In accordance with rigorous academic integrity standards, the following technical limitations are documented from the codebase audit:
+In accordance with rigorous academic integrity standards, limitations are documented as they are found and struck through as they are resolved.
 
-1. **Phase 5 Live Gateway Disconnect**:
-   - *Status*: Phase 5 engines (`PersonalizationScorer`, `AdaptiveSignalEngine`, `GovernanceEngine`) are fully implemented and verified in isolated test suites.
-   - *Audit Finding*: The live production gateway `/api/v1/researchers/{id}/recommendations/unified` routes through `PersonalizationRankingService`, which calls the Phase 3.5 `PersonalizationRanker` rather than Phase 5's `PersonalizationScorer`.
-   - *Consequence*: Toggling personalization off in `/settings` currently does not modify live ranking in `/recommendations/unified`.
-2. **Development Header Authentication**:
-   - *Status*: Development uses an optional `X-User-ID` header checked in `_resolve_researcher_profile_auth`.
-   - *Audit Finding*: Omitting `X-User-ID` does not return `401 Unauthorized`; it resolves the profile by identifier directly.
-3. **Reset Telemetry Windowing**:
-   - *Status*: Resetting personalization deletes derived signal tables and increments `personalization_state_version`.
-   - *Audit Finding*: Raw rows in `researcher_interactions` are retained for telemetry. Calling `recompute_adaptive_signals` without a timestamp cutoff filter can re-aggregate pre-reset interactions.
+### 9.1 Resolved by the Phase 6 hardening pass
+
+1. **Phase 5 Live Gateway Disconnect** — *Resolved.* `PersonalizationRankingService` now loads the researcher's Phase 5.9 control row, the Phase 5.8 governance gate, Phase 5.5 adaptive signals, Phase 5.6 calibrations and Phase 5.7 contextual adaptations, and passes all of them through `PersonalizationRanker` into `PersonalizationScorer`. Disabling personalization, or disabling adaptive learning, now changes live ranking, and the per-opportunity explanation endpoints receive the same control row so an explanation cannot claim influence the ranking did not apply.
+2. **Development Header Authentication** — *Resolved.* Identity is established in one place (`app/api/deps.py`). A signed bearer token from `/api/v1/auth/login` is the production mechanism; the raw `X-User-ID` header is honoured only when `AUTH_DEV_IDENTITY_ENABLED=true`, which is refused at startup when `APP_ENV=production`. Missing credentials return `401`, credentials resolving to no account return `401`, and a mismatched owner returns `403`. There is no fallback identity.
+3. **Reset Telemetry Windowing** — *Resolved.* A reset records `researcher_personalization_settings.personalization_reset_at` (migration `0025`). Interaction and feedback rows remain append-only for audit, but adaptive-signal recomputation and behavioural aggregation both exclude evidence at or before the cutoff, so a reset is a durable cold start rather than one that the next recompute undoes.
+4. **Inert risk gate in personalized ranking** — *Resolved.* `opportunities.risk_score` is never written by ingestion, so the base quality signal's predatory penalty was reading a column fixed at `0.00`. The effective in-memory Phase 2.6 assessment computed during candidate generation is now what reaches the Phase 2 ranker, taking the stricter of the stored and assessed values.
+5. **Governance and control lookups failing open** — *Resolved.* A failed read of the control row now disables personalization for that request, and a failed governance read damps to `HOLD` rather than granting the unrestricted `ALLOW` multiplier. A table that was never created is treated differently from a failed read: it means the feature is not deployed in that schema, so the documented defaults apply.
+6. **Governance recomputed only on reads** — *Resolved.* Recomputing adaptive signals now also refreshes the governance evaluation, so the gate that damps live ranking tracks the behaviour it governs instead of waiting for somebody to open the health endpoint. A governance failure is logged and never discards a valid signal recomputation.
+7. **Unvalidated identifier pass-through** — *Resolved.* `WorkspaceService.resolve_user_id` rejects an identifier matching no account and no profile instead of returning it unchanged, which previously allowed workspace rows owned by a non-existent account.
+8. **No demo dataset** — *Resolved.* `backend/scripts/seed_demo_data.py` writes a deterministic, idempotent corpus: three accounts covering every platform role with bcrypt-hashed credentials, explicit preferences including one exclusion, and twelve opportunities spanning conferences, journals and workshops with deadlines from already-expired to months away, two of which carry the textual markers the Phase 2.6 engine independently scores as high risk.
+
+### 9.2 Known remaining limitations
+
+1. **Explicit exclusions suppress personalization but do not demote relevance**: an opportunity matching an `EXCLUDED` preference receives no personalization boost and its final score equals its base relevance score, so a highly relevant excluded venue can still appear in a ranked list. This is the behaviour the Phase 5 safety invariants specify and assert; changing exclusion to filter or demote is a deliberate product decision that would require re-specifying those invariants.
+2. **Client-asserted identity in developer mode**: when `AUTH_DEV_IDENTITY_ENABLED=true`, knowing a UUID is sufficient to act as that user. This is intended for local development only and is refused in production configuration.
+3. **Semantic embeddings are generated offline**: vector retrieval requires `python -m ml.embeddings.generate_embeddings` after ingestion or seeding; the seeder deliberately does not generate embeddings, as that requires a model download.
+4. **No scheduled execution**: deadline reminders and governance recomputation are triggered by an administrator endpoint and by adaptive recomputation respectively. There is no background scheduler.
+5. **Performance-budget tests are machine-sensitive**: a small number of wall-clock assertions (`test_ranking_execution_budget`, `test_performance_and_scaling_benchmarks`) can fail under CPU contention while passing on a quiet machine.
 
 ---
 

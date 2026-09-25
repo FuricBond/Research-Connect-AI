@@ -556,10 +556,13 @@ def test_personalization_strength_classification():
 
 
 def test_api_personalization_summary_and_ownership(client: TestClient, db_session: Session):
-    """Test API endpoint GET /{researcher_id}/personalization-summary with X-User-ID ownership."""
+    """Test API endpoint GET /{researcher_id}/personalization-summary with ownership enforcement."""
     user_a = uuid.uuid4()
-    user_b = uuid.uuid4()
     _, profile_a = create_mock_researcher(db_session, "Dr. User A", user_id=user_a)
+    # A real second account: Phase 6 rejects unknown credentials with 401, so proving the
+    # 403 ownership boundary requires authenticating as another registered researcher.
+    user_b_model, _ = create_mock_researcher(db_session, "Dr. User B")
+    user_b = user_b_model.id
 
     # 1. Successful request with matching X-User-ID
     res = client.get(
@@ -583,8 +586,9 @@ def test_api_personalization_summary_and_ownership(client: TestClient, db_sessio
 def test_api_recommendation_explanation_ownership(client: TestClient, db_session: Session):
     """Test API endpoint GET /{researcher_id}/personalized-recommendations/{opp_id}/explanation with ownership."""
     user_a = uuid.uuid4()
-    user_b = uuid.uuid4()
     _, profile_a = create_mock_researcher(db_session, "Dr. User A", user_id=user_a)
+    user_b_model, _ = create_mock_researcher(db_session, "Dr. User B")
+    user_b = user_b_model.id
     opp = create_mock_opportunity(db_session, "AAAI 2026")
 
     # Matching owner

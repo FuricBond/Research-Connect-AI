@@ -6,6 +6,7 @@ from typing import Any, Sequence
 import uuid
 
 from sqlalchemy import delete, func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.adaptive_signal import AdaptivePreferenceSignalModel
@@ -66,6 +67,35 @@ class PersonalizationTransparencyService:
         deleting user accounts, profiles, explicit preferences, or audit records.
       - Zero N+1: Batch eagerly loads data in bounded queries.
     """
+
+    @classmethod
+    def load_settings(
+        cls,
+        db: Session,
+        profile_id: uuid.UUID,
+    ) -> ResearcherPersonalizationSettingsModel | None:
+        """
+        Read-only settings lookup, returning None when the researcher has never configured
+        their controls. Read paths use this instead of `get_or_create_settings` so that a
+        GET never writes a row; absence is equivalent to the documented defaults.
+
+        Mirrors the sibling Phase 5 lookups by tolerating a schema without the settings
+        table, in which case no researcher has stored controls and the defaults apply.
+        """
+        try:
+            return (
+                db.execute(
+                    select(ResearcherPersonalizationSettingsModel).where(
+                        ResearcherPersonalizationSettingsModel.profile_id == profile_id
+                    )
+                )
+                .scalar_one_or_none()
+            )
+        except SQLAlchemyError as exc:
+            logger.warning(
+                "Could not query researcher_personalization_settings: %s", exc
+            )
+            return None
 
     @classmethod
     def get_or_create_settings(
@@ -193,8 +223,14 @@ class PersonalizationTransparencyService:
             "personalization_state_version": settings.personalization_state_version,
         }
 
-        # 1. Increment personalization state version
+        # 1. Increment personalization state version and stamp the reset cutoff.
+        # Interactions and feedback are append-only history and are deliberately kept, but
+        # every derived-signal recomputation filters on this cutoff. Without it the next
+        # `recompute_adaptive_signals` call would rebuild the pre-reset state from the very
+        # interactions the researcher just asked the system to stop learning from.
+        reset_at = datetime.now(timezone.utc)
         settings.personalization_state_version += 1
+        settings.personalization_reset_at = reset_at
         new_version = settings.personalization_state_version
 
         # 2. Count and neutralize derived adaptive signals (Phase 5.5)
@@ -236,6 +272,22 @@ class PersonalizationTransparencyService:
             )
         )
 
+        # 4b. Count and neutralize governance drift evaluations (Phase 5.8).
+        # These are derived from behavioral history, so a gate computed before the reset
+        # (for example SUSPEND) must not keep damping the researcher's fresh state. The
+        # append-only governance event log is preserved as the audit record.
+        drift_count = db.scalar(
+            select(func.count(PersonalizationDriftEvaluationModel.id)).where(
+                PersonalizationDriftEvaluationModel.profile_id == profile_id
+            )
+        ) or 0
+
+        db.execute(
+            delete(PersonalizationDriftEvaluationModel).where(
+                PersonalizationDriftEvaluationModel.profile_id == profile_id
+            )
+        )
+
         new_state = {
             "personalization_enabled": settings.personalization_enabled,
             "adaptive_signals_enabled": settings.adaptive_signals_enabled,
@@ -262,12 +314,16 @@ class PersonalizationTransparencyService:
             adaptive_signals_reset=adaptive_count,
             calibration_states_reset=calib_count,
             contextual_modifiers_reset=ctx_count,
+            drift_evaluations_reset=drift_count,
+            reset_at=reset_at,
             explicit_preferences_changed=0,
             researcher_profile_changed=0,
             message=(
                 f"Personalization state successfully reset to version {new_version}. "
                 f"Neutralized {adaptive_count} adaptive signals, {calib_count} calibrations, "
-                f"and {ctx_count} contextual adaptations. Explicit preferences and profile were preserved."
+                f"{ctx_count} contextual adaptations, and {drift_count} drift evaluations. "
+                "Interactions recorded before the reset are retained for audit but no longer "
+                "feed derived signals. Explicit preferences and profile were preserved."
             ),
             timestamp=datetime.now(timezone.utc),
         )

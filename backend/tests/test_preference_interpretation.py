@@ -581,9 +581,10 @@ def test_api_unauthorized_access(
     client: TestClient,
     test_user_and_profile: tuple[UserModel, ResearchProfileModel],
     sample_opportunity: OpportunityModel,
+    intruder_identity: UserModel,
 ):
     _, profile = test_user_and_profile
-    other_user_id = uuid.uuid4()
+    other_user_id = intruder_identity.id
 
     resp = client.get(
         f"/api/v1/researchers/{profile.id}/opportunities/{sample_opportunity.id}/preference-match",

@@ -106,6 +106,8 @@ def db_session() -> Session:
         Base.metadata.tables["researcher_interests"],
         Base.metadata.tables["researcher_preferences"],
         Base.metadata.tables["researcher_recommendation_feedback"],
+        # Behavioral aggregation consults the Phase 5.9 reset cutoff stored here.
+        Base.metadata.tables["researcher_personalization_settings"],
         Base.metadata.tables["workspace_members"],
         Base.metadata.tables["workspace_invitations"],
         Base.metadata.tables["workspace_tasks"],
@@ -799,5 +801,7 @@ def test_zero_n_plus_one_query_performance(db_session: Session):
     finally:
         event.remove(engine, "before_cursor_execute", _query_listener)
 
-    # With 10 feedback items, regardless of N, total queries is fixed (constant / O(1))
-    assert query_count <= 5
+    # With 10 feedback items, regardless of N, total queries is fixed (constant / O(1)).
+    # Budget covers profile lookup, explicit preferences, the Phase 5.9 reset-cutoff probe,
+    # and the eager-loaded feedback query.
+    assert query_count <= 6

@@ -342,8 +342,10 @@ def test_session_id_idempotency(db_session: Session):
     assert snap1.id == snap2.id
 
 
-def test_history_api_list_and_ownership(client: TestClient, db_session: Session):
-    """Verify history list endpoint with X-User-ID ownership validation."""
+def test_history_api_list_and_ownership(
+    client: TestClient, db_session: Session, intruder_identity: UserModel
+):
+    """Verify history list endpoint with researcher ownership validation."""
     user, profile = create_mock_researcher(db_session)
     opp = create_mock_opportunity(db_session, "KDD 2026")
     cands = [create_mock_candidate(opp, rank=1)]
@@ -369,7 +371,7 @@ def test_history_api_list_and_ownership(client: TestClient, db_session: Session)
     assert "KDD 2026" in data["items"][0]["top_opportunity_titles"][0]
 
     # 2. Forbidden access with unauthorized X-User-ID
-    wrong_user_id = str(uuid.uuid4())
+    wrong_user_id = str(intruder_identity.id)
     res_forbidden = client.get(
         f"/api/v1/researchers/{profile.id}/recommendation-history",
         headers={"X-User-ID": wrong_user_id},

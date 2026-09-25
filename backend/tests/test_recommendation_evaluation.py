@@ -545,8 +545,10 @@ def test_evaluation_read_only_safety_invariant(db_session: Session):
     assert fb_count_before == fb_count_after
 
 
-def test_evaluation_api_and_ownership(client: TestClient, db_session: Session):
-    """Verify evaluation API endpoint and X-User-ID ownership authorization."""
+def test_evaluation_api_and_ownership(
+    client: TestClient, db_session: Session, intruder_identity: UserModel
+):
+    """Verify evaluation API endpoint and researcher ownership authorization."""
     user, profile = create_mock_researcher(db_session)
     opp = create_mock_opportunity(db_session, "API Venue")
     cands = [create_mock_candidate(opp, rank=1)]
@@ -573,7 +575,7 @@ def test_evaluation_api_and_ownership(client: TestClient, db_session: Session):
     # 2. Forbidden access with wrong X-User-ID
     res_forbidden = client.get(
         f"/api/v1/researchers/{profile.id}/recommendation-evaluation",
-        headers={"X-User-ID": str(uuid.uuid4())},
+        headers={"X-User-ID": str(intruder_identity.id)},
     )
     assert res_forbidden.status_code == 403
 

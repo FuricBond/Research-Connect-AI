@@ -618,7 +618,7 @@ def test_explain_recommendation_personalization_endpoint_logic(db_session: Sessi
 # 5. REST API ENDPOINTS & AUTHORIZATION TESTS
 # =============================================================================
 
-def test_transparency_rest_apis_and_authorization(client, sample_transparency_context):
+def test_transparency_rest_apis_and_authorization(client, sample_transparency_context, intruder_identity):
     """
     Test REST APIs:
       - GET /api/v1/researchers/{id}/personalization/settings
@@ -631,7 +631,8 @@ def test_transparency_rest_apis_and_authorization(client, sample_transparency_co
     user, profile, opp1, opp2, opp3, item1, item2 = sample_transparency_context
 
     headers_auth = {"X-User-ID": str(user.id)}
-    headers_intruder = {"X-User-ID": str(uuid.uuid4())}
+    # A different registered researcher: unknown credentials would be 401, not 403.
+    headers_intruder = {"X-User-ID": str(intruder_identity.id)}
 
     # 1. GET settings (authorized)
     resp = client.get(f"/api/v1/researchers/{profile.id}/personalization/settings", headers=headers_auth)

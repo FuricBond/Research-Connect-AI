@@ -185,6 +185,17 @@ class PersonalizationResetResponse(BaseModel):
         ...,
         description="Count of contextual adaptations neutralized/reset",
     )
+    drift_evaluations_reset: int = Field(
+        default=0,
+        description="Count of derived governance drift evaluations neutralized/reset",
+    )
+    reset_at: datetime | None = Field(
+        default=None,
+        description=(
+            "Cutoff instant recorded by this reset. Interactions and feedback at or before "
+            "it are retained for audit but excluded from derived-signal recomputation."
+        ),
+    )
     explicit_preferences_changed: int = Field(
         default=0,
         description="Count of explicit preferences changed (always 0, strictly preserved)",

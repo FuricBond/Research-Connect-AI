@@ -63,6 +63,17 @@ class AdaptivePreferenceSignalService:
 
         raise ValueError(f"Researcher profile with ID '{identifier}' not found.")
 
+    @staticmethod
+    def _get_reset_cutoff(db: Session, profile_id: uuid.UUID) -> Optional[datetime]:
+        """
+        Returns the researcher's last personalization reset instant, or None if they have
+        never reset. Derived-signal recomputation must ignore evidence at or before it.
+        Tolerates schemas without the Phase 5.9 settings table.
+        """
+        from app.services.feedback_service import ResearcherFeedbackService
+
+        return ResearcherFeedbackService.resolve_reset_cutoff(db, profile_id)
+
     @classmethod
     def recompute_adaptive_signals(
         cls,
@@ -84,7 +95,12 @@ class AdaptivePreferenceSignalService:
         resolved_id = cls.resolve_profile_id(db, profile_id)
         ref_time = reference_time or datetime.now(timezone.utc)
 
-        # 1. Fetch all interaction records for this profile in a single query with eager-loaded opportunities
+        # 1. Fetch interaction records for this profile in a single query with eager-loaded
+        #    opportunities, excluding anything recorded at or before the researcher's last
+        #    personalization reset (Phase 5.9). Interactions stay in the append-only store
+        #    for audit, but a reset is a cold start: pre-reset behaviour must not be
+        #    re-aggregated into fresh signals.
+        reset_cutoff = cls._get_reset_cutoff(db, resolved_id)
         stmt = (
             select(ResearcherInteractionModel)
             .options(
@@ -95,6 +111,8 @@ class AdaptivePreferenceSignalService:
             .where(ResearcherInteractionModel.profile_id == resolved_id)
             .order_by(ResearcherInteractionModel.created_at.desc())
         )
+        if reset_cutoff is not None:
+            stmt = stmt.where(ResearcherInteractionModel.created_at > reset_cutoff)
         interactions = db.execute(stmt).unique().scalars().all()
 
         # 2. Run pure deterministic aggregation engine
@@ -172,6 +190,27 @@ class AdaptivePreferenceSignalService:
             resolved_id,
             config.algorithm_version,
         )
+
+        # Phase 5.8 governance is derived from the same behavioural history, and it was only
+        # ever recalculated when someone happened to read the health or drift endpoint. It is
+        # refreshed here so the gate that damps live ranking tracks the signals it governs.
+        # A governance failure must not discard a valid signal recomputation, so it is
+        # logged and swallowed; the gate then keeps its previous (or default) state.
+        try:
+            from app.services.personalization_governance_service import (
+                PersonalizationGovernanceService,
+            )
+
+            PersonalizationGovernanceService.recompute_governance(
+                db=db,
+                profile_id=resolved_id,
+                reference_time=ref_time,
+            )
+        except Exception as exc:
+            logger.warning(
+                "Governance recomputation after adaptive signal refresh failed",
+                extra={"profile_id": str(resolved_id), "error": str(exc)},
+            )
 
         return computed_signals
 

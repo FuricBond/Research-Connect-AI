@@ -85,7 +85,7 @@ The entire intelligence and ranking pipeline is **deterministic, in-memory, and 
 | **IR / Evaluation** | `scikit-learn`, custom RRF & IR Metrics | P@K, R@K, MRR, NDCG, Kendall-τ rank correlation, HHI concentration, 16-scenario benchmark suite |
 | **Personalization Engine** | Custom deterministic engine | Adaptive signals, calibration, governance, quality assurance, and transparency controls |
 | **Containerization** | Docker Compose | Local PostgreSQL 16 with pre-configured `pgvector` extension |
-| **Testing** | `pytest` | 88 test modules, 1,247 collected tests — all zero-network, in-memory fixtures |
+| **Testing** | `pytest` | 92 test modules, 1,290 collected tests — zero-network, in-memory fixtures, plus an opt-in PostgreSQL migration test |
 | **Knowledge Graph** | `graphify` | Navigable AST + semantic knowledge graph (`graphify-out/`) |
 
 ---
@@ -173,7 +173,7 @@ researchconnect-ai/
 │   │   ├── search/           # Query intelligence & GIN index integration
 │   │   ├── services/         # Domain services (28 service modules)
 │   │   └── main.py           # FastAPI entrypoint, CORS, router registration
-│   ├── tests/                # Pytest suite — 88 modules, 1,247 collected tests
+│   ├── tests/                # Pytest suite — 92 modules, 1,290 collected tests
 │   ├── pytest.ini            # Pytest configuration
 │   └── requirements.txt      # Pinned Python dependencies
 ├── frontend/
@@ -292,6 +292,20 @@ researchconnect-ai/
 | **5.8** | **Personalization Governance** (`GovernanceEngine`, fairness auditing, safety invariants, compliance audit trails, migration 0022) | ✅ Complete |
 | **5.9** | **Personalization Transparency & Controls** (`TransparencyEngine`, user-facing preference controls, data portability, audit log API, migration 0023) | ✅ Complete |
 
+### 🚧 Phase 6 — Platform Infrastructure, Security & Correctness Hardening *(In Progress)*
+
+| Area | Description | Status |
+|---|---|---|
+| **Authentication & Identity** | Signed HS256 bearer tokens (`/api/v1/auth/register`, `/login`, `/me`), bcrypt credentials with constant-work verification, one shared identity dependency, no fallback identity | Complete |
+| **Authorization & RBAC** | `STUDENT` / `FACULTY` / `ADMIN` enforced per request, owner checks added to ten previously open researcher routes, admin-only reminder dispatch, `/api/v1/admin/users` | Complete |
+| **API Protection & Observability** | Login rate limiting, security headers, proxy headers trusted only behind `TRUST_PROXY_HEADERS`, JSON/text structured logging with `X-Request-ID` correlation | Complete |
+| **Database & Deployment Correctness** | Fresh `alembic upgrade head` fixed (long revision IDs), generated `fts_vector` mapping fixed so ingestion can insert, migration `0024` for the Phase 3.6/3.7 tables, opt-in PostgreSQL migration test | Complete |
+| **Personalization Correctness** | Phase 5.6 calibration and 5.7 contextual adaptation wired into live ranking, researcher controls honoured in explanations, durable reset cutoff (migration `0025`), fail-closed governance, effective Phase 2.6 risk in base ranking | Complete |
+| **Demo Data** | Deterministic idempotent seeder (`backend/scripts/seed_demo_data.py`) covering all roles, preferences, and a corpus exercising deadline and risk intelligence | Complete |
+| **Containerization** | Backend/frontend Dockerfiles and a full-stack compose profile | Deferred |
+| **Frontend Auth UI** | Login / registration / administration pages and route guards | Deferred |
+| **Scheduled Execution** | Background scheduler for reminders and governance recomputation | Deferred |
+
 ---
 
 ## 🏗️ Key Subsystems
@@ -349,7 +363,7 @@ researchconnect-ai/
 
 ## 🧪 Testing & Validation
 
-The backend maintains a comprehensive test suite of **88 test modules** and **1,247 collected tests** (all zero-network, in-memory):
+The backend maintains a comprehensive test suite of **92 test modules** and **1,290 collected tests** (zero-network, in-memory fixtures):
 
 ```bash
 # Run full backend test suite
@@ -419,14 +433,35 @@ pip install -r requirements.txt
 # Copy environment file
 cp ../.env.example .env
 
-# Run database migrations (0001–0023)
+# Run database migrations (0001–0025)
 alembic upgrade head
+
+# Load a deterministic demo dataset: 3 accounts (faculty/student/admin), explicit
+# preferences, and 12 opportunities including expired deadlines and predatory venues.
+# Idempotent; supports --reset and --dry-run.
+python -m scripts.seed_demo_data
 
 # Start FastAPI development server
 uvicorn app.main:app --reload --port 8000
 ```
 
 API interactive documentation: `http://localhost:8000/docs`
+
+Sign in with the seeded faculty account to obtain a bearer token:
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/login -H "Content-Type: application/json" -d "{\"email\":\"demo.faculty@researchconnect.test\",\"password\":\"DemoPass123!\"}"
+```
+
+Send the returned `access_token` as `Authorization: Bearer <token>` on protected routes. For
+local work without tokens, set `AUTH_DEV_IDENTITY_ENABLED=true` to accept a raw `X-User-ID`
+header instead; that setting is refused at startup when `APP_ENV=production`.
+
+Semantic (vector) retrieval additionally needs embeddings, which are generated offline:
+
+```bash
+python -m ml.embeddings.generate_embeddings
+```
 
 ---
 
@@ -445,7 +480,7 @@ Next.js web application: `http://localhost:3000`
 ### 4. Running Validation
 
 ```bash
-# Backend tests (1,247 tests, zero-network)
+# Backend tests (1,290 tests, zero-network)
 cd backend
 ..\\.venv\\Scripts\\pytest.exe
 
@@ -471,9 +506,12 @@ npm run build
 
 ## ⚠️ Current Scope Boundaries & Status
 
-- **Authentication Infrastructure**: Researcher operations currently use explicit `X-User-ID` header matching and user verification. Full session cookies / OAuth2 login flows are planned for platform hardening.
-- **Embeddings Generation**: Semantic embeddings are calculated deterministically via local sentence-transformers; automated background ingestion daemons are planned for production hardening.
+- **Authentication**: Implemented in Phase 6. `POST /api/v1/auth/register` and `/auth/login` issue signed HS256 bearer tokens over bcrypt-hashed credentials, and one shared dependency (`app/api/deps.py`) establishes identity for every protected route with no fallback identity. The raw `X-User-ID` header is accepted **only** when `AUTH_DEV_IDENTITY_ENABLED=true`, which is refused at startup under `APP_ENV=production`. There is not yet a login page in the web UI, so a browser session still bootstraps a developer identity.
+- **Deployment**: `docker-compose.yml` provisions PostgreSQL with `pgvector`. Backend and frontend Dockerfiles are not written yet; both run on the host.
+- **Scheduled Execution**: Deadline reminder dispatch is an `ADMIN`-only endpoint and governance recomputation runs when adaptive signals are recomputed. No background scheduler is configured.
+- **Embeddings Generation**: Semantic embeddings are calculated deterministically via local sentence-transformers and generated offline (`python -m ml.embeddings.generate_embeddings`); automated background ingestion daemons are planned for production hardening.
 - **Scraper Ingestion**: WikiCFP is fully operational as a verified source connector; additional connectors (ACM, IEEE, Springer) are planned for ingestion scaling.
+- **Explicit Exclusions**: An opportunity matching an `EXCLUDED` preference receives no personalization boost, but its score is not demoted below its base relevance, so a highly relevant excluded venue can still appear in a ranked list. This is what the Phase 5 safety invariants specify and assert; changing it is a product decision.
 
 ---
 

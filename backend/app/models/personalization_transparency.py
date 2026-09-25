@@ -109,6 +109,16 @@ class ResearcherPersonalizationSettingsModel(Base, TimestampMixin):
         comment="Monotonically increasing version; incremented on personalization reset to invalidate prior derived state",
     )
 
+    personalization_reset_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment=(
+            "Timestamp of the most recent personalization reset. Interactions and feedback "
+            "recorded at or before this instant are retained for audit but are excluded from "
+            "all derived-signal recomputation, so a reset is a durable cold start."
+        ),
+    )
+
     # Relationships
     researcher_profile: Mapped["ResearchProfileModel"] = relationship(
         back_populates="personalization_settings",

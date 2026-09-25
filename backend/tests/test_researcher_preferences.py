@@ -673,7 +673,9 @@ def test_zero_n_plus_one_query_performance(db_session: Session, setup_researcher
 
 # ── Test FastAPI REST Endpoints ───────────────────────────────────────────────
 
-def test_api_preference_endpoints(client: TestClient, db_session: Session, setup_researcher):
+def test_api_preference_endpoints(
+    client: TestClient, db_session: Session, setup_researcher, intruder_identity: UserModel
+):
     user, profile = setup_researcher
 
     # 1. GET /preference-intelligence
@@ -695,7 +697,7 @@ def test_api_preference_endpoints(client: TestClient, db_session: Session, setup
     res_bad = client.post(
         f"/api/v1/researchers/{profile.id}/preferences",
         json=bad_payload,
-        headers={"X-User-ID": str(uuid.uuid4())},
+        headers={"X-User-ID": str(intruder_identity.id)},
     )
     assert res_bad.status_code == 403
 

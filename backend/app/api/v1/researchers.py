@@ -1607,6 +1607,10 @@ def get_opportunity_personalization(
     calibrations = PersonalizationCalibrationService.get_calibrations(db, profile.id)
     contextual_adaptations = PersonalizationQualityService.get_contextual_adaptations(db, profile.id)
     governance_state = PersonalizationGovernanceService.get_active_governance_state(db, profile.id)
+    # The researcher's own controls are passed through so this explanation reflects the
+    # same toggles the live ranking honours; without them a disabled-personalization
+    # researcher could be shown adaptive influence their recommendations never received.
+    personalization_settings = PersonalizationTransparencyService.load_settings(db, profile.id)
     return PersonalizationScorer.score_opportunity(
         profile_id=profile.id,
         preferences=structured_prefs,
@@ -1615,6 +1619,7 @@ def get_opportunity_personalization(
         calibrations=calibrations,
         contextual_adaptations=contextual_adaptations,
         governance_state=governance_state,
+        settings=personalization_settings,
     )
 
 
@@ -1649,6 +1654,7 @@ def batch_opportunity_personalization(
     calibrations = PersonalizationCalibrationService.get_calibrations(db, profile.id)
     contextual_adaptations = PersonalizationQualityService.get_contextual_adaptations(db, profile.id)
     governance_state = PersonalizationGovernanceService.get_active_governance_state(db, profile.id)
+    personalization_settings = PersonalizationTransparencyService.load_settings(db, profile.id)
 
     batch_results = PersonalizationScorer.score_opportunities_batch(
         profile_id=profile.id,
@@ -1658,6 +1664,7 @@ def batch_opportunity_personalization(
         calibrations=calibrations,
         contextual_adaptations=contextual_adaptations,
         governance_state=governance_state,
+        settings=personalization_settings,
     )
 
     ordered_assessments = [

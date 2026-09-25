@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.models.opportunity import OpportunityModel
 from app.models.research_profile import ResearchProfileModel
 from app.models.researcher_feedback import ResearcherRecommendationFeedbackModel
+from app.models.user import UserModel
 from app.models.saved_opportunity import (
     ResearchOpportunityWorkspaceModel,
     SavedOpportunityModel,
@@ -111,8 +112,16 @@ class WorkspaceService:
     @classmethod
     def resolve_user_id(cls, db: Session, user_or_profile_id: uuid.UUID) -> uuid.UUID:
         """
-        Resolves a client-supplied identifier to canonical UserModel.id.
-        Accepts either UserModel.id or ResearchProfileModel.id.
+        Resolves a supplied identifier to a canonical UserModel.id.
+
+        Accepts either a UserModel.id or a ResearchProfileModel.id. An identifier matching
+        neither is rejected rather than returned unchanged: silently passing an unknown UUID
+        through used to create workspace rows owned by an account that does not exist.
+
+        Raises
+        ------
+        ValueError
+            If the identifier matches no researcher profile and no user account.
         """
         profile = db.execute(
             select(ResearchProfileModel).where(
@@ -124,7 +133,16 @@ class WorkspaceService:
         ).scalar_one_or_none()
         if profile is not None:
             return profile.user_id
-        return user_or_profile_id
+
+        user_exists = db.execute(
+            select(UserModel.id).where(UserModel.id == user_or_profile_id)
+        ).scalar_one_or_none()
+        if user_exists is not None:
+            return user_or_profile_id
+
+        raise ValueError(
+            f"Identifier '{user_or_profile_id}' does not match any user account or researcher profile."
+        )
 
     @classmethod
     def get_allowed_transitions(cls, status: WorkspaceStatus) -> list[WorkspaceStatus]:

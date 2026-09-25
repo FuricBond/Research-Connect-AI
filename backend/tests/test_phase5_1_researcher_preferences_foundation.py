@@ -620,9 +620,11 @@ def test_api_bulk_sync_preferences(client: TestClient, base_profile: ResearchPro
     assert len(data) == 2
 
 
-def test_api_authorization_enforcement(client: TestClient, base_profile: ResearchProfileModel):
-    """Verify 403 Forbidden when X-User-ID does not match profile owner."""
-    other_user_id = uuid.uuid4()
+def test_api_authorization_enforcement(
+    client: TestClient, base_profile: ResearchProfileModel, intruder_identity: UserModel
+):
+    """Verify 403 Forbidden when the authenticated researcher is not the profile owner."""
+    other_user_id = intruder_identity.id
     res = client.post(
         f"/api/v1/researchers/{base_profile.id}/preferences",
         json={
