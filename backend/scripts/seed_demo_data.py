@@ -367,6 +367,22 @@ def _seed_opportunities(db: Session, reference_time: datetime, dry_run: bool) ->
     return created, updated
 
 
+REQUIRED_TABLES = ("users", "research_profiles", "researcher_preferences", "opportunities")
+
+
+def verify_schema(db: Session) -> list[str]:
+    """
+    Returns the required tables that do not exist.
+
+    Seeding an unmigrated database otherwise fails with a raw driver traceback, which is an
+    unhelpful first experience for the one script whose job is to make setup easy.
+    """
+    from sqlalchemy import inspect
+
+    inspector = inspect(db.get_bind())
+    return [table for table in REQUIRED_TABLES if not inspector.has_table(table)]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Seed a deterministic demo dataset.")
     parser.add_argument("--password", default=DEFAULT_PASSWORD, help="Password for demo accounts")
@@ -377,6 +393,14 @@ def main() -> int:
     reference_time = datetime.now(timezone.utc)
 
     with SessionLocal() as db:
+        missing = verify_schema(db)
+        if missing:
+            logger.error(
+                "database schema is missing: %s. Run `alembic upgrade head` first.",
+                ", ".join(missing),
+            )
+            return 1
+
         if args.reset:
             if args.dry_run:
                 logger.info("--dry-run: skipping reset")

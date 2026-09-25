@@ -167,6 +167,25 @@ def test_reset_removes_seeded_rows(db_session: Session):
     assert db_session.scalar(select(func.count(ResearcherPreferenceModel.id))) == 0
 
 
+def test_schema_preflight_reports_missing_tables():
+    """Seeding an unmigrated database must say so instead of raising a driver traceback."""
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    empty_session = sessionmaker(bind=engine)()
+    try:
+        missing = seed_demo_data.verify_schema(empty_session)
+        assert set(missing) == set(seed_demo_data.REQUIRED_TABLES)
+    finally:
+        empty_session.close()
+
+
+def test_schema_preflight_passes_on_migrated_schema(db_session: Session):
+    assert seed_demo_data.verify_schema(db_session) == []
+
+
 def test_reset_leaves_unrelated_rows_untouched(db_session: Session):
     """The reset is keyed on demo identifiers and must not touch real data."""
     real_user = UserModel(
