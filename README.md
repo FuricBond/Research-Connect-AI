@@ -84,7 +84,7 @@ The entire intelligence and ranking pipeline is **deterministic, in-memory, and 
 | **Scraping** | `requests`, `BeautifulSoup4` | Production WikiCFP connector, change detection, and data freshness pipelines |
 | **IR / Evaluation** | `scikit-learn`, custom RRF & IR Metrics | P@K, R@K, MRR, NDCG, Kendall-τ rank correlation, HHI concentration, 16-scenario benchmark suite |
 | **Personalization Engine** | Custom deterministic engine | Adaptive signals, calibration, governance, quality assurance, and transparency controls |
-| **Containerization** | Docker Compose | Local PostgreSQL 16 with pre-configured `pgvector` extension |
+| **Containerization** | Docker Compose | Full stack: PostgreSQL 16 + `pgvector`, FastAPI backend and Next.js frontend images, one-shot Alembic migration |
 | **Testing** | `pytest` | 95 test modules, 1,402 collected tests — zero-network, in-memory fixtures, plus opt-in PostgreSQL integration tests |
 | **Knowledge Graph** | `graphify` | Navigable AST + semantic knowledge graph (`graphify-out/`) |
 
@@ -174,6 +174,9 @@ researchconnect-ai/
 │   │   ├── services/         # Domain services (28 service modules)
 │   │   └── main.py           # FastAPI entrypoint, CORS, router registration
 │   ├── tests/                # Pytest suite — 95 modules, 1,402 collected tests
+│   ├── .env.example          # Settings template for running the backend on the host
+│   ├── Dockerfile            # Backend image (build context: repository root)
+│   ├── Dockerfile.dockerignore # Allowlist for the backend build context
 │   ├── pytest.ini            # Pytest configuration
 │   └── requirements.txt      # Pinned Python dependencies
 ├── frontend/
@@ -203,6 +206,8 @@ researchconnect-ai/
 │   ├── types/                # Pydantic-mirrored TypeScript schemas
 │   ├── package.json          # Next.js, React, and TypeScript dependencies
 │   ├── next.config.ts        # Next.js configuration
+│   ├── Dockerfile            # Frontend image (Next.js standalone server)
+│   ├── .dockerignore         # Frontend build-context filter
 │   └── tsconfig.json         # TypeScript compiler configuration
 ├── scrapers/
 │   ├── parsers/              # Raw data parsers and normalizers
@@ -213,9 +218,9 @@ researchconnect-ai/
 │   ├── architecture/         # System architecture, phase documentation & roadmap (61 docs)
 │   └── scraping/             # Scraper design and lifecycle documentation
 ├── graphify-out/             # Knowledge graph (AST + semantic nodes, 26+ edge types)
-├── .env.example              # Environment variables template
+├── .env.example              # Docker Compose configuration template
 ├── .gitignore                # Comprehensive Git ignore rules
-├── docker-compose.yml        # PostgreSQL + pgvector container setup
+├── docker-compose.yml        # Full stack: postgres, migrate, backend, frontend
 └── README.md                 # Project documentation (this file)
 ```
 
@@ -307,7 +312,7 @@ researchconnect-ai/
 | **Database & Deployment Correctness** | Fresh `alembic upgrade head` fixed (long revision IDs), generated `fts_vector` mapping fixed so ingestion can insert, migration `0024` for the Phase 3.6/3.7 tables, opt-in PostgreSQL migration test | Complete |
 | **Personalization Correctness** | Phase 5.6 calibration and 5.7 contextual adaptation wired into live ranking, researcher controls honoured in explanations, durable reset cutoff (migration `0025`), fail-closed governance, effective Phase 2.6 risk in base ranking | Complete |
 | **Demo Data** | Deterministic idempotent seeder (`backend/scripts/seed_demo_data.py`) covering all roles, preferences, and a corpus exercising deadline and risk intelligence | Complete |
-| **Containerization** | Backend/frontend Dockerfiles and a full-stack compose profile | Deferred |
+| **Containerization** | Backend and frontend images (non-root, pinned bases, no baked secrets), full-stack Compose with healthchecks and a one-shot migration step | Complete |
 | **Frontend Auth UI** | Login / registration / administration pages and route guards | Deferred |
 | **Scheduled Execution** | Background scheduler for reminders and governance recomputation | Deferred |
 
@@ -398,6 +403,100 @@ npm run build
 
 ---
 
+## 🐳 Running with Docker (full stack)
+
+The whole application (PostgreSQL + pgvector, the FastAPI backend and the Next.js frontend)
+runs with Docker Compose. Only Docker is needed on the host. Verified with Docker 29.8 and
+Compose 5.5 (Docker Desktop on Windows).
+
+### 1. Configure
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and set the two required values. Each can be generated with
+`python -c "import secrets; print(secrets.token_urlsafe(32))"`.
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `POSTGRES_PASSWORD` | yes | Database password. Use URL-safe characters only (letters, digits, `-` `_` `.` `~`): it is embedded in the backend's connection URL. It takes effect when the database volume is first created. |
+| `AUTH_SECRET_KEY` | yes | Access-token signing secret, at least 32 characters. The backend runs with `APP_ENV=production` and refuses to start without it. Changing it signs everybody out. |
+| `CORS_ORIGINS` | no | Browser origins allowed to call the API with credentials (JSON list). |
+| `NEXT_PUBLIC_API_URL` | no | The API address **as seen from the browser**. It is compiled into the frontend at build time, so rebuild the frontend after changing it. |
+
+`.env` is git-ignored. Compose refuses to run while either required value is missing. Both
+must be set even when starting a single service, because Compose reads the whole file.
+
+### 2. Start
+
+```bash
+docker compose up --build -d --wait
+```
+
+The first build downloads base images and dependencies and takes several minutes; later
+starts take under half a minute. `--wait` returns once every service is healthy:
+
+| Service | Role | Address |
+|---|---|---|
+| `postgres` | PostgreSQL 16 + pgvector; data kept in the `postgres_data` volume | `127.0.0.1:5432` |
+| `migrate` | Waits for the database, runs `alembic upgrade head`, then exits | — |
+| `backend` | FastAPI API; starts only after the migration succeeds | `http://localhost:8000` |
+| `frontend` | Next.js web application | `http://localhost:3000` |
+
+Migrations run on every start and do nothing when the schema is already current.
+
+### 3. Load demo data (optional)
+
+```bash
+docker compose exec backend python -m scripts.seed_demo_data
+```
+
+Then sign in at `http://localhost:3000/login` as `demo.faculty@researchconnect.test`,
+`demo.student@researchconnect.test` or `demo.admin@researchconnect.test`, all with the
+password `DemoPass123!`.
+
+### Everyday commands
+
+| Task | Command |
+|---|---|
+| Status and health | `docker compose ps` |
+| Logs of one service | `docker compose logs backend` (or `frontend`, `postgres`, `migrate`) |
+| Restart everything | `docker compose restart` |
+| Stop, keeping all data | `docker compose down` |
+| Rebuild after code changes | `docker compose up --build -d --wait` |
+| Rebuild only the frontend | `docker compose build frontend` |
+| Reset the demo data | `docker compose exec backend python -m scripts.seed_demo_data --reset` |
+| **Delete all data** and start clean | `docker compose down -v`, then `docker compose up --build -d --wait` |
+| Database shell | `docker compose exec postgres psql -U researchconnect -d researchconnect` |
+
+### Networking and security
+
+- Every port is published on `127.0.0.1` only. The browser calls the API directly, so the
+  backend port has to be reachable from wherever the browser runs. PostgreSQL stays
+  host-local so the backend and its tests can also be run on the host.
+- To serve other machines: change the published ports in `docker-compose.yml`, set
+  `NEXT_PUBLIC_API_URL` to the address browsers use for the API, add the frontend's address
+  to `CORS_ORIGINS`, and rebuild the frontend. Put TLS in front with a reverse proxy, and set
+  `TRUST_PROXY_HEADERS=true` only if that proxy overwrites the forwarding headers.
+- The backend and frontend run as unprivileged users, with every Linux capability dropped and
+  `no-new-privileges`. No secret is built into any image: configuration arrives at runtime,
+  and each container receives only the variables it needs.
+- Semantic search downloads its embedding model on first use, which needs outbound internet.
+  Without it, search falls back to lexical ranking.
+
+### Troubleshooting
+
+| Symptom | Cause and fix |
+|---|---|
+| `required variable POSTGRES_PASSWORD is missing a value` (or `AUTH_SECRET_KEY`) | Create `.env` from `.env.example` and set both required values. |
+| The database rejects the password after `POSTGRES_PASSWORD` was changed | The password is fixed when the volume is created. Restore the old value, or run `docker compose down -v` (deletes all data). |
+| `backend` never becomes healthy | `docker compose logs migrate` and `docker compose logs backend` show the cause; the backend does not start until the migration succeeds. |
+| The browser cannot reach the API | `NEXT_PUBLIC_API_URL` must be reachable from the browser and the page's origin must be listed in `CORS_ORIGINS`. Rebuild the frontend after changing the URL. |
+| A port is already allocated | Another process (often a host-run backend or database) holds 3000, 8000 or 5432. Stop it, or change the published port. |
+
+---
+
 ## 🚀 Local Development Setup
 
 ### Prerequisites
@@ -410,13 +509,17 @@ npm run build
 
 ### 1. Database Setup
 
-Start the PostgreSQL container with pgvector:
+To run the backend on the host, start only the PostgreSQL container. It uses the
+repository-root `.env`, where both required values must be set (see
+[Running with Docker](#-running-with-docker-full-stack)):
 
 ```bash
-docker compose up -d
+cp .env.example .env
+docker compose up -d postgres
 ```
 
-This starts PostgreSQL on `localhost:5432` with database `researchconnect`, user `researchconnect`, password `researchconnect`, and initializes the `vector` extension.
+This starts PostgreSQL on `127.0.0.1:5432` with database and user `researchconnect`, the
+password from `POSTGRES_PASSWORD`, and the `vector` extension.
 
 ---
 
@@ -435,8 +538,9 @@ source .venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Copy environment file
-cp ../.env.example .env
+# Copy the backend settings template, then set the password in DATABASE_URL
+# to the POSTGRES_PASSWORD from the repository-root .env
+cp .env.example .env
 
 # Run database migrations (0001–0028)
 alembic upgrade head
@@ -495,6 +599,11 @@ npm run type-check
 npm run build
 ```
 
+The PostgreSQL integration tests (live search, pgvector, migrations) run against the
+database named by `DATABASE_URL` and are skipped when it is unreachable. To run them against
+the Compose database, set `DATABASE_URL` to
+`postgresql+psycopg://researchconnect:<POSTGRES_PASSWORD>@localhost:5432/researchconnect`.
+
 ---
 
 ## 🏛️ Architectural Invariants
@@ -512,7 +621,7 @@ npm run build
 ## ⚠️ Current Scope Boundaries & Status
 
 - **Authentication**: Implemented in Phase 6. `POST /api/v1/auth/register` and `/auth/login` issue signed HS256 bearer tokens over bcrypt-hashed credentials, and one shared dependency (`app/api/deps.py`) establishes identity for every protected route with no fallback identity. The raw `X-User-ID` header is accepted **only** when `AUTH_DEV_IDENTITY_ENABLED=true`, which is refused at startup under `APP_ENV=production`. There is not yet a login page in the web UI, so a browser session still bootstraps a developer identity.
-- **Deployment**: `docker-compose.yml` provisions PostgreSQL with `pgvector`. Backend and frontend Dockerfiles are not written yet; both run on the host.
+- **Deployment**: `docker compose up --build -d --wait` runs the full stack (see [Running with Docker](#-running-with-docker-full-stack)). Ports are published on `127.0.0.1`; serving other machines needs the reverse-proxy, API-URL and CORS changes described there.
 - **Scheduled Execution**: Deadline reminder dispatch is an `ADMIN`-only endpoint and governance recomputation runs when adaptive signals are recomputed. No background scheduler is configured.
 - **Embeddings Generation**: Semantic embeddings are calculated deterministically via local sentence-transformers and generated offline (`python -m ml.embeddings.generate_embeddings`); automated background ingestion daemons are planned for production hardening.
 - **Scraper Ingestion**: WikiCFP is fully operational as a verified source connector; additional connectors (ACM, IEEE, Springer) are planned for ingestion scaling.

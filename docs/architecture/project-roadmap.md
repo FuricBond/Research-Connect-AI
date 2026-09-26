@@ -37,7 +37,7 @@ This document provides the authoritative, comprehensive architectural roadmap an
 | **Phase 5.10** | Faculty Research Opportunities & Project Postings | **COMPLETE** | Platform-authored openings with a named accountable owner, 6-state lifecycle, FACULTY/ADMIN authorship, draft non-disclosure, taxonomy links, migration 0026, Next.js `/postings` | 38 Tests |
 | **Phase 5.11** | Research Internships, RA Openings & Applications | **COMPLETE** | Structured appointment terms, jointly owned applications with role-partitioned transitions, author-private review notes, append-only history, Phase 4.5 notifications, migration 0027 | 37 Tests |
 | **Phase 5.12** | Peer & Co-Author Discovery | **COMPLETE** | Opt-in discoverability with field-level disclosure, deterministic explainable matcher balancing shared against complementary expertise, taxonomy proximity, migration 0028, Next.js `/peers` | 35 Tests |
-| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder. Remaining: Dockerfiles, frontend auth UI, scheduler | 1,277 Tests |
+| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder. Remaining: frontend auth UI, scheduler | 1,277 Tests |
 | **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,008+ Passing Tests |
 
 ---
@@ -671,8 +671,14 @@ Core infrastructure, identity, security, access control, and correctness hardeni
 #### 7.4 Demonstrability [COMPLETE]
 - **Deterministic seeder** (`backend/scripts/seed_demo_data.py`): idempotent, offline, `--reset` and `--dry-run` supported. Creates three accounts covering every platform role with working credentials, explicit preferences including one exclusion, and twelve opportunities spanning conferences, journals and workshops with deadlines from already-expired to months away — two of which carry textual markers the Phase 2.6 engine independently scores as high risk, so trust and deadline intelligence have something to act on.
 
-#### 7.5 Deferred
-- **Containerization**: `docker-compose.yml` provisions PostgreSQL with `pgvector`. Backend and frontend Dockerfiles and a full-stack compose profile are not yet written; both services run on the host.
+#### 7.5 Containerization & Deployment (Phase 6.1) [COMPLETE]
+- **Full stack in Compose**: `postgres` (pinned `pgvector/pgvector:0.8.6-pg16`, TCP `pg_isready` healthcheck, named volume), a one-shot `migrate` service that waits for the database and runs `alembic upgrade head` exactly once, then `backend` and `frontend`, each gated on the previous step's health. A fresh volume reaches migration head `0028` and a healthy stack in under 30 seconds with no manual SQL.
+- **Images**: the backend image (pinned `python:3.13.9-slim-bookworm`) installs the CPU-only torch build pinned to the tested version and leaves pytest out; the frontend image (pinned `node:24.13.1-bookworm-slim`) runs the Next.js standalone server without build tooling. Both run as unprivileged users; the backend source is not writable by its runtime user.
+- **Secrets and configuration**: nothing secret is built into an image; `POSTGRES_PASSWORD` and `AUTH_SECRET_KEY` are required from `.env` and Compose refuses to start without them. Containers run with `APP_ENV=production`, so the developer `X-User-ID` header is refused. Each container receives only the variables it needs.
+- **Hardening**: all capabilities dropped and `no-new-privileges` on the application containers, ports published on `127.0.0.1` only, allowlisted build contexts. Restarts and `down`/`up` keep data and sessions.
+- **Environment templates**: the root `.env.example` configures Compose; `backend/.env.example` holds only backend settings, so a host-run backend no longer fails on keys its settings loader rejects.
+
+#### 7.6 Deferred
 - **Frontend authentication UI**: the backend auth API and the browser identity/token client exist, but there is no login, registration or administration page yet, so a browser session still bootstraps a developer identity.
 - **Scheduled execution**: reminder dispatch and governance recomputation are triggered by an administrator endpoint and by adaptive recomputation; no background scheduler is configured.
 

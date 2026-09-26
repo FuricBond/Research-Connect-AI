@@ -1,0 +1,23 @@
+# Build-context filter for backend/Dockerfile. BuildKit reads a `<Dockerfile>.dockerignore`
+# next to the Dockerfile; the context is the repository root because the API imports the
+# repo-level `ml/` package.
+#
+# Allowlist: exclude everything, then admit only what the image needs, so secrets,
+# virtualenvs, git history, tests and unrelated trees can never reach the image.
+*
+!backend/requirements.txt
+!backend/alembic.ini
+!backend/alembic
+!backend/app
+!backend/scripts
+!ml
+!scrapers
+
+# Never admit these, even inside an allowed directory.
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.pytest_cache
+**/.env
+**/.env.*
+scrapers/tests

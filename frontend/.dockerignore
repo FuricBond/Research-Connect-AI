@@ -1,0 +1,29 @@
+# Build-context filter for frontend/Dockerfile.
+
+# Installed and generated in the image, never copied from the host.
+node_modules
+.next
+out
+*.tsbuildinfo
+
+# Tests and their tooling are not part of the production build.
+tests
+coverage
+vitest.config.ts
+vitest.setup.ts
+
+# Local environment files can hold secrets; the image takes configuration from build
+# arguments and the runtime environment instead.
+.env
+.env.*
+
+# Logs, editor and VCS state.
+*.log
+npm-debug.log*
+.git
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+Dockerfile
+.dockerignore
