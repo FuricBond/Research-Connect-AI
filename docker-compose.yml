@@ -81,6 +81,10 @@ services:
       TRUST_PROXY_HEADERS: ${TRUST_PROXY_HEADERS:-false}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       LOG_FORMAT: ${LOG_FORMAT:-text}
+      # Phase 6.3 background scheduler, off unless set in .env. Opportunity refresh is the
+      # one job that makes outbound requests (WikiCFP) and has its own switch.
+      SCHEDULER_ENABLED: ${SCHEDULER_ENABLED:-false}
+      SCHEDULER_OPPORTUNITY_REFRESH_ENABLED: ${SCHEDULER_OPPORTUNITY_REFRESH_ENABLED:-false}
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:

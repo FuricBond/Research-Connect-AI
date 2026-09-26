@@ -21,11 +21,13 @@ from app.core.logging_config import configure_logging
 from app.core.middleware import RequestContextMiddleware, SecurityHeadersMiddleware
 from app.core.rate_limiter import DiscoveryRateLimitMiddleware
 from app.core.security import validate_security_settings
+from app.scheduler.lifecycle import lifespan
 
 configure_logging(settings.log_level, settings.log_format)
 validate_security_settings()
 
-app = FastAPI(title=settings.app_name)
+# The lifespan starts the Phase 6.3 background scheduler only when SCHEDULER_ENABLED=true.
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 # Starlette runs the last-added middleware first, so the effective order is:
 # RequestContext -> SecurityHeaders -> CORS -> Cache -> Rate Limiting -> route.

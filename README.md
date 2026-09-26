@@ -169,6 +169,7 @@ researchconnect-ai/
 │   │   │   ├── hybrid_ranker.py      # HybridRanker (RRF + multi-signal)
 │   │   │   └── signals.py            # RankingSignals, weight normalization
 │   │   ├── repositories/     # Data access layer (vector, lexical)
+│   │   ├── scheduler/        # Phase 6.3 — background scheduler and its five maintenance jobs
 │   │   ├── schemas/          # Pydantic v2 schemas (opportunity, deadline, researcher, feedback)
 │   │   ├── search/           # Query intelligence & GIN index integration
 │   │   ├── services/         # Domain services (28 service modules)
@@ -314,7 +315,7 @@ researchconnect-ai/
 | **Demo Data** | Deterministic idempotent seeder (`backend/scripts/seed_demo_data.py`) covering all roles, preferences, and a corpus exercising deadline and risk intelligence | Complete |
 | **Containerization** | Backend and frontend images (non-root, pinned bases, no baked secrets), full-stack Compose with healthchecks and a one-shot migration step | Complete |
 | **Frontend Auth UI** | Login / registration / administration pages and route guards | Deferred |
-| **Scheduled Execution** | Background scheduler for reminders and governance recomputation | Deferred |
+| **Scheduled Execution** | Background scheduler, off by default: deadline expiry, reminder dispatch, adaptive-signal and governance refresh, and opt-in WikiCFP ingestion, each calling its existing service under a PostgreSQL advisory lock ([design](docs/architecture/phase6-3-scheduler.md)) | Complete |
 
 ---
 
@@ -424,6 +425,8 @@ Open `.env` and set the two required values. Each can be generated with
 | `AUTH_SECRET_KEY` | yes | Access-token signing secret, at least 32 characters. The backend runs with `APP_ENV=production` and refuses to start without it. Changing it signs everybody out. |
 | `CORS_ORIGINS` | no | Browser origins allowed to call the API with credentials (JSON list). |
 | `NEXT_PUBLIC_API_URL` | no | The API address **as seen from the browser**. It is compiled into the frontend at build time, so rebuild the frontend after changing it. |
+| `SCHEDULER_ENABLED` | no | `true` runs the background maintenance jobs (deadline expiry, reminders, adaptive-signal and governance refresh) in the backend. Default `false`. See [Phase 6.3](docs/architecture/phase6-3-scheduler.md). |
+| `SCHEDULER_OPPORTUNITY_REFRESH_ENABLED` | no | `true` also schedules WikiCFP ingestion, which makes outbound requests to a third-party site. Default `false`. |
 
 `.env` is git-ignored. Compose refuses to run while either required value is missing. Both
 must be set even when starting a single service, because Compose reads the whole file.
@@ -468,6 +471,7 @@ password `DemoPass123!`.
 | Rebuild only the frontend | `docker compose build frontend` |
 | Reset the demo data | `docker compose exec backend python -m scripts.seed_demo_data --reset` |
 | **Delete all data** and start clean | `docker compose down -v`, then `docker compose up --build -d --wait` |
+| Scheduler runs (when enabled) | `docker compose logs backend`, lines starting `Scheduled job` |
 | Database shell | `docker compose exec postgres psql -U researchconnect -d researchconnect` |
 
 ### Networking and security
@@ -622,7 +626,7 @@ the Compose database, set `DATABASE_URL` to
 
 - **Authentication**: Implemented in Phase 6. `POST /api/v1/auth/register` and `/auth/login` issue signed HS256 bearer tokens over bcrypt-hashed credentials, and one shared dependency (`app/api/deps.py`) establishes identity for every protected route with no fallback identity. The raw `X-User-ID` header is accepted **only** when `AUTH_DEV_IDENTITY_ENABLED=true`, which is refused at startup under `APP_ENV=production`. There is not yet a login page in the web UI, so a browser session still bootstraps a developer identity.
 - **Deployment**: `docker compose up --build -d --wait` runs the full stack (see [Running with Docker](#-running-with-docker-full-stack)). Ports are published on `127.0.0.1`; serving other machines needs the reverse-proxy, API-URL and CORS changes described there.
-- **Scheduled Execution**: Deadline reminder dispatch is an `ADMIN`-only endpoint and governance recomputation runs when adaptive signals are recomputed. No background scheduler is configured.
+- **Scheduled Execution**: The background scheduler is off unless `SCHEDULER_ENABLED=true`, and WikiCFP ingestion additionally needs `SCHEDULER_OPPORTUNITY_REFRESH_ENABLED=true`. Enable it in one backend process: locks stop two processes from running a job at the same time, but each process schedules its own runs. Reminder dispatch also remains available as an `ADMIN`-only endpoint.
 - **Embeddings Generation**: Semantic embeddings are calculated deterministically via local sentence-transformers and generated offline (`python -m ml.embeddings.generate_embeddings`); automated background ingestion daemons are planned for production hardening.
 - **Scraper Ingestion**: WikiCFP is fully operational as a verified source connector; additional connectors (ACM, IEEE, Springer) are planned for ingestion scaling.
 - **Explicit Exclusions**: An opportunity matching an `EXCLUDED` preference receives no personalization boost, but its score is not demoted below its base relevance, so a highly relevant excluded venue can still appear in a ranked list. This is what the Phase 5 safety invariants specify and assert; changing it is a product decision.

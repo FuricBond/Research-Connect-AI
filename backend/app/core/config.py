@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,6 +32,22 @@ class Settings(BaseSettings):
     # Phase 6 — Structured logging
     log_level: str = "INFO"
     log_format: str = "text"  # text | json
+
+    # Phase 6.3 — Background scheduler (docs/architecture/phase6-3-scheduler.md).
+    # Off by default: when false no scheduler task starts, no job runs and nothing polls
+    # the database, so tests and the host development loop are unaffected.
+    scheduler_enabled: bool = False
+    # The only job that makes outbound requests (WikiCFP ingestion). It needs its own
+    # switch so that enabling local maintenance never starts third-party scraping.
+    scheduler_opportunity_refresh_enabled: bool = False
+    scheduler_opportunity_refresh_topic: str = "artificial intelligence"
+    scheduler_opportunity_refresh_max_pages: int = Field(default=1, ge=1, le=20)
+    # Seconds between the starts of consecutive runs of each job.
+    scheduler_opportunity_refresh_interval_seconds: int = Field(default=86_400, ge=60)
+    scheduler_adaptive_refresh_interval_seconds: int = Field(default=21_600, ge=60)
+    scheduler_governance_refresh_interval_seconds: int = Field(default=43_200, ge=60)
+    scheduler_reminder_interval_seconds: int = Field(default=300, ge=60)
+    scheduler_deadline_expiry_interval_seconds: int = Field(default=3_600, ge=60)
 
     # Phase 2.2A — OpenAlex API configuration
     openalex_api_base_url: str = "https://api.openalex.org"

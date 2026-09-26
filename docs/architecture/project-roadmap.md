@@ -37,7 +37,7 @@ This document provides the authoritative, comprehensive architectural roadmap an
 | **Phase 5.10** | Faculty Research Opportunities & Project Postings | **COMPLETE** | Platform-authored openings with a named accountable owner, 6-state lifecycle, FACULTY/ADMIN authorship, draft non-disclosure, taxonomy links, migration 0026, Next.js `/postings` | 38 Tests |
 | **Phase 5.11** | Research Internships, RA Openings & Applications | **COMPLETE** | Structured appointment terms, jointly owned applications with role-partitioned transitions, author-private review notes, append-only history, Phase 4.5 notifications, migration 0027 | 37 Tests |
 | **Phase 5.12** | Peer & Co-Author Discovery | **COMPLETE** | Opt-in discoverability with field-level disclosure, deterministic explainable matcher balancing shared against complementary expertise, taxonomy proximity, migration 0028, Next.js `/peers` | 35 Tests |
-| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder. Remaining: frontend auth UI, scheduler | 1,277 Tests |
+| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder, background scheduler (off by default). Remaining: frontend auth UI | 1,277 Tests |
 | **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,008+ Passing Tests |
 
 ---
@@ -678,9 +678,16 @@ Core infrastructure, identity, security, access control, and correctness hardeni
 - **Hardening**: all capabilities dropped and `no-new-privileges` on the application containers, ports published on `127.0.0.1` only, allowlisted build contexts. Restarts and `down`/`up` keep data and sessions.
 - **Environment templates**: the root `.env.example` configures Compose; `backend/.env.example` holds only backend settings, so a host-run backend no longer fails on keys its settings loader rejects.
 
-#### 7.6 Deferred
+#### 7.6 Scheduled Execution (Phase 6.3) [COMPLETE]
+- **Five jobs, no new domain logic**: `deadline_expiry`, `reminder_dispatch`, `adaptive_signal_refresh`, `governance_refresh` and opt-in `opportunity_refresh` (WikiCFP) each call the existing service, commit where it leaves the transaction to its caller, and report what it did. Idempotency comes from the services' own deduplication and upserts; every job run twice leaves the database unchanged. Design: `docs/architecture/phase6-3-scheduler.md`.
+- **Off by default**: `SCHEDULER_ENABLED=false` creates no task, thread or connection, so tests and the host development loop are unaffected. Network ingestion has its own switch, `SCHEDULER_OPPORTUNITY_REFRESH_ENABLED`.
+- **Exclusion across processes**: each run takes a PostgreSQL advisory lock named after its job and skips if another process holds it. Each researcher's personalization work also takes a transaction-scoped lock, so adaptive and governance refresh cannot append the same governance transition twice (verified on PostgreSQL: 2 events without it, 1 with it).
+- **Isolation and bounds**: runs execute in their own threads off the event loop, at most two at once. A failing job or researcher affects nothing else. Timeouts signal a stop at the next safe point, and a statement timeout bounds each database statement. Shutdown stops within 5 seconds.
+- **Safety**: the scheduler reuses the services' P1-1 reset cutoff and P1-5/P1-8 governance behaviour and has no bypass. It only processes researchers whose Phase 5.9 controls leave the maintained state in use, and it never changes those controls.
+- **Measured**: 20 SQL statements per researcher for adaptive refresh and 14 for governance, constant from 10 to 100 researchers and independent of interaction history. 40 dedicated tests.
+
+#### 7.7 Deferred
 - **Frontend authentication UI**: the backend auth API and the browser identity/token client exist, but there is no login, registration or administration page yet, so a browser session still bootstraps a developer identity.
-- **Scheduled execution**: reminder dispatch and governance recomputation are triggered by an administrator endpoint and by adaptive recomputation; no background scheduler is configured.
 
 ---
 

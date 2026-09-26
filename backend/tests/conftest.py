@@ -80,3 +80,14 @@ def developer_identity_mode(monkeypatch):
     monkeypatch.setattr(settings, "auth_dev_identity_enabled", True)
     monkeypatch.setattr(settings, "auth_bcrypt_rounds", 4)
     monkeypatch.setattr(settings, "auth_secret_key", "test-signing-key-0123456789abcdef-0123456789")
+
+
+@pytest.fixture(autouse=True)
+def scheduler_disabled(monkeypatch):
+    """
+    Phase 6.3: the background scheduler must never start during tests, even when a local
+    `.env` enables it, because its jobs would write to the configured database. Scheduler
+    tests opt in explicitly.
+    """
+    monkeypatch.setattr(settings, "scheduler_enabled", False)
+    monkeypatch.setattr(settings, "scheduler_opportunity_refresh_enabled", False)
