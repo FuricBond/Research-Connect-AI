@@ -640,14 +640,4 @@ the Compose database, set `DATABASE_URL` to
 3. Commit small, logical units of work with descriptive commit messages.
 4. Run backend tests (`pytest`) and frontend builds (`npm run build`) before pushing to remote.
 
----
-
-## 🤖 Development & AI Tooling
-
-- **Primary Coding Model**: Antigravity with **Claude Sonnet** for core feature design, refactoring, and implementation.
-- **Fallback / Alternative**: **Google Gemini** for specialized analysis or alternate reasoning.
-- **Knowledge Graph**: `graphify` — full codebase AST + semantic graph (see `graphify-out/`).
-
----
-
 For the full development roadmap and phase-by-phase feature breakdown, see [Development Roadmap](docs/architecture/project-roadmap.md) and [Phase 5.9 Personalization Transparency](docs/architecture/phase5-9-personalization-transparency-controls.md).
