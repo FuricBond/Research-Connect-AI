@@ -130,7 +130,8 @@ failing job stops neither its own loop nor any other. A job that raises `SystemE
 `KeyboardInterrupt` is recorded as an ordinary failure rather than stopping the server.
 
 **Graceful shutdown.** On shutdown the loops stop, running jobs are signalled, and the
-scheduler waits at most 5 s for them (inside Docker's default 10 s stop grace period). Job
+scheduler waits at most 5 s for them, inside the backend's 15 s `stop_grace_period` (set in
+Phase 6.4, because Compose v5 otherwise sends SIGKILL about 3 s after SIGTERM). Job
 threads are daemon threads and cannot hold the process open; any lock they still hold is
 released by PostgreSQL when the process exits. Verified in the container: `docker compose stop
 backend` completes in about a second with `Scheduler stopped` and `Application shutdown

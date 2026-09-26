@@ -1,26 +1,41 @@
-from pydantic import Field
+from typing import Literal
+from urllib.parse import urlsplit
+
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Phase 6.4 — the local-development connection string. Production refuses these
+# credentials (app.core.security.validate_security_settings), so a deployment that forgets
+# DATABASE_URL fails at startup instead of silently using them.
+DEVELOPMENT_DATABASE_URL = (
+    "postgresql+psycopg://researchconnect:researchconnect@localhost:5432/researchconnect"
+)
 
 
 class Settings(BaseSettings):
     app_name: str = "ResearchConnect AI"
-    app_env: str = "development"
-    database_url: str = (
-        "postgresql+psycopg://researchconnect:researchconnect"
-        "@localhost:5432/researchconnect"
-    )
-    # Next.js dev server (Phase 2.4K migrated the frontend from Vite :5173 to Next.js :3000)
+    # development | test | production, case-insensitive. Any other value is refused, so a
+    # mistyped "Production" or "prod" can never run with development defaults.
+    app_env: Literal["development", "test", "production"] = "development"
+    database_url: str = DEVELOPMENT_DATABASE_URL
+    # Next.js dev server (Phase 2.4K migrated the frontend from Vite :5173 to Next.js :3000).
+    # Exact origins only (scheme://host[:port]); a wildcard is refused because the API
+    # accepts credentials.
     cors_origins: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
     # Phase 6 — Authentication & identity
-    # HS256 signing secret. Leave empty in development to use an ephemeral per-process
-    # key (tokens are invalidated on restart). Mandatory (>= 32 chars) when APP_ENV=production.
+    # HMAC signing secret. Leave empty in development to use an ephemeral per-process
+    # key (tokens are invalidated on restart). Mandatory when APP_ENV=production: at least
+    # 32 characters and not trivially repetitive.
     auth_secret_key: str = ""
-    auth_algorithm: str = "HS256"
+    # Symmetric algorithms only: the key is a shared secret, never a public key.
+    auth_algorithm: Literal["HS256", "HS384", "HS512"] = "HS256"
     auth_issuer: str = "researchconnect-ai"
-    auth_access_token_expire_minutes: int = 480
-    auth_bcrypt_rounds: int = 12
-    auth_login_rate_limit_per_minute: int = 10
+    # There is no token revocation, so lifetimes are capped at 7 days.
+    auth_access_token_expire_minutes: int = Field(default=480, ge=1, le=10_080)
+    # bcrypt accepts 4-31; production requires at least 10.
+    auth_bcrypt_rounds: int = Field(default=12, ge=4, le=31)
+    auth_login_rate_limit_per_minute: int = Field(default=10, ge=1)
     # Developer-only: trust a raw X-User-ID header as identity and allow anonymous
     # profile bootstrap. Spoofable by design — refused at startup when APP_ENV=production.
     auth_dev_identity_enabled: bool = False
@@ -29,9 +44,13 @@ class Settings(BaseSettings):
     # Enable only when the API sits behind a reverse proxy that overwrites these headers.
     trust_proxy_headers: bool = False
 
-    # Phase 6 — Structured logging
-    log_level: str = "INFO"
-    log_format: str = "text"  # text | json
+    # Phase 6 — Structured logging (both case-insensitive)
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    log_format: Literal["text", "json"] = "text"
+
+    # Phase 6.4 — Interactive API documentation (/docs, /redoc, /openapi.json). Unset means
+    # served outside production and not in production; set true or false to override.
+    api_docs_enabled: bool | None = None
 
     # Phase 6.3 — Background scheduler (docs/architecture/phase6-3-scheduler.md).
     # Off by default: when false no scheduler task starts, no job runs and nothing polls
@@ -116,7 +135,7 @@ class Settings(BaseSettings):
 
     # Phase 2.4K — Production Hardening (Rate Limiting & Response Caching)
     discovery_rate_limiting_enabled: bool = True
-    discovery_rate_limit_per_minute: int = 60
+    discovery_rate_limit_per_minute: int = Field(default=60, ge=1)
     discovery_cache_enabled: bool = True
     discovery_cache_ttl_seconds: int = 60
     discovery_cache_max_entries: int = 1000
@@ -130,6 +149,59 @@ class Settings(BaseSettings):
     reranker_max_batch_size: int = 32
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+
+    @field_validator("app_env", "log_format", mode="before")
+    @classmethod
+    def _lowercase(cls, value: object) -> object:
+        return value.strip().lower() if isinstance(value, str) else value
+
+    @field_validator("log_level", mode="before")
+    @classmethod
+    def _uppercase(cls, value: object) -> object:
+        return value.strip().upper() if isinstance(value, str) else value
+
+    @field_validator("cors_origins")
+    @classmethod
+    def _exact_origins(cls, origins: list[str]) -> list[str]:
+        """
+        Each entry must be exactly what a browser sends in the Origin header. Anything else
+        either never matches (a trailing slash or a path silently breaks the frontend) or,
+        for a wildcard, lets every site make credentialed requests.
+        """
+        for origin in origins:
+            if "*" in origin:
+                raise ValueError(
+                    "CORS_ORIGINS must list exact origins; '*' is not allowed because the "
+                    "API accepts credentials"
+                )
+            try:
+                parts = urlsplit(origin)
+                port_ok = parts.port is None or parts.port > 0
+            except ValueError:
+                port_ok = False
+            if (
+                parts.scheme not in ("http", "https")
+                or not parts.hostname
+                or not port_ok
+                or parts.username is not None
+                or parts.password is not None
+                or parts.path
+                or parts.query
+                or parts.fragment
+                or origin != origin.lower()
+            ):
+                raise ValueError(
+                    f"CORS_ORIGINS entry {origin!r} is not an origin: use lowercase "
+                    "scheme://host[:port] with no path, query or trailing slash"
+                )
+        return origins
+
+    @property
+    def serve_api_docs(self) -> bool:
+        """Whether /docs, /redoc and /openapi.json are served (off in production by default)."""
+        if self.api_docs_enabled is not None:
+            return self.api_docs_enabled
+        return self.app_env != "production"
 
 
 settings = Settings()

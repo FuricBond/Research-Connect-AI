@@ -60,5 +60,6 @@ USER app
 EXPOSE 8000
 
 # One worker: the login rate limiter and discovery cache live in process memory, so extra
-# workers would each keep their own and multiply the effective limits.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# workers would each keep their own and multiply the effective limits. No Server header:
+# the server software and version are nobody's business (Phase 6.4).
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-server-header"]

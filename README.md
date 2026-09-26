@@ -316,6 +316,7 @@ researchconnect-ai/
 | **Containerization** | Backend and frontend images (non-root, pinned bases, no baked secrets), full-stack Compose with healthchecks and a one-shot migration step | Complete |
 | **Frontend Auth UI** | Login / registration / administration pages and route guards | Deferred |
 | **Scheduled Execution** | Background scheduler, off by default: deadline expiry, reminder dispatch, adaptive-signal and governance refresh, and opt-in WikiCFP ingestion, each calling its existing service under a PostgreSQL advisory lock ([design](docs/architecture/phase6-3-scheduler.md)) | Complete |
+| **Production Configuration** | Validated settings: closed `APP_ENV`, symmetric JWT only, bounded token lifetime and bcrypt cost, exact CORS origins. Production startup refuses weak secrets, developer identity and development database credentials. API docs and server banners are hidden in production. The demo seeder refuses its public password in production. The frontend API URL is validated at build time ([reference](docs/architecture/phase6-4-production-configuration.md)) | Complete |
 
 ---
 
@@ -423,7 +424,9 @@ Open `.env` and set the two required values. Each can be generated with
 |---|---|---|
 | `POSTGRES_PASSWORD` | yes | Database password. Use URL-safe characters only (letters, digits, `-` `_` `.` `~`): it is embedded in the backend's connection URL. It takes effect when the database volume is first created. |
 | `AUTH_SECRET_KEY` | yes | Access-token signing secret, at least 32 characters. The backend runs with `APP_ENV=production` and refuses to start without it. Changing it signs everybody out. |
-| `CORS_ORIGINS` | no | Browser origins allowed to call the API with credentials (JSON list). |
+| `APP_ENV` | no | `production` (default in Compose), `test` or `development`; any other value is refused. Production refuses insecure configuration at startup and hides the API docs, see [Phase 6.4](docs/architecture/phase6-4-production-configuration.md). |
+| `CORS_ORIGINS` | no | Browser origins allowed to call the API with credentials (JSON list). Exact origins only, such as `https://app.example.org`: no wildcard, path or trailing slash. |
+| `API_DOCS_ENABLED` | no | `true` serves `/docs`, `/redoc` and `/openapi.json` in production too. Default `false`. |
 | `NEXT_PUBLIC_API_URL` | no | The API address **as seen from the browser**. It is compiled into the frontend at build time, so rebuild the frontend after changing it. |
 | `SCHEDULER_ENABLED` | no | `true` runs the background maintenance jobs (deadline expiry, reminders, adaptive-signal and governance refresh) in the backend. Default `false`. See [Phase 6.3](docs/architecture/phase6-3-scheduler.md). |
 | `SCHEDULER_OPPORTUNITY_REFRESH_ENABLED` | no | `true` also schedules WikiCFP ingestion, which makes outbound requests to a third-party site. Default `false`. |
@@ -452,12 +455,16 @@ Migrations run on every start and do nothing when the schema is already current.
 ### 3. Load demo data (optional)
 
 ```bash
-docker compose exec backend python -m scripts.seed_demo_data
+docker compose exec backend python -m scripts.seed_demo_data --password '<a password of your choice>'
 ```
 
-Then sign in at `http://localhost:3000/login` as `demo.faculty@researchconnect.test`,
-`demo.student@researchconnect.test` or `demo.admin@researchconnect.test`, all with the
-password `DemoPass123!`.
+The demo accounts include an administrator, and the container runs with
+`APP_ENV=production`, so the seeder requires `--password`. It refuses the public demo
+password published below for host development, and never logs the password you choose.
+The password must meet the registration policy: at least 8 characters, and no leading or
+trailing spaces. Then sign in at `http://localhost:3000/login` as
+`demo.faculty@researchconnect.test`, `demo.student@researchconnect.test` or
+`demo.admin@researchconnect.test` with that password.
 
 ### Everyday commands
 
@@ -469,7 +476,7 @@ password `DemoPass123!`.
 | Stop, keeping all data | `docker compose down` |
 | Rebuild after code changes | `docker compose up --build -d --wait` |
 | Rebuild only the frontend | `docker compose build frontend` |
-| Reset the demo data | `docker compose exec backend python -m scripts.seed_demo_data --reset` |
+| Reset the demo data | `docker compose exec backend python -m scripts.seed_demo_data --reset --password '<password>'` |
 | **Delete all data** and start clean | `docker compose down -v`, then `docker compose up --build -d --wait` |
 | Scheduler runs (when enabled) | `docker compose logs backend`, lines starting `Scheduled job` |
 | Database shell | `docker compose exec postgres psql -U researchconnect -d researchconnect` |
@@ -486,6 +493,11 @@ password `DemoPass123!`.
 - The backend and frontend run as unprivileged users, with every Linux capability dropped and
   `no-new-privileges`. No secret is built into any image: configuration arrives at runtime,
   and each container receives only the variables it needs.
+- With `APP_ENV=production` the backend refuses to start on insecure configuration: a weak or
+  missing `AUTH_SECRET_KEY`, developer identity, a low bcrypt cost, or the built-in
+  development database credentials. It reports every problem at once. The API docs are not
+  served, and responses carry no `Server` or `X-Powered-By` header. The full reference is in
+  [Phase 6.4 — Production Configuration](docs/architecture/phase6-4-production-configuration.md).
 - Semantic search downloads its embedding model on first use, which needs outbound internet.
   Without it, search falls back to lexical ranking.
 
@@ -498,6 +510,8 @@ password `DemoPass123!`.
 | `backend` never becomes healthy | `docker compose logs migrate` and `docker compose logs backend` show the cause; the backend does not start until the migration succeeds. |
 | The browser cannot reach the API | `NEXT_PUBLIC_API_URL` must be reachable from the browser and the page's origin must be listed in `CORS_ORIGINS`. Rebuild the frontend after changing the URL. |
 | A port is already allocated | Another process (often a host-run backend or database) holds 3000, 8000 or 5432. Stop it, or change the published port. |
+| The backend exits with `Refusing to start with APP_ENV=production: ...` | The message lists every setting to fix, for example a generated `AUTH_SECRET_KEY` of at least 32 characters. |
+| The seeder exits with `APP_ENV=production: pass --password ...` | Pass `--password` with a password of your own; the container runs in production mode. |
 
 ---
 
@@ -543,7 +557,8 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 # Copy the backend settings template, then set the password in DATABASE_URL
-# to the POSTGRES_PASSWORD from the repository-root .env
+# to the POSTGRES_PASSWORD from the repository-root .env. The template runs as
+# APP_ENV=development with developer (X-User-ID) identity off.
 cp .env.example .env
 
 # Run database migrations (0001–0028)
@@ -558,7 +573,8 @@ python -m scripts.seed_demo_data
 uvicorn app.main:app --reload --port 8000
 ```
 
-API interactive documentation: `http://localhost:8000/docs`
+API interactive documentation: `http://localhost:8000/docs` (served in development; not in
+production unless `API_DOCS_ENABLED=true`)
 
 Sign in with the seeded faculty account to obtain a bearer token:
 

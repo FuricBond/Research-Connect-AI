@@ -27,7 +27,15 @@ configure_logging(settings.log_level, settings.log_format)
 validate_security_settings()
 
 # The lifespan starts the Phase 6.3 background scheduler only when SCHEDULER_ENABLED=true.
-app = FastAPI(title=settings.app_name, lifespan=lifespan)
+# Interactive API docs are not served in production unless API_DOCS_ENABLED=true (Phase 6.4).
+_serve_docs = settings.serve_api_docs
+app = FastAPI(
+    title=settings.app_name,
+    lifespan=lifespan,
+    docs_url="/docs" if _serve_docs else None,
+    redoc_url="/redoc" if _serve_docs else None,
+    openapi_url="/openapi.json" if _serve_docs else None,
+)
 
 # Starlette runs the last-added middleware first, so the effective order is:
 # RequestContext -> SecurityHeaders -> CORS -> Cache -> Rate Limiting -> route.

@@ -5,7 +5,10 @@ Entry point:
     python -m scripts.seed_demo_data [options]        (run from the backend/ directory)
 
 Options:
-    --password TEXT     Password for the seeded demo accounts (default: DemoPass123!)
+    --password TEXT     Password for the seeded demo accounts. Outside production it defaults
+                        to the public demo password DemoPass123!. With APP_ENV=production it
+                        is required and the public demo password is refused (Phase 6.4).
+                        Either way it must meet the registration password policy.
     --reset             Delete previously seeded demo rows before inserting
     --dry-run           Report what would be created without writing
 
@@ -50,9 +53,11 @@ for _path in (_PROJECT_ROOT, _BACKEND_ROOT):
     if str(_path) not in sys.path:
         sys.path.insert(0, str(_path))
 
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.security import hash_password
 from app.db.session import SessionLocal
 from app.models.opportunity import OpportunityModel
@@ -72,6 +77,7 @@ from app.models.researcher_interest import ResearcherInterestModel
 from app.models.researcher_preference import ResearcherPreferenceModel
 from app.models.topic import TopicModel
 from app.models.user import UserModel
+from app.schemas.auth import RegisterRequest
 
 logging.basicConfig(
     level=logging.INFO,
@@ -747,12 +753,44 @@ def verify_schema(db: Session) -> list[str]:
     return [table for table in REQUIRED_TABLES if not inspector.has_table(table)]
 
 
+def resolve_demo_password(requested: str | None, app_env: str) -> str:
+    """
+    The password the demo accounts get. The demo set includes an ADMIN, so a production
+    deployment must never end up with the password published in the README: there,
+    --password is required and the public demo password is refused. A supplied password
+    must meet the same policy as self-service registration.
+    """
+    if app_env == "production" and requested in (None, DEFAULT_PASSWORD):
+        raise ValueError(
+            "APP_ENV=production: pass --password with a password of your own; the public demo "
+            "password is not accepted for accounts that include an administrator"
+        )
+    if requested is None:
+        return DEFAULT_PASSWORD
+    try:
+        RegisterRequest(email=DEMO_ACCOUNTS[0]["email"], password=requested, full_name="Demo")
+    except ValidationError as err:
+        reasons = [e["msg"] for e in err.errors() if e.get("loc") and e["loc"][0] == "password"]
+        raise ValueError("--password " + ("; ".join(reasons) or "is not acceptable")) from None
+    return requested
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Seed a deterministic demo dataset.")
-    parser.add_argument("--password", default=DEFAULT_PASSWORD, help="Password for demo accounts")
+    parser.add_argument(
+        "--password",
+        default=None,
+        help="Password for demo accounts (required with APP_ENV=production)",
+    )
     parser.add_argument("--reset", action="store_true", help="Delete seeded demo rows first")
     parser.add_argument("--dry-run", action="store_true", help="Report actions without writing")
     args = parser.parse_args()
+
+    try:
+        password = resolve_demo_password(args.password, settings.app_env)
+    except ValueError as err:
+        logger.error("%s", err)
+        return 2
 
     reference_time = datetime.now(timezone.utc)
 
@@ -776,7 +814,7 @@ def main() -> int:
                     removed["opportunities"],
                 )
 
-        profiles = _seed_accounts(db, args.password, args.dry_run)
+        profiles = _seed_accounts(db, password, args.dry_run)
         opp_created, opp_updated = _seed_opportunities(db, reference_time, args.dry_run)
 
         pref_created = 0
@@ -808,7 +846,12 @@ def main() -> int:
         " (dry run, nothing written)" if args.dry_run else "",
     )
     if not args.dry_run:
-        logger.info("demo sign-in: %s / %s", DEMO_ACCOUNTS[0]["email"], args.password)
+        # Only the public demo password is ever printed; a password of the operator's own
+        # choosing never reaches the log.
+        if password == DEFAULT_PASSWORD:
+            logger.info("demo sign-in: %s / %s", DEMO_ACCOUNTS[0]["email"], DEFAULT_PASSWORD)
+        else:
+            logger.info("demo sign-in: %s with the password given by --password", DEMO_ACCOUNTS[0]["email"])
         logger.info(
             "next steps: POST /api/v1/auth/login to obtain a token; run "
             "`python -m ml.embeddings.generate_embeddings` for vector retrieval"

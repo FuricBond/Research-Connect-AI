@@ -37,7 +37,7 @@ This document provides the authoritative, comprehensive architectural roadmap an
 | **Phase 5.10** | Faculty Research Opportunities & Project Postings | **COMPLETE** | Platform-authored openings with a named accountable owner, 6-state lifecycle, FACULTY/ADMIN authorship, draft non-disclosure, taxonomy links, migration 0026, Next.js `/postings` | 38 Tests |
 | **Phase 5.11** | Research Internships, RA Openings & Applications | **COMPLETE** | Structured appointment terms, jointly owned applications with role-partitioned transitions, author-private review notes, append-only history, Phase 4.5 notifications, migration 0027 | 37 Tests |
 | **Phase 5.12** | Peer & Co-Author Discovery | **COMPLETE** | Opt-in discoverability with field-level disclosure, deterministic explainable matcher balancing shared against complementary expertise, taxonomy proximity, migration 0028, Next.js `/peers` | 35 Tests |
-| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder, background scheduler (off by default). Remaining: frontend auth UI | 1,277 Tests |
+| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder, background scheduler (off by default), validated production configuration. Remaining: frontend auth UI | 1,277 Tests |
 | **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,008+ Passing Tests |
 
 ---
@@ -686,7 +686,17 @@ Core infrastructure, identity, security, access control, and correctness hardeni
 - **Safety**: the scheduler reuses the services' P1-1 reset cutoff and P1-5/P1-8 governance behaviour and has no bypass. It only processes researchers whose Phase 5.9 controls leave the maintained state in use, and it never changes those controls.
 - **Measured**: 20 SQL statements per researcher for adaptive refresh and 14 for governance, constant from 10 to 100 researchers and independent of interaction history. 40 dedicated tests.
 
-#### 7.7 Deferred
+#### 7.7 Production Configuration (Phase 6.4) [COMPLETE]
+- **No silent development defaults in production**: `APP_ENV` is normalized and limited to `development`, `test` or `production`. A mistyped `Production` or `prod` previously ran with development defaults, including the spoofable `X-User-ID` identity; it now either counts as production or is refused.
+- **Production startup validation** reports every problem at once. It refuses a missing, short or trivially repetitive `AUTH_SECRET_KEY`, developer identity, bcrypt cost below 10, and the built-in development database credentials.
+- **Validated in every environment**: symmetric JWT algorithms only, access tokens of 1 minute to 7 days, bcrypt cost 4-31, positive rate limits, known log levels and formats, and exact CORS origins (no wildcard, path or trailing slash).
+- **Less disclosure**: interactive API docs off in production unless `API_DOCS_ENABLED=true`; no `Server` or `X-Powered-By` header.
+- **Seed data**: in production the seeder requires `--password`, refuses the public demo password, applies the registration policy, and never logs a chosen password.
+- **Frontend**: `NEXT_PUBLIC_API_URL` must be an absolute http(s) URL without credentials, query or fragment, or the build fails.
+- **Scheduler settings**: the backend's `stop_grace_period` (15 s) now outlasts the scheduler's shutdown wait.
+- **Secrets**: the development `.env` template leaves developer identity off, and tests lock in that no secret is committed. Reference: `docs/architecture/phase6-4-production-configuration.md`.
+
+#### 7.8 Deferred
 - **Frontend authentication UI**: the backend auth API and the browser identity/token client exist, but there is no login, registration or administration page yet, so a browser session still bootstraps a developer identity.
 
 ---
