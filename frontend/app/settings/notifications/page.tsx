@@ -106,11 +106,15 @@ function NotificationSettingsPage() {
   };
 
   const handleDeleteRule = async (ruleId: string) => {
+    setError(null);
     try {
       await deleteReminderRule(ruleId);
       setRules((prev) => prev.filter((r) => r.id !== ruleId));
     } catch (err: any) {
       console.error("Failed to delete reminder rule:", err);
+      // The rule stays listed because it was not deleted. A 401 has already been reported
+      // to the session by the API client; this only tells the person the delete failed.
+      setError(err?.message || "Failed to delete reminder rule.");
     }
   };
 

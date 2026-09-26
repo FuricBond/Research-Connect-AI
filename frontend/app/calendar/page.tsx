@@ -88,7 +88,9 @@ function CalendarPage() {
       setCalendar(cal);
 
       const res = await fetchCalendarEvents(cal.id);
-      setEvents(res.events);
+      // The list is `items`. Default to empty so a partial body shows "no events"
+      // rather than leaving `events` undefined and taking the whole page down.
+      setEvents(res.items ?? []);
     } catch (err: any) {
       setError(err?.detail || err?.message || "Failed to load research calendar.");
     } finally {

@@ -56,6 +56,7 @@ import type {
   CalendarCreatePayload,
   CalendarEventCreatePayload,
   CalendarEventFilterParams,
+  CalendarEventListResponse,
   CalendarEventUpdatePayload,
   CalendarUpdatePayload,
   OpportunityProjectPayload,
@@ -1295,23 +1296,11 @@ export async function removeWorkspaceItem(
     headers["X-User-ID"] = userId;
   }
 
-  const url = `${API_URL}/api/v1/workspace/${itemId}`;
-  const response = await fetch(url, {
+  await fetchJson<void>(`/api/v1/workspace/${itemId}`, {
     method: "DELETE",
     headers,
     signal,
   });
-
-  if (!response.ok && response.status !== 204) {
-    let detail = `Delete failed with status ${response.status}`;
-    try {
-      const errJson = await response.json();
-      if (errJson && typeof errJson.detail === "string") {
-        detail = errJson.detail;
-      }
-    } catch {}
-    throw new ApiError(response.status, detail, detail);
-  }
 }
 
 // ── Phase 4.2 — Research Submission Management & Tracking API ───────────────
@@ -1465,23 +1454,11 @@ export async function deleteSubmission(
   if (userId) {
     headers["X-User-ID"] = userId;
   }
-  const url = `${API_URL}/api/v1/submissions/${submissionId}`;
-  const response = await fetch(url, {
+  await fetchJson<void>(`/api/v1/submissions/${submissionId}`, {
     method: "DELETE",
     headers,
     signal,
   });
-
-  if (!response.ok && response.status !== 204) {
-    let detail = `Delete failed with status ${response.status}`;
-    try {
-      const errJson = await response.json();
-      if (errJson && typeof errJson.detail === "string") {
-        detail = errJson.detail;
-      }
-    } catch {}
-    throw new ApiError(response.status, detail, detail);
-  }
 }
 
 // ── Phase 4.3 — Submission Documents, Versions, Readiness & History API ─────
@@ -1581,23 +1558,11 @@ export async function deleteSubmissionDocument(
   if (userId) {
     headers["X-User-ID"] = userId;
   }
-  const url = `${API_URL}/api/v1/submissions/${submissionId}/documents/${documentId}`;
-  const response = await fetch(url, {
+  await fetchJson<void>(`/api/v1/submissions/${submissionId}/documents/${documentId}`, {
     method: "DELETE",
     headers,
     signal,
   });
-
-  if (!response.ok && response.status !== 204) {
-    let detail = `Delete failed with status ${response.status}`;
-    try {
-      const errJson = await response.json();
-      if (errJson && typeof errJson.detail === "string") {
-        detail = errJson.detail;
-      }
-    } catch {}
-    throw new ApiError(response.status, detail, detail);
-  }
 }
 
 export async function fetchDocumentVersions(
@@ -1723,7 +1688,7 @@ export async function fetchCalendarEvents(
   filters: CalendarEventFilterParams = {},
   userId?: string,
   signal?: AbortSignal
-): Promise<{ events: ResearchCalendarEvent[]; total: number }> {
+): Promise<CalendarEventListResponse> {
   const params = new URLSearchParams();
   if (filters.start_date) params.set("start_date", filters.start_date);
   if (filters.end_date) params.set("end_date", filters.end_date);
@@ -1739,7 +1704,7 @@ export async function fetchCalendarEvents(
   const headers: Record<string, string> = {};
   if (userId) headers["X-User-ID"] = userId;
 
-  return fetchJson<{ events: ResearchCalendarEvent[]; total: number }>(endpoint, {
+  return fetchJson<CalendarEventListResponse>(endpoint, {
     headers,
     signal,
   });
@@ -1990,7 +1955,7 @@ export async function deleteReminderRule(
 ): Promise<void> {
   const headers: Record<string, string> = {};
   if (userId) headers["X-User-ID"] = userId;
-  await fetch(`${API_URL}/api/v1/notifications/rules/${ruleId}`, {
+  await fetchJson<void>(`/api/v1/notifications/rules/${ruleId}`, {
     method: "DELETE",
     headers,
     signal,
@@ -2063,7 +2028,7 @@ export async function removeWorkspaceMember(
 ): Promise<void> {
   const headers: Record<string, string> = {};
   if (userId) headers["X-User-ID"] = userId;
-  await fetch(`${API_URL}/api/v1/workspaces/${workspaceId}/members/${memberId}`, {
+  await fetchJson<void>(`/api/v1/workspaces/${workspaceId}/members/${memberId}`, {
     method: "DELETE",
     headers,
     signal,
@@ -2243,7 +2208,7 @@ export async function deleteWorkspaceTask(
 ): Promise<void> {
   const headers: Record<string, string> = {};
   if (userId) headers["X-User-ID"] = userId;
-  await fetch(`${API_URL}/api/v1/workspaces/${workspaceId}/tasks/${taskId}`, {
+  await fetchJson<void>(`/api/v1/workspaces/${workspaceId}/tasks/${taskId}`, {
     method: "DELETE",
     headers,
     signal,

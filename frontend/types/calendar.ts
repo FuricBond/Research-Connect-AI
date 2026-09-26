@@ -67,6 +67,16 @@ export interface ResearchCalendarEvent {
   updated_at: string;
 }
 
+/**
+ * `GET /api/v1/calendar/{calendar_id}/events`. Mirrors the backend's
+ * CalendarEventListResponse (backend/app/schemas/calendar.py), where both fields are
+ * required. The list is `items`, not `events`.
+ */
+export interface CalendarEventListResponse {
+  items: ResearchCalendarEvent[];
+  total: number;
+}
+
 export interface CalendarCreatePayload {
   name: string;
   description?: string | null;
