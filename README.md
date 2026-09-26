@@ -512,6 +512,7 @@ trailing spaces. Then sign in at `http://localhost:3000/login` as
 | A port is already allocated | Another process (often a host-run backend or database) holds 3000, 8000 or 5432. Stop it, or change the published port. |
 | The backend exits with `Refusing to start with APP_ENV=production: ...` | The message lists every setting to fix, for example a generated `AUTH_SECRET_KEY` of at least 32 characters. |
 | The seeder exits with `APP_ENV=production: pass --password ...` | Pass `--password` with a password of your own; the container runs in production mode. |
+| The seeder exits with `demo email already used by an account this seeder did not create` | A demo email belongs to an account the seeder did not create: one registered through sign-up, or demo accounts seeded by an older version. The seeder never gives such an account a demo role or password. Run it with `--reset --password '<password>'` to delete and recreate the demo accounts, or remove that account first. |
 
 ---
 

@@ -9,7 +9,8 @@ Options:
                         to the public demo password DemoPass123!. With APP_ENV=production it
                         is required and the public demo password is refused (Phase 6.4).
                         Either way it must meet the registration password policy.
-    --reset             Delete previously seeded demo rows before inserting
+    --reset             Delete previously seeded demo rows before inserting (keyed on the demo
+                        emails and titles, so any account using a demo email is deleted)
     --dry-run           Report what would be created without writing
 
 The repository ships no dataset, so a fresh database has nothing to demonstrate: ranking,
@@ -36,12 +37,17 @@ What it deliberately does not create:
     - Behavioural interactions or derived personalization state. Those are produced by
       using the application, which is the point of a demo.
 
-Re-running is safe: existing rows are updated in place rather than duplicated.
+Re-running is safe: existing rows are updated in place rather than duplicated. Demo accounts
+are recognised by the ID the seeder gave them, never by email alone: if a demo email belongs
+to an account the seeder did not create, such as one registered through the API, the run stops
+before writing anything and that account keeps its role and password (Phase 6.4 audit P2-1).
+--reset deletes such accounts along with the demo data and recreates the demo set.
 """
 from __future__ import annotations
 
 import argparse
 from datetime import datetime, timedelta, timezone
+import hashlib
 import logging
 from pathlib import Path
 import sys
@@ -283,6 +289,50 @@ DEMO_EMAILS = tuple(account["email"] for account in DEMO_ACCOUNTS)
 DEMO_TITLES = tuple(row[0] for row in DEMO_OPPORTUNITIES)
 DEMO_POSTING_TITLES = tuple(row["title"] for row in DEMO_POSTINGS)
 
+# Phase 6.4 audit P2-1 — demo accounts are recognised by their ID, never by email alone.
+# Anyone can register a demo email through the API, and adopting that account would hand its
+# owner the demo role (ADMIN included) through the tokens they already hold. Registration
+# assigns plain random IDs; accounts created here get a random ID whose second half is a
+# check value over the first half and the email, which a registration-assigned ID matches
+# only by chance (1 in 2**62). The IDs stay random, so --reset still recreates the accounts
+# under new identities and tokens issued before a reset stop working.
+_DEMO_ACCOUNT_ID_DOMAIN = b"researchconnect-ai/seed-demo-data/account-id/v1"
+
+
+def _demo_account_id(email: str, nonce: bytes) -> uuid.UUID:
+    check = hashlib.sha256(_DEMO_ACCOUNT_ID_DOMAIN + nonce + email.encode("utf-8")).digest()[:8]
+    return uuid.UUID(bytes=nonce + check, version=4)
+
+
+def new_demo_account_id(email: str) -> uuid.UUID:
+    """A fresh ID (a valid UUIDv4) marking the account as created by this seeder."""
+    return _demo_account_id(email, uuid.uuid4().bytes[:8])
+
+
+def is_seeded_demo_account(user: UserModel) -> bool:
+    """Whether this seeder created the account, whatever email it holds."""
+    return user.id == _demo_account_id(user.email, user.id.bytes[:8])
+
+
+class DemoAccountConflictError(RuntimeError):
+    """A demo email belongs to an account this seeder did not create."""
+
+    def __init__(self, emails: list[str]) -> None:
+        self.emails = emails
+        super().__init__(
+            f"demo email already used by an account this seeder did not create: "
+            f"{', '.join(emails)}. Nothing was changed: the seeder never gives an existing "
+            "account a demo role or password. Run with --reset to delete and recreate the demo "
+            "accounts (which deletes these accounts too), or remove them first. Demo accounts "
+            "seeded before this check are reported the same way; --reset recreates them."
+        )
+
+
+def find_foreign_demo_accounts(db: Session) -> list[str]:
+    """Demo emails held by accounts this seeder did not create."""
+    users = db.execute(select(UserModel).where(UserModel.email.in_(DEMO_EMAILS))).scalars().all()
+    return sorted(user.email for user in users if not is_seeded_demo_account(user))
+
 
 def _delete_demo_rows(db: Session) -> dict[str, int]:
     """
@@ -373,7 +423,11 @@ def _delete_demo_rows(db: Session) -> dict[str, int]:
 
 
 def _seed_accounts(db: Session, password: str, dry_run: bool) -> dict[str, ResearchProfileModel]:
-    """Creates or updates the demo accounts and their researcher profiles."""
+    """
+    Creates or updates the demo accounts and their researcher profiles. Only accounts this
+    seeder created are updated: a demo email held by any other account raises
+    DemoAccountConflictError before that account is touched, and nothing is committed.
+    """
     hashed = hash_password(password)
     profiles: dict[str, ResearchProfileModel] = {}
 
@@ -387,7 +441,7 @@ def _seed_accounts(db: Session, password: str, dry_run: bool) -> dict[str, Resea
             if dry_run:
                 continue
             user = UserModel(
-                id=uuid.uuid4(),
+                id=new_demo_account_id(account["email"]),
                 email=account["email"],
                 hashed_password=hashed,
                 full_name=account["full_name"],
@@ -398,6 +452,8 @@ def _seed_accounts(db: Session, password: str, dry_run: bool) -> dict[str, Resea
             db.add(user)
             db.flush()
         else:
+            if not dry_run and not is_seeded_demo_account(user):
+                raise DemoAccountConflictError([account["email"]])
             logger.info("updating account %s", account["email"])
             if dry_run:
                 continue
@@ -803,7 +859,17 @@ def main() -> int:
             )
             return 1
 
+        # Checked before anything is written; --reset deletes these accounts instead.
+        foreign = find_foreign_demo_accounts(db)
+        if foreign and not args.reset:
+            logger.error("%s", DemoAccountConflictError(foreign))
+            return 1
+
         if args.reset:
+            if foreign:
+                logger.warning(
+                    "--reset deletes %s, which this seeder did not create", ", ".join(foreign)
+                )
             if args.dry_run:
                 logger.info("--dry-run: skipping reset")
             else:
@@ -814,7 +880,12 @@ def main() -> int:
                     removed["opportunities"],
                 )
 
-        profiles = _seed_accounts(db, password, args.dry_run)
+        try:
+            profiles = _seed_accounts(db, password, args.dry_run)
+        except DemoAccountConflictError as err:  # an account registered since the check above
+            db.rollback()
+            logger.error("%s", err)
+            return 1
         opp_created, opp_updated = _seed_opportunities(db, reference_time, args.dry_run)
 
         pref_created = 0
