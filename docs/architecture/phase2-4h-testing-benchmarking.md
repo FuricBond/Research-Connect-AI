@@ -17,7 +17,7 @@ The objective is to:
 
 ## 2. Ground Truth & Evaluation Dataset Methodology
 
-Relevance evaluation uses a version-controlled, deterministic benchmark dataset containing **16 representative scenarios** ([`backend/app/evaluation/benchmark_dataset.py`](file:///d:/Project/researchconnect-ai/backend/app/evaluation/benchmark_dataset.py)):
+Relevance evaluation uses a version-controlled, deterministic benchmark dataset containing **16 representative scenarios** ([`backend/app/evaluation/benchmark_dataset.py`](../../backend/app/evaluation/benchmark_dataset.py)):
 
 ### 2.1. Ground Truth Categorization
 - **`SYNTHETIC_FIXTURE`**: Constructive scenarios where relevance is mathematically defined (e.g. synonym queries, keyword acronyms, freshness decay, tie-breaking).

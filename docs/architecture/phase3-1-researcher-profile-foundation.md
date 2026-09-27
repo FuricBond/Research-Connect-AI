@@ -91,7 +91,7 @@ UserModel (users)       ──1:1─► ResearchProfileModel ──FK(nullable)�
 ## 4. Profile Schema & Database Migration
 
 ### Alembic Migration
-Alembic migration [`0008_phase3_1_researcher_profile_foundation.py`](file:///d:/Project/researchconnect-ai/backend/alembic/versions/0008_phase3_1_researcher_profile_foundation.py) applies the following non-destructive changes to `research_profiles`:
+Alembic migration [`0008_phase3_1_researcher_profile_foundation.py`](../../backend/alembic/versions/0008_phase3_1_researcher_profile_foundation.py) applies the following non-destructive changes to `research_profiles`:
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|
@@ -211,7 +211,7 @@ The frontend leverages the Next.js 15 App Router (`frontend/app/researcher/page.
 1. **Navigation**: Linked from `DiscoveryNavbar` with the `User` icon.
 2. **Profile Card**: Displays researcher avatar, full name, email, academic status pill, canonical affiliation badge, ORCID link, OpenAlex link, bio, and keywords.
 3. **Interactive Editor**: Allows seamless editing of identity attributes, affiliation, identifiers, and research focus.
-4. **Completeness Progress Bar**: [`ProfileCompletenessBadge.tsx`](file:///d:/Project/researchconnect-ai/frontend/components/researcher/ProfileCompletenessBadge.tsx) displays visual percentage, tier, and field breakdown.
+4. **Completeness Progress Bar**: [`ProfileCompletenessBadge.tsx`](../../frontend/components/researcher/ProfileCompletenessBadge.tsx) displays visual percentage, tier, and field breakdown.
 5. **Authored Works Listing**: Renders linked publications with citation counts and publication years.
 
 ---

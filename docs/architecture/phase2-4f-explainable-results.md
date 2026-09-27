@@ -70,7 +70,7 @@ The system provides:
 
 ## 4. Threshold Strategy & Verbal Tiers
 
-Qualitative labels and natural-language triggers are governed by configurable thresholds in [`backend/app/core/config.py`](file:///d:/Project/researchconnect-ai/backend/app/core/config.py):
+Qualitative labels and natural-language triggers are governed by configurable thresholds in [`backend/app/core/config.py`](../../backend/app/core/config.py):
 
 | Threshold Setting | Default | Verbal Tier | Behavior |
 |---|---|---|---|

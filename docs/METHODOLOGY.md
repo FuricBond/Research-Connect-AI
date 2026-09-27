@@ -372,7 +372,7 @@ In accordance with rigorous academic integrity standards, limitations are docume
 5. **Governance and control lookups failing open** — *Resolved.* A failed read of the control row now disables personalization for that request, and a failed governance read damps to `HOLD` rather than granting the unrestricted `ALLOW` multiplier. A table that was never created is treated differently from a failed read: it means the feature is not deployed in that schema, so the documented defaults apply.
 6. **Governance recomputed only on reads** — *Resolved.* Recomputing adaptive signals now also refreshes the governance evaluation, so the gate that damps live ranking tracks the behaviour it governs instead of waiting for somebody to open the health endpoint. A governance failure is logged and never discards a valid signal recomputation.
 7. **Unvalidated identifier pass-through** — *Resolved.* `WorkspaceService.resolve_user_id` rejects an identifier matching no account and no profile instead of returning it unchanged, which previously allowed workspace rows owned by a non-existent account.
-8. **No demo dataset** — *Resolved.* `backend/scripts/seed_demo_data.py` writes a deterministic, idempotent corpus: three accounts covering every platform role with bcrypt-hashed credentials, explicit preferences including one exclusion, and twelve opportunities spanning conferences, journals and workshops with deadlines from already-expired to months away, two of which carry the textual markers the Phase 2.6 engine independently scores as high risk.
+8. **No demo dataset** — *Resolved.* `backend/scripts/seed_demo_data.py` writes a deterministic, idempotent corpus: three accounts covering every platform role with bcrypt-hashed credentials, explicit preferences including one exclusion, and twelve opportunities spanning conferences, journals and workshops with deadlines from already-expired to months away, two of which carry the textual markers the Phase 2.6 engine independently scores as high risk. The seeder recognises its accounts by an ID it issues, never by email alone. It therefore refuses to touch an account someone registered under a demo email, which closed the Phase 6.4 audit finding P2-1 (a registered `demo.admin` email could be promoted to ADMIN by seeding).
 
 ### 9.2 Known remaining limitations
 
@@ -380,7 +380,7 @@ In accordance with rigorous academic integrity standards, limitations are docume
 2. **Client-asserted identity in developer mode**: when `AUTH_DEV_IDENTITY_ENABLED=true`, knowing a UUID is sufficient to act as that user. This is intended for local development only and is refused in production configuration.
 3. **Semantic embeddings are generated offline**: vector retrieval requires `python -m ml.embeddings.generate_embeddings` after ingestion or seeding; the seeder deliberately does not generate embeddings, as that requires a model download.
 4. **Scheduled execution is opt-in and per process**: the Phase 6.3 background scheduler (deadline expiry, reminder dispatch, adaptive-signal and governance refresh, and optional WikiCFP ingestion) runs only when `SCHEDULER_ENABLED=true`. Advisory locks keep two processes from running a job at the same time, but each enabled process schedules its own runs, so the scheduler should be enabled in one process.
-5. **Performance-budget tests are machine-sensitive**: a small number of wall-clock assertions (`test_ranking_execution_budget`, `test_performance_and_scaling_benchmarks`) can fail under CPU contention while passing on a quiet machine.
+5. **Performance-budget tests are machine-sensitive**: a small number of wall-clock assertions (`test_ranking_execution_budget`, `test_reranking_execution_time`, `test_performance_benchmarks_zero_n_plus_one`, `test_performance_and_scaling_benchmarks`) can fail under CPU contention while passing on a quiet machine or when rerun alone.
 
 ---
 
@@ -388,13 +388,13 @@ In accordance with rigorous academic integrity standards, limitations are docume
 
 | Architectural Feature | Implementation Specification in Repository |
 |---|---|
-| **Frontend Architecture** | Next.js 15.3.3 (App Router), React 19, TypeScript 5.7, Vanilla CSS Tokens |
-| **Backend Architecture** | FastAPI 0.115.6, Python 3.12, Layered Domain Architecture |
-| **Database & ORM** | PostgreSQL 16, pgvector 0.3.6, SQLAlchemy 2.0.36, Alembic 1.14 (23 revisions) |
+| **Frontend Architecture** | Next.js 15.5 (App Router), React 19.2, TypeScript 5.9, Vanilla CSS Tokens |
+| **Backend Architecture** | FastAPI 0.115.6, Python 3.13, Layered Domain Architecture |
+| **Database & ORM** | PostgreSQL 16 with pgvector 0.8.6 (Python client 0.3.6), SQLAlchemy 2.0.36, Alembic 1.14 (28 revisions) |
 | **Dense Embedding Model** | `all-MiniLM-L6-v2` (384 dimensions, sentence-transformers 3.3.1) |
 | **Retrieval Fusion** | Reciprocal Rank Fusion (RRF, $k=60$) over Vector + Lexical (tsvector GIN) |
 | **Core Ranking Law** | Relevance Dominance Invariant ($w_{\text{relevance}} \ge 0.85$, $w_{\text{secondary}} \le 0.15$) |
 | **Personalization Cap** | Max adjustment $\le 0.15$, Damping threshold $S_{\text{base}} < 0.30$, Tie-breaking tuple |
 | **Governance Machine** | 5-State FSM (`ALLOW`, `ALLOW_BOUNDED`, `HOLD`, `REDUCE`, `SUSPEND`) with Hysteresis |
 | **Workflow Management** | Proposal Kanban, Document Versioning (SHA-256), Readiness Engine, RFC 5545 iCal |
-| **Verification Suite** | 87 Pytest test suites enforcing unit correctness, security, and mathematical invariants |
+| **Verification Suite** | 98 pytest modules (1,538 tests) enforcing unit correctness, security, and mathematical invariants, plus 9 Vitest files (158 tests) for the frontend |

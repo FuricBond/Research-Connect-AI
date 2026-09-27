@@ -83,34 +83,34 @@ The complete subsystem consists of 8 modular layers:
 ## 3. Subsystem Breakdown
 
 ### 3.1. Phase 2.4A — Vector Retrieval Foundation
-- **Core Abstraction**: `VectorRepository` ([`backend/app/repositories/vector_repository.py`](file:///d:/Project/researchconnect-ai/backend/app/repositories/vector_repository.py)).
+- **Core Abstraction**: `VectorRepository` ([`backend/app/repositories/vector_repository.py`](../../backend/app/repositories/vector_repository.py)).
 - **Indexing**: pgvector HNSW index on 384-dimensional dense embeddings (`sentence-transformers/all-MiniLM-L6-v2`).
 - **Retrieval Metric**: Cosine distance operator (`<=>`). Cosine similarity computed as $1.0 - \text{distance}$.
 - **Safety**: Safe candidate limits ($\min(100, \text{limit})$) and metadata filtering (year, work type, language, source venue, open access).
 
 ### 3.2. Phase 2.4B — Hybrid Search & Candidate Fusion
-- **Core Abstraction**: `LexicalRepository`, `HybridSearchService`, `reciprocal_rank_fusion` ([`backend/app/services/hybrid_search_service.py`](file:///d:/Project/researchconnect-ai/backend/app/services/hybrid_search_service.py)).
+- **Core Abstraction**: `LexicalRepository`, `HybridSearchService`, `reciprocal_rank_fusion` ([`backend/app/services/hybrid_search_service.py`](../../backend/app/services/hybrid_search_service.py)).
 - **Dual-Path Ingestion**: Dispatches lexical full-text query (`to_tsvector`) and dense embedding vector search concurrently.
 - **RRF Algorithm**:
   $$\text{RRF Score}(d) = \sum_{c \in \{\text{vector}, \text{lexical}\}} \frac{1}{k + r_c(d)}, \quad k = 60$$
 - **Deduplication**: Merges multi-channel candidate appearances into a single `HybridSearchResult` with provenance tracking (`retrieval_sources`).
 
 ### 3.3. Phase 2.4C — Similar Research Retrieval
-- **Core Abstraction**: `SimilarResearchService` ([`backend/app/services/similar_research_service.py`](file:///d:/Project/researchconnect-ai/backend/app/services/similar_research_service.py)).
+- **Core Abstraction**: `SimilarResearchService` ([`backend/app/services/similar_research_service.py`](../../backend/app/services/similar_research_service.py)).
 - **Multi-Signal Similarity**:
   $$\text{Similarity} = w_{\text{sem}} \cdot S_{\text{sem}} + w_{\text{lex}} \cdot S_{\text{lex}} + w_{\text{topic}} \cdot S_{\text{topic}}$$
 - **Taxonomy DAG Proximity**: Explores canonical topic graph relationships and common taxonomy ancestor depth for non-identical topics.
 - **Self-Exclusion**: Guarantees source paper UUID is excluded from candidate results.
 
 ### 3.4. Phase 2.4D — Research ↔ Opportunity Matching
-- **Core Abstraction**: `ResearchOpportunityMatchingService` ([`backend/app/services/research_opportunity_matching_service.py`](file:///d:/Project/researchconnect-ai/backend/app/services/research_opportunity_matching_service.py)).
+- **Core Abstraction**: `ResearchOpportunityMatchingService` ([`backend/app/services/research_opportunity_matching_service.py`](../../backend/app/services/research_opportunity_matching_service.py)).
 - **Multi-Signal Match**:
   $$\text{Match} = w_{\text{sem}} S_{\text{sem}} + w_{\text{lex}} S_{\text{lex}} + w_{\text{topic}} S_{\text{topic}} + w_{\text{type}} S_{\text{type}}$$
 - **Publication Type Matrix**: Deterministic compatibility mapping (e.g. `article` $\to$ `JOURNAL`, `preprint` $\to$ `CONFERENCE`).
 - **Urgency Modeling**: Linear deadline proximity within an active 90-day window.
 
 ### 3.5. Phase 2.4E — Hybrid Candidate Ranking Engine
-- **Core Abstraction**: `HybridRanker` ([`backend/app/ranking/hybrid_ranker.py`](file:///d:/Project/researchconnect-ai/backend/app/ranking/hybrid_ranker.py)).
+- **Core Abstraction**: `HybridRanker` ([`backend/app/ranking/hybrid_ranker.py`](../../backend/app/ranking/hybrid_ranker.py)).
 - **Normalized Composite Scoring**:
   $$\text{Final Score} = \sum_{i=1}^M w_i \cdot S_i, \quad \sum w_i = 1.0, \quad S_i \in [0.0, 1.0]$$
 - **Freshness Half-Life Decay**:
@@ -118,14 +118,14 @@ The complete subsystem consists of 8 modular layers:
 - **Deterministic Tie-Breaking**: Primary sort descending by score; secondary sort ascending by candidate UUID string.
 
 ### 3.6. Phase 2.4F — Explainable Results Layer
-- **Core Abstraction**: `ResultExplainer` ([`backend/app/explainability/result_explainer.py`](file:///d:/Project/researchconnect-ai/backend/app/explainability/result_explainer.py)).
+- **Core Abstraction**: `ResultExplainer` ([`backend/app/explainability/result_explainer.py`](../../backend/app/explainability/result_explainer.py)).
 - **Deterministic Attributions**:
   $$\text{contribution}_i = \text{round}(\text{score}_i \cdot \text{weight}_i, 6)$$
 - **Zero LLM Reliance**: Generates concise human-readable summaries, positive strengths, and limiting factors without external API dependencies.
 - **Data Absence vs Negative Signal**: Suppresses false negative claims when metadata (publication year, topic tags, vector embedding) is absent.
 
 ### 3.7. Phase 2.4G — FastAPI Discovery REST Layer
-- **Core Abstraction**: `discovery_router` ([`backend/app/api/v1/discovery.py`](file:///d:/Project/researchconnect-ai/backend/app/api/v1/discovery.py)).
+- **Core Abstraction**: `discovery_router` ([`backend/app/api/v1/discovery.py`](../../backend/app/api/v1/discovery.py)).
 - **Endpoints**:
   - `GET /api/v1/discovery/research/search`
   - `GET /api/v1/discovery/research/{work_id}/similar`
@@ -133,8 +133,8 @@ The complete subsystem consists of 8 modular layers:
 - **Output Schemas**: Clean Pydantic schemas separating external API representations from internal ORM models and embeddings.
 
 ### 3.8. Phase 2.4H — Testing, Benchmarking & Evaluation
-- **Benchmark Suite**: 16 deterministic scenarios ([`backend/app/evaluation/benchmark_dataset.py`](file:///d:/Project/researchconnect-ai/backend/app/evaluation/benchmark_dataset.py)).
-- **IR Metrics**: Precision@K, Recall@K, HitRate@K, MRR, NDCG@K ([`backend/app/evaluation/metrics.py`](file:///d:/Project/researchconnect-ai/backend/app/evaluation/metrics.py)).
+- **Benchmark Suite**: 16 deterministic scenarios ([`backend/app/evaluation/benchmark_dataset.py`](../../backend/app/evaluation/benchmark_dataset.py)).
+- **IR Metrics**: Precision@K, Recall@K, HitRate@K, MRR, NDCG@K ([`backend/app/evaluation/metrics.py`](../../backend/app/evaluation/metrics.py)).
 - **Verification**: 573 automated tests passing with 0 regressions.
 
 ---

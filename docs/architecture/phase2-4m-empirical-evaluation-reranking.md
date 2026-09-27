@@ -18,7 +18,7 @@
 
 3. **Inter-Annotator Agreement Framework**:
    - Implementation of **Cohen's $\kappa$** (binary/pairwise) and **Fleiss' $\kappa$** (multi-rater) to validate rubric reliability across academic domains (`agreement.py`).
-   - Publication of the standard [Academic Relevance Annotation Guidelines](file:///d:/Project/researchconnect-ai/docs/evaluation/academic-relevance-annotation-guidelines.md).
+   - Publication of the standard [Academic Relevance Annotation Guidelines](../../docs/evaluation/academic-relevance-annotation-guidelines.md).
 
 4. **Lightweight Cross-Encoder Reranking Engine**:
    - Optional, lazy-loaded neural reranking layer utilizing `BAAI/bge-reranker-base` (`reranker.py`).
@@ -28,7 +28,7 @@
 
 5. **5-Way Ablation Benchmark Suite**:
    - Systematic evaluation across (A) Lexical-only, (B) Vector-only, (C) Hybrid Baseline, (D) Hybrid + Query Intelligence, and (E) Hybrid + Cross-Encoder Reranking.
-   - Output emitted to [`artifacts/evaluation/phase2-4m-results.json`](file:///d:/Project/researchconnect-ai/artifacts/evaluation/phase2-4m-results.json).
+   - Output emitted to [`artifacts/evaluation/phase2-4m-results.json`](../../artifacts/evaluation/phase2-4m-results.json).
 
 ---
 

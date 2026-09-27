@@ -37,8 +37,8 @@ This document provides the authoritative, comprehensive architectural roadmap an
 | **Phase 5.10** | Faculty Research Opportunities & Project Postings | **COMPLETE** | Platform-authored openings with a named accountable owner, 6-state lifecycle, FACULTY/ADMIN authorship, draft non-disclosure, taxonomy links, migration 0026, Next.js `/postings` | 38 Tests |
 | **Phase 5.11** | Research Internships, RA Openings & Applications | **COMPLETE** | Structured appointment terms, jointly owned applications with role-partitioned transitions, author-private review notes, append-only history, Phase 4.5 notifications, migration 0027 | 37 Tests |
 | **Phase 5.12** | Peer & Co-Author Discovery | **COMPLETE** | Opt-in discoverability with field-level disclosure, deterministic explainable matcher balancing shared against complementary expertise, taxonomy proximity, migration 0028, Next.js `/peers` | 35 Tests |
-| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder, background scheduler (off by default), validated production configuration. Remaining: frontend auth UI | 1,277 Tests |
-| **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,008+ Passing Tests |
+| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder, containerized full stack (6.1), browser sign-in and account administration (6.2), background scheduler, off by default (6.3), validated production configuration (6.4). Remaining: 6.5 database and migration startup, 6.6 end-to-end verification, 6.7 final security audit, 6.8 final performance and regression audit, 6.9 demo and release readiness | 1,538 Backend + 158 Frontend Tests |
+| **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,534 Backend Tests Passing |
 
 ---
 
@@ -343,7 +343,7 @@ Research Calendar (Phase 4.4) ──────► Advance Reminders & Alerts (
 #### Completed Subsystems (Phases 4.0–4.7)
 1. **Phase 4.1 — Opportunity Workspace**:
    - Researcher-scoped tracking across 7 stages: `SAVED`, `CONSIDERING`, `PLANNING`, `APPLIED`, `ACCEPTED`, `REJECTED`, `ARCHIVED`.
-   - Private custom notes, priority tags, and strict tenant isolation via `X-User-ID`.
+   - Private custom notes, priority tags, and strict per-user tenant isolation (identity from the Phase 6 bearer token; originally the `X-User-ID` header).
    - Accessible via `/api/v1/workspace` and `/workspace`.
 2. **Phase 4.2 — Submission & Application Tracker**:
    - `ResearchSubmissionModel` (1:N with saved opportunities) managing manuscripts through a 7-state lifecycle: `DRAFT` $\to$ `READY` $\to$ `SUBMITTED` $\to$ `UNDER_REVIEW` $\to$ `ACCEPTED` / `REJECTED`, plus `WITHDRAWN`.
@@ -670,6 +670,7 @@ Core infrastructure, identity, security, access control, and correctness hardeni
 
 #### 7.4 Demonstrability [COMPLETE]
 - **Deterministic seeder** (`backend/scripts/seed_demo_data.py`): idempotent, offline, `--reset` and `--dry-run` supported. Creates three accounts covering every platform role with working credentials, explicit preferences including one exclusion, and twelve opportunities spanning conferences, journals and workshops with deadlines from already-expired to months away — two of which carry textual markers the Phase 2.6 engine independently scores as high risk, so trust and deadline intelligence have something to act on.
+- **No account takeover** (Phase 6.4 audit P2-1): demo accounts are recognised by an ID the seeder issues, never by email alone. If a demo email belongs to an account the seeder did not create, such as one registered through the API, the run stops before writing anything and that account keeps its role and password. `--reset` deletes and recreates the demo accounts under new IDs.
 
 #### 7.5 Containerization & Deployment (Phase 6.1) [COMPLETE]
 - **Full stack in Compose**: `postgres` (pinned `pgvector/pgvector:0.8.6-pg16`, TCP `pg_isready` healthcheck, named volume), a one-shot `migrate` service that waits for the database and runs `alembic upgrade head` exactly once, then `backend` and `frontend`, each gated on the previous step's health. A fresh volume reaches migration head `0028` and a healthy stack in under 30 seconds with no manual SQL.
@@ -678,7 +679,14 @@ Core infrastructure, identity, security, access control, and correctness hardeni
 - **Hardening**: all capabilities dropped and `no-new-privileges` on the application containers, ports published on `127.0.0.1` only, allowlisted build contexts. Restarts and `down`/`up` keep data and sessions.
 - **Environment templates**: the root `.env.example` configures Compose; `backend/.env.example` holds only backend settings, so a host-run backend no longer fails on keys its settings loader rejects.
 
-#### 7.6 Scheduled Execution (Phase 6.3) [COMPLETE]
+#### 7.6 Frontend Authentication (Phase 6.2) [COMPLETE]
+- **Sign-in pages**: `/login` and `/register` (self-service `STUDENT` or `FACULTY`; `ADMIN` is only granted by an administrator). Registering signs the person straight in. Server errors, including validation failures and rate limiting, are shown as readable messages.
+- **One session owner**: a session provider is the single source of the caller's identity and role for the header, guards and pages. The token is kept in `localStorage` but never trusted: on startup it is checked against `/auth/me` and cleared if rejected, and a `401` on an authenticated request signs the browser out.
+- **Route guards**: protected pages redirect a signed-out visitor to `/login?next=…` and render nothing until the session is known. They are a usability layer only; the backend authorizes every request.
+- **Administration**: `/admin` lists and searches accounts and changes role, activation and verification through `PATCH /api/v1/admin/users/{id}`. The backend refuses to demote or deactivate the last active administrator.
+- **Bearer token first**: whenever a token is present, the API client drops the legacy developer `X-User-ID` header.
+
+#### 7.7 Scheduled Execution (Phase 6.3) [COMPLETE]
 - **Five jobs, no new domain logic**: `deadline_expiry`, `reminder_dispatch`, `adaptive_signal_refresh`, `governance_refresh` and opt-in `opportunity_refresh` (WikiCFP) each call the existing service, commit where it leaves the transaction to its caller, and report what it did. Idempotency comes from the services' own deduplication and upserts; every job run twice leaves the database unchanged. Design: `docs/architecture/phase6-3-scheduler.md`.
 - **Off by default**: `SCHEDULER_ENABLED=false` creates no task, thread or connection, so tests and the host development loop are unaffected. Network ingestion has its own switch, `SCHEDULER_OPPORTUNITY_REFRESH_ENABLED`.
 - **Exclusion across processes**: each run takes a PostgreSQL advisory lock named after its job and skips if another process holds it. Each researcher's personalization work also takes a transaction-scoped lock, so adaptive and governance refresh cannot append the same governance transition twice (verified on PostgreSQL: 2 events without it, 1 with it).
@@ -686,18 +694,18 @@ Core infrastructure, identity, security, access control, and correctness hardeni
 - **Safety**: the scheduler reuses the services' P1-1 reset cutoff and P1-5/P1-8 governance behaviour and has no bypass. It only processes researchers whose Phase 5.9 controls leave the maintained state in use, and it never changes those controls.
 - **Measured**: 20 SQL statements per researcher for adaptive refresh and 14 for governance, constant from 10 to 100 researchers and independent of interaction history. 40 dedicated tests.
 
-#### 7.7 Production Configuration (Phase 6.4) [COMPLETE]
+#### 7.8 Production Configuration (Phase 6.4) [COMPLETE]
 - **No silent development defaults in production**: `APP_ENV` is normalized and limited to `development`, `test` or `production`. A mistyped `Production` or `prod` previously ran with development defaults, including the spoofable `X-User-ID` identity; it now either counts as production or is refused.
 - **Production startup validation** reports every problem at once. It refuses a missing, short or trivially repetitive `AUTH_SECRET_KEY`, developer identity, bcrypt cost below 10, and the built-in development database credentials.
 - **Validated in every environment**: symmetric JWT algorithms only, access tokens of 1 minute to 7 days, bcrypt cost 4-31, positive rate limits, known log levels and formats, and exact CORS origins (no wildcard, path or trailing slash).
 - **Less disclosure**: interactive API docs off in production unless `API_DOCS_ENABLED=true`; no `Server` or `X-Powered-By` header.
-- **Seed data**: in production the seeder requires `--password`, refuses the public demo password, applies the registration policy, and never logs a chosen password.
+- **Seed data**: in production the seeder requires `--password`, refuses the public demo password, applies the registration policy, and never logs a chosen password. After the phase audit it also stopped adopting accounts it did not create (see 7.4).
 - **Frontend**: `NEXT_PUBLIC_API_URL` must be an absolute http(s) URL without credentials, query or fragment, or the build fails.
 - **Scheduler settings**: the backend's `stop_grace_period` (15 s) now outlasts the scheduler's shutdown wait.
 - **Secrets**: the development `.env` template leaves developer identity off, and tests lock in that no secret is committed. Reference: `docs/architecture/phase6-4-production-configuration.md`.
 
-#### 7.8 Deferred
-- **Frontend authentication UI**: the backend auth API and the browser identity/token client exist, but there is no login, registration or administration page yet, so a browser session still bootstraps a developer identity.
+#### 7.9 Remaining Phase 6 work
+- **6.5 Database and migration startup**, **6.6 End-to-end verification**, **6.7 Final security audit**, **6.8 Final performance and regression audit**, **6.9 Demo and release readiness**.
 
 ---
 
@@ -711,4 +719,4 @@ Continuous quantitative validation of AI, scraping, ranking, and lifecycle syste
   - *Deadline Integrity*: Expired opportunities (`EXPIRED`) are strictly excluded from recommendation feeds and cannot be resurrected.
   - *Readiness Gating*: Submissions cannot transition to `READY` without all required documents in `READY` status.
   - *Deduplication Idempotency*: Notification and calendar projection engines use deterministic SHA-256 keys to guarantee zero duplicates.
-- **Test Coverage**: 1,008+ backend unit, integration, invariant, and performance tests plus 389 scraper tests passing continuously.
+- **Test Coverage**: 1,538 backend unit, integration, invariant, security and performance tests (1,534 pass; 4 skip without embedding data or the opt-in PostgreSQL flag) and 158 frontend tests. Scraper tests live separately under `scrapers/tests`.

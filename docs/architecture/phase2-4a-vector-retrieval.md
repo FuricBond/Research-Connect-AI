@@ -2,7 +2,7 @@
 
 ## Summary
 
-Phase 2.4A implements the core vector retrieval layer for ResearchConnect AI in [`backend/app/repositories/vector_repository.py`](file:///D:/Project/researchconnect-ai/backend/app/repositories/vector_repository.py).
+Phase 2.4A implements the core vector retrieval layer for ResearchConnect AI in [`backend/app/repositories/vector_repository.py`](../../backend/app/repositories/vector_repository.py).
 
 It provides a database-level, nearest-neighbor semantic search capability over:
 1. `research_works` (`ResearchWorkModel`)
@@ -37,7 +37,7 @@ Embedding Generation               Vector Retrieval Foundation          Recommen
 ## Key Components
 
 ### 1. `VectorRepository`
-Located at [`backend/app/repositories/vector_repository.py`](file:///D:/Project/researchconnect-ai/backend/app/repositories/vector_repository.py).
+Located at [`backend/app/repositories/vector_repository.py`](../../backend/app/repositories/vector_repository.py).
 
 - **Candidate Limits**: Default 20, maximum capped at 100 to prevent accidental massive database operations.
 - **Dimensionality**: Configured via `settings.embedding_dim` (default 384).

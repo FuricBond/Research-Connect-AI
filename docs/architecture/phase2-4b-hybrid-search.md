@@ -7,7 +7,7 @@ Phase 2.4B builds a production-oriented hybrid retrieval layer that combines:
 2. **pgvector Semantic Vector Retrieval** (`VectorRepository` from Phase 2.4A)
 3. **Reciprocal Rank Fusion (RRF)** for rank-based candidate merging
 
-The hybrid search orchestrator ([`backend/app/services/hybrid_search_service.py`](file:///D:/Project/researchconnect-ai/backend/app/services/hybrid_search_service.py)) retrieves candidate sets across both lexical and semantic channels, applies identical metadata filters and source entity exclusions, and fuses them into a unified list of [`HybridSearchResult`](file:///D:/Project/researchconnect-ai/backend/app/services/hybrid_search_service.py).
+The hybrid search orchestrator ([`backend/app/services/hybrid_search_service.py`](../../backend/app/services/hybrid_search_service.py)) retrieves candidate sets across both lexical and semantic channels, applies identical metadata filters and source entity exclusions, and fuses them into a unified list of [`HybridSearchResult`](../../backend/app/services/hybrid_search_service.py).
 
 ---
 
@@ -62,7 +62,7 @@ It is critical to distinguish between the various scores in the platform:
 
 ## Searchable Content & FTS Weighting
 
-Lexical retrieval ([`backend/app/repositories/lexical_repository.py`](file:///D:/Project/researchconnect-ai/backend/app/repositories/lexical_repository.py)) constructs weighted document vectors directly in SQL without altering database tables:
+Lexical retrieval ([`backend/app/repositories/lexical_repository.py`](../../backend/app/repositories/lexical_repository.py)) constructs weighted document vectors directly in SQL without altering database tables:
 
 ### 1. Research Works (`research_works`)
 - **Weight A (1.0)**: `title` (primary relevance anchor)
@@ -78,7 +78,7 @@ Lexical retrieval ([`backend/app/repositories/lexical_repository.py`](file:///D:
 
 ## Reciprocal Rank Fusion (RRF)
 
-Located at [`backend/app/search/rrf.py`](file:///D:/Project/researchconnect-ai/backend/app/search/rrf.py).
+Located at [`backend/app/search/rrf.py`](../../backend/app/search/rrf.py).
 
 ### Formula
 For document $d$ across retrieval systems $M$:

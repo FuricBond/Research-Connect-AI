@@ -78,14 +78,14 @@ The entire intelligence and ranking pipeline is **deterministic, in-memory, and 
 | Layer | Technology | Details |
 |---|---|---|
 | **Frontend** | Next.js 15.3+, React 19, TypeScript 5.7+ | Next.js App Router, SSR + Client Components, Vanilla CSS design tokens, Lucide React icons |
-| **Backend** | Python 3.11+, FastAPI, Pydantic v2 | Versioned REST API (`/api/v1`), SQLAlchemy 2.0 ORM, Alembic migrations (0001–0023) |
+| **Backend** | Python 3.11+, FastAPI, Pydantic v2 | Versioned REST API (`/api/v1`), SQLAlchemy 2.0 ORM, Alembic migrations (0001–0028) |
 | **Database** | PostgreSQL 16 + `pgvector` extension | Relational storage, HNSW vector indexes (cosine similarity), GIN full-text search indexes, Alembic migrations 0001–0028 |
 | **Embeddings** | `sentence-transformers` · `all-MiniLM-L6-v2` | 384-dimensional dense semantic vectors with content-hash deduplication |
 | **Scraping** | `requests`, `BeautifulSoup4` | Production WikiCFP connector, change detection, and data freshness pipelines |
 | **IR / Evaluation** | `scikit-learn`, custom RRF & IR Metrics | P@K, R@K, MRR, NDCG, Kendall-τ rank correlation, HHI concentration, 16-scenario benchmark suite |
 | **Personalization Engine** | Custom deterministic engine | Adaptive signals, calibration, governance, quality assurance, and transparency controls |
 | **Containerization** | Docker Compose | Full stack: PostgreSQL 16 + `pgvector`, FastAPI backend and Next.js frontend images, one-shot Alembic migration |
-| **Testing** | `pytest` | 95 test modules, 1,402 collected tests — zero-network, in-memory fixtures, plus opt-in PostgreSQL integration tests |
+| **Testing** | `pytest`, Vitest | Backend: 98 test modules, 1,538 collected tests (zero-network, in-memory fixtures, plus opt-in PostgreSQL integration tests). Frontend: 9 Vitest files, 158 tests |
 | **Knowledge Graph** | `graphify` | Navigable AST + semantic knowledge graph (`graphify-out/`) |
 
 ---
@@ -215,8 +215,12 @@ researchconnect-ai/
 │   ├── pipelines/            # Opportunity collection pipelines
 │   └── sources/              # Data source connectors (WikiCFP, etc.)
 ├── docs/
-│   ├── api/                  # API specification documentation
-│   ├── architecture/         # System architecture, phase documentation & roadmap (61 docs)
+│   ├── README.md             # Documentation index (start here)
+│   ├── METHODOLOGY.md        # Research methodology (with a .docx export)
+│   ├── architecture/         # Phase design documents & development roadmap (56 docs)
+│   ├── database/             # PostgreSQL + pgvector reference
+│   ├── evaluation/           # Relevance annotation guidelines
+│   ├── research-data/        # OpenAlex integration
 │   └── scraping/             # Scraper design and lifecycle documentation
 ├── graphify-out/             # Knowledge graph (AST + semantic nodes, 26+ edge types)
 ├── .env.example              # Docker Compose configuration template
@@ -312,9 +316,9 @@ researchconnect-ai/
 | **API Protection & Observability** | Login rate limiting, security headers, proxy headers trusted only behind `TRUST_PROXY_HEADERS`, JSON/text structured logging with `X-Request-ID` correlation | Complete |
 | **Database & Deployment Correctness** | Fresh `alembic upgrade head` fixed (long revision IDs), generated `fts_vector` mapping fixed so ingestion can insert, migration `0024` for the Phase 3.6/3.7 tables, opt-in PostgreSQL migration test | Complete |
 | **Personalization Correctness** | Phase 5.6 calibration and 5.7 contextual adaptation wired into live ranking, researcher controls honoured in explanations, durable reset cutoff (migration `0025`), fail-closed governance, effective Phase 2.6 risk in base ranking | Complete |
-| **Demo Data** | Deterministic idempotent seeder (`backend/scripts/seed_demo_data.py`) covering all roles, preferences, and a corpus exercising deadline and risk intelligence | Complete |
+| **Demo Data** | Deterministic idempotent seeder (`backend/scripts/seed_demo_data.py`) covering all roles, preferences, and a corpus exercising deadline and risk intelligence. It never takes over an account it did not create, so registering a demo email cannot earn that account a demo role | Complete |
 | **Containerization** | Backend and frontend images (non-root, pinned bases, no baked secrets), full-stack Compose with healthchecks and a one-shot migration step | Complete |
-| **Frontend Auth UI** | Login / registration / administration pages and route guards | Deferred |
+| **Frontend Auth UI** | `/login` and `/register` pages, one session provider that owns sign-in state and signs out on an expired token, route guards, and an `/admin` page for account roles and status. The backend still authorizes every request | Complete |
 | **Scheduled Execution** | Background scheduler, off by default: deadline expiry, reminder dispatch, adaptive-signal and governance refresh, and opt-in WikiCFP ingestion, each calling its existing service under a PostgreSQL advisory lock ([design](docs/architecture/phase6-3-scheduler.md)) | Complete |
 | **Production Configuration** | Validated settings: closed `APP_ENV`, symmetric JWT only, bounded token lifetime and bcrypt cost, exact CORS origins. Production startup refuses weak secrets, developer identity and development database credentials. API docs and server banners are hidden in production. The demo seeder refuses its public password in production. The frontend API URL is validated at build time ([reference](docs/architecture/phase6-4-production-configuration.md)) | Complete |
 
@@ -633,7 +637,7 @@ the Compose database, set `DATABASE_URL` to
 2. **Zero network at request time** — The entire ranking, risk, deadline, and personalization pipeline executes in-memory with zero external network calls or database writes at request time.
 3. **Relevance and safety dominance** — Personalization adjustments are bounded ($|adj| \le 0.15$). High-risk venues ($risk \ge 0.70$ or $is\_predatory = True$) and expired deadlines ($deadline\_status = EXPIRED$) are strictly suppressed and cannot be boosted by personalization.
 4. **Canonical source of truth** — Phase 4 Research Management and Phase 5 Personalization consume canonical outputs from Phase 2.6 (risk), Phase 2.7 (deadlines), and Phase 3 (researcher intelligence). No duplicate domain logic or shadow calculations.
-5. **Strict user scoping & ownership** — All researcher workflows, saved opportunities, preferences, submission records, and personalization data enforce `X-User-ID` isolation to prevent cross-user data leakage.
+5. **Strict user scoping & ownership** — All researcher workflows, saved opportunities, preferences, submission records, and personalization data are scoped to the signed-in account, whose identity comes from the bearer token, so one researcher can never read or change another's data.
 6. **No premature scaling** — The architecture avoids Kafka, Celery, Kubernetes, and heavy MLOps overhead in favor of clean, modular, and maintainable services.
 7. **Governance & fairness by design** — The Phase 5 governance engine enforces fairness invariants, maintains immutable audit trails, and provides transparency controls so researchers can understand and control their personalization.
 
@@ -657,4 +661,4 @@ the Compose database, set `DATABASE_URL` to
 3. Commit small, logical units of work with descriptive commit messages.
 4. Run backend tests (`pytest`) and frontend builds (`npm run build`) before pushing to remote.
 
-For the full development roadmap and phase-by-phase feature breakdown, see [Development Roadmap](docs/architecture/project-roadmap.md) and [Phase 5.9 Personalization Transparency](docs/architecture/phase5-9-personalization-transparency-controls.md).
+For the full development roadmap and phase-by-phase feature breakdown, see the [Development Roadmap](docs/architecture/project-roadmap.md). Every other document is listed in the [documentation index](docs/README.md).

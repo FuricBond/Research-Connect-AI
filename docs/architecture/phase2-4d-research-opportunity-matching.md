@@ -72,7 +72,7 @@ The system discovers and ranks opportunity candidates by orchestrating:
   $$S_{\text{lex}} = \frac{\text{raw\_score}}{\text{raw\_score} + 1.0}$$
 
 ### C. Topic Channel
-- Utilizes the canonical academic taxonomy tree ([`ml/topic_analysis/taxonomy.py`](file:///d:/Project/researchconnect-ai/ml/topic_analysis/taxonomy.py)).
+- Utilizes the canonical academic taxonomy tree ([`ml/topic_analysis/taxonomy.py`](../../ml/topic_analysis/taxonomy.py)).
 - Compares canonical topic assignments between `ResearchWorkTopicModel` and `OpportunityTopicModel`.
 - Evaluates exact matches, primary topic bonuses ($+20\%$), and taxonomy DAG ancestor/descendant relationships ($+15\%$).
 

@@ -38,7 +38,7 @@ Canonical Deadline View (2.7E)
 
 ## 2. Observation & Revision Domain Models
 
-All models reside in [`backend/app/ranking/deadline/models.py`](file:///d:/Project/researchconnect-ai/backend/app/ranking/deadline/models.py).
+All models reside in [`backend/app/ranking/deadline/models.py`](../../backend/app/ranking/deadline/models.py).
 
 ### 2.1 `DeadlineObservation`
 An atomic, provenance-tracked observation of an academic milestone from a specific source at a specific time:
@@ -97,7 +97,7 @@ Aggregates canonical views across all milestones for an entire opportunity:
 
 ## 3. Temporal Equivalence Engine
 
-The function `are_deadlines_equivalent(d1, d2)` in [`backend/app/ranking/deadline/resolvers.py`](file:///d:/Project/researchconnect-ai/backend/app/ranking/deadline/resolvers.py) evaluates semantic equivalence:
+The function `are_deadlines_equivalent(d1, d2)` in [`backend/app/ranking/deadline/resolvers.py`](../../backend/app/ranking/deadline/resolvers.py) evaluates semantic equivalence:
 
 1. **UTC Instant Comparison**:
    If both deadlines possess a `normalized_utc` instant, the absolute difference in seconds is calculated:

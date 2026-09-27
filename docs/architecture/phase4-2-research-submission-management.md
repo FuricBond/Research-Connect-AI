@@ -240,7 +240,7 @@ Tenant isolation is verified at every entry point:
 
 The frontend implementation strictly adheres to the Next.js App Router and React 19 architecture:
 
-- **Route**: `/workspace/[id]/submission` ([`frontend/app/workspace/[id]/submission/page.tsx`](file:///d:/Project/researchconnect-ai/frontend/app/workspace/%5Bid%5D/submission/page.tsx))
+- **Route**: `/workspace/[id]/submission` ([`frontend/app/workspace/[id]/submission/page.tsx`](../../frontend/app/workspace/%5Bid%5D/submission/page.tsx))
 - **Parameter Resolution**: Utilizes `React.use(params)` to resolve route parameters asynchronously per React 19 standards.
 - **Visual Stepper Component**: Visualizes progression across Draft, Ready, Submitted, Under Review, and Accepted/Rejected with distinct completion and active states.
 - **Deadline Callout Card**: Renders authoritative countdowns, AoE indicators, extension banners, and urgency tiers.

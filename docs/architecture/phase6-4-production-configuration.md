@@ -125,6 +125,10 @@ Each finding was reproduced against the code before it was changed.
   - the stop grace outlasting the scheduler's shutdown wait.
 - **`frontend/tests/next-config.test.ts`** (15 tests): API-URL validation and normalization, no
   `X-Powered-By`, and only the API URL in the bundle environment.
+- **`backend/tests/test_seed_demo_account_takeover.py`** (13 tests, audit finding P2-1): an
+  account registered under a demo email keeps its role, password and verification when the
+  seeder runs; its existing token gains nothing; legitimate reruns, `--dry-run` and `--reset`
+  keep their behaviour.
 
 ## 7. Limitations
 
