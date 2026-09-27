@@ -126,7 +126,7 @@ bearer token. The backend is a modular monolith. Its main modules:
 
 | Layer | Technologies |
 |---|---|
-| Frontend | Next.js 15 (App Router), React 19, TypeScript, CSS design tokens |
+| Frontend | Next.js 15 (App Router), React 19, TypeScript, CSS design tokens, Tailwind CSS utilities |
 | Backend | Python 3.13, FastAPI, Pydantic v2, SQLAlchemy 2.0, Alembic |
 | Database | PostgreSQL 16 with pgvector: HNSW vector indexes and GIN full-text indexes |
 | Machine learning | sentence-transformers (`all-MiniLM-L6-v2`), deterministic scoring engines |

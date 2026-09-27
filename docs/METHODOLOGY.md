@@ -388,7 +388,7 @@ In accordance with rigorous academic integrity standards, limitations are docume
 
 | Architectural Feature | Implementation Specification in Repository |
 |---|---|
-| **Frontend Architecture** | Next.js 15.5 (App Router), React 19.2, TypeScript 5.9, Vanilla CSS Tokens |
+| **Frontend Architecture** | Next.js 15.5 (App Router), React 19.2, TypeScript 5.9, CSS design tokens + Tailwind CSS 3 utilities (no preflight) |
 | **Backend Architecture** | FastAPI 0.115.6, Python 3.13, Layered Domain Architecture |
 | **Database & ORM** | PostgreSQL 16 with pgvector 0.8.6 (Python client 0.3.6), SQLAlchemy 2.0.36, Alembic 1.14 (28 revisions) |
 | **Dense Embedding Model** | `all-MiniLM-L6-v2` (384 dimensions, sentence-transformers 3.3.1) |
