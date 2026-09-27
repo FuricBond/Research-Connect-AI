@@ -10,6 +10,7 @@ lists everything under `docs/`.
 | [Development Roadmap](architecture/project-roadmap.md) | What each phase delivered, current status, and what remains |
 | [Methodology](METHODOLOGY.md) ([Word export](METHODOLOGY.docx)) | Research methodology, design principles, known limitations |
 | [PostgreSQL and pgvector](database/postgres-pgvector.md) | Database setup, migrations, tables, search indexes, backup |
+| [Phase 6.5 — Database and Migration Startup](architecture/phase6-5-database-startup.md) | Fresh-database startup order, readiness endpoint, production schema gate, migration lock and verification |
 | [Phase 6.4 — Production Configuration](architecture/phase6-4-production-configuration.md) | Every setting, what production refuses, deployment checklist, secrets policy |
 | [Phase 6.3 — Background Scheduler](architecture/phase6-3-scheduler.md) | The five maintenance jobs, locking, timeouts, how to enable it |
 

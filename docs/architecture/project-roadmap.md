@@ -37,8 +37,8 @@ This document provides the authoritative, comprehensive architectural roadmap an
 | **Phase 5.10** | Faculty Research Opportunities & Project Postings | **COMPLETE** | Platform-authored openings with a named accountable owner, 6-state lifecycle, FACULTY/ADMIN authorship, draft non-disclosure, taxonomy links, migration 0026, Next.js `/postings` | 38 Tests |
 | **Phase 5.11** | Research Internships, RA Openings & Applications | **COMPLETE** | Structured appointment terms, jointly owned applications with role-partitioned transitions, author-private review notes, append-only history, Phase 4.5 notifications, migration 0027 | 37 Tests |
 | **Phase 5.12** | Peer & Co-Author Discovery | **COMPLETE** | Opt-in discoverability with field-level disclosure, deterministic explainable matcher balancing shared against complementary expertise, taxonomy proximity, migration 0028, Next.js `/peers` | 35 Tests |
-| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder, containerized full stack (6.1), browser sign-in and account administration (6.2), background scheduler, off by default (6.3), validated production configuration (6.4). Remaining: 6.5 database and migration startup, 6.6 end-to-end verification, 6.7 final security audit, 6.8 final performance and regression audit, 6.9 demo and release readiness | 1,538 Backend + 158 Frontend Tests |
-| **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,534 Backend Tests Passing |
+| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder, containerized full stack (6.1), browser sign-in and account administration (6.2), background scheduler, off by default (6.3), validated production configuration (6.4), fresh-database startup with schema readiness, a production schema gate and serialized migrations (6.5). Remaining: 6.6 end-to-end verification, 6.7 final security audit, 6.8 final performance and regression audit, 6.9 demo and release readiness | 1,582 Backend + 169 Frontend Tests |
+| **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,573 Backend Tests Passing |
 
 ---
 
@@ -704,8 +704,30 @@ Core infrastructure, identity, security, access control, and correctness hardeni
 - **Scheduler settings**: the backend's `stop_grace_period` (15 s) now outlasts the scheduler's shutdown wait.
 - **Secrets**: the development `.env` template leaves developer identity off, and tests lock in that no secret is committed. Reference: `docs/architecture/phase6-4-production-configuration.md`.
 
-#### 7.9 Remaining Phase 6 work
-- **6.5 Database and migration startup**, **6.6 End-to-end verification**, **6.7 Final security audit**, **6.8 Final performance and regression audit**, **6.9 Demo and release readiness**.
+#### 7.9 Database & Migration Startup (Phase 6.5) [COMPLETE]
+- **The chain, verified from empty**: on a fresh PostgreSQL database all 28 revisions apply, a second `upgrade head` applies nothing, `downgrade base` leaves only `alembic_version`, and upgrading again returns to head. The migrated schema has every table, column, type, nullability and unique rule the ORM models declare. No migration was modified. Design and measurements: `docs/architecture/phase6-5-database-startup.md`.
+- **Readiness, not just liveness**: `GET /api/health/ready` returns 200 only when the database answers and its schema is this build's Alembic head, and 503 with a coarse state otherwise (`behind`, `unrecognized`, `uninitialized`, or `database: unreachable`). Revisions are logged server-side, not disclosed. The Compose backend healthcheck now uses it, so the frontend starts only in front of an API that can serve. `/api/health` stays the liveness probe.
+- **Production startup gate**: with `APP_ENV=production` the lifespan refuses to start, before the scheduler, unless the schema is current. The error names the state, both revisions and the fix. Under Compose the container retries and comes up once `migrate` has run. Development and test open no connection at startup.
+- **Serialized migrations**: `alembic/env.py` holds a session-level advisory lock for each run. Overlapping runs were previously ordered only by a side effect of the version-table pre-flight, which left a narrow window where both started from the same revision. The P0 pre-flight itself is unchanged.
+- **D2 fixed**: the opt-in fresh-database test asserted revision `0024` while head was `0028`, so the only migration guard had failed whenever it was enabled. It now derives head from the scripts and also covers idempotency, model parity, the full round trip, readiness on real SQL and concurrent runs. A new ordinary-suite test checks the chain (single head, linear, reversible) without a database.
+- **Measured**: a fresh volume reaches a working stack in 20.4 s, with 28 revisions in 2.5 s and 14 of 14 smoke checks passing. Schema behind, database outage, restart and concurrent `migrate` runs all behave as specified.
+- **Deferred to the performance audit**: the models declare 37 plain single-column indexes, mostly on low-cardinality columns, that no migration creates. Queries are correct without them.
+
+#### 7.10 Live Walkthrough Remediation [COMPLETE]
+Recording a walkthrough of every feature against a seeded PostgreSQL stack exposed defects that the SQLite-based suite and mocked route tests had not. Each behavioural fix has regression tests, at least one of which fails on the previous code: 16 backend and 11 frontend tests in all. The two styling fixes were verified visually.
+- **Opportunity matching and Similar Research returned 500 on PostgreSQL**: pgvector returns embeddings as numpy `float32` arrays, which the query-vector validator rejected. It now accepts any real number and still rejects booleans. Similar Research was also called with an argument its service did not accept, which untyped route mocks had hidden. The service now accepts it and falls back to the non-vector channels for a paper without an embedding.
+- **Governance race**: concurrent first loads of the governance panel could both insert the drift evaluation (unique violation). `recompute_governance` now takes the per-researcher advisory lock the scheduler uses.
+- **Personalized ranking vanished after "not interested" feedback**: a signed adaptive adjustment was written into the 0–1 `inferred_preference_score`, failing validation, and the route reported 404. It is now clamped to 0–1, and the signed value stays in `behavioral_adjustment`.
+- **Frontend**:
+  - The unified recommendations view crashed on the real response shape; an adapter now maps the backend contract.
+  - Tailwind-styled panels rendered unstyled because Tailwind was never installed; Tailwind 3 utilities are now installed, without its global reset.
+  - `/browse` was unstyled.
+  - `/submissions` was linked but missing; the page now exists.
+  - "Save" on a recommendation did not add it to the workspace; it now does.
+  - The collaboration page had no link; a "Collaborate" link now opens it.
+
+#### 7.11 Remaining Phase 6 work
+- **6.6 End-to-end verification**, **6.7 Final security audit**, **6.8 Final performance and regression audit**, **6.9 Demo and release readiness**.
 
 ---
 
@@ -719,4 +741,4 @@ Continuous quantitative validation of AI, scraping, ranking, and lifecycle syste
   - *Deadline Integrity*: Expired opportunities (`EXPIRED`) are strictly excluded from recommendation feeds and cannot be resurrected.
   - *Readiness Gating*: Submissions cannot transition to `READY` without all required documents in `READY` status.
   - *Deduplication Idempotency*: Notification and calendar projection engines use deterministic SHA-256 keys to guarantee zero duplicates.
-- **Test Coverage**: 1,538 backend unit, integration, invariant, security and performance tests (1,534 pass; 4 skip without embedding data or the opt-in PostgreSQL flag) and 158 frontend tests. Scraper tests live separately under `scrapers/tests`.
+- **Test Coverage**: 1,582 backend unit, integration, invariant, security and performance tests and 169 frontend tests. Of the backend tests, 1,573 pass and 9 skip in an ordinary run: 7 need the opt-in PostgreSQL flag (all pass with it enabled) and 2 need embedding data. Scraper tests live separately under `scrapers/tests`.

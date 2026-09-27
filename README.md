@@ -132,7 +132,7 @@ bearer token. The backend is a modular monolith. Its main modules:
 | Machine learning | sentence-transformers (`all-MiniLM-L6-v2`), deterministic scoring engines |
 | Data sources | WikiCFP (scraped), OpenAlex and Crossref APIs |
 | Security | JWT (HS256) bearer tokens, bcrypt password hashing |
-| Testing | pytest (1,538 tests), Vitest (158 tests) |
+| Testing | pytest (1,582 tests), Vitest (169 tests) |
 | Deployment | Docker Compose, hardened non-root images |
 
 ## Quick Start
@@ -161,7 +161,8 @@ docker compose up --build -d --wait
 ```
 
 The first build takes several minutes; later starts take seconds. Database migrations run
-automatically before the API starts.
+automatically before the API starts, and the API reports ready only once the database schema
+matches the code. A fresh stack is up in about 20 seconds with prebuilt images.
 
 | Service | Address |
 |---|---|
@@ -187,6 +188,8 @@ chose.
 | Task | Command |
 |---|---|
 | Status and health | `docker compose ps` |
+| API readiness (database and schema) | `curl http://localhost:8000/api/health/ready` |
+| Apply new migrations | `docker compose run --rm migrate` |
 | Logs | `docker compose logs backend` (or `frontend`, `postgres`, `migrate`) |
 | Stop, keeping data | `docker compose down` |
 | Rebuild after code changes | `docker compose up --build -d --wait` |
@@ -221,6 +224,10 @@ alembic upgrade head
 python -m scripts.seed_demo_data   # optional: demo accounts use the password DemoPass123!
 uvicorn app.main:app --reload --port 8000
 ```
+
+Run `alembic upgrade head` again after pulling new migrations. Until you do,
+`GET /api/health/ready` reports `"schema": "behind"`, and a production backend refuses to
+start.
 
 `sentence-transformers` installs PyTorch. For a smaller CPU-only install, first run
 `pip install --index-url https://download.pytorch.org/whl/cpu torch`. Semantic search also
@@ -270,12 +277,12 @@ The complete reference, including every production rule and a deployment checkli
 
 ```bash
 cd backend
-pytest                        # 1,538 tests: unit, integration, invariants, security, performance
+pytest                        # 1,582 tests: unit, integration, invariants, security, performance
 ```
 
 ```bash
 cd frontend
-npm test                      # 158 Vitest tests
+npm test                      # 169 Vitest tests
 npm run type-check
 npm run lint
 npm run build
@@ -329,7 +336,7 @@ Research-Connect-AI/
 | 3 | Researcher intelligence and personalized recommendations | Complete |
 | 4 | Research management: workspace, submissions, calendar, notifications, collaboration | Complete |
 | 5 | Advanced personalization, research postings and applications, peer discovery | Complete |
-| 6 | Platform, security and deployment: containers, sign-in, scheduler and production configuration are done; database startup, end-to-end verification and final audits remain | In progress |
+| 6 | Platform, security and deployment: containers, sign-in, scheduler, production configuration and database startup are done; end-to-end verification and final audits remain | In progress |
 | 7 | Continuous evaluation: retrieval benchmarks, risk and deadline accuracy | Ongoing |
 
 **Known limitations**
@@ -350,6 +357,7 @@ See the [Development Roadmap](docs/architecture/project-roadmap.md) for the full
 | [Methodology](docs/METHODOLOGY.md) | Research approach, design rationale and limitations |
 | [Production Configuration](docs/architecture/phase6-4-production-configuration.md) | Settings, production rules and deployment checklist |
 | [Background Scheduler](docs/architecture/phase6-3-scheduler.md) | Scheduled jobs, locking and operation |
+| [Database Startup](docs/architecture/phase6-5-database-startup.md) | Startup order, readiness, the production schema gate and migration verification |
 | [Database](docs/database/postgres-pgvector.md) | Schema, migrations, search indexes and backups |
 
 ## Troubleshooting
@@ -357,7 +365,9 @@ See the [Development Roadmap](docs/architecture/project-roadmap.md) for the full
 | Symptom | Resolution |
 |---|---|
 | `required variable POSTGRES_PASSWORD is missing a value` | Create `.env` from `.env.example` and set `POSTGRES_PASSWORD` and `AUTH_SECRET_KEY`. |
-| Backend never becomes healthy | Check `docker compose logs migrate` and `docker compose logs backend`. |
+| Backend never becomes healthy | `curl http://localhost:8000/api/health/ready` names the failing check; then see `docker compose logs migrate` and `docker compose logs backend`. |
+| `Refusing to start: database=ok schema=behind` | The database needs the new migrations: `docker compose run --rm migrate` (on the host, `alembic upgrade head`). The backend restarts by itself. |
+| `schema=unrecognized` | The database was migrated by a newer build than the running backend. Deploy the matching backend image. |
 | `Refusing to start with APP_ENV=production: ...` | The message lists every setting to fix, such as a missing or weak `AUTH_SECRET_KEY`. |
 | The browser cannot reach the API | `NEXT_PUBLIC_API_URL` must be reachable from the browser and the site's origin listed in `CORS_ORIGINS`; rebuild the frontend after changing it. |
 | Database rejects the password after changing `POSTGRES_PASSWORD` | The password is fixed when the data volume is created. Restore it, or run `docker compose down -v` (deletes all data). |

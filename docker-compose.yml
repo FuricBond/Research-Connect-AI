@@ -4,7 +4,7 @@
 #   docker compose up --build -d
 #
 # Startup order: postgres (healthy) -> migrate (alembic upgrade head, exits) -> backend
-# (healthy) -> frontend. Configuration comes from the root .env; each container receives
+# (ready: database reachable, schema at head) -> frontend. Configuration comes from the root .env; each container receives
 # only the variables listed under its `environment`.
 #
 # Ports are published on 127.0.0.1 only. The browser calls the API directly, so the backend
@@ -96,8 +96,11 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+    # Readiness, not liveness (Phase 6.5): healthy only once the database answers and its
+    # schema is this build's Alembic head, so the frontend never starts in front of an API
+    # that cannot serve. A 503 raises in urlopen and fails the check.
     healthcheck:
-      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3).status == 200 else 1)"]
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health/ready', timeout=3).status == 200 else 1)"]
       interval: 10s
       timeout: 5s
       retries: 6

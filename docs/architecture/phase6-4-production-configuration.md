@@ -93,7 +93,8 @@ Each finding was reproduced against the code before it was changed.
    - terminate TLS at a reverse proxy, and set `TRUST_PROXY_HEADERS=true` only if that proxy
      overwrites the forwarding headers.
 4. `docker compose up --build -d --wait`. If the backend exits, its log line lists every
-   setting to fix.
+   setting to fix, or names a database schema that is not current (Phase 6.5).
+   `curl http://localhost:8000/api/health/ready` should report `"schema": "current"`.
 5. Demo data is optional: `docker compose exec backend python -m scripts.seed_demo_data
    --password '<your password>'`. The public demo password is refused in production.
 6. Leave `API_DOCS_ENABLED` and `SCHEDULER_OPPORTUNITY_REFRESH_ENABLED` off unless you need them.

@@ -4,6 +4,7 @@ from pathlib import Path
 
 from alembic import context
 from sqlalchemy import Connection, engine_from_config, pool, text
+from sqlalchemy.exc import DBAPIError
 
 # Ensure backend root is on sys.path
 backend_dir = Path(__file__).resolve().parent.parent
@@ -11,6 +12,7 @@ if str(backend_dir) not in sys.path:
     sys.path.insert(0, str(backend_dir))
 
 from app.core.config import settings
+from app.db.schema_status import MIGRATION_LOCK_KEY
 from app.models import Base
 
 # this is the Alembic Config object, which provides
@@ -79,6 +81,42 @@ def _ensure_wide_version_table(connection: Connection) -> None:
     connection.commit()
 
 
+def _acquire_migration_lock(connection: Connection) -> bool:
+    """
+    Waits until no other migration run holds the lock, then holds it for this connection.
+
+    Compose runs a single `migrate` service before the API, but nothing else stops two runs
+    from overlapping: a host `alembic upgrade head` against the published port, a manual
+    `docker compose run migrate`, or several replicas each migrating on start. Without this
+    lock the only thing ordering them is a side effect: the pre-flight `ALTER TABLE
+    alembic_version` below waits for another run's open migration transaction. That covers
+    most overlaps, but two runs that both pass the pre-flight before either reads the version
+    table start from the same revision, apply the same DDL, and the loser exits non-zero
+    (PostgreSQL rolls its transaction back, so the schema is never half-applied). With the
+    lock, the second run starts after the first has committed, finds the database at head,
+    and does nothing.
+
+    The lock is session-level, so it survives the commits below and is released explicitly,
+    or by the server if the process dies with the connection.
+    """
+    if connection.dialect.name != "postgresql":
+        return False
+    connection.execute(text("SELECT pg_advisory_lock(:key)"), {"key": MIGRATION_LOCK_KEY})
+    connection.commit()
+    return True
+
+
+def _release_migration_lock(connection: Connection) -> None:
+    try:
+        connection.rollback()  # leave any failed migration transaction before releasing
+        connection.execute(text("SELECT pg_advisory_unlock(:key)"), {"key": MIGRATION_LOCK_KEY})
+        connection.commit()
+    except DBAPIError:
+        # The connection is gone, and the server released the lock with it. Raising here
+        # would only hide the error that ended the migration.
+        pass
+
+
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode.
 
@@ -92,14 +130,19 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        _ensure_wide_version_table(connection)
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-        )
+        locked = _acquire_migration_lock(connection)
+        try:
+            _ensure_wide_version_table(connection)
+            context.configure(
+                connection=connection,
+                target_metadata=target_metadata,
+            )
 
-        with context.begin_transaction():
-            context.run_migrations()
+            with context.begin_transaction():
+                context.run_migrations()
+        finally:
+            if locked:
+                _release_migration_lock(connection)
 
 
 if context.is_offline_mode():

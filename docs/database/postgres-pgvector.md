@@ -22,7 +22,10 @@ The schema is managed by Alembic and currently has 28 migrations and 49 tables.
 
 On first start of an empty volume, `backend/app/db/init.sql` enables the `vector` extension and
 creates the `alembic_version` table with a `VARCHAR(255)` column, because most revision IDs are
-longer than Alembic's default of 32 characters.
+longer than Alembic's default of 32 characters. Neither step depends on it: migration `0001`
+creates the extension and `alembic/env.py` widens the version table, so any empty PostgreSQL
+database with pgvector available migrates correctly. On a managed service, the migration role
+needs permission to create the `vector` extension, or it must be enabled beforehand.
 
 The schema itself comes only from Alembic migrations (`backend/alembic/versions`, `0001` to
 `0028`):
@@ -31,6 +34,12 @@ The schema itself comes only from Alembic migrations (`backend/alembic/versions`
   (`python -m scripts.wait_for_db`), runs `alembic upgrade head`, and exits. The backend starts
   only after it succeeds.
 - **Host:** `cd backend && alembic upgrade head`, with `DATABASE_URL` pointing at the database.
+- **Concurrent runs** are serialized by a PostgreSQL advisory lock held for the whole run. A
+  second run waits, then finds the database at head and does nothing.
+- **Readiness:** `GET /api/health/ready` returns 200 only when the database answers and its
+  schema is the build's head, and 503 naming the state otherwise (`behind`, `unrecognized`,
+  `uninitialized`, `unreachable`). In production the backend refuses to start unless the schema
+  is current. See [Phase 6.5](../architecture/phase6-5-database-startup.md).
 
 | Migrations | Phase | Adds |
 |---|---|---|
@@ -81,7 +90,10 @@ docker compose exec -T postgres pg_restore -U researchconnect -d researchconnect
 
 ## Tests
 
-Most backend tests use in-memory SQLite. Tests that need PostgreSQL (the scheduler's advisory
-locks, and the opt-in migration and concurrency tests enabled with
-`RUN_POSTGRES_MIGRATION_TESTS=1`) use the database in `DATABASE_URL` and skip when it is
-unreachable. The opt-in tests create and drop their own temporary databases.
+Most backend tests use in-memory SQLite. `tests/test_database_startup.py` checks the migration
+chain itself (one head, linear, every revision reversible) without a database server. Tests
+that need PostgreSQL (the scheduler's advisory locks, and the opt-in migration and concurrency
+tests enabled with `RUN_POSTGRES_MIGRATION_TESTS=1`) use the database in `DATABASE_URL` and
+skip when it is unreachable. The opt-in tests create and drop their own temporary databases.
+They cover a fresh upgrade to head, idempotency, parity with the ORM models, a full downgrade
+and upgrade round trip, and concurrent runs.
