@@ -11,6 +11,7 @@ research positions and collaborators.**
 ![Next.js](https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20%2B%20pgvector-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 [Features](#features) · [Architecture](#architecture) · [Quick Start](#quick-start) ·
 [Development](#local-development) · [Documentation](#documentation)
@@ -371,3 +372,9 @@ See the [Development Roadmap](docs/architecture/project-roadmap.md) for the full
    `.env.example` templates.
 3. Run the backend and frontend test suites before opening a pull request.
 4. Write focused commits with descriptive messages.
+
+## License
+
+ResearchConnect AI is released under the [MIT License](LICENSE). Third-party libraries keep
+their own licenses, and data retrieved from external sources (WikiCFP, OpenAlex, Crossref)
+remains subject to its providers' terms of use.
