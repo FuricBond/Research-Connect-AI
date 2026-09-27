@@ -257,12 +257,14 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                     {(unifiedIntelligence.personalization_score * 100).toFixed(1)}%
                   </span>
                 </div>
-                <div className="metric-item">
-                  <span className="metric-label">Identity Status</span>
-                  <span className="math-verified-badge">
-                    <ShieldCheck size={12} /> {unifiedIntelligence.identity_status.replace(/_/g, " ")}
-                  </span>
-                </div>
+                {unifiedIntelligence.identity_status && (
+                  <div className="metric-item">
+                    <span className="metric-label">Identity Status</span>
+                    <span className="math-verified-badge">
+                      <ShieldCheck size={12} /> {unifiedIntelligence.identity_status.replace(/_/g, " ")}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Workspace Context Banner if applicable */}
@@ -300,7 +302,8 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                       <div className="flex items-center justify-between text-xs font-semibold text-gray-900">
                         <span>{tier.tier_title}</span>
                         <span className="text-indigo-600 font-mono">
-                          +{(tier.score_contribution * 100).toFixed(1)}% (Conf: {(tier.confidence * 100).toFixed(0)}%)
+                          {tier.status_label ?? `+${(tier.score_contribution * 100).toFixed(1)}%`}
+                          {tier.confidence != null ? ` (Conf: ${(tier.confidence * 100).toFixed(0)}%)` : ""}
                         </span>
                       </div>
                       <p className="text-xs text-gray-600 mt-1 leading-relaxed">{tier.summary}</p>

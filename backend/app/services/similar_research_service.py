@@ -322,6 +322,7 @@ class SimilarResearchService:
         primary_source_id: uuid.UUID | None = None,
         is_oa: bool | None = None,
         min_citations: int | None = None,
+        require_embedding: bool = True,
     ) -> list[SimilarResearchResult]:
         """
         Retrieve research works similar to the specified source work.
@@ -336,6 +337,10 @@ class SimilarResearchService:
             Number of similar research works to return (default 20, max 100).
         publication_year ... min_citations:
             Metadata filters propagated to vector and lexical retrieval channels.
+        require_embedding:
+            If True (the default), a source work without an embedding raises
+            MissingEmbeddingError. If False, the vector channel is skipped and the lexical
+            and topic channels still produce results.
 
         Returns
         -------
@@ -347,7 +352,7 @@ class SimilarResearchService:
         ResearchWorkNotFoundError:
             If work_id does not exist in the database.
         MissingEmbeddingError:
-            If the source work exists but does not have an embedding.
+            If require_embedding=True and the source work does not have an embedding.
         VectorValidationError:
             If the source work embedding vector fails validation.
         """
@@ -358,15 +363,16 @@ class SimilarResearchService:
                 f"ResearchWork with ID {work_id} not found."
             )
 
-        if source_work.embedding is None:
+        # 2. Validate source work embedding
+        valid_query_vector: list[float] | None = None
+        if source_work.embedding is not None:
+            valid_query_vector = validate_query_vector(
+                source_work.embedding, self.embedding_dim
+            )
+        elif require_embedding:
             raise MissingEmbeddingError(
                 f"ResearchWork with ID {work_id} does not have an embedding."
             )
-
-        # 2. Validate source work embedding
-        valid_query_vector = validate_query_vector(
-            source_work.embedding, self.embedding_dim
-        )
 
         safe_limit = sanitize_candidate_limit(
             limit, self.default_limit, self.max_limit
@@ -378,20 +384,21 @@ class SimilarResearchService:
         # 3. Retrieve Candidates from Vector Channel
         vector_results: list[VectorSearchResult] = []
         try:
-            vector_results = self.vec_repo.search_research_works(
-                session=session,
-                query_embedding=valid_query_vector,
-                limit=candidate_limit,
-                exclude_work_id=work_id,
-                publication_year=publication_year,
-                min_year=min_year,
-                max_year=max_year,
-                work_type=work_type,
-                language=language,
-                primary_source_id=primary_source_id,
-                is_oa=is_oa,
-                min_citations=min_citations,
-            )
+            if valid_query_vector is not None:
+                vector_results = self.vec_repo.search_research_works(
+                    session=session,
+                    query_embedding=valid_query_vector,
+                    limit=candidate_limit,
+                    exclude_work_id=work_id,
+                    publication_year=publication_year,
+                    min_year=min_year,
+                    max_year=max_year,
+                    work_type=work_type,
+                    language=language,
+                    primary_source_id=primary_source_id,
+                    is_oa=is_oa,
+                    min_citations=min_citations,
+                )
         except Exception as exc:
             logger.warning("Vector retrieval for similar research failed: %s", exc)
 

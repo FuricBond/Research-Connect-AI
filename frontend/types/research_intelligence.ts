@@ -96,7 +96,9 @@ export interface EvidenceTierBreakdown {
   tier: EvidenceTierType;
   tier_title: string;
   score_contribution: number;
-  confidence: number;
+  /** Shown instead of the score when the tier reports a status (e.g. NORMAL, LOW_RISK). */
+  status_label?: string | null;
+  confidence?: number | null;
   summary: string;
   signals: ResearchIntelligenceSignal[];
   is_active: boolean;
@@ -149,6 +151,87 @@ export interface UnifiedOpportunityIntelligence {
   relevance_dominant_applied: boolean;
   evidence_tiers: EvidenceTierBreakdown[];
   workspace_context: OpportunityWorkspaceContext;
-  identity_status: IdentityResolutionStatus;
+  identity_status?: IdentityResolutionStatus | null;
   evaluated_at: string;
+}
+
+// ── Wire formats ─────────────────────────────────────────────────────────────
+// What /recommendations/unified and /unified/{id}/intelligence actually return
+// (backend app/schemas/research_intelligence.py). services/api.ts maps these onto the
+// view models above, which the Unified Intelligence components render.
+
+export interface ApiEvidenceTier {
+  tier: EvidenceTierType;
+  title: string;
+  summary: string;
+  is_active: boolean;
+  /** A 0–1 score ("0.90") or a status ("NORMAL", "LOW_RISK", "NOT_SAVED"). */
+  score_or_status: string;
+  contributing_factors?: string[];
+  signals: ResearchIntelligenceSignal[];
+}
+
+export interface ApiWorkspaceContext {
+  is_saved: boolean;
+  workspace_item_id?: string | null;
+  workspace_status?: string | null;
+  has_active_submission: boolean;
+  submission_status?: string | null;
+  submission_readiness_score?: number | null;
+  task_count?: number;
+}
+
+export interface ApiRiskExplanation {
+  risk_score: number;
+  risk_level: string;
+  is_predatory_flag: boolean;
+  risk_reasons?: string[];
+}
+
+export interface ApiDeadlineIntelligence {
+  primary_view?: {
+    canonical_assessment?: {
+      status?: string | null;
+      urgency_tier?: string | null;
+      days_remaining?: number | null;
+    } | null;
+    selected_observation?: { authority_tier?: string | null } | null;
+  } | null;
+  reference_time?: string | null;
+}
+
+export interface ApiUnifiedRecommendationItem {
+  opportunity_id: string;
+  title: string;
+  opportunity_type?: string | null;
+  publisher?: string | null;
+  organizer?: string | null;
+  submission_deadline?: string | null;
+  final_score: number;
+  base_relevance_score: number;
+  personalization_score: number;
+  risk_explanation?: ApiRiskExplanation | null;
+  deadline_intelligence?: ApiDeadlineIntelligence | null;
+  workspace_context: ApiWorkspaceContext;
+  evidence_tiers: ApiEvidenceTier[];
+  explanation?: { primary_reasons?: string[]; personalization_strength?: string | null } | null;
+}
+
+export interface ApiUnifiedRecommendationResponse {
+  items: ApiUnifiedRecommendationItem[];
+  total_count: number;
+  researcher_context: UnifiedResearcherContext;
+  invariants_verified?: boolean;
+}
+
+export interface ApiOpportunityIntelligence {
+  profile_id: string;
+  opportunity_id: string;
+  title: string;
+  base_relevance_score: number;
+  final_score: number;
+  personalization_adjustment: number;
+  evidence_tiers: ApiEvidenceTier[];
+  workspace_context: ApiWorkspaceContext;
+  deadline_intelligence?: ApiDeadlineIntelligence | null;
 }

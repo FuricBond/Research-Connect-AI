@@ -35,6 +35,7 @@ import {
   Search,
   Tag,
   Trash2,
+  Users,
   X,
 } from "lucide-react";
 import { RequireAuth } from "../../components/auth/RequireAuth";
@@ -667,6 +668,17 @@ function WorkspacePage() {
                     >
                       <FileText size={12} />
                       Submissions
+                    </Link>
+
+                    {/* Collaboration: members, invitations, tasks and activity (Phase 4.6) */}
+                    <Link
+                      href={`/workspace/${item.id}`}
+                      className="workspace-action-btn"
+                      title="Members, invitations, tasks and activity"
+                      style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                    >
+                      <Users size={12} />
+                      Collaborate
                     </Link>
 
                     {/* Archive / Unarchive Button */}

@@ -944,7 +944,9 @@ class PersonalizationRanker:
                 )
                 breakdown = PersonalizationScoreBreakdownSchema(
                     explicit_preference_score=legacy_breakdown.explicit_preference_score,
-                    inferred_preference_score=round(adaptive_boost, 4),
+                    # A 0-1 match score; negative adaptive evidence (e.g. "not interested")
+                    # means no inferred match. The signed value is behavioral_adjustment below.
+                    inferred_preference_score=round(min(1.0, max(0.0, adaptive_boost)), 4),
                     expertise_match_score=legacy_breakdown.expertise_match_score,
                     profile_match_score=legacy_breakdown.profile_match_score,
                     provenance_score=legacy_breakdown.provenance_score,

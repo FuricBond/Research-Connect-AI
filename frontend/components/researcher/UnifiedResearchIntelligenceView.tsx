@@ -642,7 +642,7 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
                             <div className="flex items-center justify-between font-semibold text-gray-800">
                               <span>{tier.tier_title}</span>
                               <span className="text-[10px] text-indigo-600 font-mono">
-                                +{(tier.score_contribution * 100).toFixed(1)}%
+                                {tier.status_label ?? `+${(tier.score_contribution * 100).toFixed(1)}%`}
                               </span>
                             </div>
                             <p className="text-gray-600 mt-1 text-[11px] leading-relaxed">{tier.summary}</p>
@@ -727,7 +727,10 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
                   <div className="flex items-center justify-between font-semibold text-gray-900">
                     <span>{tier.tier_title}</span>
                     <span className="text-indigo-600 font-mono">
-                      Conf: {(tier.confidence * 100).toFixed(0)}%
+                      {tier.status_label ??
+                        (tier.confidence != null
+                          ? `Conf: ${(tier.confidence * 100).toFixed(0)}%`
+                          : `${(tier.score_contribution * 100).toFixed(0)}%`)}
                     </span>
                   </div>
                   <p className="text-gray-700 mt-1 leading-relaxed">{tier.summary}</p>

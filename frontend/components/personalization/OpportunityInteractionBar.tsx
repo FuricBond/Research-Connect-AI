@@ -10,7 +10,7 @@ import {
   ThumbsUp,
   X,
 } from "lucide-react";
-import { recordOpportunityInteraction } from "../../services/api";
+import { addOpportunityToWorkspace, recordOpportunityInteraction } from "../../services/api";
 import type {
   InteractionResponse,
   InteractionType,
@@ -63,6 +63,9 @@ export const OpportunityInteractionBar: React.FC<OpportunityInteractionBarProps>
       );
 
       if (type === "SAVED") {
+        // The interaction is the behavioural signal; the workspace item is what the user
+        // asked for. Adding an item that is already in the workspace returns it unchanged.
+        await addOpportunityToWorkspace({ opportunity_id: opportunityId }, userId);
         setIsSaved(true);
         setFeedbackMessage("Saved to workspace");
       } else if (type === "INTERESTED") {

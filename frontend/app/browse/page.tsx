@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { OpportunityList } from "../../components/OpportunityList";
+import "../../styles/opportunities.css";
 
 export const metadata: Metadata = {
   title: "Browse All Calls — ResearchConnect AI",

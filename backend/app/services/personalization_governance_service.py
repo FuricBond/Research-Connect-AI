@@ -33,6 +33,7 @@ from app.personalization.governance_config import (
     PersonalizationGovernanceConfig,
 )
 from app.personalization.governance_engine import PersonalizationGovernanceEngine
+from app.scheduler.locks import profile_lock_key
 from app.schemas.personalization_governance import (
     PersonalizationDriftEvaluationSchema,
     PersonalizationDriftResponse,
@@ -152,6 +153,13 @@ class PersonalizationGovernanceService:
         Idempotently recomputes personalization health, signal drift, and governance state
         from recommendation, interaction, and preference history deterministically with zero N+1 queries.
         """
+        # Serialize recomputes of one profile (PostgreSQL). A page loads several governance
+        # panels at once, and without the lock two requests could both find no evaluation for
+        # this algorithm version and both insert one, failing the unique constraint. The
+        # scheduler takes the same transaction-scoped lock; it is re-entrant within a session.
+        if db.get_bind().dialect.name == "postgresql":
+            db.execute(select(func.pg_advisory_xact_lock(profile_lock_key(profile_id))))
+
         now = reference_time or datetime.now(timezone.utc)
         if now.tzinfo is None:
             now = now.replace(tzinfo=timezone.utc)

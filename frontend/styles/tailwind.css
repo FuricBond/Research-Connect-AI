@@ -1,0 +1,2 @@
+/* Tailwind utility classes only: no base reset and no component layer (see tailwind.config.ts). */
+@tailwind utilities;

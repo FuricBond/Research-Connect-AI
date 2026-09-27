@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import logging
 import math
+import numbers
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Sequence
@@ -134,7 +135,9 @@ def validate_query_vector(
 
     validated: list[float] = []
     for idx, val in enumerate(vector):
-        if not isinstance(val, (int, float)) or isinstance(val, bool):
+        # numbers.Real rather than (int, float): pgvector returns a stored embedding as a
+        # numpy array, whose float32 elements are real numbers but not Python floats.
+        if not isinstance(val, numbers.Real) or isinstance(val, bool):
             raise VectorValidationError(
                 f"Query vector element at index {idx} must be a number, got {type(val).__name__}."
             )
