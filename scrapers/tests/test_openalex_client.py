@@ -133,6 +133,140 @@ class TestOpenAlexClient429Handling:
         assert pages == []
 
 
+def budget_exhausted_error(reset: str = "7200") -> requests.HTTPError:
+    """A 429 as OpenAlex sends it once the daily usage budget is spent."""
+    response = MagicMock(status_code=429)
+    response.headers = {"X-RateLimit-Remaining": "0", "X-RateLimit-Reset": reset}
+    return requests.HTTPError(response=response)
+
+
+def params_of(mock_client: MagicMock, call: int = -1) -> dict:
+    args, kwargs = mock_client.get_json.call_args_list[call]
+    return kwargs["params"] if "params" in kwargs else args[1]
+
+
+class TestOpenAlexBudget:
+    def test_spent_budget_stops_at_once_instead_of_retrying(self):
+        """Backing off cannot help until midnight UTC, so no retries and no sleeping."""
+        from scrapers.openalex.client import OpenAlexBudgetExhaustedError
+
+        mock_client = MagicMock()
+        mock_client.get_json.side_effect = [budget_exhausted_error("7200")]
+        client = OpenAlexClient(http_client=mock_client)
+
+        with patch("scrapers.openalex.client.time.sleep") as sleep:
+            with pytest.raises(OpenAlexBudgetExhaustedError) as caught:
+                list(client.iter_work_pages(filters=["has_abstract:true"]))
+
+        assert caught.value.reset_seconds == 7200
+        assert mock_client.get_json.call_count == 1
+        sleep.assert_not_called()
+
+    def test_burst_429_without_spent_budget_still_backs_off(self):
+        response = MagicMock(status_code=429)
+        response.headers = {"X-RateLimit-Remaining": "480"}
+        page_data = load_fixture("search_results_page1.json")
+        page_data["meta"]["next_cursor"] = None
+        mock_client = MagicMock()
+        mock_client.get_json.side_effect = [requests.HTTPError(response=response), page_data]
+        client = OpenAlexClient(http_client=mock_client)
+
+        with patch("scrapers.openalex.client.time.sleep") as sleep:
+            pages = list(client.iter_work_pages(search="test"))
+
+        assert len(pages) == 1
+        sleep.assert_called_once()
+
+    def test_legacy_iterator_still_stops_quietly_when_the_budget_is_spent(self):
+        mock_client = MagicMock()
+        mock_client.get_json.side_effect = [budget_exhausted_error()]
+        client = OpenAlexClient(http_client=mock_client)
+
+        assert list(client.iter_works_pages(search="test")) == []
+
+    def test_api_key_is_sent_when_configured(self):
+        mock_client = make_mock_http_client([load_fixture("search_results_empty.json")])
+        client = OpenAlexClient(api_key="test-key", http_client=mock_client)
+
+        list(client.iter_work_pages(search="test"))
+
+        assert params_of(mock_client)["api_key"] == "test-key"
+
+    def test_no_api_key_param_without_a_key(self):
+        mock_client = make_mock_http_client([load_fixture("search_results_empty.json")])
+        client = OpenAlexClient(http_client=mock_client)
+
+        list(client.iter_work_pages(search="test"))
+
+        assert "api_key" not in params_of(mock_client)
+
+
+class TestResumableWorkPages:
+    def test_pages_carry_their_cursors(self):
+        page1 = load_fixture("search_results_page1.json")
+        page1["meta"]["next_cursor"] = "c2"
+        page2 = load_fixture("search_results_page1.json")
+        page2["meta"]["next_cursor"] = None
+        mock_client = make_mock_http_client([page1, page2])
+        client = OpenAlexClient(http_client=mock_client)
+
+        with patch("scrapers.openalex.client.time.sleep"):
+            pages = list(client.iter_work_pages(search="test", max_pages=5))
+
+        assert [(p.cursor, p.next_cursor) for p in pages] == [("*", "c2"), ("c2", None)]
+        assert len(pages[0].results) == 2
+
+    def test_filter_only_query_sends_no_search_and_starts_at_the_given_cursor(self):
+        from scrapers.openalex.client import works_filter
+
+        mock_client = make_mock_http_client([load_fixture("search_results_empty.json")])
+        client = OpenAlexClient(http_client=mock_client)
+
+        list(client.iter_work_pages(
+            filters=works_filter(subfield_id="1702", has_abstract=True),
+            sort="cited_by_count:desc",
+            per_page=500,
+            start_cursor="c9",
+        ))
+
+        params = params_of(mock_client)
+        assert "search" not in params
+        assert params["filter"] == "primary_topic.subfield.id:1702,has_abstract:true"
+        assert params["sort"] == "cited_by_count:desc"
+        assert params["cursor"] == "c9"
+        assert params["per_page"] == 200  # capped at the OpenAlex maximum
+
+    def test_request_failure_propagates_so_the_caller_can_resume(self):
+        mock_client = MagicMock()
+        mock_client.get_json.side_effect = requests.HTTPError(response=MagicMock(status_code=500))
+        client = OpenAlexClient(http_client=mock_client)
+
+        with pytest.raises(requests.HTTPError):
+            list(client.iter_work_pages(search="test"))
+
+
+class TestWorksFilter:
+    def test_builds_every_clause(self):
+        from scrapers.openalex.client import works_filter
+
+        assert works_filter(
+            year=2020, work_type="article", from_year=2015, to_year=2024,
+            subfield_id="1710", has_abstract=True,
+        ) == [
+            "publication_year:2020",
+            "from_publication_date:2015-01-01",
+            "to_publication_date:2024-12-31",
+            "type:article",
+            "primary_topic.subfield.id:1710",
+            "has_abstract:true",
+        ]
+
+    def test_no_clauses_by_default(self):
+        from scrapers.openalex.client import works_filter
+
+        assert works_filter() == []
+
+
 class TestOpenAlexClientSingleLookup:
     def test_get_author(self):
         author_data = load_fixture("author.json")

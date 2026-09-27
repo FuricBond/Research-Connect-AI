@@ -17,7 +17,9 @@ from __future__ import annotations
 import logging
 import os
 
-from scrapers.openalex.client import OpenAlexClient
+from typing import Iterator
+
+from scrapers.openalex.client import OpenAlexClient, WorksPage
 from scrapers.http_client import HttpClient
 
 logger = logging.getLogger(__name__)
@@ -44,6 +46,7 @@ class OpenAlexSource:
     Configuration is read from environment variables:
       ``OPENALEX_API_BASE_URL`` — API base URL (default: https://api.openalex.org)
       ``OPENALEX_EMAIL``         — contact email for polite pool (optional)
+      ``OPENALEX_API_KEY``       — account API key, 10x the keyless daily budget (optional)
     """
 
     source_name: str = "OpenAlex"
@@ -54,23 +57,27 @@ class OpenAlexSource:
         http_client: HttpClient | None = None,
         base_url: str | None = None,
         email: str | None = None,
+        api_key: str | None = None,
     ) -> None:
         resolved_base_url = (
             base_url
             or os.environ.get("OPENALEX_API_BASE_URL", _DEFAULT_BASE_URL)
         )
         resolved_email = email or os.environ.get("OPENALEX_EMAIL") or None
+        resolved_api_key = api_key or os.environ.get("OPENALEX_API_KEY") or None
 
         self._api_client = OpenAlexClient(
             base_url=resolved_base_url,
             email=resolved_email,
             http_client=http_client,
+            api_key=resolved_api_key,
         )
 
         logger.info(
-            "OpenAlexSource initialised: base_url=%r email=%s",
+            "OpenAlexSource initialised: base_url=%r email=%s api_key=%s",
             resolved_base_url,
             "set" if resolved_email else "not set (anonymous)",
+            "set" if resolved_api_key else "not set (keyless daily budget)",
         )
 
     @property
@@ -115,6 +122,30 @@ class OpenAlexSource:
         except Exception as exc:
             logger.error("OpenAlexSource.fetch_works_pages failed: %s", exc)
         return pages
+
+    def iter_work_pages(
+        self,
+        search: str | None = None,
+        filters: list[str] | None = None,
+        sort: str | None = None,
+        per_page: int = 25,
+        max_pages: int = 1,
+        start_cursor: str = "*",
+    ) -> Iterator[WorksPage]:
+        """
+        Stream pages with their cursors, one at a time, for bulk loads.
+
+        Errors propagate (see ``OpenAlexClient.iter_work_pages``), so a caller that
+        persists page by page can report exactly where to resume.
+        """
+        return self._api_client.iter_work_pages(
+            search=search,
+            filters=filters,
+            sort=sort,
+            per_page=per_page,
+            max_pages=max_pages,
+            start_cursor=start_cursor,
+        )
 
     def close(self) -> None:
         """Release the underlying connection pool."""

@@ -4,7 +4,9 @@ OpenAlex HTTP API client.
 Responsibilities:
   - Build correct request URLs for the OpenAlex REST API
   - Apply polite pool header (``?mailto=``) when ``OPENALEX_EMAIL`` is set
+  - Send the account API key (``?api_key=``) when ``OPENALEX_API_KEY`` is set
   - Handle HTTP 429 (rate-limit) with exponential back-off
+  - Stop at once when the daily usage budget is spent (retrying cannot help)
   - Delegate transport-level retries (500/502/503) to the underlying HttpClient
   - Support cursor-based pagination transparently
   - Return raw response dicts (parsing/normalisation is NOT done here)
@@ -15,11 +17,17 @@ and rate-limiting behaviour, nothing else.
 Configuration (via environment or Settings):
   OPENALEX_API_BASE_URL — default: https://api.openalex.org
   OPENALEX_EMAIL        — optional, for polite pool access
+  OPENALEX_API_KEY      — optional, free account key; raises the daily budget 10x
+
+Usage budget: OpenAlex charges every call against a daily budget that resets at
+midnight UTC. A keyword ``search`` page costs ten times a filter-only page, so
+bulk loads should select works with filters (``works_filter``) where possible.
 """
 from __future__ import annotations
 
 import logging
 import time
+from dataclasses import dataclass
 from typing import Generator
 from urllib.parse import urlencode
 
@@ -44,6 +52,94 @@ _429_MAX_RETRIES = 4
 # Polite delay between paginated requests (seconds)
 _POLITE_DELAY = 1.0
 
+_WORK_FIELDS = (
+    "id,doi,title,display_name,publication_year,publication_date,"
+    "type,language,cited_by_count,primary_location,open_access,"
+    "authorships,abstract_inverted_index,topics,keywords,concepts,"
+    "open_access,counts_by_year,updated_date,indexed_in,biblio,ids"
+)
+
+
+class OpenAlexBudgetExhaustedError(RuntimeError):
+    """
+    The daily OpenAlex usage budget is spent.
+
+    Raised instead of retrying: the budget only resets at midnight UTC, so backing off
+    for minutes would just stall the caller. ``reset_seconds`` is how long until then,
+    when OpenAlex reports it.
+    """
+
+    def __init__(self, reset_seconds: int | None = None) -> None:
+        self.reset_seconds = reset_seconds
+        when = f" It resets in about {reset_seconds / 3600:.1f} h." if reset_seconds else ""
+        super().__init__(f"OpenAlex daily usage budget exhausted.{when}")
+
+
+@dataclass(frozen=True)
+class WorksPage:
+    """One page of /works results and the cursors around it."""
+
+    results: list[dict]
+    cursor: str                 # the cursor that fetched this page
+    next_cursor: str | None     # the cursor for the following page; None when exhausted
+    total_count: int | None     # works matching the query, as reported by OpenAlex
+
+
+def works_filter(
+    year: int | None = None,
+    work_type: str | None = None,
+    from_year: int | None = None,
+    to_year: int | None = None,
+    subfield_id: str | None = None,
+    has_abstract: bool = False,
+) -> list[str]:
+    """
+    Build OpenAlex /works filter clauses.
+
+    ``subfield_id`` selects works whose primary topic falls in an OpenAlex subfield,
+    e.g. ``"1702"`` (Artificial Intelligence). A filter-only query costs a tenth of a
+    keyword search, which is what makes loads of tens of thousands of works affordable.
+    """
+    filters: list[str] = []
+    if year is not None:
+        filters.append(f"publication_year:{year}")
+    if from_year is not None:
+        filters.append(f"from_publication_date:{from_year}-01-01")
+    if to_year is not None:
+        filters.append(f"to_publication_date:{to_year}-12-31")
+    if work_type is not None:
+        filters.append(f"type:{work_type}")
+    if subfield_id is not None:
+        filters.append(f"primary_topic.subfield.id:{subfield_id}")
+    if has_abstract:
+        filters.append("has_abstract:true")
+    return filters
+
+
+def _budget_reset_seconds(response: object) -> int | None:
+    """
+    Seconds until the budget resets when a 429 means the daily budget is spent, else None.
+
+    OpenAlex answers 429 both for the daily budget and for bursts over 100 requests per
+    second; only the budget case reports ``X-RateLimit-Remaining`` at or below zero.
+    """
+    headers = getattr(response, "headers", None)
+    if headers is None:
+        return None
+    remaining = headers.get("X-RateLimit-Remaining")
+    if not isinstance(remaining, str):
+        return None
+    try:
+        if float(remaining) > 0:
+            return None
+    except ValueError:
+        return None
+    reset = headers.get("X-RateLimit-Reset")
+    try:
+        return int(float(reset)) if isinstance(reset, str) else 0
+    except ValueError:
+        return 0
+
 
 class OpenAlexClient:
     """
@@ -60,6 +156,7 @@ class OpenAlexClient:
         base_url: OpenAlex API base URL (default: https://api.openalex.org).
         email:    Contact email for polite pool access (optional but recommended).
         http_client: Provide a custom HttpClient for testing.
+        api_key:  OpenAlex account API key (optional). Never logged.
     """
 
     def __init__(
@@ -67,18 +164,22 @@ class OpenAlexClient:
         base_url: str = DEFAULT_BASE_URL,
         email: str | None = None,
         http_client: HttpClient | None = None,
+        api_key: str | None = None,
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._email = email
+        self._api_key = api_key
         self._client = http_client or HttpClient()
 
     # ── Internal helpers ──────────────────────────────────────────────────────
 
     def _build_params(self, extra: dict) -> dict:
-        """Build query params, injecting mailto if configured."""
+        """Build query params, injecting mailto and the API key if configured."""
         params = dict(extra)
         if self._email:
             params["mailto"] = self._email
+        if self._api_key:
+            params["api_key"] = self._api_key
         return params
 
     def _get_with_429_handling(self, url: str, params: dict) -> dict:
@@ -92,6 +193,7 @@ class OpenAlexClient:
             Parsed JSON dict.
 
         Raises:
+            OpenAlexBudgetExhaustedError: When the daily usage budget is spent.
             requests.HTTPError: On persistent non-transient errors.
             ValueError: On invalid JSON response.
         """
@@ -101,6 +203,9 @@ class OpenAlexClient:
                 return self._client.get_json(url, params=params)
             except requests.HTTPError as exc:
                 if exc.response is not None and exc.response.status_code == 429:
+                    reset_seconds = _budget_reset_seconds(exc.response)
+                    if reset_seconds is not None:
+                        raise OpenAlexBudgetExhaustedError(reset_seconds or None) from exc
                     if attempt >= _429_MAX_RETRIES:
                         logger.error(
                             "OpenAlex 429 rate-limit: giving up after %d retries",
@@ -146,65 +251,86 @@ class OpenAlexClient:
         Yields:
             list[dict] — raw work dicts from the OpenAlex API.
         """
+        try:
+            for page in self.iter_work_pages(
+                search=search,
+                filters=works_filter(year=year, work_type=work_type),
+                per_page=per_page,
+                max_pages=max_pages,
+            ):
+                yield page.results
+        except Exception as exc:
+            logger.error("OpenAlex works request failed: %s", exc)
+            return
+
+    def iter_work_pages(
+        self,
+        search: str | None = None,
+        filters: list[str] | None = None,
+        sort: str | None = None,
+        per_page: int = DEFAULT_PER_PAGE,
+        max_pages: int = 1,
+        start_cursor: str = "*",
+    ) -> Generator[WorksPage, None, None]:
+        """
+        Iterate over /works result pages with their cursors, for resumable bulk loads.
+
+        Unlike ``iter_works_pages`` this raises when a request fails, so the caller
+        knows the load stopped early; the last yielded page's ``next_cursor`` is where
+        to resume.
+
+        Args:
+            search:       Optional full-text search query (costs 10x a filter-only page).
+            filters:      Filter clauses, e.g. from ``works_filter``.
+            sort:         Optional sort, e.g. ``"cited_by_count:desc"``.
+            per_page:     Results per page (1–200).
+            max_pages:    Maximum number of pages to fetch.
+            start_cursor: Cursor to start from; ``"*"`` for the first page.
+
+        Raises:
+            OpenAlexBudgetExhaustedError: When the daily usage budget is spent.
+            requests.RequestException: When a request fails after retries.
+        """
         per_page = min(max(1, per_page), MAX_PER_PAGE)
         url = f"{self._base_url}/works"
 
-        # Build filter string
-        filters: list[str] = []
-        if year is not None:
-            filters.append(f"publication_year:{year}")
-        if work_type is not None:
-            filters.append(f"type:{work_type}")
-
-        cursor = "*"
+        cursor = start_cursor
         pages_fetched = 0
 
         while pages_fetched < max_pages:
-            params = self._build_params(
-                {
-                    "search": search,
-                    "per_page": per_page,
-                    "cursor": cursor,
-                    "select": (
-                        "id,doi,title,display_name,publication_year,publication_date,"
-                        "type,language,cited_by_count,primary_location,open_access,"
-                        "authorships,abstract_inverted_index,topics,keywords,concepts,"
-                        "open_access,counts_by_year,updated_date,indexed_in,biblio,ids"
-                    ),
-                }
-            )
+            query: dict = {"per_page": per_page, "cursor": cursor, "select": _WORK_FIELDS}
+            if search:
+                query["search"] = search
             if filters:
-                params["filter"] = ",".join(filters)
+                query["filter"] = ",".join(filters)
+            if sort:
+                query["sort"] = sort
+            params = self._build_params(query)
 
             logger.info(
-                "Fetching OpenAlex works page %d (search=%r per_page=%d cursor=%r)",
+                "Fetching OpenAlex works page %d (search=%r per_page=%d)",
                 pages_fetched + 1,
                 search,
                 per_page,
-                cursor,
             )
 
-            try:
-                data = self._get_with_429_handling(url, params)
-            except Exception as exc:
-                logger.error(
-                    "OpenAlex works request failed on page %d: %s",
-                    pages_fetched + 1,
-                    exc,
-                )
-                return
+            data = self._get_with_429_handling(url, params)
 
             results: list[dict] = data.get("results", [])
             if not results:
                 logger.info("OpenAlex returned 0 results — stopping pagination.")
                 return
 
-            yield results
+            meta = data.get("meta", {})
+            next_cursor = meta.get("next_cursor") or None
+            yield WorksPage(
+                results=results,
+                cursor=cursor,
+                next_cursor=next_cursor,
+                total_count=meta.get("count"),
+            )
             pages_fetched += 1
 
-            # Advance cursor
-            meta = data.get("meta", {})
-            next_cursor = meta.get("next_cursor")
             if not next_cursor:
                 logger.info(
                     "No next_cursor in OpenAlex response — all pages exhausted after page %d.",

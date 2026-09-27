@@ -89,3 +89,6 @@ graphify-out/
 e2e/results/
 frontend/test-results/
 frontend/playwright-report/
+
+#Claude Outputs
+Claude outputs

@@ -226,6 +226,12 @@ def run_pipeline(
     # --- query and process ----------------------------------------------------
     with SessionLocal() as session:
         query = session.query(ModelClass)
+        if entity == "research_work":
+            # The semantic text never reads the raw API payload, which is the largest
+            # column; leaving it unloaded keeps memory flat on corpora of 50k+ works.
+            from sqlalchemy.orm import defer
+
+            query = query.options(defer(ModelClass.raw_metadata))
         if limit:
             query = query.limit(limit)
 
@@ -269,9 +275,11 @@ def run_pipeline(
             stats.embedded = len(texts_to_embed)
             return stats
 
-        # Encode in batches
+        # Encode in batches, committing each one: an interrupted run keeps what it
+        # embedded, and a re-run skips those records by their content hash.
         now = datetime.now(tz=timezone.utc)
-        for batch_start in range(0, len(texts_to_embed), batch_size):
+        progress_every = max(1, 2000 // max(1, batch_size))
+        for batch_number, batch_start in enumerate(range(0, len(texts_to_embed), batch_size), start=1):
             batch = texts_to_embed[batch_start : batch_start + batch_size]
             batch_texts = [t for _, t in batch]
 
@@ -298,7 +306,10 @@ def run_pipeline(
                         f"{entity}:{getattr(record, 'id', '?')} — update error: {exc}"
                     )
 
-        session.commit()
+            session.commit()
+            if batch_number % progress_every == 0:
+                logger.info("Embedded %d / %d.", stats.embedded, len(texts_to_embed))
+
         logger.info("Committed %d embedding(s) to database.", stats.embedded)
 
     return stats
@@ -339,6 +350,10 @@ def main(argv: list[str] | None = None) -> int:
         logger.error("Pipeline failed: %s", exc, exc_info=True)
         return 1
 
+    # Output redirected on Windows uses a legacy code page without the report's box
+    # characters; substitute them instead of failing after the embeddings are saved.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(errors="replace")
     print(stats.report())
     return 0 if stats.failed == 0 else 1
 

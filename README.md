@@ -234,6 +234,21 @@ start.
 needs embeddings, generated offline with `python -m ml.embeddings.generate_embeddings`.
 Without them, search falls back to lexical ranking.
 
+**Research papers.** Literature search, similar research and the opportunity matcher search
+papers loaded from OpenAlex; the demo seed adds none. From `backend/`, with
+`PYTHONPATH=..`, this loads 10,000 highly cited AI papers with abstracts (about 220 MB, 50
+of the 1,000 free daily OpenAlex credits), then tags and embeds them:
+
+```bash
+python -m scrapers.pipelines.collect_openalex --subfield 1702 --has-abstract --from-year 2015 --sort cited_by_count:desc --pages 50 --per-page 200
+python -m ml.topic_analysis.process_topics
+python -m ml.embeddings.generate_embeddings --entity research_work
+```
+
+A stopped load prints a `--cursor` to continue from. See
+[OpenAlex Integration](docs/research-data/openalex.md#bulk-loading) for subfields, the daily
+budget and storage.
+
 In development, interactive API documentation is served at http://localhost:8000/docs.
 
 **Frontend**

@@ -12,6 +12,8 @@ Responsibilities:
   4. Manage junction tables (research_work_authors, research_work_institutions).
   5. Provide idempotent batch upsert: running the same query twice
      produces UNCHANGED records on the second run.
+  6. Persist page by page for bulk loads: one SAVEPOINT per work, so a bad
+     record is skipped on its own, and one commit per page.
 
 Change detection for research entities:
   Unlike opportunities (which have a rich change-detection module), research
@@ -133,6 +135,25 @@ class OpenAlexRepository:
         self._researcher_cache: dict[str, uuid.UUID] = {}
         self._source_cache: dict[str, uuid.UUID] = {}
         self._institution_cache: dict[str, uuid.UUID] = {}
+        # Cache entries for rows inserted by the work currently being saved. If that
+        # work's savepoint is rolled back the rows are gone, so these entries must go
+        # too, or the next work by the same author would link to a missing row.
+        self._uncommitted_cache_keys: list[tuple[dict[str, uuid.UUID], str]] = []
+
+    def _remember_new(self, cache: dict[str, uuid.UUID], openalex_id: str, db_id: uuid.UUID) -> None:
+        cache[openalex_id] = db_id
+        self._uncommitted_cache_keys.append((cache, openalex_id))
+
+    def _forget_uncommitted_cache_keys(self) -> None:
+        for cache, openalex_id in self._uncommitted_cache_keys:
+            cache.pop(openalex_id, None)
+        self._uncommitted_cache_keys.clear()
+
+    def _clear_caches(self) -> None:
+        self._researcher_cache.clear()
+        self._source_cache.clear()
+        self._institution_cache.clear()
+        self._uncommitted_cache_keys.clear()
 
     # ── Source & IngestionRun (reuse existing models) ─────────────────────────
 
@@ -293,7 +314,7 @@ class OpenAlexRepository:
             )
             self._session.add(new_inst)
             self._session.flush()
-            self._institution_cache[institution.openalex_id] = new_inst.id
+            self._remember_new(self._institution_cache, institution.openalex_id, new_inst.id)
             logger.debug("Inserted institution: %r (%s)", institution.display_name, institution.openalex_id)
             return LifecycleAction.NEW, new_inst.id
         else:
@@ -347,7 +368,7 @@ class OpenAlexRepository:
             )
             self._session.add(new_r)
             self._session.flush()
-            self._researcher_cache[researcher.openalex_id] = new_r.id
+            self._remember_new(self._researcher_cache, researcher.openalex_id, new_r.id)
             logger.debug("Inserted researcher: %r (%s)", researcher.display_name, researcher.openalex_id)
             return LifecycleAction.NEW, new_r.id
         else:
@@ -407,7 +428,7 @@ class OpenAlexRepository:
             )
             self._session.add(new_s)
             self._session.flush()
-            self._source_cache[source.openalex_id] = new_s.id
+            self._remember_new(self._source_cache, source.openalex_id, new_s.id)
             logger.debug("Inserted research_source: %r (%s)", source.display_name, source.openalex_id)
             return LifecycleAction.NEW, new_s.id
         else:
@@ -468,12 +489,17 @@ class OpenAlexRepository:
         author_links: list[tuple[uuid.UUID, str | None, bool]] = []  # (researcher_id, position, is_corresponding)
         institution_ids: set[uuid.UUID] = set()
 
+        linked_researchers: set[uuid.UUID] = set()
         for authorship in work.authorships:
             try:
                 _, researcher_id = self.upsert_researcher(authorship.researcher, now)
-                author_links.append(
-                    (researcher_id, authorship.author_position, authorship.is_corresponding)
-                )
+                # OpenAlex occasionally lists one (merged) author twice on a work; the
+                # junction key is (work, researcher), so keep the first position only.
+                if researcher_id not in linked_researchers:
+                    linked_researchers.add(researcher_id)
+                    author_links.append(
+                        (researcher_id, authorship.author_position, authorship.is_corresponding)
+                    )
             except Exception as exc:  # noqa: BLE001
                 logger.debug("Skipping researcher upsert: %s", exc)
 
@@ -556,6 +582,110 @@ class OpenAlexRepository:
 
         return action
 
+    # ── Page-by-page persistence ──────────────────────────────────────────────
+
+    def start_run(self, search_query: str | None = None) -> OpenAlexPersistenceResult:
+        """Create the provenance source and a RUNNING ingestion run, and commit them."""
+        result = OpenAlexPersistenceResult()
+        result.source_id = self.get_or_create_openalex_source()
+        result.run_id = self.start_ingestion_run(result.source_id, search_query)
+        self._session.commit()
+        return result
+
+    def save_page(
+        self,
+        works: list[NormalizedWork],
+        result: OpenAlexPersistenceResult,
+        now: datetime | None = None,
+    ) -> None:
+        """
+        Persist one page of works into ``result``'s run and commit it.
+
+        Each work is written inside its own SAVEPOINT, so a work that fails (a
+        constraint, or a value its column cannot hold) is rolled back alone and counted
+        in ``result.errors`` while the rest of the page is kept. Committing per page
+        bounds what a crash or an interrupted load can lose to the page in flight.
+
+        Raises:
+            Exception: when the page itself cannot be committed; nothing from the page
+                is kept or counted, and the caches are reset.
+        """
+        now = now or datetime.now(tz=timezone.utc)
+        # Counted locally and merged only once the page is committed, so the run's
+        # totals never include works that were rolled back with an uncommitted page.
+        tally = {LifecycleAction.NEW: 0, LifecycleAction.UPDATED: 0, LifecycleAction.UNCHANGED: 0}
+        failed = 0
+        for work in works:
+            self._uncommitted_cache_keys.clear()
+            savepoint = self._session.begin_nested()
+            try:
+                action = self.upsert_work(work, result.source_id, now)
+                savepoint.commit()
+            except Exception as exc:  # noqa: BLE001
+                try:
+                    savepoint.rollback()
+                except Exception:  # noqa: BLE001
+                    # The connection itself is gone (the database stopped): report that,
+                    # not the secondary "can't reconnect until rolled back" error.
+                    raise exc from None
+                self._forget_uncommitted_cache_keys()
+                failed += 1
+                if isinstance(exc, IntegrityError):
+                    diag = getattr(getattr(exc, "orig", None), "diag", None)
+                    logger.warning(
+                        "DB constraint violation for work %r (%s) — skipping it.",
+                        work.openalex_id,
+                        getattr(diag, "constraint_name", None) or str(exc.orig).splitlines()[0],
+                    )
+                else:
+                    logger.error("Unexpected error persisting work %r: %s", work.openalex_id, exc)
+                continue
+            self._uncommitted_cache_keys.clear()
+            if action in tally:
+                tally[action] += 1
+
+        try:
+            self._session.commit()
+        except Exception:
+            self._session.rollback()
+            self._clear_caches()
+            raise
+        result.works_inserted += tally[LifecycleAction.NEW]
+        result.works_updated += tally[LifecycleAction.UPDATED]
+        result.works_unchanged += tally[LifecycleAction.UNCHANGED]
+        result.errors += failed
+
+    def discard_page(self) -> None:
+        """Roll back an interrupted page and forget the ids it cached."""
+        self._session.rollback()
+        self._clear_caches()
+
+    def finish_run(
+        self,
+        result: OpenAlexPersistenceResult,
+        status: str | None = None,
+        pages_fetched: int = 0,
+        records_parsed: int = 0,
+        records_valid: int = 0,
+        records_invalid: int = 0,
+        error_message: str | None = None,
+    ) -> None:
+        """Record the run's final counts (COMPLETED only without errors) and commit."""
+        if status is None:
+            status = "COMPLETED" if result.errors == 0 and error_message is None else "FAILED"
+        self.finish_ingestion_run(
+            run_id=result.run_id,
+            source_id=result.source_id,
+            status=status,
+            result=result,
+            pages_fetched=pages_fetched,
+            records_parsed=records_parsed,
+            records_valid=records_valid,
+            records_invalid=records_invalid,
+            error_message=error_message,
+        )
+        self._session.commit()
+
     # ── Batch save ────────────────────────────────────────────────────────────
 
     def save_batch(
@@ -567,75 +697,41 @@ class OpenAlexRepository:
         records_invalid: int = 0,
     ) -> OpenAlexPersistenceResult:
         """
-        Persist a batch of normalised works (and their embedded entities).
+        Persist a batch of normalised works (and their embedded entities) as one run.
 
         Idempotent: running the same batch twice produces UNCHANGED on the
-        second run.
+        second run. A work that fails is skipped without discarding the others
+        (see ``save_page``).
 
         Returns:
             OpenAlexPersistenceResult with per-entity-type counts.
         """
-        result = OpenAlexPersistenceResult()
-        now = datetime.now(tz=timezone.utc)
-
         try:
-            result.source_id = self.get_or_create_openalex_source()
-            result.run_id = self.start_ingestion_run(result.source_id, search_query)
+            result = self.start_run(search_query)
+        except Exception as exc:  # noqa: BLE001
+            self._session.rollback()
+            logger.error("Batch persistence failed: %s", exc)
+            result = OpenAlexPersistenceResult()
+            result.errors += 1
+            return result
 
-            for work in works:
-                try:
-                    action = self.upsert_work(work, result.source_id, now)
-                    if action == LifecycleAction.NEW:
-                        result.works_inserted += 1
-                    elif action == LifecycleAction.UPDATED:
-                        result.works_updated += 1
-                    elif action == LifecycleAction.UNCHANGED:
-                        result.works_unchanged += 1
-                except IntegrityError:
-                    self._session.rollback()
-                    logger.warning(
-                        "DB constraint violation for work %r — skipping as duplicate.",
-                        work.openalex_id,
-                    )
-                    result.errors += 1
-                except Exception as exc:  # noqa: BLE001
-                    self._session.rollback()
-                    logger.error("Unexpected error persisting work %r: %s", work.openalex_id, exc)
-                    result.errors += 1
-
-            status = "COMPLETED" if result.errors == 0 else "FAILED"
-            self.finish_ingestion_run(
-                run_id=result.run_id,
-                source_id=result.source_id,
-                status=status,
-                result=result,
-                pages_fetched=pages_fetched,
-                records_parsed=records_parsed,
-                records_valid=len(works),
-                records_invalid=records_invalid,
-            )
-            self._session.commit()
-
+        counts = {
+            "pages_fetched": pages_fetched,
+            "records_parsed": records_parsed,
+            "records_valid": len(works),
+            "records_invalid": records_invalid,
+        }
+        try:
+            self.save_page(works, result)
+            self.finish_run(result, **counts)
         except Exception as exc:  # noqa: BLE001
             self._session.rollback()
             logger.error("Batch persistence failed: %s", exc)
             result.errors += 1
-            if result.source_id and result.run_id:
-                try:
-                    self.finish_ingestion_run(
-                        run_id=result.run_id,
-                        source_id=result.source_id,
-                        status="FAILED",
-                        result=result,
-                        pages_fetched=pages_fetched,
-                        records_parsed=records_parsed,
-                        records_valid=len(works),
-                        records_invalid=records_invalid,
-                        error_message=str(exc),
-                    )
-                    self._session.commit()
-                except Exception:
-                    self._session.rollback()
+            try:
+                self.finish_run(result, status="FAILED", error_message=str(exc), **counts)
+            except Exception:  # noqa: BLE001
+                self._session.rollback()
 
         logger.info(
             "OpenAlex persistence: works(new=%d upd=%d unc=%d) errors=%d",

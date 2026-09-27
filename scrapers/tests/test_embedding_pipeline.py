@@ -109,6 +109,7 @@ def _make_fake_session(records: list[Any]) -> MagicMock:
     query_mock = MagicMock()
     query_mock.all.return_value = records
     query_mock.limit.return_value = query_mock
+    query_mock.options.return_value = query_mock
 
     session_mock = MagicMock()
     session_mock.query.return_value = query_mock
@@ -232,3 +233,64 @@ class TestRunPipelineResearchWork:
         stats = _run_pipeline_mocked(records, dry_run=False, force=False)
         assert stats.embedded == 10
         assert stats.failed == 0
+
+    def test_commits_after_every_batch(self):
+        """A crash late in a large run must not lose the batches already embedded."""
+        records = [FakeWork(title=f"Paper {i}") for i in range(20)]
+        ctx = _make_fake_session(records)
+        session = ctx.__enter__.return_value
+        with (
+            patch("ml.embeddings.generate_embeddings.SessionLocal", return_value=ctx),
+            patch("ml.embeddings.generate_embeddings.EmbeddingService", return_value=_make_fake_service()),
+        ):
+            stats = run_pipeline(
+                entity="research_work",
+                model_name=self.MODEL,
+                batch_size=8,
+                limit=None,
+                dry_run=False,
+                force=False,
+                device="cpu",
+            )
+        assert stats.embedded == 20
+        assert session.commit.call_count == 3  # batches of 8, 8 and 4
+
+    def test_research_work_query_leaves_raw_payload_unloaded(self):
+        """The raw API payload is not needed for the text and is deferred to save memory."""
+        ctx = _make_fake_session([FakeWork()])
+        session = ctx.__enter__.return_value
+        with (
+            patch("ml.embeddings.generate_embeddings.SessionLocal", return_value=ctx),
+            patch("ml.embeddings.generate_embeddings.EmbeddingService", return_value=_make_fake_service()),
+        ):
+            run_pipeline(
+                entity="research_work",
+                model_name=self.MODEL,
+                batch_size=8,
+                limit=None,
+                dry_run=True,
+                force=False,
+                device="cpu",
+            )
+        (option,), _ = session.query.return_value.options.call_args
+        deferred = [str(strategy.path) for strategy in option.context]
+        assert any("ResearchWorkModel.raw_metadata" in path for path in deferred)
+
+
+class TestMainOutput:
+    def test_report_prints_on_a_legacy_windows_code_page(self, monkeypatch):
+        """Redirected output on Windows is cp1252; the summary must not crash after saving."""
+        import io
+        import sys
+
+        from ml.embeddings.generate_embeddings import main
+
+        buffer = io.BytesIO()
+        monkeypatch.setattr(sys, "stdout", io.TextIOWrapper(buffer, encoding="cp1252"))
+        with patch(
+            "ml.embeddings.generate_embeddings.run_pipeline",
+            return_value=PipelineStats(total=1, embedded=1),
+        ):
+            assert main(["--entity", "research_work"]) == 0
+        sys.stdout.flush()
+        assert b"embedded (new)  : 1" in buffer.getvalue()

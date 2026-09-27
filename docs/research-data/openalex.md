@@ -134,35 +134,53 @@ tracked field changes (e.g., `cited_by_count` for a work), the record is marked
 |---|---|---|
 | `OPENALEX_API_BASE_URL` | `https://api.openalex.org` | API base URL |
 | `OPENALEX_EMAIL` | *(empty)* | Contact email for polite pool access |
+| `OPENALEX_API_KEY` | *(empty)* | Free OpenAlex account key; ten times the keyless daily budget. Sent as `?api_key=` and never logged |
 
 **Polite pool**: OpenAlex provides a faster, more stable API tier for users who
 identify themselves with a valid email address via the `?mailto=` query parameter.
 Setting `OPENALEX_EMAIL` enables this automatically.
+
+**Daily budget**: OpenAlex charges every call against a daily budget that resets at
+midnight UTC. Without a key it is 1,000 credits a day. A filter-only page (for example
+`--subfield`) costs 1 credit and a keyword `--search` page costs 10, so 200-work pages give
+about 200,000 works a day by filter or 20,000 by search. A free API key raises the budget
+tenfold.
 
 ---
 
 ## Ingestion Flow
 
 ```
-OpenAlexSource.fetch_works_pages()
+OpenAlexRepository.start_run()          ← IngestionRun RUNNING, committed
     │
-    ▼ (raw dict pages)
+    ▼ for each page, as it arrives
+OpenAlexSource.iter_work_pages()
+    │
+    ▼ (raw dicts + cursor)
 normalizer.normalize_work()        ← also normalizes embedded
     │                                  researchers, sources, institutions
     ▼ (NormalizedWork)
 validator.validate_work()
     │
     ▼ (valid only)
-OpenAlexRepository.upsert_work()
-    ├── upsert_research_source()    ← primary venue
-    ├── upsert_researcher()         ← per authorship
-    ├── upsert_institution()        ← per institution in authorship
-    └── junction tables
+OpenAlexRepository.save_page()          ← one SAVEPOINT per work, one commit per page
+    └── upsert_work()
+        ├── upsert_research_source()    ← primary venue
+        ├── upsert_researcher()         ← per authorship
+        ├── upsert_institution()        ← per institution in authorship
+        └── junction tables
     │
     ▼
-IngestionRunModel.status = COMPLETED
+OpenAlexRepository.finish_run()         ← COMPLETED, or FAILED with the reason
 SourceModel.last_scraped_at = now
 ```
+
+A work the database refuses (a constraint, or a value too long for its column) is rolled
+back to its savepoint and counted as an error; the rest of the page is kept. The ids of the
+authors, institutions and venues that work inserted are dropped from the in-memory cache too,
+so the next work by the same author inserts them again instead of linking to a missing row.
+Committing per page bounds what an interrupted load can lose to the page in flight, and keeps
+memory flat however many pages are loaded.
 
 ---
 
@@ -184,20 +202,54 @@ python -m scrapers.pipelines.collect_openalex \
     --year 2024 \
     --type article
 
+# Bulk load by subfield: 10,000 highly cited works with abstracts, 50 credits
+python -m scrapers.pipelines.collect_openalex \
+    --subfield 1702 --has-abstract --from-year 2015 \
+    --sort cited_by_count:desc --pages 50 --per-page 200
+
 # All options
 python -m scrapers.pipelines.collect_openalex --help
 ```
+
+Run it from `backend/` with the project root on the path (PowerShell:
+`$env:PYTHONPATH = ".."`), so it reads `backend/.env` for `DATABASE_URL`.
 
 ### Options
 
 | Flag | Default | Description |
 |---|---|---|
-| `--search` | `"artificial intelligence"` | Full-text search query |
+| `--search` | `"artificial intelligence"` unless `--subfield` is given | Full-text search query |
+| `--subfield` | none | OpenAlex subfield ID of the primary topic of each work, e.g. `1702` Artificial Intelligence, `1710` Information Systems, `1709` Human-Computer Interaction, `1707` Computer Vision |
+| `--has-abstract` | off | Only works with an abstract (semantic search needs one) |
+| `--from-year` / `--to-year` | all years | Publication year range |
+| `--sort` | OpenAlex default | Result order, e.g. `cited_by_count:desc` |
 | `--pages` | `1` | Number of pages to fetch |
 | `--per-page` | `25` | Works per page (max 200) |
+| `--cursor` | start | Continue a load from the cursor it printed when it stopped |
 | `--dry-run` | off | Parse/validate only, no DB write |
 | `--year` | all years | Filter by publication year |
 | `--type` | all types | Filter by work type |
+
+### Bulk loading
+
+A load stops early when the daily budget is spent, a request keeps failing, or it is
+interrupted with Ctrl+C. Every page saved before that stays saved, the run is recorded as
+FAILED with the reason, and the summary prints `next_cursor`; pass it to `--cursor` with the
+same filters to continue. Loading a work that is already stored only refreshes it.
+
+After loading, assign topics and generate embeddings. Both skip what is already done and
+commit as they go, so they can also be re-run after an interruption:
+
+```bash
+python -m ml.topic_analysis.process_topics
+python -m ml.embeddings.generate_embeddings --entity research_work
+```
+
+Measured on a 200-work sample (highly cited AI papers with abstracts): about 22 KB of
+database storage per work in total (14 KB for the work, its authors, institutions and
+indexes; 5 KB for the embedding and its HNSW index; 3 KB for topic links), so 50,000 works
+need about 1.1 GB. Loading took 11 s per 200-work page, topics 6 s and embeddings about 7 s
+per 200 works on a laptop CPU.
 
 ---
 
@@ -211,8 +263,10 @@ reliable than offset-based pagination for large result sets.
 
 ## Rate Limiting
 
-The `OpenAlexClient` handles HTTP 429 (Too Many Requests) with exponential
-back-off:
+When a 429 reports the daily budget spent (`X-RateLimit-Remaining` at zero), the client
+raises `OpenAlexBudgetExhaustedError` at once: the budget only resets at midnight UTC, so
+backing off cannot help. Other 429s (bursts over 100 requests a second) are retried with
+exponential back-off:
 
 - Initial wait: **10 seconds**
 - Multiplier: **2×** per retry
@@ -235,15 +289,19 @@ All tests are located in `scrapers/tests/`:
 | `test_openalex_abstract.py` | Abstract inverted-index reconstruction |
 | `test_openalex_normalizer.py` | All four normalisers + ID helpers |
 | `test_openalex_validator.py` | All four validators |
-| `test_openalex_client.py` | API client: pagination, 429, lookups |
+| `test_openalex_client.py` | API client: pagination, cursors, 429 and the daily budget, API key, filters, lookups |
 | `test_openalex_persistence.py` | SQLite-backed upsert lifecycle |
-| `test_openalex_pipeline.py` | End-to-end dry-run pipeline |
+| `test_openalex_pipeline.py` | Dry-run pipeline; page-by-page saving, resuming, budget stop, Ctrl+C |
 
-Run all tests (including existing 142+):
+`backend/tests/test_openalex_bulk_persistence.py` runs the real `OpenAlexRepository` on
+SQLite with savepoints and foreign keys enforced: one bad work loses only itself, a page is
+committed on its own, and cached ids of a rolled-back work are not reused.
+
+Run the scraper tests from `backend/`, so the settings loader reads `backend/.env`:
 
 ```bash
-cd researchconnect-ai
-pytest scrapers/tests/ -v
+cd backend
+pytest ../scrapers/tests/ -v
 ```
 
 Tests never make live API calls. All HTTP is mocked. Persistence tests use

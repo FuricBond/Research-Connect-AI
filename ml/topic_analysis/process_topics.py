@@ -43,6 +43,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("ml.topic_analysis.pipeline")
 
+# Research works loaded and processed per chunk (bounded memory on large corpora).
+_WORK_CHUNK_SIZE = 500
+
 
 def run_topic_processing(
     limit: int | None = None,
@@ -158,7 +161,9 @@ def run_topic_processing(
 
         # Mode B: Process Research Works
         else:
-            stmt = select(ResearchWorkModel)
+            # Select ids first and load the works in chunks: tens of thousands of works
+            # with their raw OpenAlex payload do not fit comfortably in memory at once.
+            stmt = select(ResearchWorkModel.id)
             if work_id:
                 try:
                     stmt = stmt.where(ResearchWorkModel.id == uuid.UUID(work_id))
@@ -173,61 +178,91 @@ def run_topic_processing(
             if limit:
                 stmt = stmt.limit(limit)
 
-            works = session.execute(stmt).scalars().all()
-            logger.info("Found %d research work record(s) to process.", len(works))
+            work_ids = session.execute(stmt).scalars().all()
+            logger.info("Found %d research work record(s) to process.", len(work_ids))
 
-            for work in works:
-                try:
-                    result = assigner.assign_research_work(work)
-                    stats["entities_processed"] += 1
-
-                    if dry_run:
-                        logger.info("[DRY RUN] Work [%s]: %s", work.id, work.title[:55])
-                        for at in result.assigned_topics:
-                            logger.info(
-                                "  -> %s (%s) conf=%.2f primary=%s method=%s",
-                                at.topic_name,
-                                at.topic_slug,
-                                at.confidence_score,
-                                at.is_primary,
-                                at.assignment_method,
-                            )
-                        continue
-
-                    # Persistence: remove old associations if reprocessing
-                    if reprocess:
-                        del_stmt = delete(ResearchWorkTopicModel).where(
-                            ResearchWorkTopicModel.work_id == work.id
-                        )
-                        session.execute(del_stmt)
-
-                    # Insert new associations
-                    for at in result.assigned_topics:
-                        db_topic_id = topic_slug_to_id.get(at.topic_slug)
-                        if not db_topic_id:
-                            continue
-                        assoc = ResearchWorkTopicModel(
-                            id=uuid.uuid4(),
-                            work_id=work.id,
-                            topic_id=db_topic_id,
-                            confidence_score=at.confidence_score,
-                            is_primary=at.is_primary,
-                            assignment_method=at.assignment_method,
-                            source=at.source,
-                        )
-                        session.add(assoc)
-                        stats["topics_assigned"] += 1
-                        if at.is_primary:
-                            stats["primary_topics_set"] += 1
-
-                    session.commit()
-
-                except Exception as exc:
-                    session.rollback()
-                    logger.error("Error processing research work %s: %s", getattr(work, "id", None), exc)
-                    stats["errors"] += 1
+            for chunk_start in range(0, len(work_ids), _WORK_CHUNK_SIZE):
+                chunk = work_ids[chunk_start : chunk_start + _WORK_CHUNK_SIZE]
+                works = session.execute(
+                    select(ResearchWorkModel).where(ResearchWorkModel.id.in_(chunk))
+                ).scalars().all()
+                _process_research_works(
+                    session, works, assigner, topic_slug_to_id, stats,
+                    dry_run=dry_run, reprocess=reprocess,
+                )
+                if chunk_start + _WORK_CHUNK_SIZE < len(work_ids):
+                    logger.info(
+                        "Processed %d / %d research works.",
+                        chunk_start + len(chunk),
+                        len(work_ids),
+                    )
 
     return stats
+
+
+def _process_research_works(
+    session: Any,
+    works: list[Any],
+    assigner: TopicAssigner,
+    topic_slug_to_id: dict[str, uuid.UUID],
+    stats: dict[str, Any],
+    *,
+    dry_run: bool,
+    reprocess: bool,
+) -> None:
+    """Assign topics to one chunk of research works, committing each work on its own."""
+    from app.models.research_knowledge import ResearchWorkTopicModel
+
+    for work in works:
+        try:
+            result = assigner.assign_research_work(work)
+            stats["entities_processed"] += 1
+
+            if dry_run:
+                logger.info("[DRY RUN] Work [%s]: %s", work.id, work.title[:55])
+                for at in result.assigned_topics:
+                    logger.info(
+                        "  -> %s (%s) conf=%.2f primary=%s method=%s",
+                        at.topic_name,
+                        at.topic_slug,
+                        at.confidence_score,
+                        at.is_primary,
+                        at.assignment_method,
+                    )
+                continue
+
+            # Persistence: remove old associations if reprocessing
+            if reprocess:
+                del_stmt = delete(ResearchWorkTopicModel).where(
+                    ResearchWorkTopicModel.work_id == work.id
+                )
+                session.execute(del_stmt)
+
+            # Insert new associations
+            for at in result.assigned_topics:
+                db_topic_id = topic_slug_to_id.get(at.topic_slug)
+                if not db_topic_id:
+                    continue
+                assoc = ResearchWorkTopicModel(
+                    id=uuid.uuid4(),
+                    work_id=work.id,
+                    topic_id=db_topic_id,
+                    confidence_score=at.confidence_score,
+                    is_primary=at.is_primary,
+                    assignment_method=at.assignment_method,
+                    source=at.source,
+                )
+                session.add(assoc)
+                stats["topics_assigned"] += 1
+                if at.is_primary:
+                    stats["primary_topics_set"] += 1
+
+            session.commit()
+
+        except Exception as exc:
+            session.rollback()
+            logger.error("Error processing research work %s: %s", getattr(work, "id", None), exc)
+            stats["errors"] += 1
 
 
 def main() -> None:

@@ -36,8 +36,9 @@ class TestTopicProcessingPipeline:
         mock_session = MagicMock()
         mock_result = MagicMock()
         mock_result.scalars.return_value.all.side_effect = [
-            [],              # TopicModel cache
-            [dummy_work],    # ResearchWorkModel query
+            [],                 # TopicModel cache
+            [dummy_work.id],    # ids of the works to process
+            [dummy_work],       # the chunk of works loaded by those ids
         ]
         mock_session.execute.return_value = mock_result
 
@@ -79,3 +80,27 @@ class TestTopicProcessingPipeline:
         assert stats["dry_run"] is True
         assert stats["entities_processed"] == 1
         assert stats["errors"] == 0
+
+    def test_research_works_are_loaded_in_bounded_chunks(self):
+        """A 50k-work corpus must not be loaded into memory in one query."""
+        works = [DummyWork(id=uuid.uuid4(), title=f"Graph neural networks {i}") for i in range(5)]
+        chunks = [works[0:2], works[2:4], works[4:5]]
+
+        mock_session = MagicMock()
+        mock_result = MagicMock()
+        mock_result.scalars.return_value.all.side_effect = [
+            [],                          # TopicModel cache
+            [w.id for w in works],       # ids of the works to process
+            *chunks,                     # one load per chunk of 2
+        ]
+        mock_session.execute.return_value = mock_result
+
+        with (
+            patch("app.db.session.SessionLocal") as MockSessionLocal,
+            patch("ml.topic_analysis.process_topics._WORK_CHUNK_SIZE", 2),
+        ):
+            MockSessionLocal.return_value.__enter__.return_value = mock_session
+            stats = run_topic_processing(dry_run=True)
+
+        assert stats["entities_processed"] == 5
+        assert mock_session.execute.call_count == 1 + 1 + len(chunks)
