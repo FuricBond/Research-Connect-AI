@@ -213,6 +213,47 @@ def test_api_duplicate_opportunity_idempotent(
     assert r2.json()["id"] == item_id_1
 
 
+def test_api_saving_again_keeps_the_researchers_stage_and_priority(
+    client: TestClient,
+    sample_data: tuple[UserModel, UserModel, OpportunityModel, OpportunityModel],
+):
+    """
+    Phase 6.6 end-to-end finding: saving an opportunity that is already in the workspace
+    applied the create schema's defaults, moving a CONSIDERING item back to SAVED and
+    resetting its priority to MEDIUM. The recommendation "Save" button sends only the
+    opportunity ID, so this happened on every repeat click.
+    """
+    u1, _, opp1, _ = sample_data
+    headers = {"X-User-ID": str(u1.id)}
+    created = client.post(
+        "/api/v1/workspace",
+        json={"opportunity_id": str(opp1.id), "priority": "HIGH", "notes": "Main target"},
+        headers=headers,
+    ).json()
+    moved = client.post(
+        f"/api/v1/workspace/{created['id']}/transition", json={"target_status": "CONSIDERING"}, headers=headers
+    )
+    assert moved.status_code == 200
+
+    again = client.post("/api/v1/workspace", json={"opportunity_id": str(opp1.id)}, headers=headers)
+
+    assert again.status_code == 200
+    assert (again.json()["status"], again.json()["priority"], again.json()["notes"]) == ("CONSIDERING", "HIGH", "Main target")
+
+    # Values the caller does send still apply.
+    explicit = client.post(
+        "/api/v1/workspace",
+        json={"opportunity_id": str(opp1.id), "status": "PLANNING", "priority": "LOW"},
+        headers=headers,
+    ).json()
+    assert (explicit["status"], explicit["priority"]) == ("PLANNING", "LOW")
+
+    # Saving an archived item still restores it.
+    assert client.post(f"/api/v1/workspace/{created['id']}/archive", headers=headers).status_code == 200
+    restored = client.post("/api/v1/workspace", json={"opportunity_id": str(opp1.id)}, headers=headers).json()
+    assert restored["status"] == "SAVED" and restored["archived_at"] is None
+
+
 def test_api_list_and_summary(
     client: TestClient,
     sample_data: tuple[UserModel, UserModel, OpportunityModel, OpportunityModel],

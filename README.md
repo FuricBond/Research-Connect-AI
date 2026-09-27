@@ -132,7 +132,7 @@ bearer token. The backend is a modular monolith. Its main modules:
 | Machine learning | sentence-transformers (`all-MiniLM-L6-v2`), deterministic scoring engines |
 | Data sources | WikiCFP (scraped), OpenAlex and Crossref APIs |
 | Security | JWT (HS256) bearer tokens, bcrypt password hashing |
-| Testing | pytest (1,582 tests), Vitest (169 tests) |
+| Testing | pytest (1,583 tests), Vitest (169 tests), end-to-end with pytest and Playwright (79 tests) |
 | Deployment | Docker Compose, hardened non-root images |
 
 ## Quick Start
@@ -277,7 +277,7 @@ The complete reference, including every production rule and a deployment checkli
 
 ```bash
 cd backend
-pytest                        # 1,582 tests: unit, integration, invariants, security, performance
+pytest                        # 1,583 tests: unit, integration, invariants, security, performance
 ```
 
 ```bash
@@ -292,6 +292,17 @@ Backend tests run offline against in-memory databases. Tests that need PostgreSQ
 database in `DATABASE_URL` and skip when it is unreachable. Set
 `RUN_POSTGRES_MIGRATION_TESTS=1` to also run the migration and concurrency tests, which create
 and drop their own temporary databases.
+
+**End-to-end.** This runs the whole platform as one system: the production images, a fresh
+database, the API workflows, the browser journeys, the scheduler and restarts. It uses a
+separate Compose project on its own ports and never touches your stack:
+
+```bash
+python e2e/run_e2e.py         # about 15 minutes; E2E_BROWSER_CHANNEL=chrome to use installed Chrome
+```
+
+See [e2e/README.md](e2e/README.md) and the
+[Phase 6.6 verification report](PHASE_6_6_E2E_VERIFICATION_REPORT.md).
 
 ## Security
 
@@ -336,7 +347,7 @@ Research-Connect-AI/
 | 3 | Researcher intelligence and personalized recommendations | Complete |
 | 4 | Research management: workspace, submissions, calendar, notifications, collaboration | Complete |
 | 5 | Advanced personalization, research postings and applications, peer discovery | Complete |
-| 6 | Platform, security and deployment: containers, sign-in, scheduler, production configuration and database startup are done; end-to-end verification and final audits remain | In progress |
+| 6 | Platform, security and deployment: containers, sign-in, scheduler, production configuration, database startup and end-to-end verification are done; final audits and release readiness remain | In progress |
 | 7 | Continuous evaluation: retrieval benchmarks, risk and deadline accuracy | Ongoing |
 
 **Known limitations**
@@ -358,6 +369,7 @@ See the [Development Roadmap](docs/architecture/project-roadmap.md) for the full
 | [Production Configuration](docs/architecture/phase6-4-production-configuration.md) | Settings, production rules and deployment checklist |
 | [Background Scheduler](docs/architecture/phase6-3-scheduler.md) | Scheduled jobs, locking and operation |
 | [Database Startup](docs/architecture/phase6-5-database-startup.md) | Startup order, readiness, the production schema gate and migration verification |
+| [End-to-End Verification](PHASE_6_6_E2E_VERIFICATION_REPORT.md) | How the running platform was verified, results and findings ([how to run](e2e/README.md)) |
 | [Database](docs/database/postgres-pgvector.md) | Schema, migrations, search indexes and backups |
 
 ## Troubleshooting

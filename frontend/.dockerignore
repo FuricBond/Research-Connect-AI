@@ -11,6 +11,10 @@ tests
 coverage
 vitest.config.ts
 vitest.setup.ts
+e2e
+playwright.config.ts
+test-results
+playwright-report
 
 # Local environment files can hold secrets; the image takes configuration from build
 # arguments and the runtime environment instead.

@@ -1,0 +1,25 @@
+# Phase 6.6 end-to-end environment: an override of the production docker-compose.yml.
+#
+# Everything that could collide with a developer's stack is changed: the Compose project name
+# (set by run_e2e.py), the published ports, the image tags and the PostgreSQL container name.
+# The data volume belongs to the project, so the run starts from an empty database and
+# `down -v` removes it. No application setting is changed here: the services run exactly
+# as in production, with the secrets run_e2e.py generates for each run.
+services:
+  postgres:
+    container_name: rce2e-postgres
+    ports: !override
+      - "127.0.0.1:${E2E_POSTGRES_PORT:-5436}:5432"
+
+  migrate:
+    image: researchconnect-backend:e2e
+
+  backend:
+    image: researchconnect-backend:e2e
+    ports: !override
+      - "127.0.0.1:${E2E_API_PORT:-8300}:8000"
+
+  frontend:
+    image: researchconnect-frontend:e2e
+    ports: !override
+      - "127.0.0.1:${E2E_WEB_PORT:-3300}:3000"

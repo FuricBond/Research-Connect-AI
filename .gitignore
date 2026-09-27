@@ -84,3 +84,8 @@ Demo video
 .agents/
 graphify-out/
 
+
+# Phase 6.6 end-to-end evidence (holds per-run logs) and Playwright output
+e2e/results/
+frontend/test-results/
+frontend/playwright-report/

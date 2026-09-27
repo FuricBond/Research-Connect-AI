@@ -37,8 +37,8 @@ This document provides the authoritative, comprehensive architectural roadmap an
 | **Phase 5.10** | Faculty Research Opportunities & Project Postings | **COMPLETE** | Platform-authored openings with a named accountable owner, 6-state lifecycle, FACULTY/ADMIN authorship, draft non-disclosure, taxonomy links, migration 0026, Next.js `/postings` | 38 Tests |
 | **Phase 5.11** | Research Internships, RA Openings & Applications | **COMPLETE** | Structured appointment terms, jointly owned applications with role-partitioned transitions, author-private review notes, append-only history, Phase 4.5 notifications, migration 0027 | 37 Tests |
 | **Phase 5.12** | Peer & Co-Author Discovery | **COMPLETE** | Opt-in discoverability with field-level disclosure, deterministic explainable matcher balancing shared against complementary expertise, taxonomy proximity, migration 0028, Next.js `/peers` | 35 Tests |
-| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder, containerized full stack (6.1), browser sign-in and account administration (6.2), background scheduler, off by default (6.3), validated production configuration (6.4), fresh-database startup with schema readiness, a production schema gate and serialized migrations (6.5). Remaining: 6.6 end-to-end verification, 6.7 final security audit, 6.8 final performance and regression audit, 6.9 demo and release readiness | 1,582 Backend + 169 Frontend Tests |
-| **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,573 Backend Tests Passing |
+| **Phase 6** | Platform Infrastructure, Security & Correctness Hardening | **IN PROGRESS** | Signed bearer-token authentication with bcrypt credentials, single identity dependency (no fallback identity), RBAC (Student/Faculty/Admin), login rate limiting, structured logging with correlation IDs, fresh-database migrations, Phase 5 stack wired into live ranking, durable personalization reset, deterministic demo seeder, containerized full stack (6.1), browser sign-in and account administration (6.2), background scheduler, off by default (6.3), validated production configuration (6.4), fresh-database startup with schema readiness, a production schema gate and serialized migrations (6.5), end-to-end verification of the running stack with an isolated, reproducible E2E suite (6.6). Remaining: 6.7 final security audit, 6.8 final performance and regression audit, 6.9 demo and release readiness | 1,583 Backend + 169 Frontend + 79 E2E Tests |
+| **Phase 7** | Comprehensive System Evaluation | **CONTINUOUS** | Empirical IR benchmarks (NDCG@10, MAP, MRR), risk false-positive benchmarks, deadline normalization stress tests | 1,583 Backend Tests |
 
 ---
 
@@ -726,8 +726,21 @@ Recording a walkthrough of every feature against a seeded PostgreSQL stack expos
   - "Save" on a recommendation did not add it to the workspace; it now does.
   - The collaboration page had no link; a "Collaborate" link now opens it.
 
-#### 7.11 Remaining Phase 6 work
-- **6.6 End-to-end verification**, **6.7 Final security audit**, **6.8 Final performance and regression audit**, **6.9 Demo and release readiness**.
+#### 7.11 End-to-End Verification (Phase 6.6) [COMPLETE]
+- **A reproducible E2E environment**: `python e2e/run_e2e.py` builds the production images and starts the real Compose stack as a separate project (own ports, image tags, volume and freshly generated secrets, `APP_ENV=production`, unchanged rate limits). It verifies startup order and readiness, runs the suites, snapshots every container's logs, fails on any leaked secret, token or 5xx response, and tears everything down. Guide: `e2e/README.md`.
+- **Three suites, no mocks**:
+  - **API** (`e2e/api`, 69 tests): real HTTP with bearer tokens, plus SQL checks of stored state. Covers the demo seed and the P2-1 guard, the database, authentication, discovery and personalization (exclusion, off switch, governance, reset, isolation), workspace and submissions, faculty postings, applications with reviewer-note privacy, peer consent, notifications, and an authorization matrix.
+  - **Browser** (`frontend/e2e`, Playwright, 3 tests): the sign-in lifecycle, the discover → save → apply → notified journey, and every signed-in page. Any failed API call or page error fails the run.
+  - **Stack** (7 tests): the scheduler running in the backend, with each job's database effect, idempotency and non-overlap; restarts of each service and of the whole stack, with the data read back.
+- **Result**: from an empty database, the stack starts in 20.9 s, and 69 + 3 + 7 tests pass with a clean log scan. Report: `PHASE_6_6_E2E_VERIFICATION_REPORT.md`.
+- **Fixed**: saving an opportunity already in the workspace applied the create schema's defaults, moving a `CONSIDERING` item back to `SAVED` and resetting its priority. This was reachable from the recommendation Save button. Now only the fields sent are applied, with a regression test.
+- **Deferred with evidence**:
+  - To 6.7: issued JWTs stay valid after client-side sign-out until they expire (480 minutes by default).
+  - To 6.8/6.9: the first search on a new backend container downloads the embedding model (30.4 s, and needs outbound network).
+  - To 6.8: one timing micro-benchmark is flaky under load.
+
+#### 7.12 Remaining Phase 6 work
+- **6.7 Final security audit**, **6.8 Final performance and regression audit**, **6.9 Demo and release readiness**.
 
 ---
 
@@ -741,4 +754,4 @@ Continuous quantitative validation of AI, scraping, ranking, and lifecycle syste
   - *Deadline Integrity*: Expired opportunities (`EXPIRED`) are strictly excluded from recommendation feeds and cannot be resurrected.
   - *Readiness Gating*: Submissions cannot transition to `READY` without all required documents in `READY` status.
   - *Deduplication Idempotency*: Notification and calendar projection engines use deterministic SHA-256 keys to guarantee zero duplicates.
-- **Test Coverage**: 1,582 backend unit, integration, invariant, security and performance tests and 169 frontend tests. Of the backend tests, 1,573 pass and 9 skip in an ordinary run: 7 need the opt-in PostgreSQL flag (all pass with it enabled) and 2 need embedding data. Scraper tests live separately under `scrapers/tests`.
+- **Test Coverage**: 1,583 backend unit, integration, invariant, security and performance tests, 169 frontend tests, and 79 end-to-end tests (69 API, 3 browser, 7 stack) run against the deployed stack. Of the backend tests, 9 skip in an ordinary run: 7 need the opt-in PostgreSQL flag (all pass with it enabled) and 2 need embedding data. Two wall-clock micro-benchmarks are machine-sensitive and can fail under load. Scraper tests live separately under `scrapers/tests`.

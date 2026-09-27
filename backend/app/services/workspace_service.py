@@ -246,19 +246,24 @@ class WorkspaceService:
         now = datetime.now(timezone.utc)
 
         if existing is not None:
-            # Re-activating or updating metadata
+            # Saving an opportunity that is already tracked applies only what the caller
+            # sent. The create schema defaults status to SAVED and priority to MEDIUM, so
+            # applying those defaults moved a CONSIDERING item back to SAVED and reset its
+            # priority whenever the researcher pressed "Save" on it again.
+            sent = payload.model_fields_set
             if existing.status == WorkspaceStatus.ARCHIVED.value and payload.status != WorkspaceStatus.ARCHIVED:
+                # Re-saving an archived item restores it (to SAVED unless a status was sent).
                 existing.status = payload.status.value
                 existing.status_updated_at = now
                 existing.archived_at = None
-            elif payload.status != WorkspaceStatus(existing.status):
+            elif "status" in sent and payload.status != WorkspaceStatus(existing.status):
                 # Apply explicit state transition validation
                 curr_status = WorkspaceStatus(existing.status)
                 if payload.status in VALID_TRANSITIONS.get(curr_status, set()):
                     existing.status = payload.status.value
                     existing.status_updated_at = now
 
-            if payload.priority:
+            if "priority" in sent:
                 existing.priority = payload.priority.value
             if payload.tags:
                 existing.tags = list(dict.fromkeys(payload.tags))

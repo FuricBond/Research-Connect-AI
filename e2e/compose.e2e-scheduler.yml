@@ -1,0 +1,15 @@
+# Phase 6.6 scheduler stage: layered over compose.e2e.yml for the scheduler tests only.
+#
+# Enables the Phase 6.3 background scheduler in the backend with the shortest intervals its
+# settings accept (60 s), so every job runs twice within a few minutes. The scheduler's
+# built-in first-run delay (60 s, then 15 s between jobs) is unchanged. The WikiCFP
+# opportunity refresh stays off: it depends on an external website, which a reproducible
+# test environment must not.
+services:
+  backend:
+    environment:
+      SCHEDULER_ENABLED: "true"
+      SCHEDULER_DEADLINE_EXPIRY_INTERVAL_SECONDS: "60"
+      SCHEDULER_REMINDER_INTERVAL_SECONDS: "60"
+      SCHEDULER_ADAPTIVE_REFRESH_INTERVAL_SECONDS: "60"
+      SCHEDULER_GOVERNANCE_REFRESH_INTERVAL_SECONDS: "60"
