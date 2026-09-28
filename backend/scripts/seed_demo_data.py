@@ -572,8 +572,10 @@ def _seed_opportunities(db: Session, reference_time: datetime, dry_run: bool) ->
         opportunity.location = location
         opportunity.summary = f"{opportunity_type.title()} hosted by {publisher}."
         opportunity.description = description
-        opportunity.website_url = "https://example.test/" + title.lower().replace(" ", "-")[:80]
-        opportunity.submission_url = opportunity.website_url + "/submit"
+        # These venues are made up, so they get no links: a placeholder address would show a
+        # "visit website" link that leads nowhere. Real calls for papers come from WikiCFP.
+        opportunity.website_url = None
+        opportunity.submission_url = None
         opportunity.submission_deadline = deadline
         opportunity.notification_date = deadline + timedelta(days=30)
         opportunity.camera_ready_deadline = deadline + timedelta(days=52)

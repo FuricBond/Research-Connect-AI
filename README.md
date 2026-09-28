@@ -132,7 +132,7 @@ bearer token. The backend is a modular monolith. Its main modules:
 | Machine learning | sentence-transformers (`all-MiniLM-L6-v2`), deterministic scoring engines |
 | Data sources | WikiCFP (scraped), OpenAlex and Crossref APIs |
 | Security | JWT (HS256) bearer tokens, bcrypt password hashing |
-| Testing | pytest (1,592 tests), Vitest (169 tests), end-to-end with pytest and Playwright (79 tests) |
+| Testing | pytest (1,603 tests), Vitest (169 tests), end-to-end with pytest and Playwright (79 tests) |
 | Deployment | Docker Compose, hardened non-root images |
 
 ## Quick Start
@@ -181,6 +181,19 @@ sample opportunities, preferences and research postings. Sign in at
 http://localhost:3000/login as `demo.faculty@researchconnect.test`,
 `demo.student@researchconnect.test` or `demo.admin@researchconnect.test` with the password you
 chose.
+
+To make the platform look in use, add a community of sixty fictional researchers (15 faculty,
+45 students at five made-up universities) with profiles, peer-discovery opt-ins, postings and
+applications at every stage of review, and load real calls for papers from WikiCFP:
+
+```bash
+docker compose exec backend python -m scripts.seed_community --password '<choose a password>'
+docker compose exec backend python -m scrapers.pipelines.collect_opportunities --topic "machine learning" --pages 2
+```
+
+The community goes through the platform's own services, so application histories and
+notifications are real; `--remove` deletes exactly what it added. The demo seeder's twelve
+venues are made up, so they carry no website links.
 
 <details>
 <summary><b>Everyday commands</b></summary>
@@ -292,7 +305,7 @@ The complete reference, including every production rule and a deployment checkli
 
 ```bash
 cd backend
-pytest                        # 1,592 tests: unit, integration, invariants, security, performance
+pytest                        # 1,603 tests: unit, integration, invariants, security, performance
 ```
 
 ```bash
