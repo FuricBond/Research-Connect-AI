@@ -237,6 +237,11 @@ interrupted with Ctrl+C. Every page saved before that stays saved, the run is re
 FAILED with the reason, and the summary prints `next_cursor`; pass it to `--cursor` with the
 same filters to continue. Loading a work that is already stored only refreshes it.
 
+Run one load at a time. Works share authors and institutions, and each page holds its row
+locks until it commits, so two loads running together can deadlock on a shared row;
+PostgreSQL cancels one statement, and that work is skipped and logged. Fetch skipped works
+again by id once the other load has finished.
+
 After loading, assign topics and generate embeddings. Both skip what is already done and
 commit as they go, so they can also be re-run after an interruption:
 
