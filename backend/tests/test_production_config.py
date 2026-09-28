@@ -24,6 +24,7 @@ import re
 import secrets
 import subprocess
 import sys
+import tempfile
 
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
@@ -254,7 +255,7 @@ _SAFE_ENV_PREFIXES = ("APP_ENV", "AUTH_", "DATABASE_URL", "CORS_", "LOG_", "API_
 
 _PROBE = r"""
 import json, logging, sys
-sys.path.insert(0, ".")
+sys.path.insert(0, sys.argv[1])
 from fastapi.testclient import TestClient
 from app.main import app
 logging.disable(logging.CRITICAL)
@@ -266,14 +267,17 @@ print("RESULT" + json.dumps({p: client.get(p).status_code for p in ("/docs", "/r
 def run_app_import(**env: str) -> subprocess.CompletedProcess:
     clean = {k: v for k, v in os.environ.items() if not k.startswith(_SAFE_ENV_PREFIXES)}
     clean.update({"LOG_LEVEL": "WARNING", **env})
-    return subprocess.run(
-        [sys.executable, "-c", _PROBE],
-        cwd=str(BACKEND),
-        env=clean,
-        capture_output=True,
-        text=True,
-        timeout=300,
-    )
+    # Run outside backend/: the settings loader reads .env from the working directory, so
+    # a developer's backend/.env would otherwise supply the very settings a test leaves unset.
+    with tempfile.TemporaryDirectory() as workdir:
+        return subprocess.run(
+            [sys.executable, "-c", _PROBE, str(BACKEND)],
+            cwd=workdir,
+            env=clean,
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
 
 
 def result_of(proc: subprocess.CompletedProcess) -> dict:

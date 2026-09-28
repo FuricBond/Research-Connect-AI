@@ -132,7 +132,7 @@ bearer token. The backend is a modular monolith. Its main modules:
 | Machine learning | sentence-transformers (`all-MiniLM-L6-v2`), deterministic scoring engines |
 | Data sources | WikiCFP (scraped), OpenAlex and Crossref APIs |
 | Security | JWT (HS256) bearer tokens, bcrypt password hashing |
-| Testing | pytest (1,583 tests), Vitest (169 tests), end-to-end with pytest and Playwright (79 tests) |
+| Testing | pytest (1,592 tests), Vitest (169 tests), end-to-end with pytest and Playwright (79 tests) |
 | Deployment | Docker Compose, hardened non-root images |
 
 ## Quick Start
@@ -292,7 +292,7 @@ The complete reference, including every production rule and a deployment checkli
 
 ```bash
 cd backend
-pytest                        # 1,583 tests: unit, integration, invariants, security, performance
+pytest                        # 1,592 tests: unit, integration, invariants, security, performance
 ```
 
 ```bash

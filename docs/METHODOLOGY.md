@@ -403,4 +403,4 @@ In accordance with rigorous academic integrity standards, limitations are docume
 | **Personalization Cap** | Max adjustment $\le 0.15$, Damping threshold $S_{\text{base}} < 0.30$, Tie-breaking tuple |
 | **Governance Machine** | 5-State FSM (`ALLOW`, `ALLOW_BOUNDED`, `HOLD`, `REDUCE`, `SUSPEND`) with Hysteresis |
 | **Workflow Management** | Proposal Kanban, Document Versioning (SHA-256), Readiness Engine, RFC 5545 iCal |
-| **Verification Suite** | 101 pytest modules (1,583 tests) enforcing unit correctness, security, and mathematical invariants, 13 Vitest files (169 tests) for the frontend, and an end-to-end suite (79 tests: API, Playwright browser and stack) run against the deployed Compose stack |
+| **Verification Suite** | 102 pytest modules (1,592 tests) enforcing unit correctness, security, and mathematical invariants, 13 Vitest files (169 tests) for the frontend, and an end-to-end suite (79 tests: API, Playwright browser and stack) run against the deployed Compose stack |
