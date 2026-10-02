@@ -476,8 +476,10 @@ def test_f_templates_ship_empty_secrets():
     assert root["POSTGRES_PASSWORD"] == "" and root["AUTH_SECRET_KEY"] == ""
     assert backend["AUTH_SECRET_KEY"] == ""
     assert backend["OPENALEX_API_KEY"] == ""
+    assert root["OPENALEX_API_KEY"] == "" and root["OPENALEX_EMAIL"] == ""
     assert "CHANGE_ME" in backend["DATABASE_URL"]
     assert Settings.model_fields["auth_secret_key"].default == ""
+    assert Settings.model_fields["openalex_api_key"].default == ""
 
 
 def test_f_the_backend_template_is_a_valid_development_configuration(tmp_path):
@@ -521,6 +523,72 @@ def test_f_compose_requires_secrets_and_pins_production_behaviour():
     assert "SCHEDULER_OPPORTUNITY_REFRESH_ENABLED: ${SCHEDULER_OPPORTUNITY_REFRESH_ENABLED:-false}" in backend
     for port in re.findall(r'-\s*"([^"]+:\d+:\d+)"', compose):
         assert port.startswith("127.0.0.1:"), port
+
+
+def test_f_compose_wires_the_research_refresh_off_by_default():
+    backend = _backend_service_block(_read("docker-compose.yml"))
+    assert "SCHEDULER_RESEARCH_REFRESH_ENABLED: ${SCHEDULER_RESEARCH_REFRESH_ENABLED:-false}" in backend
+    assert "SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS: ${SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS:-28800}" in backend
+    assert "RESEARCH_REFRESH_SUBFIELDS: ${RESEARCH_REFRESH_SUBFIELDS:-1702}" in backend
+    assert "RESEARCH_REFRESH_MAX_WORKS: ${RESEARCH_REFRESH_MAX_WORKS:-50000}" in backend
+    assert "OPENALEX_API_KEY: ${OPENALEX_API_KEY:-}" in backend
+    assert "OPENALEX_EMAIL: ${OPENALEX_EMAIL:-}" in backend
+    # An integer setting with an empty default would fail validation and stop the backend.
+    integer_settings = {
+        name.upper()
+        for name, field in Settings.model_fields.items()
+        if field.annotation is int
+    }
+    checked = set()
+    for name, variable, default in re.findall(r"^\s+([A-Z_]+): \$\{([A-Z_]+):-([^}]*)\}", backend, re.M):
+        if name == variable and name in integer_settings:
+            assert default.strip().isdigit(), f"{name} needs a numeric default, got {default!r}"
+            checked.add(name)
+    assert {"SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS", "RESEARCH_REFRESH_MAX_WORKS"} <= checked
+
+
+def test_f_the_root_template_wires_every_research_refresh_key():
+    root = _env_file_values(".env.example")
+    assert root["SCHEDULER_RESEARCH_REFRESH_ENABLED"] == "false"
+    assert root["SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS"] == "28800"
+    assert root["RESEARCH_REFRESH_SUBFIELDS"] == "1702"
+    assert root["RESEARCH_REFRESH_MAX_WORKS"] == "50000"
+    backend = _backend_service_block(_read("docker-compose.yml"))
+    for key in (
+        "SCHEDULER_RESEARCH_REFRESH_ENABLED",
+        "SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS",
+        "RESEARCH_REFRESH_SUBFIELDS",
+        "RESEARCH_REFRESH_MAX_WORKS",
+        "OPENALEX_EMAIL",
+        "OPENALEX_API_KEY",
+    ):
+        assert key in root, f"{key} is missing from .env.example"
+        assert f"{key}: ${{{key}:-" in backend, f"{key} is not passed to the backend container"
+
+
+def test_f_a_root_env_switch_alone_registers_the_research_refresh(tmp_path):
+    """Setting the switch in the root .env, passed through Compose, is enough."""
+    from app.scheduler.jobs import RESEARCH_REFRESH, build_default_jobs
+
+    template = _env_file_values(".env.example")
+    backend_keys = {name.upper() for name in Settings.model_fields}
+    lines = [f"{k}={v}" for k, v in template.items() if k in backend_keys and v != ""]
+    env_file = tmp_path / ".env"
+    env_file.write_text("\n".join(lines), encoding="utf-8")
+    off = Settings(_env_file=env_file, auth_secret_key=GOOD_SECRET, database_url=PRODUCTION_DATABASE_URL)
+    assert RESEARCH_REFRESH not in [j.name for j in build_default_jobs(off)]
+
+    env_file.write_text(
+        "\n".join(
+            [line for line in lines if not line.startswith("SCHEDULER_RESEARCH_REFRESH_ENABLED=")]
+            + ["SCHEDULER_RESEARCH_REFRESH_ENABLED=true"]
+        ),
+        encoding="utf-8",
+    )
+    on = Settings(_env_file=env_file, auth_secret_key=GOOD_SECRET, database_url=PRODUCTION_DATABASE_URL)
+    jobs = build_default_jobs(on)
+    assert [j.name for j in jobs][-1] == RESEARCH_REFRESH
+    assert jobs[-1].interval_seconds == 28_800
 
 
 def test_f_backend_stop_grace_outlasts_the_scheduler_shutdown_wait():

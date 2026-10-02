@@ -74,6 +74,10 @@ Each finding was reproduced against the code before it was changed.
 | `API_DOCS_ENABLED` | unset: on outside production, off in production | bool | — |
 | `DISCOVERY_RATE_LIMIT_PER_MINUTE` | `60` | at least 1 | — |
 | `SCHEDULER_*` | off | see [Phase 6.3](phase6-3-scheduler.md) | enable in one process only |
+| `SCHEDULER_RESEARCH_REFRESH_ENABLED` | `false` | bool | outbound requests to api.openalex.org; runs only with `SCHEDULER_ENABLED` |
+| `RESEARCH_REFRESH_*` | subfield `1702`, cap `50000` | see [Phase 6.3](phase6-3-scheduler.md) | integer values need a number in Compose, never an empty default |
+| `OPENALEX_EMAIL` | empty | email | optional polite-pool contact |
+| `OPENALEX_API_KEY` | empty | free OpenAlex key | optional secret: ten times the keyless daily budget; never committed, never logged |
 
 **Compose and frontend:**
 
@@ -97,16 +101,22 @@ Each finding was reproduced against the code before it was changed.
    `curl http://localhost:8000/api/health/ready` should report `"schema": "current"`.
 5. Demo data is optional: `docker compose exec backend python -m scripts.seed_demo_data
    --password '<your password>'`. The public demo password is refused in production.
-6. Leave `API_DOCS_ENABLED` and `SCHEDULER_OPPORTUNITY_REFRESH_ENABLED` off unless you need them.
-   Enable `SCHEDULER_ENABLED` in one backend process only.
+6. Leave `API_DOCS_ENABLED`, `SCHEDULER_OPPORTUNITY_REFRESH_ENABLED` and
+   `SCHEDULER_RESEARCH_REFRESH_ENABLED` off unless you need them. Enable `SCHEDULER_ENABLED` in
+   one backend process only.
+7. Before switching on `SCHEDULER_RESEARCH_REFRESH_ENABLED`: save an evaluation snapshot of the
+   current corpus, optionally set `OPENALEX_EMAIL` and `OPENALEX_API_KEY` in the root `.env`,
+   then `docker compose up -d backend`. The admin page's Data freshness card shows each run.
 
 ## 5. Secrets policy
 
 - **Runtime secrets.** `POSTGRES_PASSWORD` and `AUTH_SECRET_KEY` exist only in the git-ignored
   root `.env` and in the environment of the containers that need them. The frontend receives
-  none; migrate receives only the database URL.
-- **Templates.** Both `.env.example` files ship empty secrets and a `CHANGE_ME` database
-  password. The settings class has no default secret.
+  none; migrate receives only the database URL. The optional `OPENALEX_API_KEY` follows the
+  same rule: empty by default, passed to the backend only, and redacted from request errors,
+  run records, job details and logs.
+- **Templates.** Both `.env.example` files ship empty secrets (including `OPENALEX_API_KEY`)
+  and a `CHANGE_ME` database password. The settings class has no default secret.
 - **Dockerfiles.** No `ENV` or `ARG` carries a secret; every value arrives at runtime.
 - **The frontend bundle.** It contains exactly one environment value, `NEXT_PUBLIC_API_URL`,
   and the build refuses one with embedded credentials.

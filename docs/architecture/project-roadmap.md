@@ -741,6 +741,7 @@ Recording a walkthrough of every feature against a seeded PostgreSQL stack expos
 
 #### 7.12 Remaining Phase 6 work
 - **6.7 Final security audit**, **6.8 Final performance and regression audit**, **6.9 Demo and release readiness**.
+- **Research refresh** (implemented, off by default): the `research_refresh` scheduler job fetches newly published and rising OpenAlex papers every 8 hours with filter-only requests, then tags and embeds them under a corpus cap. It has its own switch (`SCHEDULER_RESEARCH_REFRESH_ENABLED`), a CLI (`python -m scrapers.pipelines.refresh_research`), an admin Data freshness card and an in-app alert after two failed runs in a row. See [OpenAlex: Scheduled refresh](../research-data/openalex.md#scheduled-refresh).
 
 ---
 

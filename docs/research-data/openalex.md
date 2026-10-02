@@ -258,6 +258,86 @@ per 200 works on a laptop CPU.
 
 ---
 
+## Scheduled refresh
+
+The `research_refresh` scheduler job keeps the corpus current: every 8 hours it fetches newly
+published and rising papers, tags them and embeds them, so they are searchable by meaning in
+the same run. It is off by default (`SCHEDULER_RESEARCH_REFRESH_ENABLED=false`) and runs only
+when `SCHEDULER_ENABLED` is also true. Code: `scrapers/pipelines/refresh_research.py`; the
+scheduler side is in [Phase 6.3](../architecture/phase6-3-scheduler.md).
+
+### Two lanes per subfield
+
+For each subfield in `RESEARCH_REFRESH_SUBFIELDS` (default `1702`, Artificial Intelligence),
+in order, the refresh runs two passes. Both select with filters only, never a keyword search
+(which costs ten times as much), ask for works with an abstract, and fetch 200 per page:
+
+| Lane | Filter | Sort | Pages |
+|---|---|---|---|
+| newest | `primary_topic.subfield.id:<id>`, `has_abstract:true`, published in the last `RESEARCH_REFRESH_NEW_WINDOW_DAYS` (14) days | `publication_date:desc` | `RESEARCH_REFRESH_NEW_PAGES` (1) |
+| rising | the same, published in the last `RESEARCH_REFRESH_RISING_WINDOW_DAYS` (365) days | `cited_by_count:desc` | `RESEARCH_REFRESH_RISING_PAGES` (1) |
+
+A page count of 0 switches a lane off. Each pass is one ingestion run labelled
+`research_refresh:{run_tag}:{lane}:{subfield}`, where `run_tag` is the scheduler run id. After
+the passes, untagged works get topics and works without an embedding get one.
+
+**Why rolling publication-date windows.** The natural "what changed since the last run"
+filters, `from_created_date` and `from_updated_date`, need a paid OpenAlex plan. Instead the
+refresh looks back a fixed window by publication date on every run. Works it already has are
+updated rather than duplicated, so overlapping windows cost calls but never create rows.
+
+**Outcomes.** A spent daily budget ends the refresh: that pass and every one still to come
+count as failed, and the run is `PARTIAL`. A failed request fails only its pass. A stop (the
+job's timeout or a shutdown) ends the refresh at a page boundary without counting a failure.
+After two runs in a row with every pass failed, each active administrator gets an in-app
+alert. The admin page's Data freshness card shows the last run, its status, the papers added
+in the last 24 hours and the next run.
+
+### Budget
+
+The budget resets at midnight UTC: about 1,000 list calls a day without a key, and 10,000
+with a free key (`OPENALEX_API_KEY`). One refresh with the defaults costs 2 calls per subfield
+(one page per lane), so three runs a day spend about 6 calls per subfield, a small share of
+either budget. Manual bulk loads draw on the same budget.
+
+### Storage and the corpus cap
+
+A work takes about 22 KB of database storage including its embedding and topic links (see
+Bulk loading above), so 50,000 works need about 1.1 GB. `RESEARCH_REFRESH_MAX_WORKS` (default
+50,000) caps the corpus: once `research_works` holds that many rows, the newest lane is
+skipped and the rising lane only updates works already stored.
+
+### Running it by hand
+
+The same refresh runs from the command line, from `backend/` so the settings read
+`backend/.env`:
+
+```bash
+cd backend
+PYTHONPATH=.. python -m scrapers.pipelines.refresh_research --subfields 1702 --new-pages 1 --rising-pages 1
+```
+
+Options `--subfields`, `--new-pages`, `--rising-pages`, `--new-window-days`,
+`--rising-window-days` and `--max-works` default to the settings above. It takes the research
+load lock, the same lock the scheduled job and `collect_openalex` use, and exits with code 3
+while another research load or the scheduled job holds it. It exits 1 when the refresh could
+not start or a pass failed, and 0 otherwise.
+
+### Before switching it on
+
+- **Save an evaluation snapshot.** Take a database backup (see Backup and restore in
+  [the database guide](../database/postgres-pgvector.md)) and note the corpus size and the
+  results of a few reference searches, so retrieval quality can be compared before and after
+  new papers arrive.
+- **Changing the embedding model.** Pause the job (`SCHEDULER_RESEARCH_REFRESH_ENABLED=false`),
+  re-embed every work with the new model
+  (`python -m ml.embeddings.generate_embeddings --entity research_work --model <name> --force`),
+  then change `EMBEDDING_MODEL`, rebuild the backend image (it bakes the model in) and switch
+  the job back on. The refresh only embeds works that have no embedding or one from another
+  model, so it would otherwise mix models in one index while the change is under way.
+
+---
+
 ## Pagination
 
 The pipeline uses **cursor-based pagination** (`?cursor=*` then advancing via

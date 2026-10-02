@@ -262,6 +262,14 @@ A stopped load prints a `--cursor` to continue from. See
 [OpenAlex Integration](docs/research-data/openalex.md#bulk-loading) for subfields, the daily
 budget and storage.
 
+To keep the papers current, switch on the scheduled research refresh: set
+`SCHEDULER_ENABLED=true` and `SCHEDULER_RESEARCH_REFRESH_ENABLED=true` in the root `.env`, then
+`docker compose up -d backend`. Every 8 hours it fetches newly published and rising papers in
+`RESEARCH_REFRESH_SUBFIELDS` from OpenAlex, then tags and embeds them; the admin page's Data
+freshness card shows how each run went. The same refresh runs by hand from `backend/` with
+`PYTHONPATH=.. python -m scrapers.pipelines.refresh_research` (exit code 3 while the scheduled
+job is running). See [Scheduled refresh](docs/research-data/openalex.md#scheduled-refresh).
+
 In development, interactive API documentation is served at http://localhost:8000/docs.
 
 **Frontend**
@@ -296,6 +304,9 @@ Docker Compose reads the root `.env` (template: `.env.example`). A backend run o
 | `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | API address as seen by the browser; set at frontend build time |
 | `API_DOCS_ENABLED` | off in production | Serve `/docs`, `/redoc` and `/openapi.json` |
 | `SCHEDULER_ENABLED` | `false` | Run the background maintenance jobs |
+| `SCHEDULER_RESEARCH_REFRESH_ENABLED` | `false` | Also fetch new OpenAlex papers on a schedule (outbound requests) |
+| `SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS` | `28800` | Seconds between research refreshes (8 h) |
+| `OPENALEX_API_KEY` | empty | Optional free OpenAlex key: ten times the keyless daily budget. A secret: never commit it |
 | `LOG_LEVEL` / `LOG_FORMAT` | `INFO` / `text` | Logging verbosity; `json` for structured logs |
 
 The complete reference, including every production rule and a deployment checklist, is in

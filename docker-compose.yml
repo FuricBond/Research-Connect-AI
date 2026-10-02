@@ -82,10 +82,20 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       LOG_FORMAT: ${LOG_FORMAT:-text}
       API_DOCS_ENABLED: ${API_DOCS_ENABLED:-false}
-      # Phase 6.3 background scheduler, off unless set in .env. Opportunity refresh is the
-      # one job that makes outbound requests (WikiCFP) and has its own switch.
+      # Phase 6.3 background scheduler, off unless set in .env. Each job that makes outbound
+      # requests has its own switch: opportunity refresh (WikiCFP) and research refresh
+      # (api.openalex.org). Integer settings always carry a number default: an empty value
+      # fails validation and the backend would not start.
       SCHEDULER_ENABLED: ${SCHEDULER_ENABLED:-false}
       SCHEDULER_OPPORTUNITY_REFRESH_ENABLED: ${SCHEDULER_OPPORTUNITY_REFRESH_ENABLED:-false}
+      SCHEDULER_RESEARCH_REFRESH_ENABLED: ${SCHEDULER_RESEARCH_REFRESH_ENABLED:-false}
+      SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS: ${SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS:-28800}
+      RESEARCH_REFRESH_SUBFIELDS: ${RESEARCH_REFRESH_SUBFIELDS:-1702}
+      RESEARCH_REFRESH_MAX_WORKS: ${RESEARCH_REFRESH_MAX_WORKS:-50000}
+      # Optional. An OpenAlex email joins the polite pool; a free API key raises the daily
+      # budget ten times. Empty means keyless. Never commit a real key.
+      OPENALEX_EMAIL: ${OPENALEX_EMAIL:-}
+      OPENALEX_API_KEY: ${OPENALEX_API_KEY:-}
       # Load the embedding model baked into the image in the background at startup, so the
       # first literature search is fast. Never delays or fails startup.
       EMBEDDING_WARMUP_ON_STARTUP: ${EMBEDDING_WARMUP_ON_STARTUP:-true}

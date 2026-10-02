@@ -3,8 +3,9 @@
 Phase 6.3 runs the platform's maintenance work on a schedule instead of relying on an
 administrator or a page view to trigger it. The scheduler is deliberately small: an asyncio
 loop per job inside the backend process, PostgreSQL advisory locks for cross-process
-exclusion, and five thin job adapters over services that already existed. There is no
-Celery, Redis, broker or separate worker image.
+exclusion, and thin job adapters over services that already existed: the five Phase 6 jobs,
+plus the research refresh added later. There is no Celery, Redis, broker or separate worker
+image.
 
 **It is off by default.** With `SCHEDULER_ENABLED=false` (the default everywhere: the settings
 class, both `.env.example` files and `docker-compose.yml`) the application creates no task,
@@ -18,7 +19,7 @@ Code: `backend/app/scheduler/` (`scheduler.py`, `jobs.py`, `locks.py`, `metrics.
 
 ## 1. Job matrix
 
-The jobs are rows 17–21 of the Phase 6 job matrix, and no others.
+The jobs are rows 17–21 of the Phase 6 job matrix, plus the research refresh, and no others.
 
 | Job | Existing entry point | Default interval | Budget | Network | Scope | Transaction |
 |---|---|---|---|---|---|---|
@@ -27,6 +28,7 @@ The jobs are rows 17–21 of the Phase 6 job matrix, and no others.
 | `adaptive_signal_refresh` | `AdaptivePreferenceSignalService.recompute_adaptive_signals(db, profile_id)` | 6 h | 1,800 s | no | per researcher | one committed unit per researcher |
 | `governance_refresh` | `PersonalizationGovernanceService.recompute_governance(db, profile_id)` | 12 h | 1,800 s | no | per researcher | one committed unit per researcher |
 | `opportunity_refresh` | `scrapers.pipelines.collect_opportunities.run_pipeline(...)` | 24 h | 1,800 s | **yes (WikiCFP)** | global | the pipeline opens and commits its own session |
+| `research_refresh` | `scrapers.pipelines.refresh_research.run_refresh(...)` | 8 h | 1,800 s | **yes (api.openalex.org)** | global | each pass commits page by page; topics and embeddings commit their own batches |
 
 **Idempotency** comes from the services, not from the scheduler:
 
@@ -40,11 +42,16 @@ The jobs are rows 17–21 of the Phase 6 job matrix, and no others.
 - `governance_refresh` upserts one evaluation per `(profile_id, algorithm_version)` and appends
   a governance event only when the gate state actually changes.
 - `opportunity_refresh` goes through the pipeline's own deduplication and persistence.
+- `research_refresh` upserts works on their OpenAlex id, tags only untagged works and embeds
+  only works with no embedding (or one from another model), so a second run adds nothing.
 
 **Failure behaviour.** A job that raises is recorded as `FAILED` and nothing else is affected.
 In the per-researcher jobs a researcher whose unit fails is rolled back, counted and skipped,
 and the run finishes as `PARTIAL`. A failed governance evaluation leaves the previous gate in
-force; it never falls back to a more permissive state.
+force; it never falls back to a more permissive state. In `research_refresh` a spent OpenAlex
+budget or a failed request fails passes, not the run: it finishes as `PARTIAL` with its
+counts kept, and after two runs in a row with every pass failed each active administrator
+gets one in-app alert. Only a setup failure (the database is unreachable) makes it `FAILED`.
 
 The opportunity pipeline's `--sweep-expired` path is not used, because expiry has its own
 job. (In that pipeline the sweep runs after the batch commit and is never committed itself;
@@ -55,7 +62,14 @@ that is pre-existing and outside this phase.)
 | Variable | Default | Meaning |
 |---|---|---|
 | `SCHEDULER_ENABLED` | `false` | Starts the scheduler in the backend process. |
-| `SCHEDULER_OPPORTUNITY_REFRESH_ENABLED` | `false` | Also schedules WikiCFP ingestion. It is the only job that makes outbound requests, so enabling local maintenance never starts third-party scraping. |
+| `SCHEDULER_OPPORTUNITY_REFRESH_ENABLED` | `false` | Also schedules WikiCFP ingestion. Each job that makes outbound requests has its own switch, so enabling local maintenance never starts third-party scraping. |
+| `SCHEDULER_RESEARCH_REFRESH_ENABLED` | `false` | Also schedules the research refresh (requests to api.openalex.org). Its own switch, like WikiCFP's. |
+| `SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS` | `28800` | Every 8 h; 28,800–36,000 for every 8–10 h. |
+| `RESEARCH_REFRESH_SUBFIELDS` | `1702` | Comma-separated OpenAlex subfield ids (1702 is Artificial Intelligence). |
+| `RESEARCH_REFRESH_NEW_PAGES` / `RESEARCH_REFRESH_RISING_PAGES` | `1` / `1` | 200-work pages per subfield for the newest and rising lanes (0–10; 0 switches a lane off). |
+| `RESEARCH_REFRESH_NEW_WINDOW_DAYS` / `RESEARCH_REFRESH_RISING_WINDOW_DAYS` | `14` / `365` | How far back each lane looks, by publication date. |
+| `RESEARCH_REFRESH_MAX_WORKS` | `50000` | Corpus cap: at this many research works the refresh stops adding papers and only updates known ones. |
+| `OPENALEX_EMAIL` / `OPENALEX_API_KEY` | empty | Optional. The polite-pool email, and a free key with ten times the keyless daily budget (a secret: never commit it). |
 | `SCHEDULER_OPPORTUNITY_REFRESH_TOPIC` | `artificial intelligence` | Passed to the pipeline. |
 | `SCHEDULER_OPPORTUNITY_REFRESH_MAX_PAGES` | `1` | Passed to the pipeline (1–20). |
 | `SCHEDULER_DEADLINE_EXPIRY_INTERVAL_SECONDS` | `3600` | Seconds between run starts (minimum 60, as for all intervals). |
@@ -64,16 +78,23 @@ that is pre-existing and outside this phase.)
 | `SCHEDULER_GOVERNANCE_REFRESH_INTERVAL_SECONDS` | `43200` | Governance windows are 14 and 60 days. |
 | `SCHEDULER_OPPORTUNITY_REFRESH_INTERVAL_SECONDS` | `86400` | |
 
-In Docker Compose the backend receives `SCHEDULER_ENABLED` and
-`SCHEDULER_OPPORTUNITY_REFRESH_ENABLED` from the root `.env` (both default to `false`). The
-interval, topic and page settings keep their defaults there; add them to the backend's
-`environment` in `docker-compose.yml` to change them.
+In Docker Compose the backend receives `SCHEDULER_ENABLED`,
+`SCHEDULER_OPPORTUNITY_REFRESH_ENABLED` and `SCHEDULER_RESEARCH_REFRESH_ENABLED` from the root
+`.env` (all default to `false`), along with the research refresh interval, subfields and corpus
+cap and the two `OPENALEX_*` values. The other interval, topic and page settings keep their
+defaults there; add them to the backend's `environment` in `docker-compose.yml` to change them.
+Give integer settings a numeric default there (`${VAR:-28800}`, never `${VAR:-}`): an empty
+value fails validation and the backend does not start.
 
 **Run the scheduler in one process.** Every process with `SCHEDULER_ENABLED=true` runs its own
 scheduler. The locks below guarantee that two processes never run the same job at the same
 time, but with N processes an idempotent job can run up to N times per interval. That is
-harmless for the four local jobs; for `opportunity_refresh` it multiplies requests to
-WikiCFP. The Compose backend runs a single uvicorn worker.
+harmless for the four local jobs; for `opportunity_refresh` and `research_refresh` it
+multiplies requests to WikiCFP and OpenAlex. The Compose backend runs a single uvicorn worker.
+The research refresh's lock is also taken by manual research loads
+(`collect_openalex` without `--dry-run`, and `python -m scrapers.pipelines.refresh_research`),
+which exit with code 3 while the job holds it; while a manual load holds it, the job's run is
+`SKIPPED_LOCKED`.
 
 ## 3. How it works
 
@@ -189,7 +210,8 @@ blocking with threading events, so no test waits out an interval.
 
 - **Lifecycle:** off by default, starts once when enabled, graceful shutdown with no leaked tasks,
   threads or locks.
-- **Registry:** exactly the approved jobs; the network job only when its flag is set.
+- **Registry:** exactly the approved jobs; each network job only when its own flag is set, and
+  the network jobs last.
 - **Adapters:** each job calls its service and nothing else, with spies at the service boundary;
   a syntax-level check confirms the scheduler code references no engine, reset-cutoff,
   deduplication, expiry or scraping internals.
@@ -210,6 +232,15 @@ blocking with threading events, so no test waits out an interval.
   statement timeout reset afterwards; per-researcher serialization.
 - **Opt-in** with `RUN_POSTGRES_MIGRATION_TESTS=1`: the concurrent adaptive/governance race on an
   isolated database.
+- **Research refresh** (`test_scheduler.py` section T, `test_research_refresh_job.py`): a spent
+  budget is `PARTIAL` with its details kept, a setup error `FAILED`, a held lock
+  `SKIPPED_LOCKED` then `SUCCEEDED`, a timeout `TIMED_OUT` with the lock freed; the API key
+  reaches the refresh but never the run details or logs; each lane's filters, dates, sort,
+  pages and run label; budget and request failures; stop requests; the corpus cap; topics and
+  pending-only embeddings through the shared model; the CLI's exit code 3; and, opt-in, the
+  real job against a temporary PostgreSQL database (new works embedded, no duplicates on a
+  second run). Admin freshness and failure alerts: `test_admin_ingestion_runs.py`,
+  `test_ingestion_alerts.py`.
 
 Measured SQL statements per run (SQLite, batches of 25). Both jobs spend exactly the same
 statements on every researcher, plus one keyset query per batch; an interaction history of 2
@@ -238,6 +269,12 @@ recomputation that follows every signal refresh.
 - **Single-call jobs:** `reminder_dispatch`, `deadline_expiry` and `opportunity_refresh` are a
   single service call each, so a timeout stops them only when that call returns. Statement
   timeouts and HTTP timeouts bound them.
+- **Research refresh stops at page boundaries:** a timeout or shutdown ends it after the page in
+  hand is saved, but it cannot interrupt the OpenAlex client's 429 back-off sleep (up to two
+  minutes per retry), so a stop can take that long.
+- **Every restart runs the research refresh:** the first run of each job is due shortly after
+  startup, and the research refresh is last in line, so it runs about 2 minutes after every
+  backend start, whatever the interval. Each run spends a few OpenAlex calls.
 - **Large first sweeps:** `run_scheduled_reminders` and `expire_past_opportunities` load their
   working sets in one pass (the reminder engine in chunks of 400 ids). Both are the existing
   services' behaviour.
