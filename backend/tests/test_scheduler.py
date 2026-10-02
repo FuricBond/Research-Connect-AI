@@ -79,6 +79,7 @@ from app.scheduler.jobs import (
     GOVERNANCE_REFRESH,
     OPPORTUNITY_REFRESH,
     REMINDER_DISPATCH,
+    RESEARCH_REFRESH,
     build_default_jobs,
 )
 from app.scheduler.locks import LocalLockBackend, PostgresAdvisoryLockBackend, job_lock_key
@@ -308,13 +309,19 @@ def count_rows(db: Session, model, **where) -> int:
 
 
 def test_a_scheduler_and_network_ingestion_are_off_by_default(monkeypatch):
-    for variable in ("SCHEDULER_ENABLED", "SCHEDULER_OPPORTUNITY_REFRESH_ENABLED"):
+    for variable in (
+        "SCHEDULER_ENABLED",
+        "SCHEDULER_OPPORTUNITY_REFRESH_ENABLED",
+        "SCHEDULER_RESEARCH_REFRESH_ENABLED",
+    ):
         monkeypatch.delenv(variable, raising=False)
     assert Settings.model_fields["scheduler_enabled"].default is False
     assert Settings.model_fields["scheduler_opportunity_refresh_enabled"].default is False
+    assert Settings.model_fields["scheduler_research_refresh_enabled"].default is False
     fresh = Settings(_env_file=None)
     assert fresh.scheduler_enabled is False
     assert fresh.scheduler_opportunity_refresh_enabled is False
+    assert fresh.scheduler_research_refresh_enabled is False
 
 
 def test_a_disabled_application_starts_no_scheduler(monkeypatch):
@@ -429,21 +436,48 @@ def test_d_exactly_the_approved_phase6_jobs_are_registered():
         GOVERNANCE_REFRESH,
     ]
 
-    with_network = build_default_jobs(cfg.model_copy(update={"scheduler_opportunity_refresh_enabled": True}))
-    assert len(APPROVED_JOB_NAMES) == 5
+    with_network = build_default_jobs(
+        cfg.model_copy(
+            update={
+                "scheduler_opportunity_refresh_enabled": True,
+                "scheduler_research_refresh_enabled": True,
+            }
+        )
+    )
+    assert len(APPROVED_JOB_NAMES) == 6
+    assert APPROVED_JOB_NAMES[-1] == RESEARCH_REFRESH
     assert sorted(j.name for j in with_network) == sorted(APPROVED_JOB_NAMES)
-    assert [j.name for j in with_network if j.requires_network] == [OPPORTUNITY_REFRESH]
+    assert [j.name for j in with_network][-2:] == [OPPORTUNITY_REFRESH, RESEARCH_REFRESH]
+    assert [j.name for j in with_network if j.requires_network] == [OPPORTUNITY_REFRESH, RESEARCH_REFRESH]
     assert {j.name: j.interval_seconds for j in with_network} == {
         DEADLINE_EXPIRY: cfg.scheduler_deadline_expiry_interval_seconds,
         REMINDER_DISPATCH: cfg.scheduler_reminder_interval_seconds,
         ADAPTIVE_SIGNAL_REFRESH: cfg.scheduler_adaptive_refresh_interval_seconds,
         GOVERNANCE_REFRESH: cfg.scheduler_governance_refresh_interval_seconds,
         OPPORTUNITY_REFRESH: cfg.scheduler_opportunity_refresh_interval_seconds,
+        RESEARCH_REFRESH: cfg.scheduler_research_refresh_interval_seconds,
     }
+    assert cfg.scheduler_research_refresh_interval_seconds == 28_800
     assert all(j.timeout_seconds > 0 for j in with_network)
 
     # The application builds the same registry.
     assert lifecycle.build_scheduler(cfg).job_names == tuple(j.name for j in default_jobs)
+
+
+def test_d_research_refresh_alone_is_the_only_network_job_and_goes_last():
+    cfg = Settings(_env_file=None).model_copy(update={"scheduler_research_refresh_enabled": True})
+    jobs = build_default_jobs(cfg)
+    assert [j.name for j in jobs] == [
+        DEADLINE_EXPIRY,
+        REMINDER_DISPATCH,
+        ADAPTIVE_SIGNAL_REFRESH,
+        GOVERNANCE_REFRESH,
+        RESEARCH_REFRESH,
+    ]
+    assert [j.name for j in jobs if j.requires_network] == [RESEARCH_REFRESH]
+    research = jobs[-1]
+    assert research.interval_seconds == 28_800
+    assert research.timeout_seconds == 1_800
 
 
 def test_d_intervals_below_a_minute_are_rejected(monkeypatch):
@@ -458,6 +492,7 @@ def test_d_intervals_below_a_minute_are_rejected(monkeypatch):
 def test_e_each_job_is_a_thin_adapter_over_its_existing_service(monkeypatch, db, session_factory):
     import scrapers.expiration.manager as expiry_module
     import scrapers.pipelines.collect_opportunities as pipeline_module
+    import scrapers.pipelines.refresh_research as refresh_module
 
     first, second = add_profile(db, "first"), add_profile(db, "second")
     opportunity = add_opportunity(db, "Adapter Conference")
@@ -496,11 +531,22 @@ def test_e_each_job_is_a_thin_adapter_over_its_existing_service(monkeypatch, db,
 
     monkeypatch.setattr(pipeline_module, "run_pipeline", fake_pipeline)
 
+    def fake_refresh(**kwargs):
+        calls.append(("refresh", kwargs))
+        return {"inserted": 4, "updated": 1, "errors": 0, "passes_failed": 0, "passes_completed": 4}
+
+    monkeypatch.setattr(refresh_module, "run_refresh", fake_refresh)
+
     cfg = settings.model_copy(
         update={
             "scheduler_opportunity_refresh_enabled": True,
             "scheduler_opportunity_refresh_topic": "robotics",
             "scheduler_opportunity_refresh_max_pages": 2,
+            "scheduler_research_refresh_enabled": True,
+            "research_refresh_subfields": "1702,1709",
+            "research_refresh_new_pages": 2,
+            "openalex_api_key": "",
+            "openalex_email": "",
         }
     )
     scheduler = make_scheduler(build_default_jobs(cfg), session_factory)
@@ -523,6 +569,15 @@ def test_e_each_job_is_a_thin_adapter_over_its_existing_service(monkeypatch, db,
     assert runs[OPPORTUNITY_REFRESH].records_processed == 7
     assert runs[ADAPTIVE_SIGNAL_REFRESH].records_processed == 2
     assert runs[GOVERNANCE_REFRESH].records_processed == 2
+    refresh_calls = [c[1] for c in calls if c[0] == "refresh"]
+    assert len(refresh_calls) == 1
+    refresh_kwargs = refresh_calls[0]
+    assert refresh_kwargs["subfields"] == ("1702", "1709")
+    assert refresh_kwargs["new_pages"] == 2
+    assert refresh_kwargs["should_stop"]() is False
+    assert refresh_kwargs["api_key"] is None and refresh_kwargs["email"] is None
+    assert refresh_kwargs["run_tag"] == str(runs[RESEARCH_REFRESH].run_id)
+    assert runs[RESEARCH_REFRESH].records_processed == 5
 
 
 def test_e_scheduler_code_contains_no_domain_logic():
@@ -554,6 +609,12 @@ def test_e_scheduler_code_contains_no_domain_logic():
         "OpportunityRepository",
         "WikiCFPSource",
         "risk_score",
+        "OpenAlexSource",
+        "OpenAlexRepository",
+        "OpenAlexClient",
+        "normalize_work",
+        "validate_work",
+        "works_filter",
     }
     assert referenced.isdisjoint(forbidden), sorted(referenced & forbidden)
 
@@ -979,9 +1040,13 @@ def test_o_default_jobs_make_no_network_requests(monkeypatch, db, session_factor
     monkeypatch.setattr(requests.Session, "request", no_network)
     monkeypatch.setattr(httpx.Client, "send", no_network)
     monkeypatch.setattr(pipeline_module, "run_pipeline", lambda **kw: pytest.fail("ingestion ran while disabled"))
+    import scrapers.pipelines.refresh_research as refresh_module
+
+    monkeypatch.setattr(refresh_module, "run_refresh", lambda **kw: pytest.fail("research refresh ran while disabled"))
 
     jobs = build_default_jobs(settings)  # the test settings: network ingestion off
     assert OPPORTUNITY_REFRESH not in [j.name for j in jobs]
+    assert RESEARCH_REFRESH not in [j.name for j in jobs]
     assert not any(j.requires_network for j in jobs)
     runs = run_all(make_scheduler(jobs, session_factory), [j.name for j in jobs])
     assert all(r.status is SUCCEEDED for r in runs.values()), {n: r.status for n, r in runs.items()}
@@ -991,7 +1056,9 @@ def test_o_loading_the_application_does_not_import_the_scraping_pipeline():
     probe = (
         "import sys; import app.main; "
         "print('scrapers.pipelines.collect_opportunities' in sys.modules, "
-        "'scrapers.sources.wikicfp' in sys.modules)"
+        "'scrapers.sources.wikicfp' in sys.modules, "
+        "'scrapers.pipelines.refresh_research' in sys.modules, "
+        "'scrapers.sources.openalex' in sys.modules)"
     )
     result = subprocess.run(
         [sys.executable, "-c", probe],
@@ -1001,7 +1068,7 @@ def test_o_loading_the_application_does_not_import_the_scraping_pipeline():
         cwd=str(__import__("pathlib").Path(__file__).resolve().parents[1]),
     )
     assert result.returncode == 0, result.stderr[-2000:]
-    assert result.stdout.strip().splitlines()[-1] == "False False"
+    assert result.stdout.strip().splitlines()[-1] == "False False False False"
 
 
 # ── P. Run ids ────────────────────────────────────────────────────────────────
@@ -1141,6 +1208,128 @@ def test_s_a_failing_profile_is_rolled_back_and_the_others_are_committed(monkeyp
     assert (run.records_processed, run.items_failed) == (2, 1)
     assert signals_of(db, bad) == []
     assert all(signals_of(db, p) for p in profiles if p.id != bad.id)
+
+
+# ── T. Research refresh outcomes ──────────────────────────────────────────────
+
+
+def _research_job(**updates) -> JobDefinition:
+    cfg = settings.model_copy(update={"scheduler_research_refresh_enabled": True, **updates})
+    (research,) = [j for j in build_default_jobs(cfg) if j.name == RESEARCH_REFRESH]
+    return research
+
+
+def _refresh_stats(**overrides) -> dict:
+    stats = {
+        "inserted": 3,
+        "updated": 2,
+        "errors": 0,
+        "passes_completed": 2,
+        "passes_failed": 0,
+        "budget_exhausted": False,
+        "stopped_reason": None,
+        "run_tag": "t",
+    }
+    stats.update(overrides)
+    return stats
+
+
+@pytest.fixture
+def refresh_module():
+    import scrapers.pipelines.refresh_research as module
+
+    return module
+
+
+def test_t_a_spent_budget_is_partial_with_details_kept(monkeypatch, session_factory, refresh_module):
+    stats = _refresh_stats(passes_completed=1, passes_failed=3, budget_exhausted=True, stopped_reason="budget exhausted")
+    monkeypatch.setattr(refresh_module, "run_refresh", lambda **kw: stats)
+
+    run = run_now(make_scheduler([_research_job()], session_factory), RESEARCH_REFRESH)
+
+    assert run.status is JobRunStatus.PARTIAL
+    assert run.items_failed == 3
+    assert run.records_processed == 5
+    assert run.details["budget_exhausted"] is True
+    assert run.details["stopped_reason"] == "budget exhausted"
+    assert run.details["passes_completed"] == 1
+
+
+def test_t_a_setup_error_fails_the_run(monkeypatch, session_factory, refresh_module):
+    def broken(**kwargs):
+        raise RuntimeError("database unreachable")
+
+    monkeypatch.setattr(refresh_module, "run_refresh", broken)
+
+    run = run_now(make_scheduler([_research_job()], session_factory), RESEARCH_REFRESH)
+
+    assert run.status is JobRunStatus.FAILED
+    assert run.error_type == "RuntimeError"
+
+
+def test_t_a_held_lock_skips_the_run_until_it_is_released(monkeypatch, session_factory, refresh_module):
+    calls: list[dict] = []
+    monkeypatch.setattr(refresh_module, "run_refresh", lambda **kw: calls.append(kw) or _refresh_stats())
+    locks = LocalLockBackend()
+    scheduler = make_scheduler([_research_job()], session_factory, lock_backend=locks)
+
+    holder = locks.try_acquire(RESEARCH_REFRESH)  # a manual research load holds the lock
+    skipped = run_now(scheduler, RESEARCH_REFRESH)
+    holder.release()
+    ran = run_now(scheduler, RESEARCH_REFRESH)
+
+    assert skipped.status is JobRunStatus.SKIPPED_LOCKED
+    assert ran.status is SUCCEEDED
+    assert len(calls) == 1
+
+
+def test_t_a_timeout_stops_the_refresh_and_frees_the_lock(monkeypatch, session_factory, refresh_module):
+    import dataclasses
+
+    calls = {"n": 0}
+
+    def until_stopped(**kwargs):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            while not kwargs["should_stop"]():
+                time.sleep(0.01)
+        return _refresh_stats()
+
+    monkeypatch.setattr(refresh_module, "run_refresh", until_stopped)
+    locks = LocalLockBackend()
+    scheduler = make_scheduler(
+        [dataclasses.replace(_research_job(), timeout_seconds=0.2)], session_factory, lock_backend=locks
+    )
+
+    timed_out = run_now(scheduler, RESEARCH_REFRESH)
+    join_scheduler_threads()
+    probe = locks.try_acquire(RESEARCH_REFRESH)
+    assert probe is not None, "the lock must be free once the stopped refresh unwound"
+    probe.release()
+    again = run_now(scheduler, RESEARCH_REFRESH)
+
+    assert timed_out.status is JobRunStatus.TIMED_OUT
+    assert again.status is SUCCEEDED
+    assert calls["n"] == 2
+
+
+def test_t_the_api_key_reaches_the_refresh_but_never_the_details_or_logs(
+    monkeypatch, session_factory, refresh_module, caplog
+):
+    key = "test-key-not-real"
+    seen: list[dict] = []
+    monkeypatch.setattr(refresh_module, "run_refresh", lambda **kw: seen.append(kw) or _refresh_stats())
+    caplog.set_level(logging.DEBUG)
+
+    run = run_now(
+        make_scheduler([_research_job(openalex_api_key=key)], session_factory), RESEARCH_REFRESH
+    )
+
+    assert run.status is SUCCEEDED
+    assert seen[0]["api_key"] == key
+    assert key not in str(run.details)
+    assert RESEARCH_REFRESH in caplog.text, "the run must have been logged for this check to mean anything"
+    assert key not in caplog.text
 
 
 # ── Sessions, event loop and concurrency ──────────────────────────────────────

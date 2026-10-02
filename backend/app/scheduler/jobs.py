@@ -1,10 +1,10 @@
 """
 Phase 6.3 — The scheduled jobs.
 
-The five jobs from the Phase 6 job matrix (rows 17-21). Each is a thin adapter: it opens its
-own database scope, calls one existing entry point, commits where that entry point leaves the
-transaction to its caller, and reports what happened. No aggregation, governance, ranking,
-risk, reminder, expiry or ingestion logic lives here.
+The five jobs from the Phase 6 job matrix (rows 17-21), plus the research refresh. Each is a
+thin adapter: it opens its own database scope, calls one existing entry point, commits where
+that entry point leaves the transaction to its caller, and reports what happened. No
+aggregation, governance, ranking, risk, reminder, expiry or ingestion logic lives here.
 
     Job                       Entry point                                              Network
     opportunity_refresh       scrapers.pipelines.collect_opportunities.run_pipeline      yes
@@ -12,6 +12,11 @@ risk, reminder, expiry or ingestion logic lives here.
     governance_refresh        PersonalizationGovernanceService.recompute_governance     no
     reminder_dispatch         ReminderSchedulerService.run_scheduled_reminders          no
     deadline_expiry           scrapers.expiration.manager.expire_past_opportunities     no
+    research_refresh          scrapers.pipelines.refresh_research.run_refresh            yes
+
+Each network job has its own switch and is off by default. research_refresh fetches newly
+published and rising OpenAlex works, then tags and embeds them; its lock also keeps manual
+research loads (collect_openalex, refresh_research) from running alongside it.
 
 Which researchers the profile-scoped jobs process
     Scheduled work is proactive, so it only touches a researcher when the state it maintains
@@ -58,7 +63,7 @@ GOVERNANCE_REFRESH = "governance_refresh"
 REMINDER_DISPATCH = "reminder_dispatch"
 DEADLINE_EXPIRY = "deadline_expiry"
 # Research refresh: scheduled OpenAlex loads. Its lock also guards manual research loads
-# (scrapers/pipelines/load_lock.py). Not approved for scheduling yet.
+# (scrapers/pipelines/load_lock.py).
 RESEARCH_REFRESH = "research_refresh"
 
 APPROVED_JOB_NAMES = (
@@ -67,6 +72,7 @@ APPROVED_JOB_NAMES = (
     GOVERNANCE_REFRESH,
     REMINDER_DISPATCH,
     DEADLINE_EXPIRY,
+    RESEARCH_REFRESH,
 )
 
 # Per-run budgets. Generous against measured cost (a profile refresh is tens of milliseconds;
@@ -78,6 +84,8 @@ ADAPTIVE_SIGNAL_REFRESH_TIMEOUT_SECONDS = 1_800
 GOVERNANCE_REFRESH_TIMEOUT_SECONDS = 1_800
 REMINDER_DISPATCH_TIMEOUT_SECONDS = 600
 DEADLINE_EXPIRY_TIMEOUT_SECONDS = 300
+# A few 200-work OpenAlex pages per subfield, then topics and embeddings for what arrived.
+RESEARCH_REFRESH_TIMEOUT_SECONDS = 1_800
 
 # Profiles loaded per enumeration query; each batch runs in one session that is then closed.
 PROFILE_BATCH_SIZE = 100
@@ -295,6 +303,72 @@ def run_opportunity_refresh(context: JobContext, *, topic: str, max_pages: int) 
     )
 
 
+# The summary keys a research refresh reports: counts and fixed reason codes, never error text.
+_RESEARCH_REFRESH_DETAIL_KEYS = (
+    "subfields",
+    "passes_completed",
+    "passes_failed",
+    "pages_fetched",
+    "parsed",
+    "valid",
+    "invalid",
+    "inserted",
+    "updated",
+    "unchanged",
+    "errors",
+    "skipped_new",
+    "budget_exhausted",
+    "stopped_reason",
+    "corpus_size",
+    "inserts_allowed",
+    "topics_processed",
+    "embedded",
+    "run_ids",
+    "run_tag",
+)
+
+
+def run_research_refresh(
+    context: JobContext,
+    *,
+    subfields: tuple[str, ...],
+    new_pages: int,
+    rising_pages: int,
+    new_window_days: int,
+    rising_window_days: int,
+    max_works: int,
+    api_key: str | None = None,
+    email: str | None = None,
+) -> JobResult:
+    """
+    Outbound requests to OpenAlex. The refresh opens and commits its own sessions and stops
+    at the next page boundary once the scheduler cancels the run. A spent daily budget or a
+    failed request is counted in items_failed, so the run is PARTIAL rather than FAILED.
+    """
+    # Imported here so that loading the backend never imports the scraping stack.
+    from scrapers.pipelines.refresh_research import run_refresh
+
+    context.check_cancelled()
+    stats = run_refresh(
+        subfields=subfields,
+        new_pages=new_pages,
+        rising_pages=rising_pages,
+        new_window_days=new_window_days,
+        rising_window_days=rising_window_days,
+        max_works=max_works,
+        api_key=api_key,
+        email=email,
+        should_stop=lambda: context.cancelled,
+        run_tag=str(context.run_id),
+    )
+    context.check_cancelled()
+    return JobResult(
+        records_processed=int(stats.get("inserted", 0)) + int(stats.get("updated", 0)),
+        items_failed=int(stats.get("errors", 0)) + int(stats.get("passes_failed", 0)),
+        details={key: stats.get(key) for key in _RESEARCH_REFRESH_DETAIL_KEYS},
+    )
+
+
 # ── Registry ──────────────────────────────────────────────────────────────────
 
 
@@ -304,8 +378,9 @@ def build_default_jobs(
     profile_batch_size: int = PROFILE_BATCH_SIZE,
 ) -> list[JobDefinition]:
     """
-    The approved jobs, in dispatch order. The network job is included only when
-    SCHEDULER_OPPORTUNITY_REFRESH_ENABLED is set, and it goes last.
+    The approved jobs, in dispatch order. Each network job is included only when its own
+    switch is set (SCHEDULER_OPPORTUNITY_REFRESH_ENABLED, SCHEDULER_RESEARCH_REFRESH_ENABLED),
+    and the network jobs go last: opportunity_refresh, then research_refresh.
     """
     jobs = [
         JobDefinition(
@@ -349,6 +424,27 @@ def build_default_jobs(
                 interval_seconds=cfg.scheduler_opportunity_refresh_interval_seconds,
                 timeout_seconds=OPPORTUNITY_REFRESH_TIMEOUT_SECONDS,
                 description="Ingest opportunities from WikiCFP",
+                requires_network=True,
+            )
+        )
+    if cfg.scheduler_research_refresh_enabled:
+        jobs.append(
+            JobDefinition(
+                name=RESEARCH_REFRESH,
+                func=functools.partial(
+                    run_research_refresh,
+                    subfields=cfg.research_refresh_subfield_ids,
+                    new_pages=cfg.research_refresh_new_pages,
+                    rising_pages=cfg.research_refresh_rising_pages,
+                    new_window_days=cfg.research_refresh_new_window_days,
+                    rising_window_days=cfg.research_refresh_rising_window_days,
+                    max_works=cfg.research_refresh_max_works,
+                    api_key=cfg.openalex_api_key or None,
+                    email=cfg.openalex_email or None,
+                ),
+                interval_seconds=cfg.scheduler_research_refresh_interval_seconds,
+                timeout_seconds=RESEARCH_REFRESH_TIMEOUT_SECONDS,
+                description="Ingest newly published and rising research works from OpenAlex",
                 requires_network=True,
             )
         )
