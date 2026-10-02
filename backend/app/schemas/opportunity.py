@@ -187,3 +187,20 @@ class IngestionRunRead(BaseModel):
     metrics_detail: dict | None = None
     started_at: datetime
     completed_at: datetime | None = None
+
+
+class ResearchRefreshStatus(BaseModel):
+    """Research refresh freshness for the admin console (step 4/6)."""
+    enabled: bool
+    interval_seconds: int
+    last_run_started_at: datetime | None = None
+    # RUNNING, COMPLETED or FAILED for the newest run as a whole; None before the first run.
+    last_run_status: str | None = None
+    works_added_last_24h: int
+    next_run_estimate: datetime | None = None
+
+
+class IngestionRunListResponse(BaseModel):
+    """Recent ingestion runs and the research refresh status. Errors are categories only."""
+    items: list[IngestionRunRead]
+    research_refresh: ResearchRefreshStatus

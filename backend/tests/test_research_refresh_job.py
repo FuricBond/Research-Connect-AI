@@ -55,6 +55,10 @@ class FakeService:
 class Harness:
     """Replaces everything run_refresh calls and records what it was asked to do."""
 
+    # The unpatched failure-alert hook, for the test that exercises it on a fake session.
+    from scrapers.pipelines.refresh_research import _alert_on_repeated_failures as real_alert_hook
+    real_alert_hook = staticmethod(real_alert_hook)
+
     def __init__(self, monkeypatch, *, corpus: int = 0, results=None) -> None:
         import ml.embeddings.generate_embeddings as embed_module
         import ml.embeddings.service as service_module
@@ -90,6 +94,9 @@ class Harness:
         monkeypatch.setattr(embed_module, "run_pipeline", fake_embed)
         monkeypatch.setattr(service_module, "get_embedding_service", lambda: self.service)
         monkeypatch.setattr(refresh_module, "_corpus_size", lambda: self.corpus)
+        # The failure alert opens its own session; unit tests never reach a real database.
+        self.alerts: list[str] = []
+        monkeypatch.setattr(refresh_module, "_alert_on_repeated_failures", self.alerts.append)
 
     def run(self, **overrides) -> dict:
         options = dict(
@@ -344,6 +351,74 @@ def test_importing_the_module_configures_nothing():
     )
     assert result.returncode == 0, result.stderr[-2000:]
     assert result.stdout.strip().splitlines()[-1] == "True True False False"
+
+
+# ── Failure alert (step 4/6) ──────────────────────────────────────────────────
+
+
+def test_when_every_pass_fails_the_admins_are_alerted(monkeypatch):
+    failed = pass_stats(stopped_reason="stopped on an error: ConnectionError")
+    harness = Harness(monkeypatch, results=[failed, failed])
+
+    stats = harness.run()
+
+    assert stats["passes_completed"] == 0 and stats["passes_failed"] == 2
+    assert harness.alerts == ["tag1"]
+
+
+def test_a_budget_stop_before_any_completed_pass_also_alerts(monkeypatch):
+    budget = pass_stats(stopped_reason="budget", budget_exhausted=True)
+    harness = Harness(monkeypatch, results=[budget])
+    harness.run()
+    assert harness.alerts == ["tag1"]
+
+
+@pytest.mark.parametrize(
+    "results",
+    [
+        [pass_stats(), pass_stats(stopped_reason="stopped on an error: x")],  # one pass completed
+        [pass_stats(), pass_stats()],  # nothing failed
+    ],
+)
+def test_no_alert_unless_every_pass_failed(monkeypatch, results):
+    harness = Harness(monkeypatch, results=results)
+    harness.run()
+    assert harness.alerts == []
+
+
+def test_a_stop_request_does_not_alert(monkeypatch):
+    from scrapers.pipelines.collect_openalex import STOP_REQUESTED
+
+    harness = Harness(monkeypatch, results=[pass_stats(stopped_reason=STOP_REQUESTED)])
+    harness.run()
+    assert harness.alerts == []
+
+
+def test_an_alert_failure_never_fails_the_run(monkeypatch, caplog):
+    from unittest.mock import MagicMock
+
+    import app.db.session as session_module
+    import app.services.ingestion_alert_service as alert_module
+    import scrapers.pipelines.refresh_research as refresh_module
+
+    harness = Harness(monkeypatch, results=[pass_stats(stopped_reason="stopped on an error: x")])
+    # Put the real hook back, on a fake session, with an alert that raises.
+    monkeypatch.setattr(refresh_module, "_alert_on_repeated_failures", Harness.real_alert_hook)
+    monkeypatch.setattr(session_module, "SessionLocal", MagicMock())
+    calls: list[str] = []
+
+    def broken_alert(db, *, run_tag, **kwargs):
+        calls.append(run_tag)
+        raise RuntimeError("notifications table missing api_key=secret-value")
+
+    monkeypatch.setattr(alert_module, "notify_admins_after_repeated_failures", broken_alert)
+
+    stats = harness.run(rising_pages=0)
+
+    assert calls == ["tag1"]
+    assert stats["passes_failed"] == 1
+    assert "could not alert the administrators (RuntimeError)" in caplog.text
+    assert "secret-value" not in caplog.text
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────

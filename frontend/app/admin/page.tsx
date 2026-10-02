@@ -15,6 +15,7 @@ import type { AdminUserRead, PlatformRole } from "../../types/auth";
 import { ROLE_LABELS } from "../../types/auth";
 import { ApiError, fetchAdminUsers, updateAdminUser } from "../../services/api";
 import { RequireAuth } from "../../components/auth/RequireAuth";
+import { DataFreshnessCard } from "../../components/admin/DataFreshnessCard";
 import { useSession } from "../../components/auth/SessionProvider";
 
 const ROLE_FILTERS: (PlatformRole | "")[] = ["", "STUDENT", "FACULTY", "ADMIN"];
@@ -79,6 +80,8 @@ function AdminConsole() {
 
   return (
     <div className="auth-admin">
+      <DataFreshnessCard />
+
       <header className="auth-admin-head">
         <div>
           <h1>Platform administration</h1>

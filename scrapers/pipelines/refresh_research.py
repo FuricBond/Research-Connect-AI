@@ -267,6 +267,8 @@ def run_refresh(
         stats["stopped_reason"] = STOP_REQUESTED
     if stats["stopped_reason"] != STOP_REQUESTED:
         _tag_and_embed(stats, run_tag, stopping)
+    if stats["passes_completed"] == 0 and stats["passes_failed"] > 0:
+        _alert_on_repeated_failures(run_tag)
 
     logger.info(
         "Research refresh %s finished: passes completed=%d failed=%d inserted=%d updated=%d "
@@ -319,6 +321,18 @@ def _tag_and_embed(stats: dict, run_tag: str, stopping: Callable[[], bool]) -> N
     except Exception as exc:  # noqa: BLE001
         stats["errors"] += 1
         logger.error("Research refresh %s: embedding failed (%s)", run_tag, type(exc).__name__)
+
+
+def _alert_on_repeated_failures(run_tag: str) -> None:
+    """Alert the admins after repeated failed refreshes; an alert failure never fails the run."""
+    try:
+        from app.db.session import SessionLocal
+        from app.services.ingestion_alert_service import notify_admins_after_repeated_failures
+
+        with SessionLocal() as db:
+            notify_admins_after_repeated_failures(db, run_tag=run_tag)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Research refresh %s: could not alert the administrators (%s)", run_tag, type(exc).__name__)
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────

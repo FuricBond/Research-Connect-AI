@@ -188,6 +188,7 @@ import type {
   CollaborationInterest,
   PeerMatchResponse,
 } from "../types/peer";
+import type { IngestionRunListResponse } from "../types/admin";
 import { getAuthHeaders } from "./auth";
 
 // NEXT_PUBLIC_API_URL replaces former VITE_API_URL
@@ -384,6 +385,17 @@ export async function updateAdminUser(
     body: JSON.stringify(payload),
     signal,
   });
+}
+
+/** Recent ingestion runs and research refresh freshness (research refresh runs by default). */
+export async function fetchIngestionRuns(
+  params: { limit?: number; researchOnly?: boolean } = {},
+  signal?: AbortSignal
+): Promise<IngestionRunListResponse> {
+  const query = new URLSearchParams();
+  query.set("limit", String(params.limit ?? 20));
+  query.set("research_only", String(params.researchOnly ?? true));
+  return fetchJson<IngestionRunListResponse>(`/api/v1/admin/ingestion-runs?${query.toString()}`, { signal });
 }
 
 // ── Legacy Opportunities API ──────────────────────────────────────────────────

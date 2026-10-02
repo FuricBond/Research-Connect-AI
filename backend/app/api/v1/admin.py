@@ -3,18 +3,22 @@ Phase 6 — Platform administration API (ADMIN role only).
 
   GET   /admin/users            List accounts (filter by role, search by email/name)
   PATCH /admin/users/{user_id}  Change role, activation, or verification status
+  GET   /admin/ingestion-runs   Recent ingestion runs and research refresh freshness
 """
 from __future__ import annotations
 
 from typing import Annotated
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import AdminUser
+from app.core.config import settings
 from app.db.session import get_db
 from app.schemas.auth import AdminUserListResponse, AdminUserRead, AdminUserUpdate, PlatformRole
+from app.schemas.opportunity import IngestionRunListResponse
+from app.services import ingestion_run_service
 from app.services.auth_service import AuthService, LastAdministratorError
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -56,3 +60,23 @@ def update_user(
     except LastAdministratorError as err:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(err))
     return AdminUserRead.model_validate(user)
+
+
+@router.get(
+    "/ingestion-runs",
+    response_model=IngestionRunListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Recent ingestion runs and research refresh freshness",
+)
+def list_ingestion_runs(
+    request: Request,
+    admin: AdminUser,
+    limit: Annotated[int, Query(ge=1, le=100)] = 20,
+    research_only: Annotated[bool, Query(description="Only scheduled research refresh runs")] = True,
+    db: Session = Depends(get_db),
+) -> IngestionRunListResponse:
+    scheduler = getattr(request.app.state, "scheduler", None)
+    return IngestionRunListResponse(
+        items=ingestion_run_service.list_runs(db, limit=limit, research_only=research_only),
+        research_refresh=ingestion_run_service.research_refresh_status(db, settings, scheduler=scheduler),
+    )
