@@ -84,6 +84,10 @@ class Settings(BaseSettings):
     embedding_dim: int = 384
     embedding_batch_size: int = 32
     embedding_device: str = "cpu"  # cpu | cuda | mps
+    # Load the embedding model in the background at startup, so the first literature search
+    # does not pay for it. Off by default: tests and the host development loop never load
+    # the model unless a search asks for it. Compose turns it on.
+    embedding_warmup_on_startup: bool = False
 
     # Phase 2.4B — Hybrid Search & Candidate Fusion configuration
     hybrid_search_default_limit: int = 20

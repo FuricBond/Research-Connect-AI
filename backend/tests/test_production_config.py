@@ -497,3 +497,38 @@ def test_f_dockerfiles_bake_in_no_secrets(dockerfile):
 
 def test_f_the_backend_image_does_not_advertise_its_server():
     assert '"--no-server-header"' in _read("backend/Dockerfile")
+
+
+def _runtime_stage(dockerfile: str) -> str:
+    match = re.search(r"^FROM \S+ AS runtime$(.*)", dockerfile, re.S | re.M)
+    assert match, "runtime stage not found in backend/Dockerfile"
+    return match.group(1)
+
+
+def test_f_the_backend_image_bakes_in_the_embedding_model_and_runs_offline():
+    """F-3: the model is fetched at build time, as the runtime user, and never at runtime."""
+    from ml.embeddings.config import DEFAULT_MODEL_NAME
+
+    runtime = _runtime_stage(_read("backend/Dockerfile"))
+    user_at = re.search(r"^USER app$", runtime, re.M)
+    download = re.search(
+        r"""^RUN python -c "from sentence_transformers import SentenceTransformer; """
+        r"""SentenceTransformer\('\$\{EMBEDDING_MODEL\}'\)"$""",
+        runtime,
+        re.M,
+    )
+    assert user_at, "the runtime stage must drop to the unprivileged user"
+    assert download, "the backend image must download the embedding model at build time"
+    assert download.start() > user_at.start(), "the model must be cached as the unprivileged user"
+    assert re.search(rf"^ARG EMBEDDING_MODEL={re.escape(DEFAULT_MODEL_NAME)}$", runtime, re.M)
+    offline = re.search(r"^ENV HF_HUB_OFFLINE=1 \\\n\s+TRANSFORMERS_OFFLINE=1$", runtime, re.M)
+    assert offline and offline.start() > download.start(), "go offline only after the download"
+    assert 'HF_HOME="/home/app/.cache/huggingface"' in runtime
+    # Still a single worker: the rate limiter and discovery cache live in process memory.
+    assert "--workers" not in runtime
+
+
+def test_f_compose_warms_the_embedding_model_by_default():
+    backend = _backend_service_block(_read("docker-compose.yml"))
+    assert "EMBEDDING_WARMUP_ON_STARTUP: ${EMBEDDING_WARMUP_ON_STARTUP:-true}" in backend
+    assert Settings.model_fields["embedding_warmup_on_startup"].default is False

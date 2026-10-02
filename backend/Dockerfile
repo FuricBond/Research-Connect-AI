@@ -57,6 +57,17 @@ COPY scrapers /app/scrapers
 
 USER app
 
+# F-3 (Phase 6.6 verification): left to runtime, the embedding model was downloaded from
+# Hugging Face on the first literature search, which took 22-30 s, needed outbound network
+# and was lost whenever the container was recreated. It is fetched here instead, as the
+# unprivileged user so the cache under HF_HOME is theirs, and the hub is then switched to
+# offline so the runtime only ever loads that copy. The default must match
+# DEFAULT_MODEL_NAME in ml/embeddings/config.py.
+ARG EMBEDDING_MODEL=all-MiniLM-L6-v2
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('${EMBEDDING_MODEL}')"
+ENV HF_HUB_OFFLINE=1 \
+    TRANSFORMERS_OFFLINE=1
+
 EXPOSE 8000
 
 # One worker: the login rate limiter and discovery cache live in process memory, so extra

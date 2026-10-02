@@ -114,3 +114,80 @@ class TestEmbeddingService:
         with patch.dict("sys.modules", {"sentence_transformers": None}):
             with pytest.raises((ImportError, TypeError)):
                 svc._load_model()
+
+
+# ── encode_one query cache (research refresh, F-3) ───────────────────────────
+
+
+class TestEncodeOneCache:
+    """The query cache answers repeated texts without the model and stays bounded."""
+
+    def _patched_service(self) -> tuple[EmbeddingService, MagicMock]:
+        svc = EmbeddingService(model_name="all-MiniLM-L6-v2", device="cpu", batch_size=8)
+        mock_model = _make_mock_model()
+        svc._model = mock_model
+        return svc, mock_model
+
+    def test_the_same_text_twice_calls_the_model_once(self):
+        svc, mock_model = self._patched_service()
+        first = svc.encode_one("graph neural networks")
+        second = svc.encode_one("graph neural networks")
+        assert mock_model.encode.call_count == 1
+        assert first == second
+
+    def test_different_texts_miss_the_cache(self):
+        svc, mock_model = self._patched_service()
+        svc.encode_one("graph neural networks")
+        svc.encode_one("Graph neural networks")
+        svc.encode_one("graph neural networks ")
+        assert mock_model.encode.call_count == 3
+
+    def test_a_cache_hit_returns_a_copy(self):
+        svc, _ = self._patched_service()
+        first = svc.encode_one("protein folding")
+        first[0] = 99.0
+        assert svc.encode_one("protein folding")[0] != 99.0
+
+    def test_the_cache_never_grows_past_its_limit(self, monkeypatch):
+        import ml.embeddings.service as service_module
+
+        monkeypatch.setattr(service_module, "ENCODE_ONE_CACHE_SIZE", 4)
+        svc, mock_model = self._patched_service()
+        for i in range(10):
+            svc.encode_one(f"query {i}")
+            assert len(svc._encode_one_cache) <= 4
+        assert len(svc._encode_one_cache) == 4
+        # The newest entries stay; the oldest was evicted and must be encoded again.
+        calls = mock_model.encode.call_count
+        svc.encode_one("query 9")
+        assert mock_model.encode.call_count == calls
+        svc.encode_one("query 0")
+        assert mock_model.encode.call_count == calls + 1
+
+    def test_the_default_limit_is_512(self):
+        import ml.embeddings.service as service_module
+
+        assert service_module.ENCODE_ONE_CACHE_SIZE == 512
+
+
+def test_concurrent_first_use_loads_the_model_once(monkeypatch):
+    """A warm-up thread and a request racing on first use must not load two models."""
+    import threading
+    import time
+
+    svc = EmbeddingService(model_name="all-MiniLM-L6-v2", device="cpu", batch_size=8)
+    loads: list[int] = []
+
+    def slow_load() -> None:
+        loads.append(1)
+        time.sleep(0.2)
+        svc._model = _make_mock_model()
+
+    monkeypatch.setattr(svc, "_load_model_unlocked", slow_load)
+    threads = [threading.Thread(target=svc._load_model) for _ in range(5)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=10)
+    assert len(loads) == 1
+    assert svc._model is not None
