@@ -57,6 +57,9 @@ ADAPTIVE_SIGNAL_REFRESH = "adaptive_signal_refresh"
 GOVERNANCE_REFRESH = "governance_refresh"
 REMINDER_DISPATCH = "reminder_dispatch"
 DEADLINE_EXPIRY = "deadline_expiry"
+# Research refresh: scheduled OpenAlex loads. Its lock also guards manual research loads
+# (scrapers/pipelines/load_lock.py). Not approved for scheduling yet.
+RESEARCH_REFRESH = "research_refresh"
 
 APPROVED_JOB_NAMES = (
     OPPORTUNITY_REFRESH,

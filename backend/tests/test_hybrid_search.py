@@ -258,3 +258,24 @@ class TestPostgreSQLHybridIntegration:
                 assert isinstance(r.entity_id, uuid.UUID)
                 assert isinstance(r.hybrid_score, float)
                 assert r.entity_type == "opportunity"
+
+
+# ── Research refresh: one shared embedding model per process ──────────────────
+
+
+def test_hybrid_search_uses_the_shared_embedding_service(monkeypatch):
+    import ml.embeddings.service as service_module
+
+    shared = object()
+    monkeypatch.setattr(service_module, "_shared_service", shared)
+
+    assert HybridSearchService().embedding_service is shared
+
+
+def test_an_injected_embedding_service_still_wins(monkeypatch):
+    import ml.embeddings.service as service_module
+
+    monkeypatch.setattr(service_module, "_shared_service", object())
+    injected = MagicMock(spec=EmbeddingService)
+
+    assert HybridSearchService(embedding_service=injected).embedding_service is injected

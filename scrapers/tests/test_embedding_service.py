@@ -191,3 +191,77 @@ def test_concurrent_first_use_loads_the_model_once(monkeypatch):
         t.join(timeout=10)
     assert len(loads) == 1
     assert svc._model is not None
+
+
+# ── shared instance and encode lock (research refresh) ───────────────────────
+
+
+def test_get_embedding_service_returns_one_lazily_created_instance(monkeypatch):
+    import threading
+
+    import ml.embeddings.service as service_module
+
+    monkeypatch.setattr(service_module, "_shared_service", None)
+    created: list[EmbeddingService] = []
+    real_init = EmbeddingService.__init__
+
+    def counting_init(self, *args, **kwargs):
+        created.append(self)
+        real_init(self, *args, **kwargs)
+
+    monkeypatch.setattr(EmbeddingService, "__init__", counting_init)
+    barrier = threading.Barrier(8)
+    seen: list[EmbeddingService] = []
+
+    def fetch() -> None:
+        barrier.wait()
+        seen.append(service_module.get_embedding_service())
+
+    threads = [threading.Thread(target=fetch) for _ in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=10)
+
+    assert len(seen) == 8 and all(s is seen[0] for s in seen)
+    assert len(created) == 1
+    assert seen[0]._model is None, "creating the shared service must not load the model"
+    assert service_module.get_embedding_service() is seen[0]
+
+
+def test_get_embedding_service_is_exported_from_the_package():
+    import ml.embeddings
+    import ml.embeddings.service as service_module
+
+    assert ml.embeddings.get_embedding_service is service_module.get_embedding_service
+
+
+def test_concurrent_encodes_run_one_at_a_time():
+    import threading
+    import time
+
+    svc = EmbeddingService(model_name="all-MiniLM-L6-v2", device="cpu", batch_size=8)
+    model = _make_mock_model()
+    state = {"active": 0, "max_active": 0}
+    guard = threading.Lock()
+    encode = model.encode.side_effect
+
+    def slow_encode(texts, **kwargs):
+        with guard:
+            state["active"] += 1
+            state["max_active"] = max(state["max_active"], state["active"])
+        time.sleep(0.05)
+        with guard:
+            state["active"] -= 1
+        return encode(texts, **kwargs)
+
+    model.encode.side_effect = slow_encode
+    svc._model = model
+    threads = [threading.Thread(target=svc.encode_batch, args=([f"text {i}"],)) for i in range(4)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join(timeout=10)
+
+    assert model.encode.call_count == 4
+    assert state["max_active"] == 1

@@ -10,6 +10,8 @@ Options:
     --has-abstract      Only works that have an abstract
     --from-year INT     Only works published in or after this year
     --to-year INT       Only works published in or before this year
+    --from-date DATE    Only works published on or after this day, YYYY-MM-DD (not with --from-year)
+    --to-date DATE      Only works published on or before this day, YYYY-MM-DD (not with --to-year)
     --year INT          Filter by a single publication year (optional)
     --type TEXT         Filter by work type, e.g. "article", "preprint" (optional)
     --sort TEXT         Result order, e.g. "cited_by_count:desc" (optional)
@@ -34,6 +36,15 @@ with --subfield instead of --search costs a tenth of the budget per page. Set OP
 
 Dry-run does NOT require PostgreSQL.
 
+Concurrency: a live load holds the research load lock (the same PostgreSQL advisory lock
+as the scheduled research_refresh job), so two loads never write research works at once.
+While it is held, the command exits with code 3. A dry run takes no lock.
+
+Programmatic callers (the scheduled job) can also pass ``should_stop`` to end a load at
+the next page boundary, ``run_label`` to name the ingestion run, ``api_key``/``email`` to
+override the environment, and ``update_only`` to refresh known works without adding new
+ones. Error text is redacted before it is logged or saved, so an API key never leaks.
+
 Examples:
     python -m scrapers.pipelines.collect_openalex \\
         --search "machine learning" --pages 2 --per-page 25 --dry-run
@@ -45,6 +56,8 @@ Examples:
 from __future__ import annotations
 
 import argparse
+from collections.abc import Callable
+from datetime import date
 import logging
 import math
 import sys
@@ -57,6 +70,7 @@ for _path in (_PROJECT_ROOT, _BACKEND_ROOT):
     if str(_path) not in sys.path:
         sys.path.insert(0, str(_path))
 
+from scrapers.http_client import redact_secrets
 from scrapers.openalex.client import OpenAlexBudgetExhaustedError, works_filter
 from scrapers.openalex.normalizer import normalize_work
 from scrapers.openalex.validator import validate_work
@@ -70,6 +84,10 @@ logging.basicConfig(
 logger = logging.getLogger("scrapers.openalex.pipeline")
 
 DEFAULT_SEARCH = "artificial intelligence"
+# stopped_reason when should_stop() asked the load to end at a page boundary.
+STOP_REQUESTED = "stop requested"
+# Exit code of a live load that could not take the research load lock.
+EXIT_LOCK_BUSY = 3
 
 
 def _open_repository():
@@ -122,14 +140,32 @@ def run_pipeline(
     to_year: int | None = None,
     sort: str | None = None,
     cursor: str = "*",
+    *,
+    from_date: date | str | None = None,
+    to_date: date | str | None = None,
+    should_stop: Callable[[], bool] | None = None,
+    run_label: str | None = None,
+    api_key: str | None = None,
+    email: str | None = None,
+    update_only: bool = False,
 ) -> dict:
     """
     Run the OpenAlex research knowledge ingestion pipeline, one page at a time.
 
+    Keyword-only options:
+        from_date, to_date: day-level publication date bounds (see ``works_filter``).
+        should_stop: called after each saved page; returning True ends the load there,
+            with ``stopped_reason`` set to ``STOP_REQUESTED``. Every saved page is kept.
+        run_label: the ingestion run's label; defaults to the search or the filter.
+        api_key, email: OpenAlex credentials; each falls back to the environment.
+        update_only: persist only works already in research_works, counting the
+            dropped ones in ``skipped_new``.
+
     Returns:
         dict containing structured metrics. ``next_cursor`` is where a further load
         continues (None once every matching work was fetched); ``stopped_reason`` is set
-        when the load ended early.
+        when the load ended early and ``budget_exhausted`` when the daily OpenAlex budget
+        ended it. Error text is redacted, so no API key reaches the stats or the database.
     """
     if search is None and subfield is None:
         search = DEFAULT_SEARCH
@@ -140,6 +176,8 @@ def run_pipeline(
         to_year=to_year,
         subfield_id=subfield,
         has_abstract=has_abstract,
+        from_date=from_date,
+        to_date=to_date,
     )
 
     stats: dict = {
@@ -157,6 +195,8 @@ def run_pipeline(
         "run_id": None,
         "next_cursor": None,
         "stopped_reason": None,
+        "budget_exhausted": False,
+        "skipped_new": 0,
     }
 
     logger.info("=== ResearchConnect AI — OpenAlex Research Knowledge Pipeline ===")
@@ -176,14 +216,14 @@ def run_pipeline(
         # Fails here, before any API call spends budget, when the database is unreachable.
         session, repo = _open_repository()
         try:
-            run_label = search or f"filter:{stats['filter']}"
-            result = repo.start_run(run_label[:255])
+            label = run_label or search or f"filter:{stats['filter']}"
+            result = repo.start_run(label[:255])
         except Exception:
             session.close()
             raise
         stats["run_id"] = str(result.run_id)
 
-    source = OpenAlexSource()
+    source = OpenAlexSource(api_key=api_key, email=email)
     samples: list = []
     resume_cursor: str | None = cursor
     pages_done = 0
@@ -203,6 +243,11 @@ def run_pipeline(
             if dry_run:
                 samples.extend(valid_works[: max(0, 3 - len(samples))])
             else:
+                if update_only and valid_works:
+                    known = repo.existing_work_ids([w.openalex_id for w in valid_works])
+                    kept = [w for w in valid_works if w.openalex_id in known]
+                    stats["skipped_new"] += len(valid_works) - len(kept)
+                    valid_works = kept
                 repo.save_page(valid_works, result)
                 stats["inserted"] = result.works_inserted
                 stats["updated"] = result.works_updated
@@ -226,9 +271,14 @@ def run_pipeline(
                 stats["unchanged"],
                 stats["errors"],
             )
+            if should_stop is not None and should_stop():
+                stats["stopped_reason"] = STOP_REQUESTED
+                logger.warning("Stop requested after %d complete page(s).", pages_done)
+                break
     except OpenAlexBudgetExhaustedError as exc:
-        stats["stopped_reason"] = str(exc)
-        logger.error("Stopping: %s", exc)
+        stats["stopped_reason"] = redact_secrets(str(exc))
+        stats["budget_exhausted"] = True
+        logger.error("Stopping: %s", stats["stopped_reason"])
     except KeyboardInterrupt:
         # Ctrl+C: drop the page in flight (it was not committed), keep every saved page.
         stats["stopped_reason"] = "interrupted"
@@ -236,8 +286,9 @@ def run_pipeline(
         if repo is not None:
             repo.discard_page()
     except Exception as exc:  # noqa: BLE001
-        stats["stopped_reason"] = f"stopped on an error: {exc}"
-        logger.error("Stopping after %d complete page(s): %s", pages_done, exc)
+        # requests and urllib3 put the full URL, api_key included, into their messages.
+        stats["stopped_reason"] = redact_secrets(f"stopped on an error: {exc}")
+        logger.error("Stopping after %d complete page(s): %s", pages_done, redact_secrets(str(exc)))
     finally:
         source.close()
         if repo is not None:
@@ -252,7 +303,7 @@ def run_pipeline(
                 )
             except Exception as exc:  # noqa: BLE001
                 session.rollback()
-                logger.error("Could not record the run's final counts: %s", exc)
+                logger.error("Could not record the run's final counts: %s", redact_secrets(str(exc)))
             session.close()
 
     stats["next_cursor"] = resume_cursor
@@ -288,7 +339,14 @@ def run_pipeline(
     return stats
 
 
-def main() -> None:
+def _acquire_research_lock():
+    """Take the research load lock; imported lazily so a dry run needs no database."""
+    from scrapers.pipelines.load_lock import acquire_research_lock
+
+    return acquire_research_lock()
+
+
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
         description="ResearchConnect AI — OpenAlex research knowledge ingestion pipeline"
     )
@@ -308,19 +366,35 @@ def main() -> None:
         dest="has_abstract",
         help="Only works that have an abstract",
     )
-    parser.add_argument(
+    from_bound = parser.add_mutually_exclusive_group()
+    from_bound.add_argument(
         "--from-year",
         type=int,
         default=None,
         dest="from_year",
         help="Only works published in or after this year",
     )
-    parser.add_argument(
+    from_bound.add_argument(
+        "--from-date",
+        type=date.fromisoformat,
+        default=None,
+        dest="from_date",
+        help="Only works published on or after this day (YYYY-MM-DD)",
+    )
+    to_bound = parser.add_mutually_exclusive_group()
+    to_bound.add_argument(
         "--to-year",
         type=int,
         default=None,
         dest="to_year",
         help="Only works published in or before this year",
+    )
+    to_bound.add_argument(
+        "--to-date",
+        type=date.fromisoformat,
+        default=None,
+        dest="to_date",
+        help="Only works published on or before this day (YYYY-MM-DD)",
     )
     parser.add_argument(
         "--sort",
@@ -362,7 +436,24 @@ def main() -> None:
         default=None,
         help="Filter by work type, e.g. 'article', 'preprint' (optional)",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+
+    # A live load holds the research lock for its whole run, so it never writes research
+    # works at the same time as another load or the scheduled research_refresh job. The
+    # lock is never taken inside run_pipeline: the scheduler already holds it there.
+    lock = None
+    if not args.dry_run:
+        try:
+            lock = _acquire_research_lock()
+        except Exception as exc:  # noqa: BLE001
+            logger.error("Could not take the research load lock: %s", redact_secrets(str(exc)))
+            sys.exit(1)
+        if lock is None:
+            logger.error(
+                "Another research load or the scheduled research_refresh job is running; "
+                "try again when it has finished."
+            )
+            sys.exit(EXIT_LOCK_BUSY)
 
     try:
         stats = run_pipeline(
@@ -378,10 +469,15 @@ def main() -> None:
             to_year=args.to_year,
             sort=args.sort,
             cursor=args.cursor,
+            from_date=args.from_date,
+            to_date=args.to_date,
         )
     except Exception as exc:  # noqa: BLE001
-        logger.error("Pipeline failed before loading anything: %s", exc)
+        logger.error("Pipeline failed before loading anything: %s", redact_secrets(str(exc)))
         sys.exit(1)
+    finally:
+        if lock is not None:
+            lock.release()
 
     print("\n--- OpenAlex Pipeline Execution Summary ---")
     for key, value in stats.items():

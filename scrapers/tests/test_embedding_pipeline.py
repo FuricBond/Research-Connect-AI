@@ -294,3 +294,113 @@ class TestMainOutput:
             assert main(["--entity", "research_work"]) == 0
         sys.stdout.flush()
         assert b"embedded (new)  : 1" in buffer.getvalue()
+
+
+# ── Research refresh: pending-only selection and a shared service ──────────────
+
+
+def _run_with(ctx, *, svc=None, embedding_service=None, **kwargs) -> PipelineStats:
+    params = dict(
+        entity="research_work",
+        model_name="all-MiniLM-L6-v2",
+        batch_size=8,
+        limit=None,
+        dry_run=False,
+        force=False,
+        device="cpu",
+    )
+    params.update(kwargs)
+    with (
+        patch("ml.embeddings.generate_embeddings.SessionLocal", return_value=ctx),
+        patch(
+            "ml.embeddings.generate_embeddings.EmbeddingService",
+            return_value=svc if svc is not None else _make_fake_service(),
+        ) as service_class,
+    ):
+        stats = run_pipeline(embedding_service=embedding_service, **params)
+    return stats, service_class
+
+
+def _query(ctx) -> MagicMock:
+    query = ctx.__enter__.return_value.query.return_value
+    query.filter.return_value = query
+    return query
+
+
+class TestPendingOnly:
+    def test_pending_only_selects_missing_or_other_model_embeddings(self):
+        from sqlalchemy.dialects import postgresql
+
+        ctx = _make_fake_session([FakeWork()])
+        query = _query(ctx)
+
+        stats, _ = _run_with(ctx, pending_only=True)
+
+        query.filter.assert_called_once()
+        (criterion,), _ = query.filter.call_args
+        sql = str(criterion.compile(dialect=postgresql.dialect()))
+        assert "embedding IS NULL" in sql
+        assert "embedding_model IS DISTINCT FROM" in sql
+        assert " OR " in sql
+        assert stats.embedded == 1
+
+    def test_pending_only_filters_before_the_limit(self):
+        ctx = _make_fake_session([FakeWork()])
+        query = _query(ctx)
+
+        _run_with(ctx, pending_only=True, limit=5)
+
+        calls = [name for name, _, _ in query.mock_calls if name in ("filter", "limit")]
+        assert calls == ["filter", "limit"]
+
+    def test_no_filter_without_pending_only(self):
+        ctx = _make_fake_session([FakeWork()])
+        query = _query(ctx)
+        _run_with(ctx)
+        query.filter.assert_not_called()
+
+    def test_force_ignores_pending_only(self):
+        ctx = _make_fake_session([FakeWork()])
+        query = _query(ctx)
+        stats, _ = _run_with(ctx, pending_only=True, force=True)
+        query.filter.assert_not_called()
+        assert stats.embedded == 1
+
+    def test_the_cli_flag_reaches_the_pipeline(self):
+        from ml.embeddings.generate_embeddings import main
+
+        with patch(
+            "ml.embeddings.generate_embeddings.run_pipeline",
+            return_value=PipelineStats(total=0),
+        ) as run:
+            assert main(["--entity", "research_work", "--pending-only"]) == 0
+        assert run.call_args.kwargs["pending_only"] is True
+
+
+class TestInjectedEmbeddingService:
+    def _service(self, model_name: str = "all-MiniLM-L6-v2") -> MagicMock:
+        svc = _make_fake_service()
+        svc.model_name = model_name
+        return svc
+
+    def test_an_injected_service_is_used_and_no_service_is_constructed(self):
+        injected = self._service()
+        stats, service_class = _run_with(_make_fake_session([FakeWork()]), embedding_service=injected)
+
+        service_class.assert_not_called()
+        injected.encode_batch.assert_called_once()
+        assert stats.embedded == 1
+
+    def test_a_service_for_another_model_is_refused(self):
+        with pytest.raises(ValueError, match="other-model"):
+            _run_with(_make_fake_session([FakeWork()]), embedding_service=self._service("other-model"))
+
+    def test_the_existing_tests_run_on_the_fake_service(self):
+        """The module-level EmbeddingService is what the pipeline uses, so patching it works."""
+        from ml.embeddings.service import EmbeddingService
+
+        with patch.object(
+            EmbeddingService, "_load_model", side_effect=AssertionError("the real model was loaded")
+        ):
+            stats = _run_pipeline_mocked([FakeWork()])
+        assert stats.embedded == 1

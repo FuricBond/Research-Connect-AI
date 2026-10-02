@@ -24,8 +24,10 @@ Thread safety
 -------------
 ``sentence_transformers.SentenceTransformer.encode()`` is not guaranteed to be
 thread-safe with shared model state.  Create one ``EmbeddingService`` per
-worker process (not per thread).  Model loading and the ``encode_one`` cache are
-guarded by locks, so a startup warm-up thread and a request can share one service.
+worker process (not per thread).  Model loading, ``model.encode`` and the
+``encode_one`` cache are guarded by locks, so a startup warm-up thread, requests and a
+scheduled job can share one service.  ``get_embedding_service()`` returns that shared
+instance, so the process loads the model once.
 
 Query cache
 -----------
@@ -83,6 +85,7 @@ class EmbeddingService:
         self.batch_size: int = batch_size or EMBEDDING_BATCH_SIZE
         self._model: object | None = None  # lazy-loaded
         self._load_lock = threading.Lock()
+        self._encode_lock = threading.Lock()
         self._encode_one_cache: OrderedDict[tuple[str, str], list[float]] = OrderedDict()
         self._encode_one_cache_lock = threading.Lock()
 
@@ -178,13 +181,16 @@ class EmbeddingService:
         model: SentenceTransformer = self.model  # type: ignore[assignment]
 
         logger.debug("Encoding batch of %d texts …", len(texts))
-        vectors: np.ndarray = model.encode(
-            list(texts),
-            batch_size=self.batch_size,
-            show_progress_bar=False,
-            convert_to_numpy=True,
-            normalize_embeddings=True,  # L2-normalise for cosine-similarity via dot product
-        )
+        # One encode at a time: the model is shared between threads and encode() is not
+        # guaranteed to be thread-safe.
+        with self._encode_lock:
+            vectors: np.ndarray = model.encode(
+                list(texts),
+                batch_size=self.batch_size,
+                show_progress_bar=False,
+                convert_to_numpy=True,
+                normalize_embeddings=True,  # L2-normalise for cosine-similarity via dot product
+            )
         return vectors
 
     # ── convenience ────────────────────────────────────────────────────────────
@@ -196,3 +202,25 @@ class EmbeddingService:
 
         model: SentenceTransformer = self.model  # type: ignore[assignment]
         return model.get_sentence_embedding_dimension()  # type: ignore[return-value]
+
+
+# ── shared instance ────────────────────────────────────────────────────────────
+
+_shared_service: EmbeddingService | None = None
+_shared_service_lock = threading.Lock()
+
+
+def get_embedding_service() -> EmbeddingService:
+    """
+    Return the process-wide EmbeddingService, creating it on first call.
+
+    Literature search, the startup warm-up and the scheduled research refresh all use it,
+    so the model is loaded once per process.  Creating the service loads nothing: the model
+    still loads on first encode.  Never created at import.
+    """
+    global _shared_service
+    if _shared_service is None:
+        with _shared_service_lock:
+            if _shared_service is None:
+                _shared_service = EmbeddingService()
+    return _shared_service

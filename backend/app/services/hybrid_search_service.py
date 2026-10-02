@@ -64,9 +64,10 @@ if _root_path not in sys.path:
     sys.path.insert(0, _root_path)
 
 try:
-    from ml.embeddings.service import EmbeddingService
+    from ml.embeddings.service import EmbeddingService, get_embedding_service
 except ImportError:
     EmbeddingService = None  # type: ignore[assignment,misc]
+    get_embedding_service = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -173,9 +174,9 @@ class HybridSearchService:
 
     @property
     def embedding_service(self) -> EmbeddingService:
-        """Lazy-loaded EmbeddingService instance."""
+        """The injected EmbeddingService, else the process-wide shared one (looked up lazily)."""
         if self._embedding_service is None:
-            self._embedding_service = EmbeddingService()
+            self._embedding_service = get_embedding_service()
         return self._embedding_service
 
     # ── Research Works Hybrid Search ──────────────────────────────────────────

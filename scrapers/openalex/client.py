@@ -34,7 +34,7 @@ from urllib.parse import urlencode
 
 import requests
 
-from scrapers.http_client import HttpClient
+from scrapers.http_client import HttpClient, redact_secrets
 
 logger = logging.getLogger(__name__)
 
@@ -299,7 +299,7 @@ class OpenAlexClient:
             ):
                 yield page.results
         except Exception as exc:
-            logger.error("OpenAlex works request failed: %s", exc)
+            logger.error("OpenAlex works request failed: %s", redact_secrets(str(exc)))
             return
 
     def iter_work_pages(

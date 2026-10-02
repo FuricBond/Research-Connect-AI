@@ -592,6 +592,19 @@ class OpenAlexRepository:
         self._session.commit()
         return result
 
+    def existing_work_ids(self, openalex_ids: list[str]) -> set[str]:
+        """The subset of ``openalex_ids`` that research_works already holds (one query)."""
+        from app.models.research_knowledge import ResearchWorkModel
+
+        if not openalex_ids:
+            return set()
+        rows = self._session.execute(
+            select(ResearchWorkModel.openalex_id).where(
+                ResearchWorkModel.openalex_id.in_(set(openalex_ids))
+            )
+        )
+        return {openalex_id for (openalex_id,) in rows}
+
     def save_page(
         self,
         works: list[NormalizedWork],

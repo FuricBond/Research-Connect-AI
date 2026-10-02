@@ -18,6 +18,9 @@ Usage
     # Force re-embed everything (ignore existing hashes)
     python -m ml.embeddings.generate_embeddings --entity research_work --force
 
+    # Only works with no embedding yet, or one from another model (fast after a load)
+    python -m ml.embeddings.generate_embeddings --entity research_work --pending-only
+
     # Limit rows and batch size
     python -m ml.embeddings.generate_embeddings \\
         --entity research_work \\
@@ -33,6 +36,10 @@ Options
 --dry-run       Print stats without writing to the database
 --force         Re-embed even if content hash matches
 --device        PyTorch device: cpu | cuda | mps (default: cpu)
+--pending-only  Select only records with no embedding or one from another model, in the
+                query itself, instead of reading every record and comparing hashes.
+                A record whose text changed under the same model is not selected; run
+                without this flag to catch those. Ignored with --force.
 """
 from __future__ import annotations
 
@@ -143,6 +150,11 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default=None,
         help="PyTorch device: cpu | cuda | mps (default: cpu).",
     )
+    parser.add_argument(
+        "--pending-only",
+        action="store_true",
+        help="Only records with no embedding or one from another model (ignored with --force).",
+    )
     return parser.parse_args(argv)
 
 
@@ -176,6 +188,8 @@ def run_pipeline(
     dry_run: bool,
     force: bool,
     device: str,
+    pending_only: bool = False,
+    embedding_service: EmbeddingService | None = None,
 ) -> PipelineStats:
     """
     Core pipeline logic.
@@ -189,13 +203,24 @@ def run_pipeline(
     dry_run:    When True, skip DB writes
     force:      When True, re-embed even if hash matches
     device:     PyTorch device string
+    pending_only:
+                When True (and not ``force``), select only records with no embedding or
+                one from another model; the hash check still applies to those.
+    embedding_service:
+                An existing service to encode with, e.g. the process-wide shared one, so
+                the model is not loaded twice. Its model must be ``model_name``.
 
     Returns
     -------
     PipelineStats
     """
     from ml.embeddings.hash_utils import compute_content_hash, needs_reembedding
-    from ml.embeddings.service import EmbeddingService
+
+    if embedding_service is not None and embedding_service.model_name != model_name:
+        raise ValueError(
+            f"embedding_service encodes with {embedding_service.model_name!r}, "
+            f"but the pipeline was asked for {model_name!r}"
+        )
 
     stats = PipelineStats()
 
@@ -215,13 +240,17 @@ def run_pipeline(
         text_fn = _build_opportunity_text_safe
 
     # --- load model -----------------------------------------------------------
-    logger.info(
-        "Initialising EmbeddingService model=%r device=%r batch_size=%d",
-        model_name,
-        device,
-        batch_size,
-    )
-    svc = EmbeddingService(model_name=model_name, device=device, batch_size=batch_size)
+    if embedding_service is not None:
+        logger.info("Using the provided EmbeddingService model=%r", model_name)
+        svc = embedding_service
+    else:
+        logger.info(
+            "Initialising EmbeddingService model=%r device=%r batch_size=%d",
+            model_name,
+            device,
+            batch_size,
+        )
+        svc = EmbeddingService(model_name=model_name, device=device, batch_size=batch_size)
 
     # --- query and process ----------------------------------------------------
     with SessionLocal() as session:
@@ -232,6 +261,16 @@ def run_pipeline(
             from sqlalchemy.orm import defer
 
             query = query.options(defer(ModelClass.raw_metadata))
+        if pending_only and not force:
+            # Before the limit: Query.filter() after .limit() raises.
+            from sqlalchemy import or_
+
+            query = query.filter(
+                or_(
+                    ModelClass.embedding.is_(None),
+                    ModelClass.embedding_model.is_distinct_from(model_name),
+                )
+            )
         if limit:
             query = query.limit(limit)
 
@@ -329,11 +368,12 @@ def main(argv: list[str] | None = None) -> int:
     device = args.device or EMBEDDING_DEVICE
 
     logger.info(
-        "Starting embedding pipeline: entity=%r model=%r dry_run=%s force=%s",
+        "Starting embedding pipeline: entity=%r model=%r dry_run=%s force=%s pending_only=%s",
         args.entity,
         model_name,
         args.dry_run,
         args.force,
+        args.pending_only,
     )
 
     try:
@@ -345,6 +385,7 @@ def main(argv: list[str] | None = None) -> int:
             dry_run=args.dry_run,
             force=args.force,
             device=device,
+            pending_only=args.pending_only,
         )
     except Exception as exc:
         logger.error("Pipeline failed: %s", exc, exc_info=True)

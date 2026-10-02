@@ -20,7 +20,7 @@ import os
 from typing import Iterator
 
 from scrapers.openalex.client import OpenAlexClient, WorksPage
-from scrapers.http_client import HttpClient
+from scrapers.http_client import HttpClient, redact_secrets
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +120,7 @@ class OpenAlexSource:
             ):
                 pages.append(page)
         except Exception as exc:
-            logger.error("OpenAlexSource.fetch_works_pages failed: %s", exc)
+            logger.error("OpenAlexSource.fetch_works_pages failed: %s", redact_secrets(str(exc)))
         return pages
 
     def iter_work_pages(

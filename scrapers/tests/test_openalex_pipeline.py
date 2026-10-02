@@ -293,3 +293,276 @@ class TestStreamingBulkLoad:
                 run_pipeline(subfield="1702")
 
         MockSource.assert_not_called()
+
+
+# ── Research refresh: stoppable, labelled, credentialed, update-only loads ────
+
+
+def _openalex_id(raw: dict) -> str:
+    from scrapers.openalex.normalizer import normalize_work
+
+    return normalize_work(raw).openalex_id
+
+
+class KnownWorksRepository(FakeRepository):
+    """A FakeRepository whose research_works already holds ``known`` openalex ids."""
+
+    def __init__(self, known: set[str]) -> None:
+        super().__init__()
+        self.known = known
+        self.lookups: list[list[str]] = []
+
+    def existing_work_ids(self, openalex_ids):
+        self.lookups.append(list(openalex_ids))
+        return {i for i in openalex_ids if i in self.known}
+
+
+class TestResearchRefreshOptions:
+    """The options the scheduled research refresh drives the loader with."""
+
+    def _run(self, source, repo, **kwargs):
+        return TestStreamingBulkLoad()._run(source, repo, **kwargs)
+
+    def test_should_stop_ends_the_load_at_a_page_boundary(self):
+        from scrapers.pipelines.collect_openalex import STOP_REQUESTED
+
+        work = load_fixture("work_normal.json")
+        source = mock_source(
+            [page([work], next_cursor="c2"), page([work], cursor="c2", next_cursor="c3")]
+        )
+        repo = FakeRepository()
+        calls: list[int] = []
+
+        def should_stop() -> bool:
+            calls.append(len(repo.saved_pages))
+            return True
+
+        stats = self._run(source, repo, subfield="1702", max_pages=5, per_page=1, should_stop=should_stop)
+
+        assert calls == [1], "checked once, after the first page was saved"
+        assert len(repo.saved_pages) == 1
+        assert stats["stopped_reason"] == STOP_REQUESTED
+        assert stats["next_cursor"] == "c2", "resume after the saved page"
+        assert repo.finished is not None and repo.finished["error_message"] == STOP_REQUESTED
+        source.close.assert_called_once()
+
+    def test_should_stop_returning_false_lets_the_load_finish(self):
+        work = load_fixture("work_normal.json")
+        source = mock_source([page([work], next_cursor="c2"), page([work], cursor="c2")])
+        repo = FakeRepository()
+
+        stats = self._run(source, repo, subfield="1702", max_pages=5, per_page=1, should_stop=lambda: False)
+
+        assert len(repo.saved_pages) == 2
+        assert stats["stopped_reason"] is None
+
+    def test_run_label_names_the_ingestion_run(self):
+        repo = FakeRepository()
+        self._run(mock_source([]), repo, subfield="1702", run_label="research_refresh:new " + "x" * 300)
+        assert repo.label.startswith("research_refresh:new ")
+        assert len(repo.label) == 255
+
+    def test_without_run_label_the_search_or_filter_names_the_run(self):
+        repo = FakeRepository()
+        self._run(mock_source([]), repo, search="graph learning")
+        assert repo.label == "graph learning"
+        repo = FakeRepository()
+        self._run(mock_source([]), repo, subfield="1702")
+        assert repo.label == "filter:primary_topic.subfield.id:1702"
+
+    def test_day_level_dates_reach_the_filters(self):
+        from datetime import date
+
+        source = mock_source([])
+        self._run(source, FakeRepository(), subfield="1702", from_date="2026-09-25", to_date=date(2026, 10, 2))
+
+        filters = source.iter_work_pages.call_args.kwargs["filters"]
+        assert "from_publication_date:2026-09-25" in filters
+        assert "to_publication_date:2026-10-02" in filters
+
+    def test_api_key_and_email_reach_the_source(self):
+        from scrapers.pipelines.collect_openalex import run_pipeline
+
+        with patch("scrapers.pipelines.collect_openalex.OpenAlexSource") as MockSource:
+            MockSource.return_value = mock_source([])
+            run_pipeline(subfield="1702", dry_run=True, api_key="test-key-not-real", email="ops@example.org")
+
+        assert MockSource.call_args.kwargs == {"api_key": "test-key-not-real", "email": "ops@example.org"}
+
+    def test_without_credentials_the_source_falls_back_to_the_environment(self):
+        from scrapers.pipelines.collect_openalex import run_pipeline
+
+        with patch("scrapers.pipelines.collect_openalex.OpenAlexSource") as MockSource:
+            MockSource.return_value = mock_source([])
+            run_pipeline(subfield="1702", dry_run=True)
+
+        assert MockSource.call_args.kwargs == {"api_key": None, "email": None}
+
+    def test_a_budget_stop_is_flagged(self):
+        from scrapers.openalex.client import OpenAlexBudgetExhaustedError
+
+        work = load_fixture("work_normal.json")
+        source = mock_source([page([work], next_cursor="c2")], error=OpenAlexBudgetExhaustedError(3600))
+
+        stats = self._run(source, FakeRepository(), subfield="1702", max_pages=5, per_page=1)
+
+        assert stats["budget_exhausted"] is True
+        assert "budget" in stats["stopped_reason"]
+
+    def test_other_stops_are_not_budget_stops(self):
+        work = load_fixture("work_normal.json")
+        stats = self._run(
+            mock_source([page([work])], error=RuntimeError("boom")), FakeRepository(), subfield="1702"
+        )
+        assert stats["budget_exhausted"] is False
+        stats = self._run(mock_source([]), FakeRepository(), subfield="1702")
+        assert stats["budget_exhausted"] is False and stats["stopped_reason"] is None
+
+    def test_an_error_carrying_the_api_key_is_redacted_everywhere(self, caplog):
+        import requests
+
+        secret = "secret-value"
+        error = requests.ConnectionError(
+            f"HTTPSConnectionPool(host='api.openalex.org', port=443): Max retries exceeded "
+            f"with url: /works?filter=x&api_key={secret}&mailto=ops@example.org"
+        )
+        repo = FakeRepository()
+
+        stats = self._run(mock_source([], error=error), repo, subfield="1702")
+
+        assert stats["stopped_reason"].startswith("stopped on an error:")
+        assert "api_key=***" in stats["stopped_reason"]
+        assert secret not in stats["stopped_reason"]
+        assert secret not in repo.finished["error_message"]
+        assert secret not in caplog.text
+        assert "ops@example.org" not in caplog.text
+
+    def test_update_only_keeps_known_works_and_counts_the_rest(self):
+        known_raw = load_fixture("work_normal.json")
+        new_raw = load_fixture("work_multi_author.json")
+        known_id, new_id = _openalex_id(known_raw), _openalex_id(new_raw)
+        assert known_id != new_id
+        repo = KnownWorksRepository({known_id})
+
+        stats = self._run(
+            mock_source([page([known_raw, new_raw])]), repo, subfield="1702", update_only=True
+        )
+
+        assert repo.saved_pages == [[known_id]]
+        assert stats["skipped_new"] == 1
+        assert repo.lookups == [[known_id, new_id]]
+
+    def test_without_update_only_new_works_are_saved_and_nothing_is_looked_up(self):
+        repo = KnownWorksRepository(set())
+        stats = self._run(
+            mock_source([page([load_fixture("work_normal.json")])]), repo, subfield="1702"
+        )
+        assert len(repo.saved_pages[0]) == 1
+        assert stats["skipped_new"] == 0
+        assert repo.lookups == []
+
+
+class FakeLock:
+    def __init__(self) -> None:
+        self.released = 0
+
+    def release(self) -> None:
+        self.released += 1
+
+
+class TestResearchLoadLockCli:
+    """The CLI holds the research load lock for a live load and never for a dry run."""
+
+    STATS = {"source": "OpenAlex", "inserted": 0}
+
+    def test_a_busy_lock_exits_3_without_loading(self, monkeypatch):
+        from scrapers.pipelines import collect_openalex, load_lock
+
+        monkeypatch.setattr(load_lock, "acquire_research_lock", lambda: None)
+        run = MagicMock(return_value=self.STATS)
+        monkeypatch.setattr(collect_openalex, "run_pipeline", run)
+
+        with pytest.raises(SystemExit) as exit_info:
+            collect_openalex.main(["--subfield", "1702", "--pages", "1"])
+
+        assert exit_info.value.code == 3
+        run.assert_not_called()
+
+    def test_the_lock_is_released_after_a_run(self, monkeypatch):
+        from scrapers.pipelines import collect_openalex, load_lock
+
+        lock = FakeLock()
+        monkeypatch.setattr(load_lock, "acquire_research_lock", lambda: lock)
+        run = MagicMock(return_value=self.STATS)
+        monkeypatch.setattr(collect_openalex, "run_pipeline", run)
+
+        collect_openalex.main(["--subfield", "1702", "--from-date", "2026-09-25", "--to-date", "2026-10-02"])
+
+        run.assert_called_once()
+        assert str(run.call_args.kwargs["from_date"]) == "2026-09-25"
+        assert str(run.call_args.kwargs["to_date"]) == "2026-10-02"
+        assert lock.released == 1
+
+    def test_the_lock_is_released_when_the_load_fails(self, monkeypatch):
+        from scrapers.pipelines import collect_openalex, load_lock
+
+        lock = FakeLock()
+        monkeypatch.setattr(load_lock, "acquire_research_lock", lambda: lock)
+        monkeypatch.setattr(collect_openalex, "run_pipeline", MagicMock(side_effect=RuntimeError("db down")))
+
+        with pytest.raises(SystemExit) as exit_info:
+            collect_openalex.main(["--subfield", "1702"])
+
+        assert exit_info.value.code == 1
+        assert lock.released == 1
+
+    def test_a_dry_run_takes_no_lock(self, monkeypatch):
+        from scrapers.pipelines import collect_openalex, load_lock
+
+        def no_lock_expected():
+            raise AssertionError("a dry run must not take the research lock")
+
+        monkeypatch.setattr(load_lock, "acquire_research_lock", no_lock_expected)
+        run = MagicMock(return_value=self.STATS)
+        monkeypatch.setattr(collect_openalex, "run_pipeline", run)
+
+        collect_openalex.main(["--subfield", "1702", "--dry-run"])
+
+        assert run.call_args.kwargs["dry_run"] is True
+
+    @pytest.mark.parametrize(
+        "argv",
+        [
+            ["--from-year", "2025", "--from-date", "2026-01-01"],
+            ["--to-year", "2026", "--to-date", "2026-10-02"],
+            ["--from-date", "2026-01-01,type:x"],
+        ],
+    )
+    def test_conflicting_or_malformed_date_options_are_refused(self, argv, monkeypatch):
+        from scrapers.pipelines import collect_openalex
+
+        run = MagicMock(return_value=self.STATS)
+        monkeypatch.setattr(collect_openalex, "run_pipeline", run)
+
+        with pytest.raises(SystemExit) as exit_info:
+            collect_openalex.main(["--subfield", "1702", "--dry-run", *argv])
+
+        assert exit_info.value.code == 2
+        run.assert_not_called()
+
+    def test_acquire_research_lock_uses_the_research_refresh_job_lock(self, monkeypatch):
+        from app.scheduler import locks
+        from app.scheduler.jobs import RESEARCH_REFRESH
+        from scrapers.pipelines.load_lock import acquire_research_lock
+
+        backend = locks.LocalLockBackend()
+        monkeypatch.setattr(locks, "lock_backend_for", lambda engine: backend)
+
+        first = acquire_research_lock()
+        assert first is not None
+        assert acquire_research_lock() is None, "a second load must find the lock busy"
+        assert backend.try_acquire(RESEARCH_REFRESH) is None, "it is the research_refresh job's lock"
+        first.release()
+        again = acquire_research_lock()
+        assert again is not None
+        again.release()

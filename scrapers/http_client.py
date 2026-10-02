@@ -14,6 +14,7 @@ Design decisions:
 from __future__ import annotations
 
 import logging
+import re
 import time
 from urllib.parse import urlparse
 
@@ -35,6 +36,32 @@ BACKOFF_FACTOR = 1.5          # waits: 0s, 1.5s, 3s between retries
 
 # Status codes that are worth retrying (transient server errors only)
 RETRY_STATUS_CODES = {500, 502, 503, 504}
+
+# Query parameters whose values must never reach a log line, a stats dict or the database.
+# requests and urllib3 put the full URL, query string included, into their error messages.
+_SECRET_PARAM = re.compile(r"((?:api_key|mailto)=)[^&\s'\")]*", re.IGNORECASE)
+
+
+def redact_secrets(text: str) -> str:
+    """Replace the value of every ``api_key=`` and ``mailto=`` in ``text`` with ``***``."""
+    return _SECRET_PARAM.sub(r"\g<1>***", text)
+
+
+class _RedactingFilter(logging.Filter):
+    """
+    Redact secrets from records of a third-party logger. urllib3 logs each request line,
+    query string included, at DEBUG, so a DEBUG log level would otherwise print the key.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        redacted = redact_secrets(message)
+        if redacted != message:
+            record.msg, record.args = redacted, None
+        return True
+
+
+logging.getLogger("urllib3.connectionpool").addFilter(_RedactingFilter())
 
 
 def _build_session() -> requests.Session:
@@ -102,24 +129,26 @@ class HttpClient:
                 allow_redirects=True,
             )
         except requests.Timeout:
-            logger.error("Timeout fetching %s (timeout=%s)", url, timeout)
+            logger.error("Timeout fetching %s (timeout=%s)", redact_secrets(url), timeout)
             raise
         except requests.ConnectionError as exc:
-            logger.error("Connection error fetching %s: %s", url, exc)
+            logger.error("Connection error fetching %s: %s", redact_secrets(url), redact_secrets(str(exc)))
             raise
         except requests.RequestException as exc:
-            logger.error("Request error fetching %s: %s", url, exc)
+            logger.error("Request error fetching %s: %s", redact_secrets(url), redact_secrets(str(exc)))
             raise
 
         if not response.ok:
             logger.warning(
                 "HTTP %d fetching %s — will not retry 4xx errors",
                 response.status_code,
-                url,
+                redact_secrets(url),
             )
             response.raise_for_status()
 
-        logger.info("Fetched %s [%d] (%d bytes)", url, response.status_code, len(response.content))
+        logger.info(
+            "Fetched %s [%d] (%d bytes)", redact_secrets(url), response.status_code, len(response.content)
+        )
         return response.text
 
     def get_json(
@@ -146,8 +175,8 @@ class HttpClient:
         try:
             return _json.loads(text)
         except _json.JSONDecodeError as exc:
-            logger.error("JSON decode error for %s: %s", url, exc)
-            raise ValueError(f"Invalid JSON response from {url}: {exc}") from exc
+            logger.error("JSON decode error for %s: %s", redact_secrets(url), exc)
+            raise ValueError(f"Invalid JSON response from {redact_secrets(url)}: {exc}") from exc
 
     def close(self) -> None:
         """Release the underlying connection pool."""
