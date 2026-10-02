@@ -20,6 +20,7 @@ import argparse
 import logging
 import sys
 import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -54,9 +55,14 @@ def run_topic_processing(
     process_opportunities: bool = False,
     reprocess: bool = False,
     dry_run: bool = False,
+    created_since: datetime | None = None,
 ) -> dict[str, Any]:
     """
     Execute batch topic assignment for research works or opportunities.
+
+    ``created_since`` limits untagged research works to those created at or after it. The
+    scheduled research refresh passes its own start, so a work that matched no topic is not
+    examined again on every run.
 
     Returns:
         Structured statistics dictionary.
@@ -174,6 +180,8 @@ def run_topic_processing(
             elif not reprocess:
                 # Only process works without topic associations
                 stmt = stmt.outerjoin(ResearchWorkTopicModel).where(ResearchWorkTopicModel.work_id == None)
+                if created_since is not None:
+                    stmt = stmt.where(ResearchWorkModel.created_at >= created_since)
 
             if limit:
                 stmt = stmt.limit(limit)

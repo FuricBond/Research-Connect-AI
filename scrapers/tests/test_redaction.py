@@ -92,6 +92,27 @@ class TestNoSecretInLogs:
         assert "api_key=***" in caplog.text
         assert SECRET not in caplog.text
 
+    @pytest.mark.parametrize(
+        ("logger_name", "level", "message"),
+        [
+            # A response with malformed headers is logged with its full URL at WARNING.
+            ("urllib3.connection", logging.WARNING, "Failed to parse headers (url=%s): %s"),
+            # Every retry is logged with its URL at DEBUG.
+            ("urllib3.util.retry", logging.DEBUG, "Incremented Retry for (url='%s'): %r"),
+            ("urllib3.connectionpool", logging.DEBUG, "Retry: %s %s"),
+            ("urllib3.poolmanager", logging.INFO, "Redirecting %s -> %s"),
+        ],
+    )
+    def test_every_urllib3_logger_that_writes_a_url_is_redacted(self, caplog, logger_name, level, message):
+        import scrapers.http_client  # noqa: F401  (installs the filters)
+
+        caplog.set_level(logging.DEBUG, logger=logger_name)
+        logging.getLogger(logger_name).log(level, message, URL, "detail")
+
+        assert "api_key=***" in caplog.text
+        assert SECRET not in caplog.text
+        assert "me@example.org" not in caplog.text
+
     def test_the_source_logs_no_secret_when_a_fetch_fails(self, caplog):
         from scrapers.sources.openalex import OpenAlexSource
 

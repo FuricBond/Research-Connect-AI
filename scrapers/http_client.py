@@ -49,8 +49,9 @@ def redact_secrets(text: str) -> str:
 
 class _RedactingFilter(logging.Filter):
     """
-    Redact secrets from records of a third-party logger. urllib3 logs each request line,
-    query string included, at DEBUG, so a DEBUG log level would otherwise print the key.
+    Redact secrets from records of a third-party logger. urllib3 writes request URLs,
+    query string included: each request line and retry at DEBUG, and a response with
+    malformed headers at WARNING, so the key would otherwise reach the logs.
     """
 
     def filter(self, record: logging.LogRecord) -> bool:
@@ -61,7 +62,10 @@ class _RedactingFilter(logging.Filter):
         return True
 
 
-logging.getLogger("urllib3.connectionpool").addFilter(_RedactingFilter())
+# A logger's filters do not apply to its children, so each urllib3 logger that writes a
+# URL gets its own.
+for _name in ("urllib3.connectionpool", "urllib3.connection", "urllib3.util.retry", "urllib3.poolmanager"):
+    logging.getLogger(_name).addFilter(_RedactingFilter())
 
 
 def _build_session() -> requests.Session:

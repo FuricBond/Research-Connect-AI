@@ -27,9 +27,11 @@ Outcomes:
     - A stop request (``should_stop``) ends the refresh at a page boundary and is not a
       failure. Every saved page is kept either way.
 
-After the passes, unless a stop was requested, untagged works get topics and works with no
-embedding (or one from another model) get embeddings, through the process-wide embedding
-service, so new works are searchable by meaning in the same run.
+After the passes, unless a stop was requested, the works this refresh stored get topics and
+works with no embedding (or one from another model) get embeddings, through the process-wide
+embedding service, so new works are searchable by meaning in the same run. Topic assignment
+is limited to works created since the refresh started: a work that matches no topic stays
+untagged, and re-examining every such work on every run took minutes on a large corpus.
 
 The summary holds counts and fixed reason codes only, never exception text, so neither a
 request URL nor the API key in it can reach the job details, the logs or the database.
@@ -71,6 +73,9 @@ BUDGET_EXHAUSTED = "budget exhausted"
 REQUEST_FAILED = "request failed"
 
 PER_PAGE = 200  # the OpenAlex maximum: fewer requests for the same works
+# Topic assignment covers works created since the refresh started, less this margin for a
+# clock difference between the application and the database.
+TOPIC_CLOCK_MARGIN = timedelta(minutes=5)
 EMBEDDING_BATCH_SIZE = 32
 EXIT_LOCK_BUSY = 3
 
@@ -133,7 +138,8 @@ def run_refresh(
     """
     from scrapers.pipelines import collect_openalex
 
-    today = today or datetime.now(timezone.utc).date()
+    started_at = datetime.now(timezone.utc)
+    today = today or started_at.date()
     run_tag = run_tag or uuid.uuid4().hex
     subfields = tuple(subfields)
     stopping = should_stop or (lambda: False)
@@ -266,7 +272,7 @@ def run_refresh(
     if stats["stopped_reason"] != STOP_REQUESTED and stopping():
         stats["stopped_reason"] = STOP_REQUESTED
     if stats["stopped_reason"] != STOP_REQUESTED:
-        _tag_and_embed(stats, run_tag, stopping)
+        _tag_and_embed(stats, run_tag, stopping, created_since=started_at - TOPIC_CLOCK_MARGIN)
     if stats["passes_completed"] == 0 and stats["passes_failed"] > 0:
         _alert_on_repeated_failures(run_tag)
 
@@ -285,14 +291,16 @@ def run_refresh(
     return stats
 
 
-def _tag_and_embed(stats: dict, run_tag: str, stopping: Callable[[], bool]) -> None:
-    """Topics for untagged works, then embeddings for pending ones; failures are counted."""
+def _tag_and_embed(
+    stats: dict, run_tag: str, stopping: Callable[[], bool], *, created_since: datetime
+) -> None:
+    """Topics for this refresh's untagged works, then pending embeddings; failures are counted."""
     from ml.embeddings import generate_embeddings
     from ml.embeddings.service import get_embedding_service
     from ml.topic_analysis.process_topics import run_topic_processing
 
     try:
-        topic_stats = run_topic_processing()
+        topic_stats = run_topic_processing(created_since=created_since)
         stats["topics_processed"] = int(topic_stats.get("entities_processed") or 0)
         stats["errors"] += int(topic_stats.get("errors") or 0)
     except Exception as exc:  # noqa: BLE001

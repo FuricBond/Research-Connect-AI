@@ -79,8 +79,11 @@ class Harness:
             result = self.results.pop(0) if self.results else pass_stats()
             return result(kwargs) if callable(result) else result
 
+        self.topic_kwargs: list[dict] = []
+
         def fake_topics(**kwargs):
             self.topic_calls += 1
+            self.topic_kwargs.append(kwargs)
             return {"entities_processed": 7, "errors": 0}
 
         def fake_embed(**kwargs):
@@ -351,6 +354,71 @@ def test_importing_the_module_configures_nothing():
     )
     assert result.returncode == 0, result.stderr[-2000:]
     assert result.stdout.strip().splitlines()[-1] == "True True False False"
+
+
+# ── Topics only for the works this refresh stored (step 6/6) ──────────────────
+
+
+def test_topics_cover_only_works_created_since_the_refresh_started(monkeypatch):
+    from datetime import datetime, timedelta, timezone
+
+    harness = Harness(monkeypatch)
+    before = datetime.now(timezone.utc)
+    harness.run()
+    after = datetime.now(timezone.utc)
+
+    (kwargs,) = harness.topic_kwargs
+    since = kwargs["created_since"]
+    margin = harness.module.TOPIC_CLOCK_MARGIN
+    assert before - margin <= since <= after - margin
+    assert margin == timedelta(minutes=5)
+
+
+def test_topic_processing_skips_untagged_works_older_than_created_since(monkeypatch):
+    """A work that matched no topic in an earlier run is not examined again."""
+    from datetime import datetime, timedelta, timezone
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.dialects.postgresql import JSONB
+    from sqlalchemy.ext.compiler import compiles
+    from sqlalchemy.orm import sessionmaker
+    from sqlalchemy.pool import StaticPool
+
+    import app.db.session as session_module
+    from app.db.types import TSVector, Vector
+    from app.models import Base
+    from app.models.research_knowledge import ResearchWorkModel
+    from ml.topic_analysis.process_topics import run_topic_processing
+
+    compiles(JSONB, "sqlite")(lambda type_, compiler, **kw: "JSON")
+    compiles(Vector, "sqlite")(lambda type_, compiler, **kw: "TEXT")
+    compiles(TSVector, "sqlite")(lambda type_, compiler, **kw: "TEXT")
+    engine = create_engine(
+        "sqlite:///:memory:", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    Base.metadata.create_all(engine)
+    factory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    monkeypatch.setattr(session_module, "SessionLocal", factory)
+
+    now = datetime.now(timezone.utc)
+    with factory() as db:
+        for title, created in (("Old untagged work", now - timedelta(days=3)), ("New untagged work", now)):
+            db.add(
+                ResearchWorkModel(
+                    id=uuid.uuid4(),
+                    openalex_id=f"W{uuid.uuid4().int % 10**10}",
+                    title=title,
+                    created_at=created,
+                    updated_at=created,
+                )
+            )
+        db.commit()
+
+    recent = run_topic_processing(dry_run=True, created_since=now - timedelta(minutes=5))
+    everything = run_topic_processing(dry_run=True)
+
+    assert recent["entities_processed"] == 1
+    assert everything["entities_processed"] == 2, "without created_since every untagged work is examined"
 
 
 # ── Failure alert (step 4/6) ──────────────────────────────────────────────────
