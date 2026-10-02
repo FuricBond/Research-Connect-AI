@@ -28,6 +28,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
+from datetime import date, datetime
 from typing import Generator
 from urllib.parse import urlencode
 
@@ -92,6 +93,9 @@ def works_filter(
     to_year: int | None = None,
     subfield_id: str | None = None,
     has_abstract: bool = False,
+    *,
+    from_date: date | str | None = None,
+    to_date: date | str | None = None,
 ) -> list[str]:
     """
     Build OpenAlex /works filter clauses.
@@ -99,14 +103,33 @@ def works_filter(
     ``subfield_id`` selects works whose primary topic falls in an OpenAlex subfield,
     e.g. ``"1702"`` (Artificial Intelligence). A filter-only query costs a tenth of a
     keyword search, which is what makes loads of tens of thousands of works affordable.
+
+    ``from_date`` and ``to_date`` bound the publication date to the day, for loads that
+    look back a number of days rather than whole years. Each accepts a ``date``, a
+    ``datetime`` (its date is used) or an ISO ``YYYY-MM-DD`` string; anything else, or a
+    string carrying extra text, raises ``ValueError``. A year bound and a date bound on the
+    same side conflict, as does a ``from_date`` after ``to_date``.
     """
+    start = _filter_date(from_date, "from_date")
+    end = _filter_date(to_date, "to_date")
+    if from_year is not None and start is not None:
+        raise ValueError("Give from_year or from_date, not both")
+    if to_year is not None and end is not None:
+        raise ValueError("Give to_year or to_date, not both")
+    if start is not None and end is not None and start > end:
+        raise ValueError(f"from_date {start} is after to_date {end}")
+
     filters: list[str] = []
     if year is not None:
         filters.append(f"publication_year:{year}")
     if from_year is not None:
         filters.append(f"from_publication_date:{from_year}-01-01")
+    elif start is not None:
+        filters.append(f"from_publication_date:{start.isoformat()}")
     if to_year is not None:
         filters.append(f"to_publication_date:{to_year}-12-31")
+    elif end is not None:
+        filters.append(f"to_publication_date:{end.isoformat()}")
     if work_type is not None:
         filters.append(f"type:{work_type}")
     if subfield_id is not None:
@@ -114,6 +137,22 @@ def works_filter(
     if has_abstract:
         filters.append("has_abstract:true")
     return filters
+
+
+def _filter_date(value: date | str | None, name: str) -> date | None:
+    """Normalize a ``works_filter`` date bound to a ``date``, or refuse it."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        try:
+            return date.fromisoformat(value)
+        except ValueError as exc:
+            raise ValueError(f"{name} must be an ISO date (YYYY-MM-DD), got {value!r}") from exc
+    raise ValueError(f"{name} must be a date, datetime or ISO date string, got {type(value).__name__}")
 
 
 def _budget_reset_seconds(response: object) -> int | None:

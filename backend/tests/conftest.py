@@ -86,8 +86,10 @@ def developer_identity_mode(monkeypatch):
 def scheduler_disabled(monkeypatch):
     """
     Phase 6.3: the background scheduler must never start during tests, even when a local
-    `.env` enables it, because its jobs would write to the configured database. Scheduler
-    tests opt in explicitly.
+    `.env` enables it, because its jobs would write to the configured database. The two
+    jobs that make outbound requests (WikiCFP opportunity refresh and OpenAlex research
+    refresh) are switched off as well. Scheduler tests opt in explicitly.
     """
     monkeypatch.setattr(settings, "scheduler_enabled", False)
     monkeypatch.setattr(settings, "scheduler_opportunity_refresh_enabled", False)
+    monkeypatch.setattr(settings, "scheduler_research_refresh_enabled", False)

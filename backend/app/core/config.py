@@ -12,6 +12,25 @@ DEVELOPMENT_DATABASE_URL = (
 )
 
 
+def parse_subfield_ids(text: str) -> tuple[str, ...]:
+    """
+    Research refresh: split a comma-separated list of OpenAlex subfield ids, e.g.
+    "1702,1707". Blanks around entries and empty entries are dropped, and repeats are kept
+    once in their first position. Every id must be ASCII digits, because each one is placed
+    verbatim into an OpenAlex filter clause.
+    """
+    ids: list[str] = []
+    for part in text.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        if not (part.isascii() and part.isdigit()):
+            raise ValueError(f"OpenAlex subfield id {part!r} must be digits only, e.g. 1702")
+        if part not in ids:
+            ids.append(part)
+    return tuple(ids)
+
+
 class Settings(BaseSettings):
     app_name: str = "ResearchConnect AI"
     # development | test | production, case-insensitive. Any other value is refused, so a
@@ -56,13 +75,18 @@ class Settings(BaseSettings):
     # Off by default: when false no scheduler task starts, no job runs and nothing polls
     # the database, so tests and the host development loop are unaffected.
     scheduler_enabled: bool = False
-    # The only job that makes outbound requests (WikiCFP ingestion). It needs its own
-    # switch so that enabling local maintenance never starts third-party scraping.
+    # Each job that makes outbound requests has its own switch, so enabling local
+    # maintenance never starts third-party traffic. WikiCFP ingestion:
     scheduler_opportunity_refresh_enabled: bool = False
     scheduler_opportunity_refresh_topic: str = "artificial intelligence"
     scheduler_opportunity_refresh_max_pages: int = Field(default=1, ge=1, le=20)
+    # Research refresh: newly published OpenAlex works, tagged and embedded. What it
+    # fetches is configured under OpenAlex below.
+    scheduler_research_refresh_enabled: bool = False
     # Seconds between the starts of consecutive runs of each job.
     scheduler_opportunity_refresh_interval_seconds: int = Field(default=86_400, ge=60)
+    # 8 h by default; 28,800-36,000 for every 8-10 h. Use 120 only for testing.
+    scheduler_research_refresh_interval_seconds: int = Field(default=28_800, ge=60)
     scheduler_adaptive_refresh_interval_seconds: int = Field(default=21_600, ge=60)
     scheduler_governance_refresh_interval_seconds: int = Field(default=43_200, ge=60)
     scheduler_reminder_interval_seconds: int = Field(default=300, ge=60)
@@ -71,6 +95,26 @@ class Settings(BaseSettings):
     # Phase 2.2A — OpenAlex API configuration
     openalex_api_base_url: str = "https://api.openalex.org"
     openalex_email: str = ""  # Optional: enables polite pool access
+    # Optional free account key: ten times the keyless daily budget. Sent as ?api_key= and
+    # never logged. It has to be a setting because backend/.env refuses unknown keys and
+    # nothing copies backend/.env into the process environment.
+    openalex_api_key: str = ""
+
+    # Research refresh — what the scheduled OpenAlex job fetches
+    # Comma-separated OpenAlex subfield ids (1702 = Artificial Intelligence). A string, not
+    # a list: pydantic-settings JSON-decodes list fields from the environment and .env, so
+    # "1702,1707" would fail at import. Read the parsed ids from research_refresh_subfield_ids.
+    research_refresh_subfields: str = "1702"
+    # Pages per run of each lane: newly published works, and recent works gaining
+    # citations. 0 switches a lane off.
+    research_refresh_new_pages: int = Field(default=1, ge=0, le=10)
+    research_refresh_rising_pages: int = Field(default=1, ge=0, le=10)
+    # How far back, in days of publication date, each lane looks.
+    research_refresh_new_window_days: int = Field(default=14, ge=1, le=365)
+    research_refresh_rising_window_days: int = Field(default=365, ge=1, le=3_650)
+    # Corpus cap: once research_works holds this many rows the job stops inserting new
+    # works but keeps refreshing the ones it has.
+    research_refresh_max_works: int = Field(default=50_000, ge=1)
 
     # Phase 2.2B — Crossref API configuration
     crossref_api_base_url: str = "https://api.crossref.org"
@@ -199,6 +243,20 @@ class Settings(BaseSettings):
                     "scheme://host[:port] with no path, query or trailing slash"
                 )
         return origins
+
+    @field_validator("research_refresh_subfields")
+    @classmethod
+    def _subfield_ids(cls, value: str) -> str:
+        """Normalize to "1702,1707"; an empty list would make the job fetch nothing."""
+        ids = parse_subfield_ids(value)
+        if not ids:
+            raise ValueError("RESEARCH_REFRESH_SUBFIELDS must list at least one subfield id")
+        return ",".join(ids)
+
+    @property
+    def research_refresh_subfield_ids(self) -> tuple[str, ...]:
+        """The configured OpenAlex subfield ids, in order and without repeats."""
+        return parse_subfield_ids(self.research_refresh_subfields)
 
     @property
     def serve_api_docs(self) -> bool:

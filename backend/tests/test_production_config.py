@@ -171,6 +171,50 @@ def test_a_cors_wildcard_from_the_environment_is_refused(monkeypatch):
         Settings(_env_file=None)
 
 
+def test_a_research_refresh_settings_are_validated(monkeypatch):
+    # Subfield ids are normalized: blanks trimmed, repeats dropped, order kept.
+    cfg = make_settings(research_refresh_subfields=" 1702, 1707,1702")
+    assert cfg.research_refresh_subfields == "1702,1707"
+    assert cfg.research_refresh_subfield_ids == ("1702", "1707")
+    # Empty lists and anything but ASCII digits are refused, naming the field. A JSON list
+    # is refused too: the setting is a plain comma-separated string.
+    for raw in ["", ",", "abc", "17.02", '["1702"]', "1702,type:article", "\u0661\u0667"]:
+        with pytest.raises(ValidationError, match="research_refresh_subfields"):
+            make_settings(research_refresh_subfields=raw)
+    # Bounds.
+    for field, refused in [
+        ("research_refresh_new_pages", [-1, 11]),
+        ("research_refresh_rising_pages", [-1, 11]),
+        ("research_refresh_new_window_days", [0, 366]),
+        ("research_refresh_rising_window_days", [0, 3_651]),
+        ("research_refresh_max_works", [0]),
+        ("scheduler_research_refresh_interval_seconds", [59]),
+    ]:
+        for value in refused:
+            with pytest.raises(ValidationError, match=field):
+                make_settings(**{field: value})
+    assert make_settings(research_refresh_new_pages=0, research_refresh_rising_pages=0).research_refresh_new_pages == 0
+    # A comma-separated value in the environment parses rather than being JSON-decoded.
+    monkeypatch.setenv("RESEARCH_REFRESH_SUBFIELDS", "1702,1707")
+    assert Settings(_env_file=None).research_refresh_subfield_ids == ("1702", "1707")
+    monkeypatch.delenv("RESEARCH_REFRESH_SUBFIELDS")
+    # Defaults: off, every 8 hours, no key, artificial intelligence.
+    for name in [n for n in os.environ if n.startswith(("SCHEDULER_RESEARCH_REFRESH_", "RESEARCH_REFRESH_", "OPENALEX_API_KEY"))]:
+        monkeypatch.delenv(name)
+    defaults = Settings(_env_file=None)
+    assert defaults.scheduler_research_refresh_enabled is False
+    assert defaults.scheduler_research_refresh_interval_seconds == 28_800
+    assert defaults.openalex_api_key == ""
+    assert defaults.research_refresh_subfield_ids == ("1702",)
+    assert (
+        defaults.research_refresh_new_pages,
+        defaults.research_refresh_rising_pages,
+        defaults.research_refresh_new_window_days,
+        defaults.research_refresh_rising_window_days,
+        defaults.research_refresh_max_works,
+    ) == (1, 1, 14, 365, 50_000)
+
+
 # ── B. Production startup validation ──────────────────────────────────────────
 
 
@@ -251,7 +295,7 @@ def test_b_production_never_falls_back_to_an_ephemeral_signing_key(monkeypatch):
 
 # ── C. The real application at import ────────────────────────────────────────
 
-_SAFE_ENV_PREFIXES = ("APP_ENV", "AUTH_", "DATABASE_URL", "CORS_", "LOG_", "API_DOCS", "SCHEDULER_", "TRUST_PROXY")
+_SAFE_ENV_PREFIXES = ("APP_ENV", "AUTH_", "DATABASE_URL", "CORS_", "LOG_", "API_DOCS", "SCHEDULER_", "TRUST_PROXY", "RESEARCH_REFRESH_", "OPENALEX_")
 
 _PROBE = r"""
 import json, logging, sys
@@ -431,6 +475,7 @@ def test_f_templates_ship_empty_secrets():
     root, backend = _env_file_values(".env.example"), _env_file_values("backend/.env.example")
     assert root["POSTGRES_PASSWORD"] == "" and root["AUTH_SECRET_KEY"] == ""
     assert backend["AUTH_SECRET_KEY"] == ""
+    assert backend["OPENALEX_API_KEY"] == ""
     assert "CHANGE_ME" in backend["DATABASE_URL"]
     assert Settings.model_fields["auth_secret_key"].default == ""
 

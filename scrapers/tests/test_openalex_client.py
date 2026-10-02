@@ -266,6 +266,72 @@ class TestWorksFilter:
 
         assert works_filter() == []
 
+    @pytest.mark.parametrize(
+        ("from_date", "to_date"),
+        [
+            ("date", "date"),
+            ("datetime", "datetime"),
+            ("iso", "iso"),
+            ("date", "iso"),
+        ],
+    )
+    def test_date_bounds_give_day_level_clauses(self, from_date, to_date):
+        from datetime import date, datetime, timezone
+
+        from scrapers.openalex.client import works_filter
+
+        forms = {
+            "date": (date(2026, 9, 18), date(2026, 10, 2)),
+            "datetime": (
+                datetime(2026, 9, 18, 23, 59, tzinfo=timezone.utc),
+                datetime(2026, 10, 2, 0, 1),
+            ),
+            "iso": ("2026-09-18", "2026-10-02"),
+        }
+        assert works_filter(
+            subfield_id="1702", from_date=forms[from_date][0], to_date=forms[to_date][1]
+        ) == [
+            "from_publication_date:2026-09-18",
+            "to_publication_date:2026-10-02",
+            "primary_topic.subfield.id:1702",
+        ]
+
+    def test_a_single_date_bound_gives_one_clause(self):
+        from scrapers.openalex.client import works_filter
+
+        assert works_filter(from_date="2026-09-18") == ["from_publication_date:2026-09-18"]
+        assert works_filter(to_date="2026-10-02") == ["to_publication_date:2026-10-02"]
+
+    def test_a_year_bound_and_a_date_bound_on_opposite_sides_keep_both(self):
+        from scrapers.openalex.client import works_filter
+
+        assert works_filter(from_year=2025, to_date="2026-10-02") == [
+            "from_publication_date:2025-01-01",
+            "to_publication_date:2026-10-02",
+        ]
+        assert works_filter(from_date="2026-09-18", to_year=2026) == [
+            "from_publication_date:2026-09-18",
+            "to_publication_date:2026-12-31",
+        ]
+
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            {"from_year": 2025, "from_date": "2026-01-01"},
+            {"to_year": 2026, "to_date": "2026-10-02"},
+            {"from_date": "2026-10-03", "to_date": "2026-10-02"},
+            {"from_date": "2026-01-01,type:x"},
+            {"to_date": "2026-01-01|2027-01-01"},
+            {"from_date": "not a date"},
+            {"from_date": 20260101},
+        ],
+    )
+    def test_conflicting_or_malformed_date_bounds_are_refused(self, kwargs):
+        from scrapers.openalex.client import works_filter
+
+        with pytest.raises(ValueError):
+            works_filter(**kwargs)
+
 
 class TestOpenAlexClientSingleLookup:
     def test_get_author(self):
