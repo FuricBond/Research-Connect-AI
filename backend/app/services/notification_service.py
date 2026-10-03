@@ -67,6 +67,9 @@ class NotificationService:
             extension_notifications_enabled=True,
             conflict_notifications_enabled=True,
             calendar_event_reminders_enabled=True,
+            # Posting match alerts are opt-in.
+            posting_match_alerts_enabled=False,
+            posting_match_min_score=60,
         )
         db.add(prefs)
         db.commit()

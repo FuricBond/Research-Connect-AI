@@ -243,6 +243,7 @@ function NotificationsPage() {
               <option value="CALENDAR_EVENT_UPCOMING">Calendar Event</option>
               <option value="SUBMISSION_STATUS_CHANGE">Submission Status</option>
               <option value="SYSTEM">System</option>
+              <option value="POSTING_MATCH">Posting Match</option>
             </select>
           </div>
         </div>
@@ -344,6 +345,16 @@ function NotificationsPage() {
                         title="View in Calendar"
                       >
                         <Calendar size={15} />
+                      </Link>
+                    )}
+                    {notif.source_type === "RESEARCH_POSTING" && notif.source_id && (
+                      <Link
+                        href={`/postings/${notif.source_id}`}
+                        className="notification-btn-icon"
+                        title="View posting"
+                        aria-label="View posting"
+                      >
+                        <ExternalLink size={15} />
                       </Link>
                     )}
                     {isUnread && (

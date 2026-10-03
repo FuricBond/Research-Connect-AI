@@ -10,7 +10,8 @@ export type NotificationType =
   | "DEADLINE_CONFLICT"
   | "CALENDAR_EVENT_UPCOMING"
   | "SUBMISSION_STATUS_CHANGE"
-  | "SYSTEM";
+  | "SYSTEM"
+  | "POSTING_MATCH";
 
 export type DeliveryChannel = "IN_APP" | "EMAIL" | "PUSH";
 
@@ -61,6 +62,10 @@ export interface NotificationPreference {
   extension_notifications_enabled: boolean;
   conflict_notifications_enabled: boolean;
   calendar_event_reminders_enabled: boolean;
+  /** Phase 5.15: alert when a newly published posting fits; off by default. */
+  posting_match_alerts_enabled: boolean;
+  /** Minimum fit (0-100) for that alert; 60 by default. */
+  posting_match_min_score: number;
   created_at: string;
   updated_at: string;
 }
@@ -72,6 +77,8 @@ export interface NotificationPreferenceUpdate {
   extension_notifications_enabled?: boolean;
   conflict_notifications_enabled?: boolean;
   calendar_event_reminders_enabled?: boolean;
+  posting_match_alerts_enabled?: boolean;
+  posting_match_min_score?: number;
 }
 
 export interface ReminderRule {

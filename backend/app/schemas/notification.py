@@ -25,6 +25,8 @@ class NotificationPreferenceBase(BaseModel):
     extension_notifications_enabled: bool = True
     conflict_notifications_enabled: bool = True
     calendar_event_reminders_enabled: bool = True
+    posting_match_alerts_enabled: bool = False
+    posting_match_min_score: int = Field(60, ge=0, le=100)
 
 
 class NotificationPreferenceUpdate(BaseModel):
@@ -34,6 +36,8 @@ class NotificationPreferenceUpdate(BaseModel):
     extension_notifications_enabled: bool | None = None
     conflict_notifications_enabled: bool | None = None
     calendar_event_reminders_enabled: bool | None = None
+    posting_match_alerts_enabled: bool | None = None
+    posting_match_min_score: int | None = Field(default=None, ge=0, le=100)
 
 
 class NotificationPreferenceRead(NotificationPreferenceBase):

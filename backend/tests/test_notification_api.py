@@ -194,6 +194,44 @@ def test_notification_preferences_get_and_update(client: TestClient, alice: User
     assert updated["in_app_enabled"] is True
 
 
+def test_posting_match_alerts_are_off_by_default_with_a_threshold_of_60(client: TestClient, alice: UserModel):
+    """Phase 5.15: the posting match alert is opt-in."""
+    resp = client.get("/api/v1/notifications/preferences", headers={"X-User-ID": str(alice.id)})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["posting_match_alerts_enabled"] is False
+    assert data["posting_match_min_score"] == 60
+
+
+def test_posting_match_preferences_persist(client: TestClient, alice: UserModel, db_session: Session):
+    headers = {"X-User-ID": str(alice.id)}
+    patch_resp = client.patch(
+        "/api/v1/notifications/preferences",
+        headers=headers,
+        json={"posting_match_alerts_enabled": True, "posting_match_min_score": 80},
+    )
+    assert patch_resp.status_code == 200
+    assert patch_resp.json()["posting_match_alerts_enabled"] is True
+    assert patch_resp.json()["posting_match_min_score"] == 80
+
+    db_session.expire_all()
+    stored = db_session.query(NotificationPreferenceModel).one()
+    assert stored.posting_match_alerts_enabled is True
+    assert stored.posting_match_min_score == 80
+    reread = client.get("/api/v1/notifications/preferences", headers=headers).json()
+    assert (reread["posting_match_alerts_enabled"], reread["posting_match_min_score"]) == (True, 80)
+
+
+def test_posting_match_threshold_must_be_0_to_100(client: TestClient, alice: UserModel):
+    headers = {"X-User-ID": str(alice.id)}
+    assert client.patch(
+        "/api/v1/notifications/preferences", headers=headers, json={"posting_match_min_score": 101}
+    ).status_code == 422
+    assert client.patch(
+        "/api/v1/notifications/preferences", headers=headers, json={"posting_match_min_score": -1}
+    ).status_code == 422
+
+
 def test_reminder_rules_crud(client: TestClient, alice: UserModel):
     # GET rules (default rules bootstrapped)
     resp = client.get("/api/v1/notifications/rules", headers={"X-User-ID": str(alice.id)})

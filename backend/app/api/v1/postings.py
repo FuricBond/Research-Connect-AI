@@ -10,6 +10,11 @@ FastAPI Router for Phase 5.10 Faculty Research Postings.
   POST   /postings/{id}/transition      Lifecycle transition (author only)
   DELETE /postings/{id}                 Delete a DRAFT (author only)
 
+Phase 5.15 — posting fit for students (read-only, STUDENT accounts):
+
+  POST /postings/fit-scores             Fit for several OPEN postings, in request order
+  GET  /postings/{id}/fit               Fit for one posting (not for its author)
+
 Phase 5.11 — applications to research openings:
 
   POST /postings/{id}/applications              Apply to an open funded opening
@@ -21,6 +26,7 @@ Phase 5.11 — applications to research openings:
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import logging
 from typing import Annotated
 import uuid
@@ -29,9 +35,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser, OptionalUserId, get_optional_current_user
+from app.api.deps import CurrentUser, OptionalUserId, StudentUser, get_optional_current_user
 from app.db.session import get_db
-from app.models.research_posting import PostingStatus, PostingType, PostingWorkMode
+from app.models.research_posting import (
+    PostingStatus,
+    PostingType,
+    PostingWorkMode,
+    ResearchPostingModel,
+)
 from app.models.research_profile import ResearchProfileModel
 from app.models.user import UserModel
 from app.schemas.research_posting import (
@@ -46,6 +57,12 @@ from app.models.research_posting_application import (
     ApplicationStatus,
     ResearchPostingApplicationModel,
 )
+from app.schemas.posting_fit import (
+    PostingFitBatchRequest,
+    PostingFitBatchResponse,
+    PostingFitRead,
+)
+from app.services.posting_fit_service import PostingFitService
 from app.schemas.research_posting_application import (
     ApplicationCreate,
     ApplicationDecision,
@@ -196,6 +213,52 @@ def create_posting(
     return ResearchPostingService.build_posting_read(posting, requesting_user=current_user)
 
 
+# Phase 5.15 — posting fit for students. Declared before `/{posting_id}` routes; the fit is
+# never part of ResearchPostingRead, so the public listing stays the same for everyone.
+
+
+@router.post(
+    "/fit-scores",
+    response_model=PostingFitBatchResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Fit scores for several postings",
+    description=(
+        "How well each OPEN posting fits the signed-in student, in request order. Postings that "
+        "are not OPEN, or are the student's own, are left out without an error. Read-only."
+    ),
+)
+def get_posting_fit_scores(
+    payload: PostingFitBatchRequest,
+    current_user: StudentUser,
+    db: Session = Depends(get_db),
+) -> PostingFitBatchResponse:
+    wanted = list(dict.fromkeys(payload.posting_ids))
+    if not wanted:
+        return PostingFitBatchResponse(fits=[])
+    postings = {
+        posting.id: posting
+        for posting in db.execute(
+            ResearchPostingService._base_query().where(
+                ResearchPostingModel.id.in_(wanted),
+                ResearchPostingModel.status == PostingStatus.OPEN.value,
+            )
+        )
+        .unique()
+        .scalars()
+        .all()
+        if posting.author_user_id != current_user.id
+    }
+    signals = PostingFitService.signals_for_user(db, current_user)
+    now = datetime.now(timezone.utc)
+    return PostingFitBatchResponse(
+        fits=[
+            PostingFitService.score(postings[posting_id], signals, now=now)
+            for posting_id in wanted
+            if posting_id in postings
+        ]
+    )
+
+
 @router.get(
     "/{posting_id}",
     response_model=ResearchPostingRead,
@@ -236,6 +299,34 @@ def get_posting(
         viewer_application_id=viewer_application_id,
         viewer_application_status=viewer_application_status,
     )
+
+
+@router.get(
+    "/{posting_id}/fit",
+    response_model=PostingFitRead,
+    status_code=status.HTTP_200_OK,
+    summary="How well a posting fits me",
+    description=(
+        "A deterministic 0-100 fit with reasons and missing skills, for a signed-in student. "
+        "Visibility follows the posting itself; the author gets 403. Read-only."
+    ),
+)
+def get_posting_fit(
+    posting_id: uuid.UUID,
+    current_user: StudentUser,
+    db: Session = Depends(get_db),
+) -> PostingFitRead:
+    try:
+        posting = ResearchPostingService.get_posting(db, posting_id, requesting_user=current_user)
+    except PostingNotFoundError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+    if posting.author_user_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Fit is shown to prospective applicants, not to the posting's author.",
+        )
+    signals = PostingFitService.signals_for_user(db, current_user)
+    return PostingFitService.score(posting, signals, now=datetime.now(timezone.utc))
 
 
 @router.patch(

@@ -30,8 +30,15 @@ import {
 } from "@/types/notification";
 import "@/styles/notifications.css";
 import { RequireAuth } from "../../../components/auth/RequireAuth";
+import { useSession } from "../../../components/auth/SessionProvider";
+
+// Phase 5.15: the fit a new posting needs before a student is alerted about it.
+const POSTING_MATCH_THRESHOLDS = [40, 60, 80];
 
 function NotificationSettingsPage() {
+  // Posting match alerts are sent to student accounts only, so only students see the switch.
+  const { hasRole } = useSession();
+  const isStudent = hasRole("STUDENT");
   const [preferences, setPreferences] = useState<NotificationPreference | null>(null);
   const [rules, setRules] = useState<ReminderRule[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -81,6 +88,24 @@ function NotificationSettingsPage() {
       console.error("Failed to update preferences:", err);
       // Revert
       setPreferences(preferences);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleThresholdChange = async (minScore: number) => {
+    if (!preferences) return;
+    const previous = preferences;
+    setPreferences({ ...preferences, posting_match_min_score: minScore });
+
+    try {
+      setSaving(true);
+      await updateNotificationPreferences({ posting_match_min_score: minScore });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+    } catch (err: any) {
+      console.error("Failed to update the posting match threshold:", err);
+      setPreferences(previous);
     } finally {
       setSaving(false);
     }
@@ -288,6 +313,40 @@ function NotificationSettingsPage() {
                 <span className="slider" />
               </label>
             </div>
+
+            {isStudent && (
+              <div className="preference-toggle-item">
+                <div className="preference-toggle-info">
+                  <h4 id="posting-match-label">Notify me when a new posting matches my interests</h4>
+                  <p>
+                    When faculty publish a new research posting that fits your interests at least
+                    this well, you get one in-app alert.
+                  </p>
+                  <select
+                    className="notifications-select"
+                    aria-label="Minimum fit for posting alerts"
+                    value={preferences?.posting_match_min_score ?? 60}
+                    disabled={!preferences?.posting_match_alerts_enabled || saving}
+                    onChange={(e) => handleThresholdChange(Number(e.target.value))}
+                  >
+                    {POSTING_MATCH_THRESHOLDS.map((threshold) => (
+                      <option key={threshold} value={threshold}>
+                        {threshold}% fit or better
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    aria-labelledby="posting-match-label"
+                    checked={preferences?.posting_match_alerts_enabled ?? false}
+                    onChange={() => handleTogglePreference("posting_match_alerts_enabled")}
+                  />
+                  <span className="slider" />
+                </label>
+              </div>
+            )}
           </div>
         </div>
 

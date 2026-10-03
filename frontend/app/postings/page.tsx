@@ -11,6 +11,7 @@ import type {
   OpeningTermsUpdate,
   PostingCreatePayload,
   PostingFilterParams,
+  PostingFit,
   PostingStatus,
   PostingSummaryResponse,
   PostingType,
@@ -29,6 +30,7 @@ import {
   deletePosting,
   fetchMyPostingSummary,
   fetchMyPostings,
+  fetchPostingFits,
   fetchPostings,
   transitionPosting,
 } from "../../services/api";
@@ -102,6 +104,10 @@ export default function PostingsPage() {
   // only avoids offering an action that would certainly be refused.
   const isSignedIn = status === "authenticated";
   const canAuthor = isSignedIn && hasRole("FACULTY", "ADMIN");
+  const isStudent = isSignedIn && hasRole("STUDENT");
+
+  // Phase 5.15: a signed-in student's fit for each listed posting, by posting id.
+  const [fits, setFits] = useState<Record<string, PostingFit>>({});
 
   useEffect(() => {
     if (!isSignedIn && mode === "MINE") setMode("DISCOVER");
@@ -144,6 +150,27 @@ export default function PostingsPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // One batch call once the list is in. The list never waits on it, and a failure only means
+  // the cards show no fit.
+  useEffect(() => {
+    if (!isStudent || mode !== "DISCOVER" || postings.length === 0) {
+      setFits({});
+      return;
+    }
+    const controller = new AbortController();
+    fetchPostingFits(
+      postings.map((posting) => posting.id),
+      controller.signal
+    )
+      .then((result) => {
+        setFits(Object.fromEntries(result.fits.map((fit) => [fit.posting_id, fit])));
+      })
+      .catch(() => {
+        // Fit is an extra; the postings stay listed without it.
+      });
+    return () => controller.abort();
+  }, [isStudent, mode, postings]);
 
   const handleTransition = async (posting: ResearchPosting, target: PostingStatus) => {
     setBusyId(posting.id);
@@ -660,6 +687,7 @@ export default function PostingsPage() {
                 onTransition={handleTransition}
                 onDelete={handleDelete}
                 busy={busyId === posting.id}
+                fit={mode === "DISCOVER" ? fits[posting.id] ?? null : null}
               />
             ))}
           </div>

@@ -48,6 +48,8 @@ class NotificationType(str, Enum):
     TASK_COMPLETED = "TASK_COMPLETED"
     DOCUMENT_UPDATED = "DOCUMENT_UPDATED"
     COLLABORATION_ACTIVITY = "COLLABORATION_ACTIVITY"
+    # Phase 5.15: a newly published research posting fits an opted-in student.
+    POSTING_MATCH = "POSTING_MATCH"
 
 
 class DeliveryChannel(str, Enum):
@@ -86,6 +88,10 @@ class NotificationPreferenceModel(Base):
     __tablename__ = "researcher_notification_preferences"
     __table_args__ = (
         Index("idx_notification_preferences_profile", "profile_id"),
+        CheckConstraint(
+            "posting_match_min_score BETWEEN 0 AND 100",
+            name="chk_notification_prefs_posting_min_score",
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -142,6 +148,21 @@ class NotificationPreferenceModel(Base):
         default=True,
         server_default="true",
         comment="Whether reminders for user-created calendar planning events are enabled",
+    )
+    # Phase 5.15: opt-in, so a student is never alerted without asking.
+    posting_match_alerts_enabled: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False,
+        server_default="false",
+        comment="Whether to alert when a newly published research posting fits the student",
+    )
+    posting_match_min_score: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=60,
+        server_default="60",
+        comment="Minimum posting fit score (0-100) that triggers a posting match alert",
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -281,7 +302,7 @@ class NotificationModel(Base):
     __tablename__ = "notifications"
     __table_args__ = (
         CheckConstraint(
-            "notification_type IN ('DEADLINE_UPCOMING', 'DEADLINE_TODAY', 'DEADLINE_EXTENDED', 'DEADLINE_MOVED_EARLIER', 'DEADLINE_CONFLICT', 'CALENDAR_EVENT_UPCOMING', 'SUBMISSION_STATUS_CHANGE', 'SYSTEM', 'WORKSPACE_INVITATION', 'INVITATION_ACCEPTED', 'MEMBER_ROLE_CHANGED', 'MEMBER_REMOVED', 'TASK_ASSIGNED', 'TASK_COMPLETED', 'DOCUMENT_UPDATED', 'COLLABORATION_ACTIVITY')",
+            "notification_type IN ('DEADLINE_UPCOMING', 'DEADLINE_TODAY', 'DEADLINE_EXTENDED', 'DEADLINE_MOVED_EARLIER', 'DEADLINE_CONFLICT', 'CALENDAR_EVENT_UPCOMING', 'SUBMISSION_STATUS_CHANGE', 'SYSTEM', 'WORKSPACE_INVITATION', 'INVITATION_ACCEPTED', 'MEMBER_ROLE_CHANGED', 'MEMBER_REMOVED', 'TASK_ASSIGNED', 'TASK_COMPLETED', 'DOCUMENT_UPDATED', 'COLLABORATION_ACTIVITY', 'POSTING_MATCH')",
             name="chk_notifications_type",
         ),
         CheckConstraint(

@@ -8,7 +8,7 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import type { PostingStatus, ResearchPosting } from "../../types/posting";
+import type { PostingFit, PostingStatus, ResearchPosting } from "../../types/posting";
 import {
   POSTING_STATUS_LABELS,
   POSTING_TYPE_LABELS,
@@ -48,6 +48,8 @@ export interface PostingCardProps {
   onTransition?: (posting: ResearchPosting, target: PostingStatus) => void;
   onDelete?: (posting: ResearchPosting) => void;
   busy?: boolean;
+  /** Phase 5.15: the signed-in student's fit, when one was computed. */
+  fit?: PostingFit | null;
 }
 
 export function PostingCard({
@@ -56,8 +58,10 @@ export function PostingCard({
   onTransition,
   onDelete,
   busy = false,
+  fit = null,
 }: PostingCardProps) {
   const location = posting.location || posting.country || null;
+  const topReason = fit?.reasons[0];
 
   return (
     <article className="posting-card">
@@ -101,6 +105,15 @@ export function PostingCard({
           </span>
         )}
       </div>
+
+      {fit && fit.score !== null && (
+        <p className="posting-owner-note" role="note" aria-label="Your fit">
+          <strong>
+            {fit.score}% fit · {fit.band}
+          </strong>
+          {topReason ? ` — ${topReason.label}` : ""}
+        </p>
+      )}
 
       {posting.summary && <p className="posting-summary">{posting.summary}</p>}
 

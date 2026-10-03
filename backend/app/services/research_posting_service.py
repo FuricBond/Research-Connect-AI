@@ -420,6 +420,8 @@ class ResearchPostingService:
             )
 
         now = reference_time or datetime.now(timezone.utc)
+        # Phase 5.15: only the first publish alerts students; reopening a closed posting does not.
+        first_publish = target_status == PostingStatus.OPEN and posting.published_at is None
         posting.status = target_status.value
         posting.status_note = note
 
@@ -433,6 +435,21 @@ class ResearchPostingService:
             # Reopening clears the previous closure so the record does not claim to be both
             # open and closed at once.
             posting.closed_at = None
+
+        if first_publish:
+            from app.services import posting_match_alert_service
+
+            # A failed alert must never block publishing: its writes sit in a savepoint that is
+            # rolled back alone, and the posting is committed regardless.
+            try:
+                with db.begin_nested():
+                    posting_match_alert_service.notify_matching_students(db, posting, now)
+            except Exception:
+                logger.warning(
+                    "Posting match alerts failed; the posting was published without them",
+                    extra={"posting_id": str(posting.id)},
+                    exc_info=True,
+                )
 
         db.commit()
         db.refresh(posting)

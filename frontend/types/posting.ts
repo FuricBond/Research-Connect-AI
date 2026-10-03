@@ -237,6 +237,36 @@ export interface PostingCreatePayload {
 
 export type PostingUpdatePayload = Partial<PostingCreatePayload>;
 
+// ── Phase 5.15 — Posting fit for students ─────────────────────────────────────
+//
+// Computed server-side for a signed-in STUDENT only, and never part of ResearchPosting, so the
+// public listing is the same for everyone.
+
+export interface PostingFitReason {
+  /** TOPIC, SKILLS, OPENING, EXCLUDED or DEADLINE_PASSED */
+  code: string;
+  label: string;
+  /** Share of the score this part carries; 0 for notices. */
+  weight: number;
+  matched: string[];
+}
+
+export interface PostingFit {
+  posting_id: string;
+  /** 0-100, or null when the student has recorded nothing to compare. */
+  score: number | null;
+  band: "Strong" | "Good" | "Partial" | "Low" | null;
+  /** Ordered by contribution, then code. */
+  reasons: PostingFitReason[];
+  /** Up to five required skills the student has not recorded, or profile guidance. */
+  gaps: string[];
+  computed_at: string;
+}
+
+export interface PostingFitBatchResponse {
+  fits: PostingFit[];
+}
+
 export interface PostingFilterParams {
   posting_type?: PostingType;
   country?: string;

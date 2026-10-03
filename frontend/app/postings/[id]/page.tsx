@@ -8,6 +8,7 @@ import { AlertCircle, ArrowLeft, ExternalLink, Mail, Send } from "lucide-react";
 import type {
   ApplicationStatus,
   PostingApplication,
+  PostingFit,
   PostingStatus,
   ResearchPosting,
 } from "../../../types/posting";
@@ -22,9 +23,11 @@ import {
   applyToPosting,
   fetchPosting,
   fetchPostingApplications,
+  fetchPostingFit,
   transitionApplication,
   transitionPosting,
 } from "../../../services/api";
+import { useSession } from "../../../components/auth/SessionProvider";
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -54,6 +57,11 @@ export default function PostingDetailPage() {
   const [applications, setApplications] = useState<PostingApplication[]>([]);
   const [applicationsError, setApplicationsError] = useState<string | null>(null);
   const [busyApplicationId, setBusyApplicationId] = useState<string | null>(null);
+
+  // Phase 5.15 — the signed-in student's fit. Never requested for other roles or the author.
+  const { status: sessionStatus, hasRole } = useSession();
+  const isStudent = sessionStatus === "authenticated" && hasRole("STUDENT");
+  const [fit, setFit] = useState<PostingFit | null>(null);
 
   const load = useCallback(async () => {
     if (!postingId) return;
@@ -94,6 +102,23 @@ export default function PostingDetailPage() {
       loadApplications();
     }
   }, [posting?.is_owner, posting?.opening_terms.accepts_applications, loadApplications]);
+
+  const postingLoadedId = posting?.id;
+  const viewerIsOwner = posting?.is_owner ?? true;
+  useEffect(() => {
+    if (!isStudent || !postingLoadedId || viewerIsOwner) {
+      setFit(null);
+      return;
+    }
+    const controller = new AbortController();
+    fetchPostingFit(postingLoadedId, controller.signal)
+      .then(setFit)
+      .catch(() => {
+        // The posting is still shown; only the fit section is left out.
+        setFit(null);
+      });
+    return () => controller.abort();
+  }, [isStudent, postingLoadedId, viewerIsOwner]);
 
   const handleTransition = async (target: PostingStatus) => {
     if (!posting) return;
@@ -222,6 +247,50 @@ export default function PostingDetailPage() {
               </button>
             ))}
           </div>
+        </section>
+      )}
+
+      {fit && !posting.is_owner && (
+        <section className="posting-detail-section" aria-labelledby="your-fit-heading">
+          <h2 id="your-fit-heading">Your fit</h2>
+          {fit.score === null ? (
+            <p className="posting-owner-note">
+              {fit.gaps[0] ?? "Add research interests or keywords to your profile"} so this posting
+              can be compared with your interests. <Link href="/researcher">Update your profile</Link>
+            </p>
+          ) : (
+            <>
+              <p className="posting-detail-author">
+                <strong>
+                  {fit.score}% fit · {fit.band}
+                </strong>
+              </p>
+              {fit.reasons.length > 0 && (
+                <ul className="posting-detail-body">
+                  {fit.reasons.map((reason) => (
+                    <li key={reason.code}>
+                      {reason.label}
+                      {reason.matched.length > 0 && reason.code !== "TOPIC" && reason.code !== "OPENING"
+                        ? `: ${reason.matched.join(", ")}`
+                        : ""}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {fit.gaps.length > 0 && (
+                <>
+                  <h3>To strengthen your application</h3>
+                  <div className="posting-skills">
+                    {fit.gaps.map((skill) => (
+                      <span key={skill} className="posting-skill">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          )}
         </section>
       )}
 
