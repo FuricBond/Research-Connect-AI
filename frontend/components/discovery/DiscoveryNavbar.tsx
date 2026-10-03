@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, BookOpen, Briefcase, Calendar, CalendarDays, Compass, FileText, Megaphone, ShieldCheck, Sparkles, User, Users } from "lucide-react";
+import { Bell, BookOpen, Briefcase, Calendar, CalendarDays, Compass, FileText, GraduationCap, Megaphone, ShieldCheck, Sparkles, User, Users } from "lucide-react";
 import { useSession } from "../auth/SessionProvider";
 
 /**
@@ -23,6 +23,7 @@ export function DiscoveryNavbar() {
   // appears and then vanishes.
   const isAuthenticated = status === "authenticated";
   const isAdmin = isAuthenticated && hasRole("ADMIN");
+  const isStudent = isAuthenticated && hasRole("STUDENT");
 
   const isSearch = pathname === "/";
   const isSimilar = pathname === "/similar";
@@ -30,6 +31,7 @@ export function DiscoveryNavbar() {
   const isBrowse = pathname === "/browse";
   const isPostings = pathname.startsWith("/postings");
   const isPeers = pathname.startsWith("/peers");
+  const isSupervisors = pathname.startsWith("/supervisors");
   const isWorkspace = pathname.startsWith("/workspace");
   const isSubmissions = pathname.startsWith("/submissions");
   const isCalendar = pathname.startsWith("/calendar");
@@ -120,6 +122,17 @@ export function DiscoveryNavbar() {
           <span>Find Peers</span>
           {isPeers && <span className="nav-pill">Active</span>}
         </Link>
+
+        {isStudent && (
+          <Link
+            href="/supervisors"
+            className={`discovery-nav-tab ${isSupervisors ? "active" : ""}`}
+          >
+            <GraduationCap size={16} />
+            <span>Find a Supervisor</span>
+            {isSupervisors && <span className="nav-pill">Active</span>}
+          </Link>
+        )}
 
         <Link
           href="/researcher"

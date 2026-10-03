@@ -162,6 +162,8 @@ from app.schemas.researcher_discovery import (
     PeerMatchResponse,
 )
 from app.services.peer_discovery_service import PeerDiscoveryService
+from app.schemas.supervisor_discovery import SupervisorMatchResponse
+from app.services.supervisor_discovery_service import SupervisorDiscoveryService
 from app.schemas.researcher_interaction import (
     InteractionCreateRequest,
     InteractionResponse,
@@ -2374,6 +2376,55 @@ def discover_peers(
             limit=limit,
             collaboration_interest=collaboration_interest,
             exclude_same_institution=exclude_same_institution,
+        )
+    except ValueError as err:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
+
+
+# ----------------------------------------------------------------------------
+# Phase 5.13: Supervisor Discovery
+# ----------------------------------------------------------------------------
+
+
+@router.get(
+    "/{researcher_id}/supervisor-matches",
+    response_model=SupervisorMatchResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Find faculty supervisors for a student",
+    description=(
+        "Deterministically ranks discoverable faculty members by research fit with the student's "
+        "interests: shared topics, closeness in meaning, matching recent papers, taxonomy "
+        "proximity and supervision availability. Consent and disclosure are those of peer "
+        "discovery: only faculty who opted in appear, and their institution and contact email "
+        "are shown only if they chose to disclose them. Available to student accounts."
+    ),
+)
+def discover_supervisors(
+    researcher_id: uuid.UUID,
+    limit: Annotated[int, Query(ge=1, le=50, description="Maximum supervisors to return")] = 20,
+    exclude_same_institution: Annotated[
+        bool, Query(description="Omit faculty at your own institution")
+    ] = False,
+    open_postings_only: Annotated[
+        bool,
+        Query(description="Only faculty with an open thesis topic, project or assistantship"),
+    ] = False,
+    current_user_id: OptionalUserId = None,
+    db: Session = Depends(get_db),
+) -> SupervisorMatchResponse:
+    profile = _resolve_researcher_profile_auth(researcher_id, current_user_id, db)
+    if getattr(getattr(profile, "user", None), "role", None) != "STUDENT":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Supervisor discovery is available to student accounts.",
+        )
+    try:
+        return SupervisorDiscoveryService.find_supervisors(
+            db,
+            profile.id,
+            limit=limit,
+            exclude_same_institution=exclude_same_institution,
+            open_postings_only=open_postings_only,
         )
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(err))
