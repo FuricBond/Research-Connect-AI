@@ -14,15 +14,21 @@ import {
 import { useRouter } from "next/navigation";
 import type { ResearchSearchResultItem, ResearchWorkRead } from "../../types/discovery";
 import { setSelectedWork } from "../../hooks/useSelectedWork";
+import { SaveToReadingListButton } from "../reading-list/SaveToReadingListButton";
 
 interface ResearchResultCardProps {
   item: ResearchSearchResultItem;
   onExplain: (item: ResearchSearchResultItem) => void;
+  /** Whether the work is on the signed-in user's reading list. */
+  isSaved?: boolean;
+  onSaved?: (workId: string, itemId: string) => void;
 }
 
 export function ResearchResultCard({
   item,
   onExplain,
+  isSaved = false,
+  onSaved,
 }: ResearchResultCardProps) {
   const [isAbstractExpanded, setIsAbstractExpanded] = useState(false);
   const { work, rank, final_score, semantic_score, lexical_score, topic_score, explanation } = item;
@@ -181,6 +187,8 @@ export function ResearchResultCard({
           <Sparkles size={15} />
           <span>Match Calls &amp; Venues</span>
         </button>
+
+        <SaveToReadingListButton workId={work.id} isSaved={isSaved} onSaved={onSaved} />
       </footer>
     </article>
   );

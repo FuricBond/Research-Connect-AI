@@ -73,6 +73,7 @@ from app.models.researcher_discovery import (
     CollaborationStatus,
     ResearcherDiscoverySettingsModel,
 )
+from app.models.reading_list import ReadingListItemModel, ReadingStatus
 from app.models.research_submission import (
     ResearchSubmissionModel,
     SubmissionStatus,
@@ -232,6 +233,9 @@ __all__ = [
     "ResearcherDiscoverySettingsModel",
     "CollaborationStatus",
     "CollaborationInterest",
+    # Personal Reading List (Phase 5.14)
+    "ReadingListItemModel",
+    "ReadingStatus",
     # Personalization Transparency & Researcher Controls (Phase 5.9)
     "ResearcherPersonalizationSettingsModel",
     "PersonalizationControlEventModel",

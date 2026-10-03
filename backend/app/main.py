@@ -11,6 +11,7 @@ from app.api.v1.calendar import router as calendar_router
 from app.api.v1.discovery import router as discovery_router
 from app.api.v1.notifications import router as notifications_router
 from app.api.v1.postings import router as postings_router
+from app.api.v1.reading_list import router as reading_list_router
 from app.api.v1.researchers import router as researchers_router
 from app.api.v1.submissions import router as submissions_router
 from app.api.v1.workspace import router as workspace_router
@@ -72,6 +73,8 @@ app.include_router(notifications_router, prefix="/api/v1")
 app.include_router(notifications_router, prefix="/api")
 app.include_router(workspace_collaboration_router, prefix="/api/v1")
 app.include_router(workspace_collaboration_router, prefix="/api")
+app.include_router(reading_list_router, prefix="/api/v1")
+app.include_router(reading_list_router, prefix="/api")
 
 
 @app.get("/")

@@ -7,7 +7,8 @@ import { SearchFilters } from "../discovery/SearchFilters";
 import { ResearchResultCard } from "../discovery/ResearchResultCard";
 import { PaginationControls } from "../discovery/PaginationControls";
 import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
-import { searchResearchWorks, ApiError } from "../../services/api";
+import { searchResearchWorks, lookupReadingList, ApiError } from "../../services/api";
+import { useSession } from "../auth/SessionProvider";
 import type {
   ExplanationSchema,
   QueryIntelligenceSchema,
@@ -37,6 +38,31 @@ export function DiscoverySearch() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Reading list: which visible works the signed-in user has already saved (work id -> item id).
+  const { status: sessionStatus } = useSession();
+  const [savedWorks, setSavedWorks] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (sessionStatus !== "authenticated" || items.length === 0) {
+      setSavedWorks({});
+      return;
+    }
+    const controller = new AbortController();
+    lookupReadingList(
+      items.map((item) => item.work.id),
+      controller.signal
+    )
+      .then((result) => setSavedWorks(result.saved))
+      .catch(() => {
+        // Saving still works without the lookup; the buttons just start unmarked.
+      });
+    return () => controller.abort();
+  }, [items, sessionStatus]);
+
+  const handleSaved = (workId: string, itemId: string) => {
+    setSavedWorks((previous) => ({ ...previous, [workId]: itemId }));
+  };
 
   const executeSearch = async (
     searchQuery: string,
@@ -214,6 +240,8 @@ export function DiscoverySearch() {
                 key={item.work.id}
                 item={item}
                 onExplain={handleOpenExplain}
+                isSaved={item.work.id in savedWorks}
+                onSaved={handleSaved}
               />
             ))}
           </div>

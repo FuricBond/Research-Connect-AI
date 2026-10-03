@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, BookOpen, Briefcase, Calendar, CalendarDays, Compass, FileText, GraduationCap, Megaphone, ShieldCheck, Sparkles, User, Users } from "lucide-react";
+import { Bell, BookMarked, BookOpen, Briefcase, Calendar, CalendarDays, Compass, FileText, GraduationCap, Megaphone, ShieldCheck, Sparkles, User, Users } from "lucide-react";
 import { useSession } from "../auth/SessionProvider";
 
 /**
@@ -34,6 +34,7 @@ export function DiscoveryNavbar() {
   const isSupervisors = pathname.startsWith("/supervisors");
   const isWorkspace = pathname.startsWith("/workspace");
   const isSubmissions = pathname.startsWith("/submissions");
+  const isReadingList = pathname.startsWith("/reading-list");
   const isCalendar = pathname.startsWith("/calendar");
   const isResearcher = pathname.startsWith("/researcher");
   const isAdminRoute = pathname.startsWith("/admin");
@@ -103,6 +104,15 @@ export function DiscoveryNavbar() {
           <FileText size={16} />
           <span>Submissions</span>
           {isSubmissions && <span className="nav-pill">Active</span>}
+        </Link>
+
+        <Link
+          href="/reading-list"
+          className={`discovery-nav-tab ${isReadingList ? "active" : ""}`}
+        >
+          <BookMarked size={16} />
+          <span>Reading List</span>
+          {isReadingList && <span className="nav-pill">Active</span>}
         </Link>
 
         <Link
