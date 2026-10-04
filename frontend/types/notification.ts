@@ -11,13 +11,23 @@ export type NotificationType =
   | "CALENDAR_EVENT_UPCOMING"
   | "SUBMISSION_STATUS_CHANGE"
   | "SYSTEM"
+  // Phase 4.6 workspace collaboration (the backend's chk_notifications_type allows them).
+  | "WORKSPACE_INVITATION"
+  | "INVITATION_ACCEPTED"
+  | "MEMBER_ROLE_CHANGED"
+  | "MEMBER_REMOVED"
+  | "TASK_ASSIGNED"
+  | "TASK_COMPLETED"
+  | "DOCUMENT_UPDATED"
+  | "COLLABORATION_ACTIVITY"
   | "POSTING_MATCH";
 
 export type DeliveryChannel = "IN_APP" | "EMAIL" | "PUSH";
 
 export type DeliveryStatus = "PENDING" | "DELIVERED" | "FAILED" | "CANCELLED" | "SKIPPED";
 
-export type OffsetUnit = "MINUTES" | "HOURS" | "DAYS" | "WEEKS";
+// The backend's chk_reminder_rules_offset_unit allows exactly these.
+export type OffsetUnit = "MINUTES" | "HOURS" | "DAYS";
 
 export interface NotificationItem {
   id: string;

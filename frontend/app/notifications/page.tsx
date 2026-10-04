@@ -12,11 +12,19 @@ import {
   Calendar,
   CalendarDays,
   ExternalLink,
+  FileText,
   Filter,
   Settings,
   RefreshCw,
   Sparkles,
   ChevronRight,
+  ClipboardCheck,
+  ClipboardList,
+  UserCheck,
+  UserCog,
+  UserMinus,
+  UserPlus,
+  Users,
 } from "lucide-react";
 import { DiscoveryNavbar } from "@/components/discovery/DiscoveryNavbar";
 import {
@@ -44,6 +52,18 @@ function describeChannels(status: NotificationDeliveryStatus | null): string {
   if (status.email_enabled && status.email_delivery_available) channels.push("Email");
   return channels.length > 0 ? channels.join(", ") : "None";
 }
+
+/** Workspace collaboration notifications, named for their icon's accessible label. */
+const COLLABORATION_LABELS: Partial<Record<NotificationType, string>> = {
+  WORKSPACE_INVITATION: "Workspace invitation",
+  INVITATION_ACCEPTED: "Invitation accepted",
+  MEMBER_ROLE_CHANGED: "Role changed",
+  MEMBER_REMOVED: "Removed from workspace",
+  TASK_ASSIGNED: "Task assigned",
+  TASK_COMPLETED: "Task completed",
+  DOCUMENT_UPDATED: "Document updated",
+  COLLABORATION_ACTIVITY: "Workspace activity",
+};
 
 function describeReminders(status: NotificationDeliveryStatus | null): string {
   if (status === null) return "—";
@@ -182,6 +202,22 @@ function NotificationsPage() {
         return <AlertTriangle size={18} />;
       case "CALENDAR_EVENT_UPCOMING":
         return <CalendarDays size={18} />;
+      case "WORKSPACE_INVITATION":
+        return <UserPlus size={18} />;
+      case "INVITATION_ACCEPTED":
+        return <UserCheck size={18} />;
+      case "MEMBER_ROLE_CHANGED":
+        return <UserCog size={18} />;
+      case "MEMBER_REMOVED":
+        return <UserMinus size={18} />;
+      case "TASK_ASSIGNED":
+        return <ClipboardList size={18} />;
+      case "TASK_COMPLETED":
+        return <ClipboardCheck size={18} />;
+      case "DOCUMENT_UPDATED":
+        return <FileText size={18} />;
+      case "COLLABORATION_ACTIVITY":
+        return <Users size={18} />;
       default:
         return <Bell size={18} />;
     }
@@ -349,6 +385,7 @@ function NotificationsPage() {
             {notifications.map((notif) => {
               const isUnread = !notif.read_at;
               const meta = notif.metadata_json || {};
+              const typeLabel = COLLABORATION_LABELS[notif.notification_type];
 
               return (
                 <div
@@ -357,6 +394,9 @@ function NotificationsPage() {
                 >
                   <div
                     className={`notification-icon-wrap ${notif.notification_type}`}
+                    role={typeLabel ? "img" : undefined}
+                    aria-label={typeLabel}
+                    title={typeLabel}
                   >
                     {getNotificationIcon(notif.notification_type)}
                   </div>
@@ -413,6 +453,16 @@ function NotificationsPage() {
                         title="View in Calendar"
                       >
                         <Calendar size={15} />
+                      </Link>
+                    )}
+                    {notif.source_type === "WORKSPACE" && notif.source_id && (
+                      <Link
+                        href={`/workspace/${notif.source_id}`}
+                        className="notification-btn-icon"
+                        title="Open workspace"
+                        aria-label="Open workspace"
+                      >
+                        <ExternalLink size={15} />
                       </Link>
                     )}
                     {notif.source_type === "RESEARCH_POSTING" && notif.source_id && (
