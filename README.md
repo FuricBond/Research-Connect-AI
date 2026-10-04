@@ -6,6 +6,7 @@
 manage academic opportunities: conferences, journals, calls for papers, workshops,
 research positions and collaborators.**
 
+[![CI](https://github.com/FuricBond/Research-Connect-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/FuricBond/Research-Connect-AI/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-15-000000?logo=nextdotjs&logoColor=white)
@@ -332,6 +333,10 @@ npm run type-check
 npm run lint
 npm run build
 ```
+
+[CI](.github/workflows/ci.yml) runs the same commands on every push and pull request: the backend
+job migrates a pgvector service database, then runs `pytest` and the scraper tests; the frontend
+job runs type-check, lint, Vitest and the production build. The end-to-end suite is not part of CI.
 
 Backend tests run offline against in-memory databases. Tests that need PostgreSQL use the
 database in `DATABASE_URL` and skip when it is unreachable. Set

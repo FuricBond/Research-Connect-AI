@@ -75,6 +75,16 @@ def validate(monkeypatch, cfg: Settings) -> None:
     security.validate_security_settings()
 
 
+@pytest.fixture(autouse=True)
+def no_ambient_app_env(monkeypatch):
+    """
+    CI exports APP_ENV=test (.github/workflows/ci.yml), and an environment variable outranks
+    both a constructor default and an env file. These tests build Settings from explicit values
+    and the .env templates, so the variable is removed for each of them.
+    """
+    monkeypatch.delenv("APP_ENV", raising=False)
+
+
 # ── A. Settings validation in every environment ───────────────────────────────
 
 

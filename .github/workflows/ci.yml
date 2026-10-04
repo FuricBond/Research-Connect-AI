@@ -1,0 +1,96 @@
+# Continuous integration (Fix 8/9): the checks that pass locally, on every push and pull request.
+#
+# Tests make no network calls and need no secrets. The only credentials are the throwaway ones
+# of the job's own PostgreSQL service (the same values as the local development defaults). The
+# browser end-to-end suite (e2e/run_e2e.py) is not run here: it builds and starts the whole
+# Compose stack.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (migrations, pytest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      postgres:
+        image: pgvector/pgvector:0.8.6-pg16
+        env:
+          POSTGRES_DB: researchconnect
+          POSTGRES_USER: researchconnect
+          POSTGRES_PASSWORD: researchconnect
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -p 5432 -U researchconnect -d researchconnect"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+          --health-start-period 30s
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql+psycopg://researchconnect:researchconnect@localhost:5432/researchconnect
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      # sentence-transformers depends on torch; left to pip, Linux would resolve the CUDA build.
+      # Install the CPU wheel first, as backend/Dockerfile does.
+      - name: Install dependencies
+        run: |
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.0
+          python -m pip install -r requirements.txt
+
+      - name: Migrate the service database
+        run: alembic upgrade head
+
+      # The default run leaves out the wall-clock `perf` budgets (backend/pytest.ini).
+      - name: Backend tests
+        run: pytest -q
+
+      - name: Scraper tests
+        run: pytest ../scrapers/tests -q
+
+  frontend:
+    name: Frontend (type-check, lint, Vitest, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      # Node 24 is the LTS line the frontend image builds with (frontend/Dockerfile).
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run type-check
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
