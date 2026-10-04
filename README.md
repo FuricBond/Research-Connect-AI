@@ -38,6 +38,8 @@ to the evidence behind it.
 **Discovery and search**
 - Hybrid search that fuses PostgreSQL full-text search with pgvector semantic similarity
   (384-dimensional `all-MiniLM-L6-v2` embeddings) through Reciprocal Rank Fusion
+- Scheduled research refresh: newly published and rising OpenAlex papers are fetched, tagged and
+  embedded every 8 hours when switched on
 - Academic query understanding (acronym expansion, taxonomy-aware matching), similar-research
   retrieval, and research-to-opportunity matching
 - Explainable results: every ranked item shows which signals placed it there
@@ -60,11 +62,19 @@ to the evidence behind it.
 - Opportunity workspace that follows each opportunity from *saved* to *accepted*
 - Submission tracking with versioned documents and readiness checks
 - Research calendar with iCal export, deadline reminders and a notification center
+- Email delivery of notifications over SMTP (opt-in, with a recipient allowlist) and a live
+  unread count on the Notifications tab (5.16)
 - Shared workspaces with roles, invitations, tasks and an activity feed
 
 **Academic community**
 - Faculty research postings, internships and research-assistant openings with an application
   workflow
+- Posting fit for students: a deterministic 0–100 fit score with reasons and missing skills on
+  each posting, and opt-in alerts when a newly published posting matches (5.15)
+- Find a supervisor: students see faculty who opted in to discovery, ranked by how well their
+  interests, publications and open postings fit the student's research, with reasons (5.13)
+- Personal reading list of saved papers with notes and To read / Reading / Done statuses,
+  exported as BibTeX (5.14)
 - Opt-in peer and co-author discovery with field-level privacy controls
 
 **Platform**
@@ -133,7 +143,7 @@ bearer token. The backend is a modular monolith. Its main modules:
 | Machine learning | sentence-transformers (`all-MiniLM-L6-v2`), deterministic scoring engines |
 | Data sources | WikiCFP (scraped), OpenAlex and Crossref APIs |
 | Security | JWT (HS256) bearer tokens, bcrypt password hashing |
-| Testing | pytest (1,603 tests), Vitest (169 tests), end-to-end with pytest and Playwright (79 tests) |
+| Testing | pytest (1,857 tests, 15 of them `perf` budgets), Vitest (241 tests), end-to-end with pytest and Playwright (79 tests), GitHub Actions CI |
 | Deployment | Docker Compose, hardened non-root images |
 
 ## Quick Start
@@ -309,6 +319,13 @@ Docker Compose reads the root `.env` (template: `.env.example`). A backend run o
 | `SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS` | `28800` | Seconds between research refreshes (8 h) |
 | `RESEARCH_REFRESH_MAX_WORKS` | `100000` | Corpus cap: at this many papers the refresh stops adding new ones and only updates known ones |
 | `OPENALEX_API_KEY` | empty | Optional free OpenAlex key: ten times the keyless daily budget. A secret: never commit it |
+| `EMAIL_PROVIDER` | `mock` | `smtp` emails new notifications once a minute (needs `SCHEDULER_ENABLED=true`); `mock` sends nothing |
+| `SMTP_HOST` / `SMTP_PORT` | empty / `587` | Mail server used when `EMAIL_PROVIDER=smtp` (the host is then required) |
+| `SMTP_USERNAME` / `SMTP_PASSWORD` | empty | SMTP login, skipped when the username is empty. The password is a secret: never commit it |
+| `SMTP_SECURITY` | `starttls` | `starttls` (587), `ssl` (465) or `none` (a local relay; refused with a login in production) |
+| `EMAIL_FROM_ADDRESS` / `EMAIL_FROM_NAME` | empty / `ResearchConnect AI` | Sender of notification emails (the address is required with `smtp`) |
+| `EMAIL_RECIPIENT_ALLOWLIST` | empty (nobody) | Addresses and `@domains` that may receive email, or `*` for everyone |
+| `APP_PUBLIC_URL` | `http://localhost:3000` | Base of the links inside emails |
 | `LOG_LEVEL` / `LOG_FORMAT` | `INFO` / `text` | Logging verbosity; `json` for structured logs |
 
 The complete reference, including every production rule and a deployment checklist, is in
@@ -318,8 +335,9 @@ The complete reference, including every production rule and a deployment checkli
 
 ```bash
 cd backend
-pytest                        # 1,603 tests: unit, integration, invariants, security
-pytest -m perf                # the wall-clock performance budgets, left out of the default run
+pytest                        # 1,842 tests: unit, integration, invariants, security
+pytest -m perf                # the 15 wall-clock performance budgets, left out of the default run
+pytest ../scrapers/tests      # 476 scraper and ingestion tests
 ```
 
 Performance-budget tests time code against fixed millisecond budgets, so they fail under CPU
@@ -328,7 +346,7 @@ marked `perf` and excluded from `pytest`; run them on their own with `pytest -m 
 
 ```bash
 cd frontend
-npm test                      # 169 Vitest tests
+npm test                      # 241 Vitest tests
 npm run type-check
 npm run lint
 npm run build
@@ -357,7 +375,10 @@ See [e2e/README.md](e2e/README.md) and the
 ## Security
 
 - **Authentication:** signed bearer tokens, bcrypt password hashing whose timing does not reveal
-  which emails are registered, and login rate limiting
+  which emails are registered, and login rate limiting. Signing out, changing the password or
+  deactivating an account revokes every token issued before it
+- **Browser:** every page is served with a Content-Security-Policy that allows no third-party
+  origins, plus `nosniff`, a strict referrer policy and a permissions policy
 - **Authorization:** role-based access control plus ownership checks on every request; roles and
   deactivation take effect immediately
 - **Fail-closed production:** the API refuses to start with a weak or missing secret, developer
@@ -397,7 +418,7 @@ Research-Connect-AI/
 | 3 | Researcher intelligence and personalized recommendations | Complete |
 | 4 | Research management: workspace, submissions, calendar, notifications, collaboration | Complete |
 | 5 | Advanced personalization, research postings and applications, peer discovery | Complete |
-| 6 | Platform, security and deployment: containers, sign-in, scheduler, production configuration, database startup and end-to-end verification are done; final audits and release readiness remain | In progress |
+| 6 | Platform, security and deployment: containers, sign-in, scheduler, production configuration, database startup, end-to-end verification, token revocation, security headers and CI are done; the rest of the security audit, the performance audit and release readiness remain | In progress |
 | 7 | Continuous evaluation: retrieval benchmarks, risk and deadline accuracy | Ongoing |
 
 **Known limitations**
