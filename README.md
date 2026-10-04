@@ -306,6 +306,7 @@ Docker Compose reads the root `.env` (template: `.env.example`). A backend run o
 | `SCHEDULER_ENABLED` | `false` | Run the background maintenance jobs |
 | `SCHEDULER_RESEARCH_REFRESH_ENABLED` | `false` | Also fetch new OpenAlex papers on a schedule (outbound requests) |
 | `SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS` | `28800` | Seconds between research refreshes (8 h) |
+| `RESEARCH_REFRESH_MAX_WORKS` | `100000` | Corpus cap: at this many papers the refresh stops adding new ones and only updates known ones |
 | `OPENALEX_API_KEY` | empty | Optional free OpenAlex key: ten times the keyless daily budget. A secret: never commit it |
 | `LOG_LEVEL` / `LOG_FORMAT` | `INFO` / `text` | Logging verbosity; `json` for structured logs |
 

@@ -70,7 +70,7 @@ that is pre-existing and outside this phase.)
 | `RESEARCH_REFRESH_SUBFIELDS` | `1702` | Comma-separated OpenAlex subfield ids (1702 is Artificial Intelligence). |
 | `RESEARCH_REFRESH_NEW_PAGES` / `RESEARCH_REFRESH_RISING_PAGES` | `1` / `1` | 200-work pages per subfield for the newest and rising lanes (0–10; 0 switches a lane off). |
 | `RESEARCH_REFRESH_NEW_WINDOW_DAYS` / `RESEARCH_REFRESH_RISING_WINDOW_DAYS` | `14` / `365` | How far back each lane looks, by publication date. |
-| `RESEARCH_REFRESH_MAX_WORKS` | `50000` | Corpus cap: at this many research works the refresh stops adding papers and only updates known ones. |
+| `RESEARCH_REFRESH_MAX_WORKS` | `100000` | Corpus cap: at this many research works the refresh stops adding papers and only updates known ones. |
 | `OPENALEX_EMAIL` / `OPENALEX_API_KEY` | empty | Optional. The polite-pool email, and a free key with ten times the keyless daily budget (a secret: never commit it). |
 | `SCHEDULER_OPPORTUNITY_REFRESH_TOPIC` | `artificial intelligence` | Passed to the pipeline. |
 | `SCHEDULER_OPPORTUNITY_REFRESH_MAX_PAGES` | `1` | Passed to the pipeline (1–20). |

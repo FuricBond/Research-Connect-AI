@@ -303,9 +303,10 @@ either budget. Manual bulk loads draw on the same budget.
 ### Storage and the corpus cap
 
 A work takes about 22 KB of database storage including its embedding and topic links (see
-Bulk loading above), so 50,000 works need about 1.1 GB. `RESEARCH_REFRESH_MAX_WORKS` (default
-50,000) caps the corpus: once `research_works` holds that many rows, the newest lane is
-skipped and the rising lane only updates works already stored.
+Bulk loading above), so 100,000 works need about 2.2 GB. `RESEARCH_REFRESH_MAX_WORKS` (default
+100,000, above the roughly 55,000 works already loaded) caps the corpus: once `research_works`
+holds that many rows, the newest lane is skipped and the rising lane only updates works already
+stored.
 
 ### Running it by hand
 

@@ -212,7 +212,7 @@ def test_a_research_refresh_settings_are_validated(monkeypatch):
         defaults.research_refresh_new_window_days,
         defaults.research_refresh_rising_window_days,
         defaults.research_refresh_max_works,
-    ) == (1, 1, 14, 365, 50_000)
+    ) == (1, 1, 14, 365, 100_000)
 
 
 # ── B. Production startup validation ──────────────────────────────────────────
@@ -530,7 +530,7 @@ def test_f_compose_wires_the_research_refresh_off_by_default():
     assert "SCHEDULER_RESEARCH_REFRESH_ENABLED: ${SCHEDULER_RESEARCH_REFRESH_ENABLED:-false}" in backend
     assert "SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS: ${SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS:-28800}" in backend
     assert "RESEARCH_REFRESH_SUBFIELDS: ${RESEARCH_REFRESH_SUBFIELDS:-1702}" in backend
-    assert "RESEARCH_REFRESH_MAX_WORKS: ${RESEARCH_REFRESH_MAX_WORKS:-50000}" in backend
+    assert "RESEARCH_REFRESH_MAX_WORKS: ${RESEARCH_REFRESH_MAX_WORKS:-100000}" in backend
     assert "OPENALEX_API_KEY: ${OPENALEX_API_KEY:-}" in backend
     assert "OPENALEX_EMAIL: ${OPENALEX_EMAIL:-}" in backend
     # An integer setting with an empty default would fail validation and stop the backend.
@@ -552,7 +552,7 @@ def test_f_the_root_template_wires_every_research_refresh_key():
     assert root["SCHEDULER_RESEARCH_REFRESH_ENABLED"] == "false"
     assert root["SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS"] == "28800"
     assert root["RESEARCH_REFRESH_SUBFIELDS"] == "1702"
-    assert root["RESEARCH_REFRESH_MAX_WORKS"] == "50000"
+    assert root["RESEARCH_REFRESH_MAX_WORKS"] == "100000"
     backend = _backend_service_block(_read("docker-compose.yml"))
     for key in (
         "SCHEDULER_RESEARCH_REFRESH_ENABLED",

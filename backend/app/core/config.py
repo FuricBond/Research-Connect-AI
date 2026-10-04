@@ -136,7 +136,7 @@ class Settings(BaseSettings):
     research_refresh_rising_window_days: int = Field(default=365, ge=1, le=3_650)
     # Corpus cap: once research_works holds this many rows the job stops inserting new
     # works but keeps refreshing the ones it has.
-    research_refresh_max_works: int = Field(default=50_000, ge=1)
+    research_refresh_max_works: int = Field(default=100_000, ge=1)
 
     # Phase 2.2B — Crossref API configuration
     crossref_api_base_url: str = "https://api.crossref.org"
