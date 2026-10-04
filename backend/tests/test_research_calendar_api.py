@@ -31,6 +31,7 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.core.security import create_access_token
 from app.db.session import get_db
 from app.db.types import TSVector, Vector
 from app.main import app
@@ -310,6 +311,25 @@ def test_export_calendar_ics_api(
     assert "BEGIN:VCALENDAR" in body
     assert "BEGIN:VEVENT" in body
     assert "END:VCALENDAR" in body
+
+
+def test_export_calendar_ics_requires_sign_in_and_accepts_a_bearer_token(
+    client: TestClient,
+    alice: UserModel,
+):
+    """Fix 1/9: the export is refused anonymously and served to the signed-in owner's token."""
+    cal = client.get("/api/v1/calendar/default", headers={"X-User-ID": str(alice.id)}).json()
+    path = f"/api/v1/calendar/{cal['id']}/export.ics"
+
+    assert client.get(path).status_code == 401
+    # A user_id in the query string is not an identity.
+    assert client.get(f"{path}?user_id={alice.id}").status_code == 401
+
+    token, _ = create_access_token(alice.id)
+    res = client.get(path, headers={"Authorization": f"Bearer {token}"})
+    assert res.status_code == 200
+    assert "text/calendar" in res.headers["content-type"]
+    assert "BEGIN:VCALENDAR" in res.text
 
 
 def test_researcher_calendar_view_api(

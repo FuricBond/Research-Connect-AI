@@ -12,9 +12,9 @@ import type {
 import {
   createCalendarEvent,
   deleteCalendarEvent,
+  downloadCalendarIcs,
   fetchCalendarEvents,
   fetchDefaultCalendar,
-  getCalendarExportUrl,
 } from "../../services/api";
 import {
   AlertCircle,
@@ -70,6 +70,10 @@ function CalendarPage() {
   const [selectedEvent, setSelectedEvent] = useState<ResearchCalendarEvent | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // .ics export: fetched with the session's credentials, so it can be in flight or fail.
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   // Form State for User Planning Event
   const [formTitle, setFormTitle] = useState("");
@@ -264,6 +268,19 @@ function CalendarPage() {
     }
   };
 
+  const handleExport = async () => {
+    if (!calendar) return;
+    setExporting(true);
+    setExportError(null);
+    try {
+      await downloadCalendarIcs(calendar.id);
+    } catch (err: any) {
+      setExportError(err?.detail || err?.message || "Failed to export the calendar.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // Delete User Event Handler
   const handleDeleteEvent = async (eventId: string) => {
     if (!calendar) return;
@@ -300,15 +317,16 @@ function CalendarPage() {
 
           <div className="calendar-actions-bar">
             {calendar && (
-              <a
-                href={getCalendarExportUrl(calendar.id)}
-                download="research-calendar.ics"
+              <button
+                type="button"
+                onClick={handleExport}
+                disabled={exporting}
                 className="calendar-export-btn"
                 title="Download RFC 5545 iCalendar feed"
               >
-                <Download size={15} />
-                <span>Export Calendar (.ics)</span>
-              </a>
+                {exporting ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
+                <span>{exporting ? "Exporting…" : "Export Calendar (.ics)"}</span>
+              </button>
             )}
 
             <button
@@ -321,6 +339,12 @@ function CalendarPage() {
             </button>
           </div>
         </div>
+
+        {exportError && (
+          <p role="alert" style={{ color: "#f87171", margin: "8px 0 0 0", fontSize: "13px" }}>
+            {exportError}
+          </p>
+        )}
 
         {/* Stats Strip */}
         <div className="calendar-stats-strip">

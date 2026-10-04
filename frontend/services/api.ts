@@ -1834,12 +1834,42 @@ export async function fetchResearcherCalendar(
   return fetchJson<ResearcherCalendarViewResponse>(endpoint, { headers, signal });
 }
 
-export function getCalendarExportUrl(calendarId: string, userId?: string): string {
-  const base = `${API_URL}/api/v1/calendar/${calendarId}/export.ics`;
-  if (userId) {
-    return `${base}?user_id=${encodeURIComponent(userId)}`;
+/**
+ * Downloads a research calendar as `research-calendar.ics`.
+ *
+ * The export needs the caller's credentials, so it is fetched with the auth headers and saved
+ * from a Blob; a plain link would send no Bearer token and always be refused.
+ */
+export async function downloadCalendarIcs(calendarId: string, signal?: AbortSignal): Promise<void> {
+  const path = `/api/v1/calendar/${calendarId}/export.ics`;
+  const headers = getAuthHeaders();
+
+  const response = await fetch(`${API_URL}${path}`, { headers, signal });
+  if (!response.ok) {
+    let detail = `Request failed with status ${response.status}`;
+    try {
+      detail = extractErrorDetail(await response.json(), detail);
+    } catch {
+      // Non-JSON error body fallback
+    }
+    if (response.status === 401) {
+      notifyUnauthorized(path, headers["Authorization"] !== undefined);
+    }
+    throw new ApiError(response.status, detail, detail);
   }
-  return base;
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  try {
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "research-calendar.ics";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 export function getResearcherCalendarExportUrl(researcherId: string, userId?: string): string {
@@ -3269,7 +3299,7 @@ export async function lookupReadingList(
  * Downloads the reading list (or the chosen items, or one status) as `reading-list.bib`.
  *
  * The export needs the caller's credentials, so it is fetched with the auth headers and saved
- * from a Blob; a plain link (as the calendar .ics export uses) would send no Bearer token.
+ * from a Blob; a plain link would send no Bearer token.
  */
 export async function downloadReadingListBibtex(
   options: { itemIds?: string[]; status?: ReadingStatus } = {},
