@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import nextConfig, { resolvePublicApiUrl } from "../next.config";
+import nextConfig, { buildContentSecurityPolicy, resolvePublicApiUrl, securityHeaders } from "../next.config";
 
 /**
  * Phase 6.4 — production configuration of the frontend build. NEXT_PUBLIC_API_URL is
@@ -52,5 +52,71 @@ describe("next.config", () => {
 
   it("compiles only the public API URL into the browser bundle's environment", () => {
     expect(Object.keys(nextConfig.env ?? {})).toEqual(["NEXT_PUBLIC_API_URL"]);
+  });
+});
+
+/**
+ * Fix 6/9 — security headers on every route. The app loads nothing from another origin, so the
+ * policy is same-origin throughout except requests to the API.
+ */
+describe("security headers", () => {
+  function directives(policy: string): Record<string, string> {
+    return Object.fromEntries(
+      policy.split("; ").map((directive) => {
+        const [name, ...sources] = directive.split(" ");
+        return [name, sources.join(" ")];
+      })
+    );
+  }
+
+  it("sends the four headers on every route", async () => {
+    const rules = await nextConfig.headers!();
+    expect(rules).toHaveLength(1);
+    expect(rules[0].source).toBe("/:path*");
+    expect(rules[0].headers.map((header) => header.key)).toEqual([
+      "Content-Security-Policy",
+      "X-Content-Type-Options",
+      "Referrer-Policy",
+      "Permissions-Policy",
+    ]);
+    const values = Object.fromEntries(rules[0].headers.map((header) => [header.key, header.value]));
+    expect(values["X-Content-Type-Options"]).toBe("nosniff");
+    expect(values["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
+    expect(values["Permissions-Policy"]).toBe("camera=(), microphone=(), geolocation=()");
+    // The test run is not the development server, so no eval.
+    expect(values["Content-Security-Policy"]).toBe(buildContentSecurityPolicy("http://localhost:8000", false));
+  });
+
+  it("allows exactly the app's own origin plus the API for requests", () => {
+    expect(directives(buildContentSecurityPolicy("https://api.example.org", false))).toEqual({
+      "default-src": "'self'",
+      "script-src": "'self' 'unsafe-inline'",
+      "style-src": "'self' 'unsafe-inline'",
+      "font-src": "'self' data:",
+      "img-src": "'self' data: blob:",
+      "connect-src": "'self' https://api.example.org",
+      "object-src": "'none'",
+      "base-uri": "'self'",
+      "form-action": "'self'",
+      "frame-ancestors": "'none'",
+    });
+  });
+
+  it("adds 'unsafe-eval' for the development server only", () => {
+    expect(directives(buildContentSecurityPolicy("http://localhost:8000", true))["script-src"]).toBe(
+      "'self' 'unsafe-inline' 'unsafe-eval'"
+    );
+    expect(buildContentSecurityPolicy("http://localhost:8000", false)).not.toContain("unsafe-eval");
+  });
+
+  it("uses the API's origin, not its path, and loads no third-party resources", () => {
+    const policy = buildContentSecurityPolicy("https://example.org/research-api", false);
+    expect(directives(policy)["connect-src"]).toBe("'self' https://example.org");
+    expect(policy).not.toMatch(/googleapis|gstatic|\*/);
+  });
+
+  it("builds the same headers for any valid API address", () => {
+    const headers = securityHeaders(resolvePublicApiUrl("http://localhost:8300/"), false);
+    expect(headers[0].value).toContain("connect-src 'self' http://localhost:8300;");
   });
 });
