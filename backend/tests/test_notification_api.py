@@ -340,6 +340,48 @@ def test_notifications_carry_their_email_status(
     assert item["email_sent_at"] is not None
 
 
+def test_push_reminder_rules_are_refused_but_old_ones_stay_editable(
+    client: TestClient, alice: UserModel, alice_profile: ResearchProfileModel, db_session: Session
+):
+    """Fix 2/9: push delivery does not exist, so no rule may choose it."""
+    headers = {"X-User-ID": str(alice.id)}
+    push_rule = {"offset_amount": 3, "offset_unit": "DAYS", "delivery_channel": "PUSH"}
+
+    for path in ("/api/v1/notifications/rules", f"/api/v1/researchers/{alice_profile.id}/reminder-rules"):
+        resp = client.post(path, headers=headers, json=push_rule)
+        assert resp.status_code == 422, path
+        assert "Push notifications are not available yet" in resp.text
+
+    created = client.post(
+        "/api/v1/notifications/rules", headers=headers, json={**push_rule, "delivery_channel": "EMAIL"}
+    )
+    assert created.status_code == 201
+    switched = client.patch(
+        f"/api/v1/notifications/rules/{created.json()['id']}", headers=headers, json={"delivery_channel": "PUSH"}
+    )
+    assert switched.status_code == 422
+    assert "Push notifications are not available yet" in switched.text
+
+    # A PUSH rule saved before this change still lists and can be paused or moved to email.
+    legacy = ReminderRuleModel(
+        profile_id=alice_profile.id,
+        offset_amount=1,
+        offset_unit=OffsetUnit.DAYS.value,
+        delivery_channel=DeliveryChannel.PUSH.value,
+        is_active=True,
+    )
+    db_session.add(legacy)
+    db_session.commit()
+    listed = client.get("/api/v1/notifications/rules", headers=headers).json()["rules"]
+    assert any(rule["id"] == str(legacy.id) and rule["delivery_channel"] == "PUSH" for rule in listed)
+    paused = client.patch(f"/api/v1/notifications/rules/{legacy.id}", headers=headers, json={"is_active": False})
+    assert paused.status_code == 200 and paused.json()["delivery_channel"] == "PUSH"
+    moved = client.patch(
+        f"/api/v1/notifications/rules/{legacy.id}", headers=headers, json={"delivery_channel": "EMAIL"}
+    )
+    assert moved.status_code == 200 and moved.json()["delivery_channel"] == "EMAIL"
+
+
 def test_reminder_rules_crud(client: TestClient, alice: UserModel):
     # GET rules (default rules bootstrapped)
     resp = client.get("/api/v1/notifications/rules", headers={"X-User-ID": str(alice.id)})

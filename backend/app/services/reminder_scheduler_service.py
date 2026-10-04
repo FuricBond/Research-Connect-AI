@@ -237,8 +237,14 @@ class EmailNotificationChannel(NotificationChannel):
         return result
 
 
+PUSH_UNAVAILABLE_REASON = "Push notifications are not available yet."
+
+
 class PushNotificationChannel(NotificationChannel):
-    """Push notification channel with mock provider support."""
+    """
+    Push delivery does not exist yet. A due reminder on a (legacy) PUSH rule is recorded as
+    SKIPPED with a fixed reason, never DELIVERED, and new PUSH rules are refused by the API.
+    """
 
     def dispatch(
         self,
@@ -247,22 +253,22 @@ class PushNotificationChannel(NotificationChannel):
         user: UserModel,
         auto_commit: bool = True,
     ) -> DeliveryResult:
-        now = datetime.now(timezone.utc)
-        notification.delivery_status = DeliveryStatus.DELIVERED.value
-        notification.delivered_at = now
-        notification.updated_at = now
+        # Decided once: a later pass over the same reminder records nothing new.
+        if notification.delivery_status == DeliveryStatus.SKIPPED.value:
+            return DeliveryResult(success=False, error_message=PUSH_UNAVAILABLE_REASON)
 
-        ref = f"push-mock-{notification.id}"
+        notification.delivery_status = DeliveryStatus.SKIPPED.value
+        notification.updated_at = datetime.now(timezone.utc)
         NotificationService.record_delivery_attempt(
             db=db,
             notification_id=notification.id,
             channel=DeliveryChannel.PUSH.value,
-            status=DeliveryStatus.DELIVERED.value,
+            status=DeliveryStatus.SKIPPED.value,
             attempt_number=1,
-            provider_reference=ref,
+            error_message=PUSH_UNAVAILABLE_REASON,
             auto_commit=auto_commit,
         )
-        return DeliveryResult(success=True, provider_reference=ref)
+        return DeliveryResult(success=False, error_message=PUSH_UNAVAILABLE_REASON)
 
 
 # Channel registry

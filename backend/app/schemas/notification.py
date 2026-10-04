@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Any
 import uuid
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.models.notification import (
     DeliveryChannel,
@@ -68,12 +68,24 @@ class ReminderRuleCreate(BaseModel):
     )
     delivery_channel: DeliveryChannel = Field(
         default=DeliveryChannel.IN_APP,
-        description="Delivery channel: IN_APP, EMAIL, PUSH",
+        description="Delivery channel: IN_APP or EMAIL (PUSH is not available yet)",
     )
     is_active: bool = Field(
         default=True,
         description="Whether this rule is active",
     )
+
+    @field_validator("delivery_channel")
+    @classmethod
+    def _push_not_available(cls, value: DeliveryChannel) -> DeliveryChannel:
+        return _reject_push(value)
+
+
+def _reject_push(value: DeliveryChannel | None) -> DeliveryChannel | None:
+    """Push delivery does not exist yet, so no rule may choose it (existing rows stay valid)."""
+    if value == DeliveryChannel.PUSH:
+        raise ValueError("Push notifications are not available yet; choose IN_APP or EMAIL")
+    return value
 
 
 class ReminderRuleUpdate(BaseModel):
@@ -82,6 +94,11 @@ class ReminderRuleUpdate(BaseModel):
     offset_unit: OffsetUnit | None = None
     delivery_channel: DeliveryChannel | None = None
     is_active: bool | None = None
+
+    @field_validator("delivery_channel")
+    @classmethod
+    def _push_not_available(cls, value: DeliveryChannel | None) -> DeliveryChannel | None:
+        return _reject_push(value)
 
 
 class ReminderRuleRead(BaseModel):

@@ -119,6 +119,7 @@ a day.
 
 ## 5. Not included
 
-Push notifications stay mock. There is no daily digest and no one-click unsubscribe link: the
+There are no push notifications: new PUSH reminder rules are refused, and a due reminder on an
+older PUSH rule is recorded as SKIPPED, never delivered. There is no daily digest and no one-click unsubscribe link: the
 email links to settings, which need sign-in. Sending to real users from a public domain also
 needs SPF and DKIM records and a `List-Unsubscribe` header, which belong to the deployment.

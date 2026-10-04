@@ -279,6 +279,58 @@ def test_email_notification_delivery_channel(
     assert "ICML 2026" in sent["subject"]
 
 
+def test_push_reminders_are_skipped_never_delivered(
+    db_session: Session,
+    test_user: UserModel,
+    test_profile: ResearchProfileModel,
+    test_opportunity: OpportunityModel,
+):
+    """Fix 2/9: push delivery does not exist, so a legacy PUSH rule's reminder is SKIPPED once."""
+    from pydantic import ValidationError
+
+    from app.models.notification import NotificationDeliveryAttemptModel
+    from app.services.reminder_scheduler_service import PUSH_UNAVAILABLE_REASON
+
+    # New rules can no longer choose the channel...
+    with pytest.raises(ValidationError, match="Push notifications are not available yet"):
+        ReminderRuleCreate(offset_amount=7, delivery_channel=DeliveryChannel.PUSH)
+
+    # ...but a rule saved before this change is still a valid row.
+    db_session.add(SavedOpportunityModel(user_id=test_user.id, opportunity_id=test_opportunity.id, status="PLANNING"))
+    db_session.add(
+        ReminderRuleModel(
+            profile_id=test_profile.id,
+            event_type="OPPORTUNITY_SUBMISSION",
+            offset_amount=7,
+            offset_unit=OffsetUnit.DAYS.value,
+            delivery_channel=DeliveryChannel.PUSH.value,
+            is_active=True,
+        )
+    )
+    db_session.commit()
+
+    eval_time = datetime(2026, 8, 15, 12, 0, 0, tzinfo=timezone.utc)
+    summary = ReminderSchedulerService.run_scheduled_reminders(db_session, now=eval_time)
+
+    assert summary.created_notifications >= 1
+    assert summary.delivered_notifications == 0
+    push = db_session.query(NotificationModel).filter_by(delivery_channel=DeliveryChannel.PUSH.value).all()
+    assert push and all(n.delivery_status == DeliveryStatus.SKIPPED.value for n in push)
+    assert all(n.delivered_at is None for n in push)
+    attempts = db_session.query(NotificationDeliveryAttemptModel).all()
+    assert len(attempts) == len(push)
+    assert all(
+        (a.channel, a.status, a.error_message, a.provider_reference)
+        == ("PUSH", "SKIPPED", PUSH_UNAVAILABLE_REASON, None)
+        for a in attempts
+    )
+
+    # A later pass over the same reminder records nothing new and still delivers nothing.
+    again = ReminderSchedulerService.run_scheduled_reminders(db_session, now=eval_time)
+    assert again.delivered_notifications == 0
+    assert db_session.query(NotificationDeliveryAttemptModel).count() == len(attempts)
+
+
 def test_calendar_planning_event_reminder(
     db_session: Session,
     test_user: UserModel,

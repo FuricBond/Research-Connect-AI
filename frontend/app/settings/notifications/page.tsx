@@ -398,7 +398,8 @@ function NotificationSettingsPage() {
                   </td>
                   <td>
                     <span className="notification-pill channel">
-                      {rule.delivery_channel}
+                      {/* Push delivery does not exist yet; older rules may still name it. */}
+                      {rule.delivery_channel === "PUSH" ? "Push (not available yet)" : rule.delivery_channel}
                     </span>
                   </td>
                   <td>
@@ -461,7 +462,6 @@ function NotificationSettingsPage() {
               >
                 <option value="IN_APP">In-App</option>
                 <option value="EMAIL">Email</option>
-                <option value="PUSH">Push</option>
               </select>
             </div>
 
