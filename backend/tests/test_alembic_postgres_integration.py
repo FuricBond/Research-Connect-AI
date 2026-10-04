@@ -244,3 +244,37 @@ def test_concurrent_upgrades_are_serialized_and_both_succeed(tmp_path) -> None:
         assert [run.returncode for run in runs] == [0, 0], [out[-1500:] for out in output]
         assert sum("Running upgrade" in out for out in output) == 1, "exactly one run migrates"
         assert recorded_revisions(url) == [HEAD]
+
+
+def test_token_version_migration_starts_existing_accounts_at_version_0() -> None:
+    """0032 (Phase 6.7): accounts that exist before it keep their sessions (version 0)."""
+    with isolated_database() as url:
+        assert alembic(url, "upgrade", "0031_phase5_16_email_delivery").returncode == 0
+        engine = create_engine(url)
+        try:
+            user_id = uuid.uuid4()
+            with engine.begin() as connection:
+                connection.execute(
+                    text(
+                        "INSERT INTO users (id, email, hashed_password, full_name) "
+                        "VALUES (:id, 'existing@example.test', 'x', 'Existing Account')"
+                    ),
+                    {"id": user_id},
+                )
+
+            up = alembic(url, "upgrade", "0032_phase6_7_token_revocation")
+            assert up.returncode == 0, up.stderr
+            with engine.connect() as connection:
+                version = connection.execute(
+                    text("SELECT token_version FROM users WHERE id = :id"), {"id": user_id}
+                ).scalar_one()
+            assert version == 0
+
+            down = alembic(url, "downgrade", "0031_phase5_16_email_delivery")
+            assert down.returncode == 0, down.stderr
+            columns = {c["name"] for c in inspect(engine).get_columns("users")}
+            assert "token_version" not in columns
+            with engine.connect() as connection:
+                assert connection.execute(text("SELECT count(*) FROM users")).scalar_one() == 1
+        finally:
+            engine.dispose()

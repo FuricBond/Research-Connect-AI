@@ -34,6 +34,15 @@ def _normalize_email(value: str) -> str:
     return email
 
 
+def _check_password(value: str) -> str:
+    """The password rules for registration and for a password change (beyond the minimum length)."""
+    if len(value.encode("utf-8")) > BCRYPT_MAX_PASSWORD_BYTES:
+        raise ValueError(f"Password must be at most {BCRYPT_MAX_PASSWORD_BYTES} bytes.")
+    if value.strip() != value or not value.strip():
+        raise ValueError("Password must not start or end with whitespace.")
+    return value
+
+
 class RegisterRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -60,11 +69,21 @@ class RegisterRequest(BaseModel):
     @field_validator("password")
     @classmethod
     def check_password(cls, v: str) -> str:
-        if len(v.encode("utf-8")) > BCRYPT_MAX_PASSWORD_BYTES:
-            raise ValueError(f"Password must be at most {BCRYPT_MAX_PASSWORD_BYTES} bytes.")
-        if v.strip() != v or not v.strip():
-            raise ValueError("Password must not start or end with whitespace.")
-        return v
+        return _check_password(v)
+
+
+class ChangePasswordRequest(BaseModel):
+    """Phase 6.7: the new password follows the registration rules."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    current_password: str = Field(min_length=1, max_length=1024)
+    new_password: str = Field(min_length=MIN_PASSWORD_LENGTH)
+
+    @field_validator("new_password")
+    @classmethod
+    def check_new_password(cls, v: str) -> str:
+        return _check_password(v)
 
 
 class LoginRequest(BaseModel):

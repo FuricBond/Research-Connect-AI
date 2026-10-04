@@ -98,6 +98,32 @@ class AuthService:
             raise InvalidCredentialsError("Account is deactivated.")
         return user
 
+    # ── Phase 6.7 — Token revocation ────────────────────────────────────────
+
+    @classmethod
+    def revoke_tokens(cls, db: Session, user: UserModel) -> UserModel:
+        """Signs the account out everywhere: every token issued so far stops working."""
+        # Incremented in SQL, so concurrent sign-outs cannot lose an increment.
+        user.token_version = UserModel.token_version + 1
+        db.commit()
+        db.refresh(user)
+        logger.info("Revoked access tokens", extra={"revoked_user_id": str(user.id)})
+        return user
+
+    @classmethod
+    def change_password(
+        cls, db: Session, user: UserModel, current_password: str, new_password: str
+    ) -> UserModel:
+        """Replaces the password after checking the current one, and revokes every token."""
+        if not verify_password(current_password, user.hashed_password):
+            raise InvalidCredentialsError("Current password is incorrect.")
+        user.hashed_password = hash_password(new_password)
+        user.token_version = UserModel.token_version + 1
+        db.commit()
+        db.refresh(user)
+        logger.info("Password changed", extra={"password_user_id": str(user.id)})
+        return user
+
     @classmethod
     def build_authenticated_user(cls, db: Session, user: UserModel) -> AuthenticatedUser:
         profile_id = db.execute(
@@ -173,6 +199,9 @@ class AuthService:
 
         if payload.role is not None:
             user.role = payload.role.value
+        if payload.is_active is False and user.is_active:
+            # Phase 6.7: reactivating the account later must not bring old tokens back.
+            user.token_version = UserModel.token_version + 1
         if payload.is_active is not None:
             user.is_active = payload.is_active
         if payload.is_verified is not None:

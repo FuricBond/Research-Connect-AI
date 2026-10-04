@@ -10,7 +10,8 @@ This module is the single place where a request's identity is established:
 
 There is no fallback identity: a request without valid credentials is anonymous, and
 protected routes answer 401. The resolved user row is re-read per request, so role
-changes and deactivation take effect immediately.
+changes and deactivation take effect immediately, and (Phase 6.7) a token issued before
+the account's last sign-out or password change is refused.
 """
 from __future__ import annotations
 
@@ -102,6 +103,9 @@ def get_optional_current_user(
         user = db.get(UserModel, claims.user_id)
         if user is None:
             raise _unauthorized("Unknown identity.")
+        # Phase 6.7: sign-out, a password change or deactivation moved the version on.
+        if claims.token_version != user.token_version:
+            raise _unauthorized("Access token has been revoked.")
     elif x_user_id and settings.auth_dev_identity_enabled:
         user = _resolve_dev_identity(db, x_user_id)
 

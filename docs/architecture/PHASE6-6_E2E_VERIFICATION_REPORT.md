@@ -27,7 +27,7 @@ The run found **one real integration defect**, which was fixed with a regression
 
 Three findings belong to later phases and are deferred without fixes:
 
-- **F-2** (6.7): issued tokens outlive client-side logout.
+- **F-2** (6.7): issued tokens outlive client-side logout. *Resolved in Phase 6.7 (see below).*
 - **F-3** (6.8/6.9): the first search on a new container downloads the embedding model,
   taking 30.4 s.
 - **F-4** (6.8): one timing micro-benchmark is flaky.
@@ -424,7 +424,7 @@ embeddings in the default database.
     and passes now.
   - E2E `test_04` checks the same behaviour on the deployed stack.
 
-### F-2 — Issued tokens remain valid after sign-out · **Deferred to Phase 6.7**
+### F-2 — Issued tokens remain valid after sign-out · **Resolved in Phase 6.7**
 - **Severity:** Low–Medium (session management).
 - **Component:** authentication.
 - **Reproduction:** sign in, sign out in the browser, then call `/auth/me` with the old
@@ -433,6 +433,11 @@ embeddings in the default database.
   lifetime defaults to 480 minutes. Deactivation does revoke immediately (verified in §5).
 - **Resolution:** none here. Assess in the Phase 6.7 security audit (revocation, shorter
   lifetime, or refresh tokens).
+- **Resolved (Phase 6.7, migration `0032_phase6_7_token_revocation`):** tokens carry the
+  account's `token_version` (`ver`) and are refused once it changes. `POST /auth/logout` (which
+  the Sign out button now calls first), `POST /auth/change-password` and deactivation increment
+  it. The reproduction above now answers `401`. Tests: `backend/tests/test_token_revocation.py`,
+  `frontend/tests/auth-revocation.test.tsx`.
 
 ### F-3 — First search on a new backend container downloads the embedding model · **Deferred to Phase 6.8 / 6.9**
 - **Severity:** Medium for release readiness.

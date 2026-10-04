@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Optional
 import uuid
 
-from sqlalchemy import Boolean, CheckConstraint, String, false, true
+from sqlalchemy import Boolean, CheckConstraint, Integer, String, false, true
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -59,6 +59,14 @@ class UserModel(Base, TimestampMixin):
         Boolean,
         default=False,
         server_default=false(),
+        nullable=False,
+    )
+    # Phase 6.7: access tokens carry the version they were issued under ("ver") and are
+    # refused once it moves on. Sign-out, a password change and deactivation increment it.
+    token_version: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+        server_default="0",
         nullable=False,
     )
 

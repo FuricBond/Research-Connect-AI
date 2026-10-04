@@ -4,19 +4,29 @@ Phase 6 — Authentication API.
   POST /auth/register  Create an account + researcher profile, returns an access token
   POST /auth/login     Exchange email + password for an access token (rate limited)
   GET  /auth/me        The authenticated caller's account
+  POST /auth/logout    Revoke every token issued to the caller so far (Phase 6.7)
+  POST /auth/change-password
+                       Replace the caller's password, revoke their tokens and return a new one
+                       (Phase 6.7, rate limited)
 """
 from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser
 from app.core.rate_limiter import get_client_ip, login_rate_limiter
 from app.core.security import create_access_token
 from app.db.session import get_db
-from app.schemas.auth import AuthenticatedUser, LoginRequest, RegisterRequest, TokenResponse
+from app.schemas.auth import (
+    AuthenticatedUser,
+    ChangePasswordRequest,
+    LoginRequest,
+    RegisterRequest,
+    TokenResponse,
+)
 from app.services.auth_service import (
     AuthService,
     EmailAlreadyRegisteredError,
@@ -54,7 +64,7 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> TokenRe
     except ValueError as err:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
 
-    token, expires_at = create_access_token(user.id)
+    token, expires_at = create_access_token(user.id, token_version=user.token_version)
     return TokenResponse(
         access_token=token,
         expires_at=expires_at,
@@ -80,7 +90,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    token, expires_at = create_access_token(user.id)
+    token, expires_at = create_access_token(user.id, token_version=user.token_version)
     logger.info("Login succeeded", extra={"login_user_id": str(user.id)})
     return TokenResponse(
         access_token=token,
@@ -97,3 +107,47 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse
 )
 def get_me(user: CurrentUser, db: Session = Depends(get_db)) -> AuthenticatedUser:
     return AuthService.build_authenticated_user(db, user)
+
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    summary="Sign out everywhere",
+    description=(
+        "Phase 6.7: revokes every access token issued to the caller so far, including the one "
+        "used for this request. Sign in again for a new token."
+    ),
+)
+def logout(user: CurrentUser, db: Session = Depends(get_db)) -> Response:
+    AuthService.revoke_tokens(db, user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/change-password",
+    response_model=TokenResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Change password",
+    description=(
+        "Phase 6.7: checks the current password, applies the registration password rules to the "
+        "new one, revokes every earlier token and returns a fresh one. Rate limited like login."
+    ),
+    dependencies=[Depends(enforce_login_rate_limit)],
+)
+def change_password(
+    payload: ChangePasswordRequest,
+    user: CurrentUser,
+    db: Session = Depends(get_db),
+) -> TokenResponse:
+    try:
+        user = AuthService.change_password(db, user, payload.current_password, payload.new_password)
+    except InvalidCredentialsError as err:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
+
+    token, expires_at = create_access_token(user.id, token_version=user.token_version)
+    return TokenResponse(
+        access_token=token,
+        expires_at=expires_at,
+        user=AuthService.build_authenticated_user(db, user),
+    )

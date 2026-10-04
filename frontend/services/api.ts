@@ -372,6 +372,29 @@ export async function getCurrentUser(signal?: AbortSignal): Promise<Authenticate
   return fetchJson<AuthenticatedUser>("/api/v1/auth/me", { signal });
 }
 
+/**
+ * Phase 6.7: revokes every token issued to the signed-in account (204). The caller clears the
+ * stored session whatever the outcome.
+ */
+export async function logout(signal?: AbortSignal): Promise<void> {
+  await fetchJson<void>("/api/v1/auth/logout", { method: "POST", signal });
+}
+
+/**
+ * Phase 6.7: replaces the password and returns a fresh token; every earlier token, this
+ * browser's included, stops working. 400 means the current password was wrong.
+ */
+export async function changePassword(
+  payload: { current_password: string; new_password: string },
+  signal?: AbortSignal
+): Promise<TokenResponse> {
+  return fetchJson<TokenResponse>("/api/v1/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+    signal,
+  });
+}
+
 // ── Phase 6.2 — Platform administration API (ADMIN only) ─────────────────────
 
 export async function fetchAdminUsers(

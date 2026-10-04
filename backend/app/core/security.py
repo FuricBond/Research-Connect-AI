@@ -4,6 +4,8 @@ Phase 6 — Authentication primitives: password hashing and signed access tokens
 Passwords are hashed with bcrypt. Access tokens are HS256 JWTs carrying the user ID
 as `sub`. Authorization decisions never trust claims beyond `sub`: the user row (role,
 is_active) is re-read on every request so role changes and deactivation apply at once.
+Phase 6.7 adds `ver`, the account's token_version at issue; a token whose version no longer
+matches the row (after sign-out, a password change or deactivation) is refused.
 """
 from __future__ import annotations
 
@@ -48,6 +50,8 @@ class AccessTokenClaims:
     user_id: uuid.UUID
     issued_at: datetime
     expires_at: datetime
+    # Phase 6.7: the account's token_version when the token was issued ("ver"; 0 if absent).
+    token_version: int = 0
 
 
 _ephemeral_secret: str | None = None
@@ -161,8 +165,15 @@ def burn_password_check(password: str) -> None:
     )
 
 
-def create_access_token(user_id: uuid.UUID, now: datetime | None = None) -> tuple[str, datetime]:
-    """Issues a signed access token. Returns (token, expires_at)."""
+def create_access_token(
+    user_id: uuid.UUID,
+    now: datetime | None = None,
+    token_version: int = 0,
+) -> tuple[str, datetime]:
+    """
+    Issues a signed access token. Returns (token, expires_at). `token_version` is the
+    account's current users.token_version; the token stops working once that moves on.
+    """
     issued_at = (now or datetime.now(timezone.utc)).replace(microsecond=0)
     expires_at = issued_at + timedelta(minutes=settings.auth_access_token_expire_minutes)
     payload = {
@@ -171,6 +182,7 @@ def create_access_token(user_id: uuid.UUID, now: datetime | None = None) -> tupl
         "iat": int(issued_at.timestamp()),
         "exp": int(expires_at.timestamp()),
         "type": "access",
+        "ver": token_version,
     }
     token = jwt.encode(payload, get_signing_key(), algorithm=settings.auth_algorithm)
     return token, expires_at
@@ -197,8 +209,14 @@ def decode_access_token(token: str) -> AccessTokenClaims:
     except ValueError as err:
         raise TokenValidationError("Access token is invalid.") from err
 
+    # Tokens issued before Phase 6.7 have no "ver" and count as version 0.
+    token_version = payload.get("ver", 0)
+    if isinstance(token_version, bool) or not isinstance(token_version, int) or token_version < 0:
+        raise TokenValidationError("Access token is invalid.")
+
     return AccessTokenClaims(
         user_id=user_id,
         issued_at=datetime.fromtimestamp(payload["iat"], tz=timezone.utc),
         expires_at=datetime.fromtimestamp(payload["exp"], tz=timezone.utc),
+        token_version=token_version,
     )
