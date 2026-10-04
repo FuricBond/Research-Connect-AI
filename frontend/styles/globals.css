@@ -217,6 +217,32 @@ h2 {
   border-radius: var(--radius-full);
 }
 
+/* Phase 5.16: unread notifications on the Notifications tab. */
+.nav-unread-badge {
+  min-width: 18px;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+}
+
+/* Read by screen readers, never shown. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ── Search Bar Component ─────────────────────────────────────────────────── */
 
 .search-bar-container {

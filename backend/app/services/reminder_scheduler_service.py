@@ -50,10 +50,17 @@ class DeliveryResult:
     success: bool
     provider_reference: str | None = None
     error_message: str | None = None
+    # Phase 5.16: a failure worth trying again (server down, a 4xx answer), unlike a refused
+    # recipient.
+    retryable: bool = False
 
 
 class EmailProvider(ABC):
     """Abstract injectable interface for dispatching email notifications."""
+
+    def accepts_recipient(self, to_email: str) -> bool:
+        """Phase 5.16: whether this provider may mail the address at all."""
+        return True
 
     @abstractmethod
     def send_email(

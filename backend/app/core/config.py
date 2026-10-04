@@ -1,7 +1,7 @@
 from typing import Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, field_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Phase 6.4 — the local-development connection string. Production refuses these
@@ -91,6 +91,28 @@ class Settings(BaseSettings):
     scheduler_governance_refresh_interval_seconds: int = Field(default=43_200, ge=60)
     scheduler_reminder_interval_seconds: int = Field(default=300, ge=60)
     scheduler_deadline_expiry_interval_seconds: int = Field(default=3_600, ge=60)
+    # Phase 5.16: seconds between email_dispatch passes (only scheduled with EMAIL_PROVIDER=smtp).
+    scheduler_email_interval_seconds: int = Field(default=60, ge=60)
+
+    # Phase 5.16 — Email delivery (docs/architecture/phase5-16-email-delivery.md).
+    # "mock" keeps every email in memory (the default; tests and CI). "smtp" sends real email
+    # through the server below and adds the email_dispatch scheduler job.
+    email_provider: Literal["mock", "smtp"] = "mock"
+    smtp_host: str = ""
+    smtp_port: int = Field(default=587, ge=1, le=65_535)
+    smtp_username: str = ""
+    # Never logged or returned by the API.
+    smtp_password: SecretStr = SecretStr("")
+    # starttls (port 587), ssl (port 465) or none (a local relay only).
+    smtp_security: Literal["starttls", "ssl", "none"] = "starttls"
+    smtp_timeout_seconds: int = Field(default=10, ge=1, le=60)
+    email_from_address: str = ""
+    email_from_name: str = "ResearchConnect AI"
+    # Who may receive real email: comma-separated addresses and @domains, or "*" for everyone.
+    # Empty means nobody, so a database of seeded users is never mailed by accident.
+    email_recipient_allowlist: str = ""
+    # Base URL of the web app, for the links inside emails.
+    app_public_url: str = "http://localhost:3000"
 
     # Phase 2.2A — OpenAlex API configuration
     openalex_api_base_url: str = "https://api.openalex.org"
@@ -252,6 +274,22 @@ class Settings(BaseSettings):
         if not ids:
             raise ValueError("RESEARCH_REFRESH_SUBFIELDS must list at least one subfield id")
         return ",".join(ids)
+
+    @model_validator(mode="after")
+    def _smtp_complete(self) -> "Settings":
+        """EMAIL_PROVIDER=smtp without a server or a sender would fail on every email."""
+        if self.email_provider == "smtp":
+            missing = [
+                name
+                for name, value in (
+                    ("SMTP_HOST", self.smtp_host),
+                    ("EMAIL_FROM_ADDRESS", self.email_from_address),
+                )
+                if not value.strip()
+            ]
+            if missing:
+                raise ValueError(f"EMAIL_PROVIDER=smtp needs {', '.join(missing)}")
+        return self
 
     @property
     def research_refresh_subfield_ids(self) -> tuple[str, ...]:

@@ -11,6 +11,9 @@ database schema is current and refuses to start otherwise.
 Research refresh (F-3) added an opt-in embedding warm-up: with EMBEDDING_WARMUP_ON_STARTUP
 true, a background thread loads the embedding model while the API is already serving, so the
 first literature search does not pay for it. It never delays or fails startup.
+
+Phase 5.16 installs the SMTP email provider before the scheduler starts, when EMAIL_PROVIDER is
+smtp. Otherwise the in-memory mock stays in place.
 """
 from __future__ import annotations
 
@@ -26,6 +29,7 @@ from app.core.config import Settings, settings
 from app.scheduler.jobs import build_default_jobs
 from app.scheduler.locks import lock_backend_for
 from app.scheduler.scheduler import Scheduler
+from app.services.smtp_email_provider import configure_email_provider
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +101,7 @@ def start_embedding_warmup(cfg: Settings) -> threading.Thread | None:
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     verify_database_schema(settings)
     start_embedding_warmup(settings)
+    configure_email_provider(settings)
     scheduler: Scheduler | None = None
     if settings.scheduler_enabled:
         scheduler = build_scheduler(settings)

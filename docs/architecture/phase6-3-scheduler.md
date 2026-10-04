@@ -19,7 +19,8 @@ Code: `backend/app/scheduler/` (`scheduler.py`, `jobs.py`, `locks.py`, `metrics.
 
 ## 1. Job matrix
 
-The jobs are rows 17–21 of the Phase 6 job matrix, plus the research refresh, and no others.
+The jobs are rows 17–21 of the Phase 6 job matrix, plus the research refresh and the Phase 5.16
+email dispatch ([phase5-16-email-delivery.md](phase5-16-email-delivery.md)), and no others.
 
 | Job | Existing entry point | Default interval | Budget | Network | Scope | Transaction |
 |---|---|---|---|---|---|---|
@@ -29,6 +30,7 @@ The jobs are rows 17–21 of the Phase 6 job matrix, plus the research refresh, 
 | `governance_refresh` | `PersonalizationGovernanceService.recompute_governance(db, profile_id)` | 12 h | 1,800 s | no | per researcher | one committed unit per researcher |
 | `opportunity_refresh` | `scrapers.pipelines.collect_opportunities.run_pipeline(...)` | 24 h | 1,800 s | **yes (WikiCFP)** | global | the pipeline opens and commits its own session |
 | `research_refresh` | `scrapers.pipelines.refresh_research.run_refresh(...)` | 8 h | 1,800 s | **yes (api.openalex.org)** | global | each pass commits page by page; topics and embeddings commit their own batches |
+| `email_dispatch` | `EmailDispatchService.dispatch_pending(db, app_url=...)` | 1 min | 600 s | **yes (your SMTP server)**, only with `EMAIL_PROVIDER=smtp` | global | one commit per email |
 
 **Idempotency** comes from the services, not from the scheduler:
 

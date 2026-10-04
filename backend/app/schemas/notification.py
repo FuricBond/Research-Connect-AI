@@ -126,6 +126,9 @@ class NotificationRead(BaseModel):
     delivery_channel: str
     deduplication_key: str
     metadata_json: dict[str, Any]
+    # Phase 5.16: the email copy. NULL until decided, then SENT, RETRY, FAILED or SKIPPED.
+    email_status: str | None = None
+    email_sent_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -139,8 +142,24 @@ class NotificationListResponse(BaseModel):
 
 
 class NotificationUnreadCountResponse(BaseModel):
-    profile_id: uuid.UUID
+    # Phase 5.16: None for a user without a research profile (the count is then 0).
+    profile_id: uuid.UUID | None
     unread_count: int
+
+
+class NotificationDeliveryStatusResponse(BaseModel):
+    """
+    Phase 5.16: how notifications actually reach the caller. Server configuration is reported
+    as booleans and intervals only, never as hosts, addresses or credentials.
+    """
+
+    in_app_enabled: bool
+    email_enabled: bool = Field(description="The caller's own Email Alerts preference")
+    email_delivery_available: bool = Field(
+        description="This server emails notifications and may mail the caller's address"
+    )
+    reminders_scheduled: bool = Field(description="Deadline reminders are created on a schedule")
+    reminder_interval_seconds: int | None = None
 
 
 # ----------------------------------------------------------------------------

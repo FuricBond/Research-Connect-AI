@@ -38,9 +38,14 @@ export interface NotificationItem {
   delivery_channel: DeliveryChannel;
   deduplication_key: string;
   metadata_json: Record<string, any>;
+  /** Phase 5.16: the email copy. Null until decided. */
+  email_status?: EmailStatus | null;
+  email_sent_at?: string | null;
   created_at: string;
   updated_at: string;
 }
+
+export type EmailStatus = "SENT" | "RETRY" | "FAILED" | "SKIPPED";
 
 export interface NotificationListResponse {
   notifications: NotificationItem[];
@@ -49,8 +54,20 @@ export interface NotificationListResponse {
 }
 
 export interface NotificationUnreadCountResponse {
-  profile_id: string;
+  /** Phase 5.16: null for a user without a research profile (the count is then 0). */
+  profile_id: string | null;
   unread_count: number;
+}
+
+/** Phase 5.16: how notifications actually reach the signed-in user. */
+export interface NotificationDeliveryStatus {
+  in_app_enabled: boolean;
+  /** The user's own Email Alerts switch. */
+  email_enabled: boolean;
+  /** The server emails notifications and may mail this user's address. */
+  email_delivery_available: boolean;
+  reminders_scheduled: boolean;
+  reminder_interval_seconds: number | null;
 }
 
 export interface NotificationPreference {

@@ -96,6 +96,18 @@ services:
       # budget ten times. Empty means keyless. Never commit a real key.
       OPENALEX_EMAIL: ${OPENALEX_EMAIL:-}
       OPENALEX_API_KEY: ${OPENALEX_API_KEY:-}
+      # Phase 5.16 email notifications, off (mock) unless set in .env. smtp also needs the
+      # scheduler; nobody is mailed unless EMAIL_RECIPIENT_ALLOWLIST lists them (or is *).
+      EMAIL_PROVIDER: ${EMAIL_PROVIDER:-mock}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_SECURITY: ${SMTP_SECURITY:-starttls}
+      EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS:-}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-ResearchConnect AI}
+      EMAIL_RECIPIENT_ALLOWLIST: ${EMAIL_RECIPIENT_ALLOWLIST:-}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-http://localhost:3000}
       # Load the embedding model baked into the image in the background at startup, so the
       # first literature search is fast. Never delays or fails startup.
       EMBEDDING_WARMUP_ON_STARTUP: ${EMBEDDING_WARMUP_ON_STARTUP:-true}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell, BookMarked, BookOpen, Briefcase, Calendar, CalendarDays, Compass, FileText, GraduationCap, Megaphone, ShieldCheck, Sparkles, User, Users } from "lucide-react";
 import { useSession } from "../auth/SessionProvider";
+import { useUnreadNotificationCount } from "../../hooks/useUnreadNotificationCount";
 
 /**
  * DiscoveryNavbar — migrated from React tab-state to Next.js Link navigation.
@@ -24,6 +25,8 @@ export function DiscoveryNavbar() {
   const isAuthenticated = status === "authenticated";
   const isAdmin = isAuthenticated && hasRole("ADMIN");
   const isStudent = isAuthenticated && hasRole("STUDENT");
+  // Phase 5.16: refreshed every 30 s while the tab is visible.
+  const unreadCount = useUnreadNotificationCount(isAuthenticated);
 
   const isSearch = pathname === "/";
   const isSimilar = pathname === "/similar";
@@ -159,6 +162,12 @@ export function DiscoveryNavbar() {
         >
           <Bell size={16} />
           <span>Notifications</span>
+          {unreadCount !== null && unreadCount > 0 && (
+            <span className="nav-unread-badge">
+              {unreadCount > 99 ? "99+" : unreadCount}
+              <span className="visually-hidden"> unread</span>
+            </span>
+          )}
           {isNotifications && <span className="nav-pill">Active</span>}
         </Link>
           </>

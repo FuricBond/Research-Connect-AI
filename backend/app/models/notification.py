@@ -70,6 +70,17 @@ class DeliveryStatus(str, Enum):
     SKIPPED = "SKIPPED"
 
 
+class EmailStatus(str, Enum):
+    """
+    Phase 5.16: the email copy of an in-app notification. NULL until email_dispatch decides.
+    """
+
+    SENT = "SENT"
+    RETRY = "RETRY"
+    FAILED = "FAILED"
+    SKIPPED = "SKIPPED"
+
+
 class OffsetUnit(str, Enum):
     """Time offset unit for reminder rules."""
 
@@ -313,6 +324,10 @@ class NotificationModel(Base):
             "delivery_channel IN ('IN_APP', 'EMAIL', 'PUSH')",
             name="chk_notifications_channel",
         ),
+        CheckConstraint(
+            "email_status IS NULL OR email_status IN ('SENT', 'RETRY', 'FAILED', 'SKIPPED')",
+            name="chk_notifications_email_status",
+        ),
         UniqueConstraint(
             "deduplication_key",
             name="uq_notifications_deduplication_key",
@@ -322,6 +337,7 @@ class NotificationModel(Base):
         Index("idx_notifications_scheduled_status", "scheduled_for", "delivery_status"),
         Index("idx_notifications_opp", "opportunity_id"),
         Index("idx_notifications_cal_event", "calendar_event_id"),
+        Index("idx_notifications_email_queue", "email_status", "created_at"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -432,6 +448,24 @@ class NotificationModel(Base):
         default=dict,
         server_default="{}",
         comment="Contextual metadata, opportunity title, venue, timezone, revisions",
+    )
+    # Phase 5.16: the email copy, decided and sent by the email_dispatch scheduler job.
+    email_status: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+        comment="Email copy: NULL until decided, then SENT, RETRY, FAILED or SKIPPED",
+    )
+    email_attempts: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+        comment="Email send attempts so far",
+    )
+    email_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="Instant when the mail server accepted the email copy",
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

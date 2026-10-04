@@ -13,10 +13,13 @@ aggregation, governance, ranking, risk, reminder, expiry or ingestion logic live
     reminder_dispatch         ReminderSchedulerService.run_scheduled_reminders          no
     deadline_expiry           scrapers.expiration.manager.expire_past_opportunities     no
     research_refresh          scrapers.pipelines.refresh_research.run_refresh            yes
+    email_dispatch            EmailDispatchService.dispatch_pending                      yes
 
 Each network job has its own switch and is off by default. research_refresh fetches newly
 published and rising OpenAlex works, then tags and embeds them; its lock also keeps manual
-research loads (collect_openalex, refresh_research) from running alongside it.
+research loads (collect_openalex, refresh_research) from running alongside it. email_dispatch
+(Phase 5.16) sends the email copies of new in-app notifications and is scheduled only when
+EMAIL_PROVIDER=smtp.
 
 Which researchers the profile-scoped jobs process
     Scheduled work is proactive, so it only touches a researcher when the state it maintains
@@ -51,6 +54,7 @@ from app.models.researcher_interaction import ResearcherInteractionModel
 from app.scheduler.locks import profile_lock_key
 from app.scheduler.scheduler import JobContext, JobDefinition, JobResult, classify_error
 from app.services.adaptive_signal_service import AdaptivePreferenceSignalService
+from app.services.email_dispatch_service import EmailDispatchService
 from app.services.personalization_governance_service import PersonalizationGovernanceService
 from app.services.reminder_scheduler_service import ReminderSchedulerService
 
@@ -65,6 +69,8 @@ DEADLINE_EXPIRY = "deadline_expiry"
 # Research refresh: scheduled OpenAlex loads. Its lock also guards manual research loads
 # (scrapers/pipelines/load_lock.py).
 RESEARCH_REFRESH = "research_refresh"
+# Phase 5.16: email copies of new in-app notifications, over SMTP.
+EMAIL_DISPATCH = "email_dispatch"
 
 APPROVED_JOB_NAMES = (
     OPPORTUNITY_REFRESH,
@@ -72,6 +78,7 @@ APPROVED_JOB_NAMES = (
     GOVERNANCE_REFRESH,
     REMINDER_DISPATCH,
     DEADLINE_EXPIRY,
+    EMAIL_DISPATCH,
     RESEARCH_REFRESH,
 )
 
@@ -86,6 +93,9 @@ REMINDER_DISPATCH_TIMEOUT_SECONDS = 600
 DEADLINE_EXPIRY_TIMEOUT_SECONDS = 300
 # A few 200-work OpenAlex pages per subfield, then topics and embeddings for what arrived.
 RESEARCH_REFRESH_TIMEOUT_SECONDS = 1_800
+# At most 25 emails a pass, each over its own connection with a 10 s socket timeout, and the
+# pass stops at the first unreachable-server failure.
+EMAIL_DISPATCH_TIMEOUT_SECONDS = 600
 
 # Profiles loaded per enumeration query; each batch runs in one session that is then closed.
 PROFILE_BATCH_SIZE = 100
@@ -259,6 +269,32 @@ def run_reminder_dispatch(context: JobContext) -> JobResult:
     )
 
 
+def run_email_dispatch(context: JobContext, *, app_url: str) -> JobResult:
+    """
+    Phase 5.16: outbound SMTP. The service commits each email on its own and stops between
+    emails once the scheduler cancels the run.
+    """
+    context.check_cancelled()
+    with context.session() as db:
+        summary = EmailDispatchService.dispatch_pending(
+            db,
+            app_url=app_url,
+            should_stop=lambda: context.cancelled,
+        )
+    return JobResult(
+        records_processed=summary.sent,
+        items_failed=summary.failed,
+        details={
+            "sent": summary.sent,
+            "retrying": summary.retrying,
+            "failed": summary.failed,
+            "skipped": summary.skipped,
+            "expired": summary.expired,
+            "paused": summary.paused,
+        },
+    )
+
+
 def run_deadline_expiry(context: JobContext) -> JobResult:
     """Matrix row 20. The sweep flushes and leaves the commit to its caller."""
     from scrapers.expiration.manager import expire_past_opportunities
@@ -379,8 +415,9 @@ def build_default_jobs(
 ) -> list[JobDefinition]:
     """
     The approved jobs, in dispatch order. Each network job is included only when its own
-    switch is set (SCHEDULER_OPPORTUNITY_REFRESH_ENABLED, SCHEDULER_RESEARCH_REFRESH_ENABLED),
-    and the network jobs go last: opportunity_refresh, then research_refresh.
+    switch is set (EMAIL_PROVIDER=smtp, SCHEDULER_OPPORTUNITY_REFRESH_ENABLED,
+    SCHEDULER_RESEARCH_REFRESH_ENABLED), and the network jobs go last: email_dispatch, then
+    opportunity_refresh, then research_refresh.
     """
     jobs = [
         JobDefinition(
@@ -412,6 +449,17 @@ def build_default_jobs(
             description="Recompute personalization health, drift and the governance gate per researcher",
         ),
     ]
+    if cfg.email_provider == "smtp":
+        jobs.append(
+            JobDefinition(
+                name=EMAIL_DISPATCH,
+                func=functools.partial(run_email_dispatch, app_url=cfg.app_public_url),
+                interval_seconds=cfg.scheduler_email_interval_seconds,
+                timeout_seconds=EMAIL_DISPATCH_TIMEOUT_SECONDS,
+                description="Email the copies of new in-app notifications",
+                requires_network=True,
+            )
+        )
     if cfg.scheduler_opportunity_refresh_enabled:
         jobs.append(
             JobDefinition(

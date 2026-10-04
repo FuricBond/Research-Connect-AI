@@ -76,6 +76,7 @@ from app.scheduler.jobs import (
     ADAPTIVE_SIGNAL_REFRESH,
     APPROVED_JOB_NAMES,
     DEADLINE_EXPIRY,
+    EMAIL_DISPATCH,
     GOVERNANCE_REFRESH,
     OPPORTUNITY_REFRESH,
     REMINDER_DISPATCH,
@@ -87,6 +88,7 @@ from app.scheduler.metrics import JobRunStatus
 from app.scheduler.scheduler import JobDefinition, JobResult, Scheduler, classify_error
 from app.schemas.notification import ReminderRuleCreate
 from app.services.adaptive_signal_service import AdaptivePreferenceSignalService
+from app.services.email_dispatch_service import EmailDispatchService, EmailDispatchSummary
 from app.services.notification_service import NotificationService
 from app.services.personalization_governance_service import PersonalizationGovernanceService
 from app.services.personalization_transparency_service import (
@@ -441,22 +443,32 @@ def test_d_exactly_the_approved_phase6_jobs_are_registered():
             update={
                 "scheduler_opportunity_refresh_enabled": True,
                 "scheduler_research_refresh_enabled": True,
+                # Phase 5.16: email_dispatch is scheduled only with SMTP.
+                "email_provider": "smtp",
+                "smtp_host": "smtp.example.test",
+                "email_from_address": "alerts@example.test",
             }
         )
     )
-    assert len(APPROVED_JOB_NAMES) == 6
+    assert len(APPROVED_JOB_NAMES) == 7
     assert APPROVED_JOB_NAMES[-1] == RESEARCH_REFRESH
     assert sorted(j.name for j in with_network) == sorted(APPROVED_JOB_NAMES)
     assert [j.name for j in with_network][-2:] == [OPPORTUNITY_REFRESH, RESEARCH_REFRESH]
-    assert [j.name for j in with_network if j.requires_network] == [OPPORTUNITY_REFRESH, RESEARCH_REFRESH]
+    assert [j.name for j in with_network if j.requires_network] == [
+        EMAIL_DISPATCH,
+        OPPORTUNITY_REFRESH,
+        RESEARCH_REFRESH,
+    ]
     assert {j.name: j.interval_seconds for j in with_network} == {
         DEADLINE_EXPIRY: cfg.scheduler_deadline_expiry_interval_seconds,
         REMINDER_DISPATCH: cfg.scheduler_reminder_interval_seconds,
         ADAPTIVE_SIGNAL_REFRESH: cfg.scheduler_adaptive_refresh_interval_seconds,
         GOVERNANCE_REFRESH: cfg.scheduler_governance_refresh_interval_seconds,
+        EMAIL_DISPATCH: cfg.scheduler_email_interval_seconds,
         OPPORTUNITY_REFRESH: cfg.scheduler_opportunity_refresh_interval_seconds,
         RESEARCH_REFRESH: cfg.scheduler_research_refresh_interval_seconds,
     }
+    assert cfg.scheduler_email_interval_seconds == 60
     assert cfg.scheduler_research_refresh_interval_seconds == 28_800
     assert all(j.timeout_seconds > 0 for j in with_network)
 
@@ -537,6 +549,12 @@ def test_e_each_job_is_a_thin_adapter_over_its_existing_service(monkeypatch, db,
 
     monkeypatch.setattr(refresh_module, "run_refresh", fake_refresh)
 
+    def fake_email_dispatch(db, *, app_url, should_stop, **kwargs):
+        calls.append(("email", (type(db), app_url, should_stop())))
+        return EmailDispatchSummary(sent=2, skipped=1)
+
+    monkeypatch.setattr(EmailDispatchService, "dispatch_pending", fake_email_dispatch)
+
     cfg = settings.model_copy(
         update={
             "scheduler_opportunity_refresh_enabled": True,
@@ -547,6 +565,10 @@ def test_e_each_job_is_a_thin_adapter_over_its_existing_service(monkeypatch, db,
             "research_refresh_new_pages": 2,
             "openalex_api_key": "",
             "openalex_email": "",
+            "email_provider": "smtp",
+            "smtp_host": "smtp.example.test",
+            "email_from_address": "alerts@example.test",
+            "app_public_url": "https://app.example.test",
         }
     )
     scheduler = make_scheduler(build_default_jobs(cfg), session_factory)
@@ -578,6 +600,11 @@ def test_e_each_job_is_a_thin_adapter_over_its_existing_service(monkeypatch, db,
     assert refresh_kwargs["api_key"] is None and refresh_kwargs["email"] is None
     assert refresh_kwargs["run_tag"] == str(runs[RESEARCH_REFRESH].run_id)
     assert runs[RESEARCH_REFRESH].records_processed == 5
+    email_calls = [c[1] for c in calls if c[0] == "email"]
+    assert len(email_calls) == 1 and issubclass(email_calls[0][0], Session)
+    assert email_calls[0][1:] == ("https://app.example.test", False)
+    assert runs[EMAIL_DISPATCH].records_processed == 2
+    assert runs[EMAIL_DISPATCH].details["skipped"] == 1
 
 
 def test_e_scheduler_code_contains_no_domain_logic():

@@ -72,6 +72,7 @@ import type {
   NotificationPreferenceUpdate,
   NotificationType,
   NotificationUnreadCountResponse,
+  NotificationDeliveryStatus,
   ReminderRule,
   ReminderRuleCreate,
   ReminderRuleListResponse,
@@ -1887,6 +1888,13 @@ export async function fetchNotificationUnreadCount(
     `/api/v1/notifications/unread-count`,
     { headers, signal }
   );
+}
+
+/** Phase 5.16: whether in-app and email delivery are on, and whether reminders are scheduled. */
+export async function fetchNotificationDeliveryStatus(
+  signal?: AbortSignal
+): Promise<NotificationDeliveryStatus> {
+  return fetchJson<NotificationDeliveryStatus>(`/api/v1/notifications/delivery-status`, { signal });
 }
 
 export async function markNotificationAsRead(

@@ -30,6 +30,7 @@ from datetime import datetime, timezone, timedelta
 import uuid
 
 from fastapi.testclient import TestClient
+from pydantic import SecretStr
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import JSONB
@@ -37,6 +38,7 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.core.config import settings
 from app.db.session import get_db
 from app.db.types import TSVector, Vector
 from app.main import app
@@ -61,6 +63,8 @@ from app.models.research_profile import ResearchProfileModel
 from app.models.user import UserModel
 from app.schemas.notification import ReminderRuleCreate
 from app.services.notification_service import NotificationService
+from app.services.reminder_scheduler_service import set_email_provider
+from app.services.smtp_email_provider import RecipientAllowlist, SmtpEmailProvider
 
 # SQLite compatibility
 compiles(JSONB, "sqlite")(lambda type_, compiler, **kw: "JSON")
@@ -230,6 +234,110 @@ def test_posting_match_threshold_must_be_0_to_100(client: TestClient, alice: Use
     assert client.patch(
         "/api/v1/notifications/preferences", headers=headers, json={"posting_match_min_score": -1}
     ).status_code == 422
+
+
+def _smtp_provider(allowlist: str) -> SmtpEmailProvider:
+    return SmtpEmailProvider(
+        host="smtp.example.test",
+        port=587,
+        username="",
+        password=SecretStr(""),
+        security="starttls",
+        timeout_seconds=10,
+        from_address="alerts@example.test",
+        from_name="ResearchConnect AI",
+        allowlist=RecipientAllowlist(allowlist),
+    )
+
+
+def test_unread_count_never_creates_a_profile(client: TestClient, alice: UserModel, db_session: Session):
+    """Phase 5.16: the navbar polls this on every page, so it must stay a pure read."""
+    resp = client.get("/api/v1/notifications/unread-count", headers={"X-User-ID": str(alice.id)})
+    assert resp.status_code == 200
+    assert resp.json() == {"profile_id": None, "unread_count": 0}
+    assert db_session.query(ResearchProfileModel).filter_by(user_id=alice.id).count() == 0
+
+
+def test_delivery_status_needs_a_signed_in_user(client: TestClient):
+    assert client.get("/api/v1/notifications/delivery-status").status_code == 401
+
+
+def test_delivery_status_is_in_app_only_with_the_mock_provider(client: TestClient, alice: UserModel):
+    """Phase 5.16: without SMTP nothing is emailed, whatever the preference says."""
+    resp = client.get("/api/v1/notifications/delivery-status", headers={"X-User-ID": str(alice.id)})
+    assert resp.status_code == 200
+    assert resp.json() == {
+        "in_app_enabled": True,
+        "email_enabled": True,
+        "email_delivery_available": False,
+        "reminders_scheduled": False,
+        "reminder_interval_seconds": None,
+    }
+
+
+def test_delivery_status_reports_email_only_for_allowed_recipients(
+    client: TestClient, alice: UserModel, monkeypatch
+):
+    headers = {"X-User-ID": str(alice.id)}
+    monkeypatch.setattr(settings, "email_provider", "smtp")
+    monkeypatch.setattr(settings, "scheduler_enabled", True)
+
+    set_email_provider(_smtp_provider("alice@example.edu"))
+    resp = client.get("/api/v1/notifications/delivery-status", headers=headers)
+    data = resp.json()
+    assert data["email_delivery_available"] is True
+    assert data["reminders_scheduled"] is True
+    assert data["reminder_interval_seconds"] == settings.scheduler_reminder_interval_seconds
+    # Configuration is reported as booleans only, never the server or the sender.
+    assert "smtp.example.test" not in resp.text and "alerts@example.test" not in resp.text
+
+    set_email_provider(_smtp_provider("@another.example"))
+    assert client.get("/api/v1/notifications/delivery-status", headers=headers).json()[
+        "email_delivery_available"
+    ] is False
+
+    # The caller's own switch is reported separately from what the server can do.
+    set_email_provider(_smtp_provider("*"))
+    client.patch("/api/v1/notifications/preferences", headers=headers, json={"email_enabled": False})
+    data = client.get("/api/v1/notifications/delivery-status", headers=headers).json()
+    assert (data["email_enabled"], data["email_delivery_available"]) == (False, True)
+
+    # Without the scheduler nothing sends the emails.
+    monkeypatch.setattr(settings, "scheduler_enabled", False)
+    data = client.get("/api/v1/notifications/delivery-status", headers=headers).json()
+    assert data["email_delivery_available"] is False
+    assert (data["reminders_scheduled"], data["reminder_interval_seconds"]) == (False, None)
+
+
+def test_notifications_carry_their_email_status(
+    client: TestClient, alice: UserModel, alice_profile: ResearchProfileModel, db_session: Session
+):
+    now = datetime.now(timezone.utc)
+    db_session.add(
+        NotificationModel(
+            id=uuid.uuid4(),
+            profile_id=alice_profile.id,
+            notification_type=NotificationType.POSTING_MATCH.value,
+            title="New posting matches your interests",
+            body="A posting fits you.",
+            source_type="RESEARCH_POSTING",
+            source_id=uuid.uuid4(),
+            scheduled_for=now,
+            delivered_at=now,
+            delivery_status=DeliveryStatus.DELIVERED.value,
+            delivery_channel=DeliveryChannel.IN_APP.value,
+            deduplication_key=uuid.uuid4().hex,
+            metadata_json={},
+            email_status="SENT",
+            email_sent_at=now,
+        )
+    )
+    db_session.commit()
+
+    resp = client.get("/api/v1/notifications", headers={"X-User-ID": str(alice.id)})
+    [item] = resp.json()["notifications"]
+    assert item["email_status"] == "SENT"
+    assert item["email_sent_at"] is not None
 
 
 def test_reminder_rules_crud(client: TestClient, alice: UserModel):

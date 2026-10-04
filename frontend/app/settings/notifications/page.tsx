@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { DiscoveryNavbar } from "@/components/discovery/DiscoveryNavbar";
 import {
+  fetchNotificationDeliveryStatus,
   fetchNotificationPreferences,
   updateNotificationPreferences,
   fetchReminderRules,
@@ -23,6 +24,7 @@ import {
   deleteReminderRule,
 } from "@/services/api";
 import {
+  NotificationDeliveryStatus,
   NotificationPreference,
   ReminderRule,
   DeliveryChannel,
@@ -40,6 +42,8 @@ function NotificationSettingsPage() {
   const { hasRole } = useSession();
   const isStudent = hasRole("STUDENT");
   const [preferences, setPreferences] = useState<NotificationPreference | null>(null);
+  // Phase 5.16: whether this server emails notifications at all.
+  const [deliveryStatus, setDeliveryStatus] = useState<NotificationDeliveryStatus | null>(null);
   const [rules, setRules] = useState<ReminderRule[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
@@ -72,6 +76,16 @@ function NotificationSettingsPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchNotificationDeliveryStatus(controller.signal)
+      .then(setDeliveryStatus)
+      .catch(() => {
+        // Without it the page simply shows no note; the settings still work.
+      });
+    return () => controller.abort();
+  }, []);
 
   const handleTogglePreference = async (key: keyof NotificationPreference) => {
     if (!preferences) return;
@@ -231,12 +245,21 @@ function NotificationSettingsPage() {
 
             <div className="preference-toggle-item">
               <div className="preference-toggle-info">
-                <h4>Email Alerts</h4>
-                <p>Send digest emails with canonical deadline timestamps and venue details.</p>
+                <h4 id="email-alerts-label">Email Alerts</h4>
+                <p>
+                  Email a copy of important notifications, such as deadline reminders,
+                  application updates and posting matches.
+                </p>
+                {deliveryStatus !== null && !deliveryStatus.email_delivery_available && (
+                  <p className="preference-toggle-note" role="note">
+                    Email isn&apos;t set up on this server yet, so alerts appear in the app only.
+                  </p>
+                )}
               </div>
               <label className="switch">
                 <input
                   type="checkbox"
+                  aria-labelledby="email-alerts-label"
                   checked={preferences?.email_enabled ?? true}
                   onChange={() => handleTogglePreference("email_enabled")}
                 />

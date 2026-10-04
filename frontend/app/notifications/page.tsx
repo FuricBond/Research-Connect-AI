@@ -20,16 +20,41 @@ import {
 } from "lucide-react";
 import { DiscoveryNavbar } from "@/components/discovery/DiscoveryNavbar";
 import {
+  fetchNotificationDeliveryStatus,
   fetchNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
   triggerReminderScheduler,
 } from "@/services/api";
-import { NotificationItem, NotificationType } from "@/types/notification";
+import {
+  NotificationDeliveryStatus,
+  NotificationItem,
+  NotificationType,
+} from "@/types/notification";
 import "@/styles/notifications.css";
 import { RequireAuth } from "../../components/auth/RequireAuth";
+import { useSession } from "../../components/auth/SessionProvider";
+import { UNREAD_POLL_MS, notifyNotificationsChanged } from "../../hooks/useUnreadNotificationCount";
+
+/** Phase 5.16: the channels that actually reach this user, e.g. "In-App, Email". */
+function describeChannels(status: NotificationDeliveryStatus | null): string {
+  if (status === null) return "—";
+  const channels: string[] = [];
+  if (status.in_app_enabled) channels.push("In-App");
+  if (status.email_enabled && status.email_delivery_available) channels.push("Email");
+  return channels.length > 0 ? channels.join(", ") : "None";
+}
+
+function describeReminders(status: NotificationDeliveryStatus | null): string {
+  if (status === null) return "—";
+  if (!status.reminders_scheduled || status.reminder_interval_seconds === null) return "Manual only";
+  return `Every ${Math.max(1, Math.round(status.reminder_interval_seconds / 60))} min`;
+}
 
 function NotificationsPage() {
+  const { hasRole } = useSession();
+  const isAdmin = hasRole("ADMIN");
+  const [deliveryStatus, setDeliveryStatus] = useState<NotificationDeliveryStatus | null>(null);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [totalCount, setTotalCount] = useState<number>(0);
@@ -39,10 +64,13 @@ function NotificationsPage() {
   const [selectedType, setSelectedType] = useState<string>("");
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
 
-  const loadNotifications = useCallback(async () => {
+  // A quiet refresh (Phase 5.16 polling) keeps the list on screen and ignores failures.
+  const loadNotifications = useCallback(async (quiet = false) => {
     try {
-      setLoading(true);
-      setError(null);
+      if (!quiet) {
+        setLoading(true);
+        setError(null);
+      }
       const res = await fetchNotifications({
         unreadOnly: activeTab === "unread",
         notificationType: selectedType ? (selectedType as NotificationType) : undefined,
@@ -51,15 +79,40 @@ function NotificationsPage() {
       setUnreadCount(res.unread_count);
       setTotalCount(res.total);
     } catch (err: any) {
-      setError(err?.message || "Failed to load notifications.");
+      if (!quiet) setError(err?.message || "Failed to load notifications.");
     } finally {
-      setLoading(false);
+      if (!quiet) setLoading(false);
     }
   }, [activeTab, selectedType]);
 
   useEffect(() => {
     loadNotifications();
   }, [loadNotifications]);
+
+  // Phase 5.16: new notifications appear without a reload while the tab is visible.
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.visibilityState === "visible") void loadNotifications(true);
+    }, UNREAD_POLL_MS);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") void loadNotifications(true);
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [loadNotifications]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchNotificationDeliveryStatus(controller.signal)
+      .then(setDeliveryStatus)
+      .catch(() => {
+        // The header then shows "—"; the notifications themselves still load.
+      });
+    return () => controller.abort();
+  }, []);
 
   const handleMarkAsRead = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -69,6 +122,7 @@ function NotificationsPage() {
         prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
+      notifyNotificationsChanged();
     } catch (err: any) {
       console.error("Failed to mark as read:", err);
     }
@@ -81,6 +135,7 @@ function NotificationsPage() {
         prev.map((n) => ({ ...n, read_at: new Date().toISOString() }))
       );
       setUnreadCount(0);
+      notifyNotificationsChanged();
     } catch (err: any) {
       console.error("Failed to mark all as read:", err);
     }
@@ -91,6 +146,7 @@ function NotificationsPage() {
       setIsRefreshing(true);
       await triggerReminderScheduler();
       await loadNotifications();
+      notifyNotificationsChanged();
     } catch (err: any) {
       console.error("Scheduler trigger failed:", err);
     } finally {
@@ -146,16 +202,19 @@ function NotificationsPage() {
               </p>
             </div>
             <div className="notifications-actions-bar">
-              <button
-                type="button"
-                className="notifications-btn-secondary"
-                onClick={handleTriggerScheduler}
-                disabled={isRefreshing}
-                title="Run background reminder evaluation"
-              >
-                <RefreshCw size={14} className={isRefreshing ? "spin" : ""} />
-                <span>Evaluate Now</span>
-              </button>
+              {/* The reminder pass is an administrator action (the API answers 403 to others). */}
+              {isAdmin && (
+                <button
+                  type="button"
+                  className="notifications-btn-secondary"
+                  onClick={handleTriggerScheduler}
+                  disabled={isRefreshing}
+                  title="Run background reminder evaluation"
+                >
+                  <RefreshCw size={14} className={isRefreshing ? "spin" : ""} />
+                  <span>Evaluate Now</span>
+                </button>
+              )}
               <Link
                 href="/settings/notifications"
                 className="notifications-btn-secondary"
@@ -194,11 +253,17 @@ function NotificationsPage() {
             </div>
             <div className="notifications-stat-card">
               <span className="notifications-stat-label">Active Channels</span>
-              <span className="notifications-stat-value">In-App, Email</span>
+              <span className="notifications-stat-value">{describeChannels(deliveryStatus)}</span>
             </div>
             <div className="notifications-stat-card">
-              <span className="notifications-stat-label">Scheduler Status</span>
-              <span className="notifications-stat-value highlight">Active</span>
+              <span className="notifications-stat-label">Deadline Reminders</span>
+              <span
+                className={`notifications-stat-value ${
+                  deliveryStatus?.reminders_scheduled ? "highlight" : ""
+                }`}
+              >
+                {describeReminders(deliveryStatus)}
+              </span>
             </div>
           </div>
         </div>
@@ -264,7 +329,7 @@ function NotificationsPage() {
               type="button"
               className="notifications-btn-secondary"
               style={{ marginTop: 16 }}
-              onClick={loadNotifications}
+              onClick={() => loadNotifications()}
             >
               Retry
             </button>
@@ -315,6 +380,9 @@ function NotificationsPage() {
                       >
                         {notif.delivery_status}
                       </span>
+                      {notif.email_status === "SENT" && (
+                        <span className="notification-pill channel">Emailed</span>
+                      )}
                       {notif.deadline_type && (
                         <span className="notification-pill channel">
                           {notif.deadline_type.replace("_", " ")}

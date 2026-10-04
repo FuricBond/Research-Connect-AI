@@ -112,6 +112,13 @@ def validate_security_settings() -> None:
             "DATABASE_URL must be set explicitly; the built-in development credentials are not "
             "accepted"
         )
+    if (
+        settings.email_provider == "smtp"
+        and settings.smtp_security == "none"
+        and settings.smtp_username.strip()
+    ):
+        # Phase 5.16: the SMTP login would cross the network unencrypted.
+        problems.append("SMTP_SECURITY must be starttls or ssl when SMTP_USERNAME is set")
     if problems:
         raise RuntimeError("Refusing to start with APP_ENV=production: " + "; ".join(problems) + ".")
 

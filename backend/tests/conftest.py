@@ -93,3 +93,20 @@ def scheduler_disabled(monkeypatch):
     monkeypatch.setattr(settings, "scheduler_enabled", False)
     monkeypatch.setattr(settings, "scheduler_opportunity_refresh_enabled", False)
     monkeypatch.setattr(settings, "scheduler_research_refresh_enabled", False)
+
+
+@pytest.fixture(autouse=True)
+def email_never_sent(monkeypatch):
+    """
+    Phase 5.16: tests never send real email, even when a local `.env` sets
+    EMAIL_PROVIDER=smtp, so the application lifespan never installs the SMTP provider. Any
+    provider a test installs itself is put back afterwards.
+    """
+    from app.services import reminder_scheduler_service
+
+    monkeypatch.setattr(settings, "email_provider", "mock")
+    monkeypatch.setattr(
+        reminder_scheduler_service,
+        "_DEFAULT_EMAIL_PROVIDER",
+        reminder_scheduler_service._DEFAULT_EMAIL_PROVIDER,
+    )

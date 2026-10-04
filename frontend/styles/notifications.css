@@ -435,6 +435,12 @@
   color: var(--text-muted);
 }
 
+/* Phase 5.16: why a switch has no effect on this server. */
+.preference-toggle-info p.preference-toggle-note {
+  margin-top: 4px;
+  color: #b45309;
+}
+
 /* Switch toggle */
 .switch {
   position: relative;

@@ -8,10 +8,12 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.api.deps import AdminUser, OptionalUserId, require_user_id
+from app.core.config import settings
 from app.db.session import get_db
 from app.models.research_profile import ResearchProfileModel
 from app.models.user import UserModel
 from app.schemas.notification import (
+    NotificationDeliveryStatusResponse,
     NotificationListResponse,
     NotificationPreferenceRead,
     NotificationPreferenceUpdate,
@@ -24,7 +26,8 @@ from app.schemas.notification import (
     ReminderRunSummaryResponse,
 )
 from app.services.notification_service import NotificationService
-from app.services.reminder_scheduler_service import ReminderSchedulerService
+from app.services.reminder_scheduler_service import ReminderSchedulerService, get_email_provider
+from app.services.smtp_email_provider import email_delivery_configured
 
 logger = logging.getLogger(__name__)
 
@@ -107,12 +110,52 @@ def get_unread_count(
     db: Session = Depends(get_db),
 ) -> NotificationUnreadCountResponse:
     user = resolve_current_user(db, current_user_id)
-    profile = resolve_profile_for_user(db, user)
+    # Phase 5.16: the navbar asks for this on every page, so it never creates a profile. A
+    # user without one has no notifications yet.
+    profile = db.execute(
+        select(ResearchProfileModel).where(ResearchProfileModel.user_id == user.id)
+    ).scalars().first()
+    if profile is None:
+        return NotificationUnreadCountResponse(profile_id=None, unread_count=0)
 
     count = NotificationService.get_unread_count(db, profile.id)
     return NotificationUnreadCountResponse(
         profile_id=profile.id,
         unread_count=count,
+    )
+
+
+@router.get(
+    "/delivery-status",
+    response_model=NotificationDeliveryStatusResponse,
+    status_code=status.HTTP_200_OK,
+    summary="How notifications reach the current user",
+    description=(
+        "Phase 5.16: whether in-app and email delivery are on for the caller, and whether "
+        "deadline reminders run on a schedule. Never reveals server hosts or credentials."
+    ),
+)
+def get_delivery_status(
+    current_user_id: OptionalUserId = None,
+    db: Session = Depends(get_db),
+) -> NotificationDeliveryStatusResponse:
+    user = resolve_current_user(db, current_user_id)
+    profile = resolve_profile_for_user(db, user)
+    prefs = NotificationService.get_or_create_preferences(db, profile.id)
+
+    email_available = (
+        email_delivery_configured(settings)
+        and bool(user.email)
+        and get_email_provider().accepts_recipient(user.email)
+    )
+    return NotificationDeliveryStatusResponse(
+        in_app_enabled=prefs.in_app_enabled,
+        email_enabled=prefs.email_enabled,
+        email_delivery_available=email_available,
+        reminders_scheduled=settings.scheduler_enabled,
+        reminder_interval_seconds=(
+            settings.scheduler_reminder_interval_seconds if settings.scheduler_enabled else None
+        ),
     )
 
 
