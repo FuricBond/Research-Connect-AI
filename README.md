@@ -317,8 +317,13 @@ The complete reference, including every production rule and a deployment checkli
 
 ```bash
 cd backend
-pytest                        # 1,603 tests: unit, integration, invariants, security, performance
+pytest                        # 1,603 tests: unit, integration, invariants, security
+pytest -m perf                # the wall-clock performance budgets, left out of the default run
 ```
+
+Performance-budget tests time code against fixed millisecond budgets, so they fail under CPU
+contention (another build, Docker, a busy laptop) while passing on a quiet machine. They are
+marked `perf` and excluded from `pytest`; run them on their own with `pytest -m perf`.
 
 ```bash
 cd frontend

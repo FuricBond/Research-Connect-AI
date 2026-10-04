@@ -347,6 +347,7 @@ class TestCrossEncoderInteraction:
 class TestRankingPerformanceMicroBenchmark:
     """Measures ranking latency over 1,000 iterations to verify < 2.0 ms budget for 50 candidates."""
 
+    @pytest.mark.perf
     def test_ranking_execution_budget(self):
         import time
 

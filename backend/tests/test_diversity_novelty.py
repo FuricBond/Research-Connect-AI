@@ -395,6 +395,7 @@ class TestExplainabilityAndDataResilience:
 class TestDiversityPerformanceScaling:
     """Performance benchmarks testing runtime scaling across 10, 50, 100, and 200 candidates."""
 
+    @pytest.mark.perf
     @pytest.mark.parametrize("n_candidates", [10, 50, 100, 200])
     def test_reranking_execution_time(self, n_candidates: int):
         candidates: list[RankedCandidate] = []

@@ -1131,6 +1131,7 @@ def test_api_security_and_cross_researcher_isolation(client: TestClient, db_sess
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+@pytest.mark.perf
 def test_performance_benchmarks_zero_n_plus_one(db_session: Session):
     """
     Benchmarks personalization ranking across candidate set sizes:

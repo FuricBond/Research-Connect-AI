@@ -361,6 +361,7 @@ class TestDeterminismAndPerformance:
             current = risk_evidence_extractor.extract(opp).to_dict()
             assert current == baseline, "Extraction output varied across identical runs!"
 
+    @pytest.mark.perf
     def test_batch_performance_zero_queries(self) -> None:
         """1,000 synthetic opportunities must extract in < 250ms with zero DB queries."""
         batch = [

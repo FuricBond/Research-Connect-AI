@@ -576,6 +576,7 @@ class TestGraphDeterminism:
 
 
 class TestGraphPerformanceAndScaling:
+    @pytest.mark.perf
     @pytest.mark.parametrize("n_candidates", [10, 50, 100, 200, 1000])
     def test_graph_batch_scaling_performance(self, n_candidates: int):
         """Benchmark in-memory graph construction and pattern detection with zero DB queries."""

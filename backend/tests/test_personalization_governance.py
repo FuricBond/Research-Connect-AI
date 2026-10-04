@@ -847,6 +847,7 @@ def test_governance_apis(client, sample_user_and_profile, sample_opportunities):
     )
 
 
+@pytest.mark.perf
 def test_performance_and_scaling_benchmarks():
     """
     Benchmark governance and drift evaluation latency across:

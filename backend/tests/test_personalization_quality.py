@@ -960,6 +960,7 @@ def test_service_recompute_and_persistence_idempotency(db_session, sample_user_a
     assert eval2.observed_engagement_rate == eval1.observed_engagement_rate
 
 
+@pytest.mark.perf
 def test_scaling_benchmarks():
     """
     Benchmark quality evaluation latency and memory scaling across:

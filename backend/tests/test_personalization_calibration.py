@@ -923,6 +923,7 @@ def test_idempotent_recomputation(db_session, sample_researcher, sample_opportun
 # 8. Performance and Scaling Benchmarks
 # =============================================================================
 
+@pytest.mark.perf
 def test_performance_and_scaling_benchmarks():
     """
     Benchmark attribution and calibration computation across 10, 100, 1,000, and 10,000 recommendations.
