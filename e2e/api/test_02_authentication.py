@@ -1,7 +1,7 @@
 """
 Step 5 — the authentication lifecycle over real HTTP against APP_ENV=production.
 
-Registration -> JWT -> authenticated request -> the browser discards the token (logout)
+Registration -> JWT -> authenticated request -> logout (the token is revoked and discarded)
 -> protected request refused. Production authentication is `Authorization: Bearer <JWT>`;
 the developer `X-User-ID` header must not authenticate anyone here.
 """
@@ -14,7 +14,6 @@ import json
 from conftest import (
     login,
     new_password,
-    observe,
     register,
     request,
     rows,
@@ -97,16 +96,17 @@ def test_protected_routes_refuse_anonymous_callers():
         assert request("GET", path).status_code == 401, path
 
 
-def test_logout_is_client_side_and_a_session_without_its_token_is_anonymous():
+def test_logout_revokes_the_token_and_a_session_without_its_token_is_anonymous():
     """
-    The API has no logout endpoint: signing out discards the token in the browser (Phase 6.2),
-    after which requests are anonymous. Whether the discarded token still works until it
-    expires is recorded as an observation for the Phase 6.7 security audit, not asserted.
+    Signing out calls POST /auth/logout, which revokes every token the account holds (Phase 6.7),
+    then discards the token in the browser (Phase 6.2), after which requests are anonymous.
+    The discarded token no longer works either, so a copy of it is useless.
     """
     account = register()
-    assert request("POST", "/api/v1/auth/logout", token=account.token).status_code in (404, 405)
+    assert account.get("/api/v1/auth/me").status_code == 200
+    assert request("POST", "/api/v1/auth/logout", token=account.token).status_code == 204
     assert request("GET", "/api/v1/workspace").status_code == 401  # the browser after sign-out
-    observe("discarded_token_still_valid_until_expiry", account.get("/api/v1/auth/me").status_code == 200)
+    assert account.get("/api/v1/auth/me").status_code == 401, "the revoked token stops working at once"
 
 
 def test_a_deactivated_account_is_refused_immediately_and_restored_on_reactivation(demo):
@@ -119,4 +119,8 @@ def test_a_deactivated_account_is_refused_immediately_and_restored_on_reactivati
     assert login(account.email, account.password).status_code == 401
     on = admin.patch(f"/api/v1/admin/users/{account.id}", json={"is_active": True})
     assert on.status_code == 200
-    assert account.get("/api/v1/auth/me").status_code == 200
+    # Phase 6.7: reactivation restores the account, not the tokens issued before deactivation.
+    assert account.get("/api/v1/auth/me").status_code == 401, "a token from before stays revoked"
+    signed_in = login(account.email, account.password)
+    assert signed_in.status_code == 200
+    assert request("GET", "/api/v1/auth/me", token=signed_in.json()["access_token"]).status_code == 200
