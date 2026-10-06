@@ -6,6 +6,8 @@ import "../styles/globals.css";
 // The header's identity control and the route guards render on every page, so their
 // styling is loaded here rather than per page.
 import "../styles/auth.css";
+// Deadline and risk indicators, used on several pages (P0.5).
+import "../styles/indicators.css";
 // Utility classes used by the personalization and unified-intelligence panels.
 import "../styles/tailwind.css";
 

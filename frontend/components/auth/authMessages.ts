@@ -54,8 +54,8 @@ export function describeRegisterError(error: unknown): string {
   }
 }
 
-/** Where a signed-in account lands when no usable destination was requested. */
-const DEFAULT_REDIRECT = "/researcher";
+/** Where a signed-in account lands when no usable destination was requested: the home (P0.3). */
+const DEFAULT_REDIRECT = "/dashboard";
 
 /** Destinations that would only bounce a signed-in person back to a sign-in form. */
 const EXCLUDED_REDIRECTS = new Set(["/login", "/register"]);

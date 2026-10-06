@@ -1,4 +1,5 @@
 "use client";
+import { humanizeEnum } from "../../utils/date";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -63,6 +64,12 @@ interface UnifiedResearchIntelligenceViewProps {
   userId?: string;
   onSelectOpportunity?: (opportunityId: string) => void;
   onNavigateToWorkspace?: (savedId?: string) => void;
+  /**
+   * Which part to show (P0.4): "recommendations" (the ranked list), "personalization" (the
+   * researcher context, signals and personalization controls) or "all" (both, the default).
+   * Only the shown part's data is requested.
+   */
+  view?: "all" | "recommendations" | "personalization";
 }
 
 export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligenceViewProps> = ({
@@ -70,7 +77,10 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
   userId,
   onSelectOpportunity,
   onNavigateToWorkspace,
+  view = "all",
 }) => {
+  const showPersonalization = view !== "recommendations";
+  const showRecommendations = view !== "personalization";
   // Context State
   const [context, setContext] = useState<UnifiedResearcherContext | null>(null);
   const [contextLoading, setContextLoading] = useState<boolean>(true);
@@ -160,9 +170,9 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
   );
 
   useEffect(() => {
-    loadContext();
-    loadRecommendations();
-  }, [loadContext, loadRecommendations]);
+    if (showPersonalization) loadContext();
+    if (showRecommendations) loadRecommendations();
+  }, [loadContext, loadRecommendations, showPersonalization, showRecommendations]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -234,6 +244,8 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
 
   return (
     <div className="space-y-6">
+      {showPersonalization && (
+        <>
       {/* SECTION 1: HEADER & IDENTITY STATUS */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -241,15 +253,22 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
             <div className="flex items-center gap-2 mb-1">
               <Sparkles className="w-5 h-5 text-indigo-600" />
               <span className="text-xs font-semibold uppercase tracking-wider text-indigo-700">
-                Phase 4.7 Unified Intelligence
+                Your research profile
               </span>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
               {context?.full_name || "Research Intelligence & Recommendations"}
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              {context?.academic_status} {context?.institution_name ? `• ${context.institution_name}` : ""}
-              {context?.department ? ` • Department: ${context.department}` : ""}
+              {[
+                context?.academic_status && context.academic_status !== "UNKNOWN"
+                  ? humanizeEnum(context.academic_status)
+                  : null,
+                context?.institution_name,
+                context?.department ? `Department: ${context.department}` : null,
+              ]
+                .filter(Boolean)
+                .join(" • ")}
             </p>
           </div>
 
@@ -319,7 +338,7 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
             <div className="bg-gray-50 p-3.5 rounded-lg border border-gray-100">
               <span className="text-xs text-gray-500 font-medium">Preferences</span>
               <div className="text-lg font-bold text-gray-900 mt-0.5">
-                {context.explicit_preferences_count} exp / {context.inferred_preferences_count} inf
+                {context.explicit_preferences_count} stated · {context.inferred_preferences_count} inferred
               </div>
             </div>
             <div className="bg-gray-50 p-3.5 rounded-lg border border-gray-100">
@@ -357,24 +376,29 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
                         : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                     }`}
                   >
-                    {filter.replace("_", " ")}
+                    {filter === "ALL" ? "All" : humanizeEnum(filter)}
                   </button>
                 )
               )}
             </div>
           </div>
 
-          <div className="divide-y divide-gray-100 max-h-64 overflow-y-auto pr-1">
+          <div
+            className="divide-y divide-gray-100 max-h-64 overflow-y-auto pr-1"
+            tabIndex={0}
+            role="region"
+            aria-label="Signals behind your recommendations"
+          >
             {filteredSignals(context.signals).map((signal, idx) => (
               <div key={idx} className="py-2.5 flex items-start justify-between gap-3 text-xs">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-gray-800">{signal.evidence || signal.signal_type}</span>
-                    <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-mono">
-                      {signal.signal_type}
+                    <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px]">
+                      {humanizeEnum(signal.signal_type)}
                     </span>
                     <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 text-[10px] font-medium">
-                      {signal.source}
+                      {humanizeEnum(signal.source)}
                     </span>
                     {!signal.is_explicit && (
                       <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 text-[10px]">Inferred</span>
@@ -411,6 +435,11 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
       {/* SECTION 2.9: PERSONALIZATION CONTROLS & TRANSPARENCY */}
       <PersonalizationSettingsCard profileId={profileId} userId={userId} className="mb-6" />
 
+        </>
+      )}
+
+      {showRecommendations && (
+        <>
       {/* SECTION 3: UNIFIED RECOMMENDATIONS WITH 6-TIER EXPLAINABILITY */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
@@ -420,8 +449,8 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
               Unified Evidence-Backed Recommendations
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Hybrid ranked opportunities bounded by Phase 2.5 relevance dominance guarantee (relevance ≥ 85%,
-              personalization ≤ 15%).
+              Ranked mainly by relevance to your research: relevance makes up at least 85% of each
+              score, and your preferences adjust it by at most 15%.
             </p>
           </div>
 
@@ -669,6 +698,9 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
           </div>
         )}
       </div>
+
+        </>
+      )}
 
       {/* SECTION 4: DETAILED OPPORTUNITY INTELLIGENCE MODAL */}
       {selectedIntel && (

@@ -1,6 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import type {
   PersonalizedCandidateSetResponse,
   ResearcherIntelligenceResponse,
@@ -32,14 +34,51 @@ import {
 import { useSession } from "../../components/auth/SessionProvider";
 import { AlertCircle, Loader2, Sparkles, UserPlus } from "lucide-react";
 import { RequireAuth } from "../../components/auth/RequireAuth";
+import "../../styles/profile.css";
 
 
 // Default demo ID or fallback initialization for developer/preview usage
 const DEFAULT_DEMO_EMAIL = "researcher@university.edu";
 
+/**
+ * P0.4 — the profile is split into sections, one shown at a time and chosen with
+ * `?section=`, so each can be linked to directly. Every panel the page had is still here;
+ * each section only loads the data it shows.
+ */
+const SECTIONS = [
+  { id: "profile", label: "Profile", description: "" },
+  {
+    id: "interests",
+    label: "Research interests",
+    description: "Topics and expertise drawn from your publications, and the preferences you have stated.",
+  },
+  {
+    id: "recommendations",
+    label: "Recommendations",
+    description: "Calls and venues matched to your research, with the reasons behind each match.",
+  },
+  {
+    id: "personalization",
+    label: "Personalization",
+    description: "How your recommendations are personalized, and the controls to adjust or reset it.",
+  },
+  {
+    id: "history",
+    label: "History and feedback",
+    description: "Recommendations you received and the feedback you gave on them.",
+  },
+] as const;
+
+type SectionId = (typeof SECTIONS)[number]["id"];
+
+function sectionFrom(value: string | null): SectionId {
+  return SECTIONS.find((section) => section.id === value)?.id ?? "profile";
+}
+
 function ResearcherPage() {
   // The signed-in account's profile, created with the account at registration.
   const { profileId } = useSession();
+  const section = sectionFrom(useSearchParams().get("section"));
   const [profile, setProfile] = useState<ResearcherProfile | null>(null);
   const [works, setWorks] = useState<ResearcherWorkSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +111,7 @@ function ResearcherPage() {
   const [initDept, setInitDept] = useState("Computer Science");
   const [initStatus, setInitStatus] = useState("FACULTY");
 
-  const loadCandidates = async (
+  const loadCandidates = useCallback(async (
     profileId: string,
     options?: {
       limit?: number;
@@ -103,10 +142,10 @@ function ResearcherPage() {
       setCandidatesLoading(false);
       setIsRefreshingCandidates(false);
     }
-  };
+  }, [profile?.user_id]);
 
 
-  const loadIntelligence = async (profileId: string, refresh = false) => {
+  const loadIntelligence = useCallback(async (profileId: string, refresh = false) => {
     if (refresh) {
       setIsRefreshingIntelligence(true);
     } else {
@@ -124,9 +163,9 @@ function ResearcherPage() {
       setIntelligenceLoading(false);
       setIsRefreshingIntelligence(false);
     }
-  };
+  }, []);
 
-  const loadPreferences = async (profileId: string, refresh = false) => {
+  const loadPreferences = useCallback(async (profileId: string, refresh = false) => {
     if (refresh) {
       setIsRefreshingPreferences(true);
     } else {
@@ -144,7 +183,7 @@ function ResearcherPage() {
       setPreferencesLoading(false);
       setIsRefreshingPreferences(false);
     }
-  };
+  }, []);
 
   const handleAddPreference = async (payload: ResearcherPreferenceCreatePayload) => {
     if (!profile) return;
@@ -187,12 +226,6 @@ function ResearcherPage() {
               const loadedWorks = await fetchResearcherWorks(loaded.id).catch(() => []);
               if (!cancelled) setWorks(loadedWorks);
             }
-            // Load Phase 3.2 Intelligence
-            loadIntelligence(loaded.id, false);
-            // Load Phase 3.3 Preferences
-            loadPreferences(loaded.id, false);
-            // Load Phase 3.4 Personalized Candidates
-            loadCandidates(loaded.id, undefined, false);
             setLoading(false);
             return;
           }
@@ -214,6 +247,24 @@ function ResearcherPage() {
     };
   }, [profileId]);
 
+  // Each section loads what it shows, once, the first time it is opened.
+  const requested = useRef(new Set<string>());
+  useEffect(() => {
+    if (!profile) return;
+    const once = (key: string, load: () => void) => {
+      if (requested.current.has(key)) return;
+      requested.current.add(key);
+      load();
+    };
+    if (section === "interests") {
+      once("intelligence", () => loadIntelligence(profile.id, false));
+      once("preferences", () => loadPreferences(profile.id, false));
+    }
+    if (section === "personalization") {
+      once("candidates", () => loadCandidates(profile.id, undefined, false));
+    }
+  }, [profile, section, loadIntelligence, loadPreferences, loadCandidates]);
+
 
   const handleCreateDefaultProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,10 +282,9 @@ function ResearcherPage() {
         bio: "Faculty researcher exploring academic discovery systems and hybrid retrieval.",
       });
 
+      // The open section loads its data for the new profile.
+      requested.current.clear();
       setProfile(created);
-      loadIntelligence(created.id, true);
-      loadPreferences(created.id, true);
-      loadCandidates(created.id, undefined, true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to initialize profile";
       setError(msg);
@@ -244,10 +294,10 @@ function ResearcherPage() {
   };
 
   const handleProfileUpdated = (updated: ResearcherProfile) => {
+    // Intelligence, preferences and candidates depend on the profile: each section reloads
+    // its data when it is next opened.
+    requested.current.clear();
     setProfile(updated);
-    loadIntelligence(updated.id, true);
-    loadPreferences(updated.id, true);
-    loadCandidates(updated.id, undefined, true);
   };
 
 
@@ -256,7 +306,7 @@ function ResearcherPage() {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh", gap: "10px" }}>
         <Loader2 size={24} className="animate-spin" color="var(--primary)" />
-        <span style={{ fontSize: "14px", color: "var(--text-muted)" }}>Loading canonical researcher profile...</span>
+        <span style={{ fontSize: "14px", color: "var(--text-muted)" }}>Loading your profile…</span>
       </div>
     );
   }
@@ -291,10 +341,10 @@ function ResearcherPage() {
           </div>
 
           <h2 style={{ fontSize: "20px", fontWeight: 700, margin: "0 0 8px 0" }}>
-            Initialize Canonical Researcher Identity
+            Create your researcher profile
           </h2>
           <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "0 0 24px 0", lineHeight: "1.5" }}>
-            Phase 3.1 establishes your authoritative academic identity, institutional affiliation, and external scholarly identifiers (ORCID / OpenAlex).
+            Your profile holds your academic identity, institution and scholarly identifiers (ORCID or OpenAlex), which your recommendations build on.
           </p>
 
           {error && (
@@ -412,7 +462,7 @@ function ResearcherPage() {
               }}
             >
               <Sparkles size={16} />
-              {isInitializing ? "Creating Profile..." : "Initialize Researcher Identity"}
+              {isInitializing ? "Creating profile…" : "Create profile"}
             </button>
           </form>
         </div>
@@ -420,40 +470,95 @@ function ResearcherPage() {
     );
   }
 
+  const current = SECTIONS.find((entry) => entry.id === section) ?? SECTIONS[0];
+
   return (
-    <div>
-      <ResearcherProfileView
-        profile={profile}
-        initialWorks={works}
-        onProfileUpdated={handleProfileUpdated}
-      />
-      <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "0 16px 40px 16px" }}>
-        <ResearcherIntelligenceView
-          intelligence={intelligence}
-          loading={intelligenceLoading}
-          error={intelligenceError}
-          onRefresh={() => profile && loadIntelligence(profile.id, true)}
-          isRefreshing={isRefreshingIntelligence}
+    <div className="profile-page">
+      <nav className="profile-sections" aria-label="Profile sections">
+        <ul>
+          {SECTIONS.map((entry) => (
+            <li key={entry.id}>
+              <Link
+                href={entry.id === "profile" ? "/researcher" : `/researcher?section=${entry.id}`}
+                className={`profile-section-link${entry.id === section ? " active" : ""}`}
+                aria-current={entry.id === section ? "page" : undefined}
+                scroll={false}
+              >
+                {entry.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      {section !== "profile" && (
+        <header className="profile-section-header">
+          <h1>{current.label}</h1>
+          <p>{current.description}</p>
+        </header>
+      )}
+
+      {section === "profile" && (
+        <ResearcherProfileView
+          profile={profile}
+          initialWorks={works}
+          onProfileUpdated={handleProfileUpdated}
         />
-        <ResearcherPreferencesView
-          intelligence={preferences}
-          loading={preferencesLoading}
-          error={preferencesError}
-          onRefresh={() => profile && loadPreferences(profile.id, true)}
-          isRefreshing={isRefreshingPreferences}
-          onAddPreference={handleAddPreference}
-          onDeletePreference={handleDeletePreference}
-          userId={profile.user_id}
-        />
-        {/* Phase 4.7: Unified Research Intelligence & Recommendations */}
-        <div style={{ marginTop: "36px" }}>
-          <UnifiedResearchIntelligenceView
-            key={`unified-intel-${feedbackRefreshKey}`}
-            profileId={profile.id}
+      )}
+
+      {section === "interests" && (
+        <div className="profile-section-body">
+          <ResearcherIntelligenceView
+            intelligence={intelligence}
+            loading={intelligenceLoading}
+            error={intelligenceError}
+            onRefresh={() => profile && loadIntelligence(profile.id, true)}
+            isRefreshing={isRefreshingIntelligence}
+          />
+          <ResearcherPreferencesView
+            intelligence={preferences}
+            loading={preferencesLoading}
+            error={preferencesError}
+            onRefresh={() => profile && loadPreferences(profile.id, true)}
+            isRefreshing={isRefreshingPreferences}
+            onAddPreference={handleAddPreference}
+            onDeletePreference={handleDeletePreference}
             userId={profile.user_id}
           />
         </div>
-        <div style={{ marginTop: "36px" }}>
+      )}
+
+      {section === "recommendations" && (
+        <div className="profile-section-body">
+          <UnifiedResearchIntelligenceView
+            key={`unified-recommendations-${feedbackRefreshKey}`}
+            profileId={profile.id}
+            userId={profile.user_id}
+            view="recommendations"
+          />
+          <PersonalizedRankingPreview
+            key={`ranking-${feedbackRefreshKey}`}
+            profileId={profile.id}
+            userId={profile.user_id}
+            onFeedbackRecorded={() => setFeedbackRefreshKey((k) => k + 1)}
+          />
+        </div>
+      )}
+
+      {section === "personalization" && (
+        <div className="profile-section-body">
+          <UnifiedResearchIntelligenceView
+            key={`unified-personalization-${feedbackRefreshKey}`}
+            profileId={profile.id}
+            userId={profile.user_id}
+            view="personalization"
+          />
+          <PersonalizationSummaryView
+            key={`pers-summary-${feedbackRefreshKey}`}
+            profileId={profile.id}
+            userId={profile.user_id}
+            refreshTrigger={feedbackRefreshKey}
+          />
           <PersonalizedCandidatePreview
             candidatesResponse={candidates}
             loading={candidatesLoading}
@@ -462,31 +567,16 @@ function ResearcherPage() {
             isRefreshing={isRefreshingCandidates}
           />
         </div>
-        <div style={{ marginTop: "36px" }}>
-          <PersonalizationSummaryView
-            key={`pers-summary-${feedbackRefreshKey}`}
-            profileId={profile.id}
-            userId={profile.user_id}
-            refreshTrigger={feedbackRefreshKey}
-          />
-        </div>
-        <div style={{ marginTop: "36px" }}>
-          <PersonalizedRankingPreview
-            key={`ranking-${feedbackRefreshKey}`}
-            profileId={profile.id}
-            userId={profile.user_id}
-            onFeedbackRecorded={() => setFeedbackRefreshKey((k) => k + 1)}
-          />
-        </div>
-        <div style={{ marginTop: "36px" }}>
+      )}
+
+      {section === "history" && (
+        <div className="profile-section-body">
           <FeedbackHistoryView
             key={`feedback-${feedbackRefreshKey}`}
             profileId={profile.id}
             userId={profile.user_id}
             onFeedbackChanged={() => setFeedbackRefreshKey((k) => k + 1)}
           />
-        </div>
-        <div style={{ marginTop: "36px" }}>
           <RecommendationHistoryView
             key={`history-${feedbackRefreshKey}`}
             profileId={profile.id}
@@ -494,7 +584,7 @@ function ResearcherPage() {
             refreshTrigger={feedbackRefreshKey}
           />
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -503,7 +593,10 @@ function ResearcherPage() {
 export default function ResearcherPageRoute() {
   return (
     <RequireAuth>
-      <ResearcherPage  />
+      {/* useSearchParams needs a boundary for this route to prerender. */}
+      <Suspense fallback={null}>
+        <ResearcherPage />
+      </Suspense>
     </RequireAuth>
   );
 }

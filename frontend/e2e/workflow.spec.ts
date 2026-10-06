@@ -24,7 +24,10 @@ test("a researcher discovers, saves, applies and is notified of the decision", a
 
   let savedTitle = "";
   await test.step("a personalized recommendation is saved to the workspace", async () => {
+    // P0: the profile is in the "More" menu, and recommendations are a section of it.
+    await page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "More" }).click();
     await page.getByRole("link", { name: /^Researcher Profile/ }).first().click();
+    await page.getByRole("navigation", { name: "Profile sections" }).getByRole("link", { name: "Recommendations" }).click();
     await expect(page.getByRole("heading", { name: /Unified Evidence-Backed Recommendations/ })).toBeVisible();
     const save = page.getByRole("button", { name: "Save opportunity" }).first();
     await expect(save).toBeVisible();

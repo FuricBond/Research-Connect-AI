@@ -305,9 +305,6 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
               <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
                 Personalization Governance & Drift Safety
               </h3>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                Phase 5.8
-              </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Deterministic behavioral drift monitoring, hysteresis protection & adaptation gating

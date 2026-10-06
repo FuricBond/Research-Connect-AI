@@ -1,4 +1,6 @@
 "use client";
+import { humanizeEnum } from "../../utils/date";
+import { riskPresentation, type RiskTone } from "../../utils/risk";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -138,12 +140,9 @@ export function PersonalizedRankingPreview({
             <h2 className="text-xl font-bold text-white tracking-tight">
               Personalized Recommendation Ranking
             </h2>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-900/60 text-indigo-300 border border-indigo-700/50">
-              Phase 3.5 Diagnostic
-            </span>
           </div>
           <p className="text-sm text-slate-400 mt-1">
-            Deterministic ranking layer: Base Relevance (Phase 2) + Bounded Personalization (Max &le; 0.15).
+            Your ranking: relevance to your research, plus a small adjustment from your preferences (at most 0.15).
           </p>
         </div>
 
@@ -156,9 +155,10 @@ export function PersonalizedRankingPreview({
                 ? "bg-indigo-600/30 text-indigo-300 border-indigo-500/50 hover:bg-indigo-600/40"
                 : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
             }`}
-            title="Toggle between Phase 3.5 Personalization (R1) and Phase 2 Base Ranking (R0)"
+            title="Switch between your personalized ranking and the base ranking"
+            aria-pressed={enablePersonalization}
           >
-            {enablePersonalization ? "✓ Personalization ON (R1)" : "✕ Personalization OFF (R0 Baseline)"}
+            {enablePersonalization ? "✓ Personalization on" : "✕ Personalization off (base ranking)"}
           </button>
           <button
             onClick={loadRecommendations}
@@ -193,6 +193,7 @@ export function PersonalizedRankingPreview({
         <div className="flex items-center gap-2 text-slate-300">
           <span>Max Results:</span>
           <select
+            aria-label="Maximum results"
             value={limit}
             onChange={(e) => setLimit(Number(e.target.value))}
             className="bg-slate-800 border border-slate-700 text-white rounded px-2 py-0.5 text-xs focus:ring-1 focus:ring-indigo-500"
@@ -255,7 +256,7 @@ export function PersonalizedRankingPreview({
       {/* Results Content */}
       {loading ? (
         <div className="py-12 text-center text-slate-400 text-sm">
-          Evaluating Phase 2 base relevance and bounded personalization adjustments...
+          Ranking calls for you…
         </div>
       ) : response && response.recommendations.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -425,7 +426,7 @@ export function PersonalizedRankingPreview({
                 </span>
                 <div className="space-y-1.5 text-[11px]">
                   <div className="flex justify-between text-slate-300">
-                    <span>Base Relevance (Phase 2):</span>
+                    <span>Base relevance:</span>
                     <span className="font-mono font-bold">
                       {selectedCandidate.base_relevance_score.toFixed(4)}
                     </span>
@@ -456,7 +457,7 @@ export function PersonalizedRankingPreview({
                   </div>
                   {selectedCandidate.score_breakdown.behavioral_score != null && (
                     <div className="flex justify-between text-slate-300">
-                      <span>Learned Behavioral (Phase 3.6):</span>
+                      <span>Learned from your activity:</span>
                       <span
                         className={`font-mono ${
                           (selectedCandidate.score_breakdown.behavioral_adjustment ?? 0) >= 0
@@ -533,23 +534,21 @@ export function PersonalizedRankingPreview({
               {/* Phase 2.6 Risk & Phase 2.7 Deadline Badges */}
               <div className="border-t border-slate-800 pt-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[11px]">Phase 2.6 Trust/Risk:</span>
-                  <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                      selectedCandidate.opportunity.risk_level === "HIGH_RISK" ||
-                      selectedCandidate.opportunity.is_predatory_flag
-                        ? "bg-red-950 text-red-300 border border-red-800"
-                        : "bg-emerald-950 text-emerald-300 border border-emerald-800"
-                    }`}
-                  >
-                    {selectedCandidate.opportunity.risk_level || "LOW_RISK"}
-                  </span>
+                  <span className="text-slate-400 text-[11px]">Venue risk:</span>
+                  {/* P0.5: an unknown level is "not assessed", never "low risk". */}
+                  <CandidateRiskBadge
+                    level={selectedCandidate.opportunity.risk_level}
+                    isPredatory={selectedCandidate.opportunity.is_predatory_flag}
+                  />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[11px]">Phase 2.7 Deadline:</span>
-                  <span className="text-[10px] font-mono text-amber-300">
-                    {selectedCandidate.opportunity.deadline_status || "UNKNOWN"} (
-                    {selectedCandidate.opportunity.urgency_tier || "APPROACHING"})
+                  <span className="text-slate-400 text-[11px]">Deadline:</span>
+                  <span className="text-[10px] text-amber-300">
+                    {selectedCandidate.opportunity.deadline_status
+                      ? humanizeEnum(selectedCandidate.opportunity.deadline_status)
+                      : "No deadline listed"}
+                    {selectedCandidate.opportunity.urgency_tier &&
+                      ` (${humanizeEnum(selectedCandidate.opportunity.urgency_tier).toLowerCase()})`}
                   </span>
                 </div>
 
@@ -648,5 +647,25 @@ export function PersonalizedRankingPreview({
         organization={explainingCandidate?.opportunity.location || explainingCandidate?.opportunity.delivery_mode}
       />
     </div>
+  );
+}
+
+const RISK_BADGE_CLASSES: Record<RiskTone, string> = {
+  high: "bg-red-950 text-red-300 border border-red-800",
+  caution: "bg-amber-950 text-amber-300 border border-amber-800",
+  low: "bg-emerald-950 text-emerald-300 border border-emerald-800",
+  unknown: "bg-slate-800 text-slate-300 border border-dashed border-slate-600",
+};
+
+/** A venue's risk in words (P0.5): unknown reads "Risk not assessed", never "low risk". */
+function CandidateRiskBadge({ level, isPredatory }: { level?: string | null; isPredatory?: boolean | null }) {
+  const risk = riskPresentation(level, { isPredatory });
+  return (
+    <span
+      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${RISK_BADGE_CLASSES[risk.tone]}`}
+      title={risk.description}
+    >
+      {risk.label}
+    </span>
   );
 }

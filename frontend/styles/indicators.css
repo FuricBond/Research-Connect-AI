@@ -1,0 +1,77 @@
+/*
+ * P0.5 — deadline (time) and venue risk (trust) indicators.
+ *
+ * A deadline is said in time words with a clock icon and only turns orange when it is close;
+ * risk is said in words with a shield icon, and red is kept for high risk. Missing risk data is
+ * neutral. Colour values are the approved ones in docs/design/DESIGN_SYSTEM.md §3.2 (contrast
+ * verified there); P1 replaces these literals with design tokens.
+ */
+
+.deadline-countdown,
+.risk-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+}
+
+.deadline-countdown svg,
+.risk-indicator svg {
+  flex-shrink: 0;
+}
+
+.deadline-open {
+  color: var(--text-body);
+}
+
+.deadline-soon {
+  color: #a33f07;
+  font-weight: 600;
+}
+
+.deadline-urgent {
+  color: #a33f07;
+  font-weight: 600;
+  background: #fceee3;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+}
+
+.deadline-passed,
+.deadline-unknown {
+  color: var(--text-muted);
+}
+
+.risk-indicator {
+  padding: 2px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+}
+
+.risk-high {
+  color: #b42318;
+  background: #fcebe9;
+  border-color: #f4c7c1;
+}
+
+.risk-caution {
+  color: #8a5300;
+  background: #fbf1dc;
+  border-color: #ecd3a0;
+}
+
+.risk-low {
+  color: #1b6e3f;
+  background: #e6f3ea;
+  border-color: #bfe0ca;
+}
+
+.risk-unknown {
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px dashed #b9b3a7;
+  font-weight: 500;
+}

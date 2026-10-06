@@ -80,7 +80,7 @@ export function ProfileCompletenessBadge({ completeness }: ProfileCompletenessBa
           <ShieldCheck size={20} color={style.bar} />
           <div>
             <div style={{ fontWeight: 600, fontSize: "14px", color: style.text }}>
-              Profile Completeness: {completeness.percentage}% ({completeness.level})
+              Profile completeness: {completeness.percentage}% ({completeness.level.toLowerCase()})
             </div>
             <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
               Data foundation status for future personalized academic discovery

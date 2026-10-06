@@ -90,6 +90,15 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand-wrap:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .brand-icon-box {
@@ -115,16 +124,6 @@ button, input, select, textarea {
   font-size: 0.78rem;
   color: var(--text-muted);
   display: block;
-}
-
-.phase-indicator {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--primary);
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
 }
 
 .app-shell {
@@ -171,50 +170,176 @@ h2 {
 
 /* ── Navigation Tabs ───────────────────────────────────────────────────────── */
 
+/* P0: the bar shows what fits at each width and the "More" menu lists the rest (see
+   utils/navigation.ts). It never scrolls sideways. Breakpoints: md 768px, lg 1024px, xl 1280px. */
 .discovery-nav {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
   margin-bottom: 28px;
   border-bottom: 1px solid var(--border-color);
 }
 
+.discovery-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .discovery-nav-tabs {
   display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 2px;
+  flex: 0 1 auto;
+  min-width: 0;
+  gap: 4px;
 }
 
-.discovery-nav-tab {
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  color: var(--text-muted);
-  cursor: pointer;
+.discovery-nav-tab,
+.discovery-nav-more-btn {
+  /* Contains the visually hidden "unread" text: without a positioned ancestor it escaped the
+     bar and widened every page (P0.1). */
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  min-height: 44px;
+  padding: 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
   font-size: 0.92rem;
   font-weight: 600;
-  padding: 10px 14px;
-  transition: all 0.15s ease;
+  text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-.discovery-nav-tab:hover {
+.discovery-nav-tab:hover,
+.discovery-nav-more-btn:hover {
   color: var(--text-main);
   border-bottom-color: var(--border-hover);
 }
 
-.discovery-nav-tab.active {
+.discovery-nav-tab:focus-visible,
+.discovery-nav-more-btn:focus-visible,
+.discovery-nav-menu-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+
+.discovery-nav-tab.active,
+.discovery-nav-more-btn[data-active-inline="menu"] {
   color: var(--primary);
   border-bottom-color: var(--primary);
 }
 
-.nav-pill {
-  background: #d1fae5;
+.discovery-nav-more {
+  margin-left: auto;
+}
+
+.discovery-nav-more-btn[aria-expanded="true"] .discovery-nav-more-chevron {
+  transform: rotate(180deg);
+}
+
+.discovery-nav-more-icon-narrow,
+.discovery-nav-more-label-narrow {
+  display: none;
+}
+
+.discovery-nav-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 45;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px 20px;
+  width: min(640px, calc(100vw - 32px));
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.discovery-nav-menu[hidden] {
+  display: none;
+}
+
+.discovery-nav-menu-heading {
+  margin: 0 0 6px;
+  padding: 0 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.discovery-nav-menu-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.discovery-nav-menu-link:hover {
+  background: var(--bg-muted);
+  color: var(--text-main);
+}
+
+.discovery-nav-menu-link.active {
+  background: var(--primary-subtle);
   color: var(--primary);
-  font-size: 0.7rem;
-  padding: 2px 6px;
-  border-radius: var(--radius-full);
+  font-weight: 600;
+}
+
+/* Below a destination's width it lives in the menu; from that width, in the bar. */
+@media (max-width: 1279px) {
+  .discovery-nav-item[data-inline="xl"] { display: none; }
+  .discovery-nav-more-btn[data-active-inline="xl"] { color: var(--primary); border-bottom-color: var(--primary); }
+}
+@media (max-width: 1023px) {
+  .discovery-nav-item[data-inline="lg"] { display: none; }
+  .discovery-nav-more-btn[data-active-inline="lg"] { color: var(--primary); border-bottom-color: var(--primary); }
+}
+@media (max-width: 767px) {
+  .discovery-nav-item[data-inline="md"] { display: none; }
+  .discovery-nav-more-btn[data-active-inline="md"] { color: var(--primary); border-bottom-color: var(--primary); }
+  .discovery-nav-more-icon-narrow,
+  .discovery-nav-more-label-narrow { display: inline; }
+  .discovery-nav-more-label-wide,
+  .discovery-nav-more-chevron { display: none; }
+  .discovery-nav-more { margin-left: 0; }
+  .discovery-nav-menu {
+    left: 0;
+    right: auto;
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+  .discovery-nav-menu-link { min-height: 44px; }
+}
+@media (min-width: 768px) {
+  .discovery-nav-menu-item[data-inline="md"],
+  .discovery-nav-menu-group[data-hide-from="md"] { display: none; }
+}
+@media (min-width: 1024px) {
+  .discovery-nav-menu-item[data-inline="lg"],
+  .discovery-nav-menu-group[data-hide-from="lg"] { display: none; }
+}
+@media (min-width: 1280px) {
+  .discovery-nav-menu-item[data-inline="xl"],
+  .discovery-nav-menu-group[data-hide-from="xl"] { display: none; }
 }
 
 /* Phase 5.16: unread notifications on the Notifications tab. */
@@ -846,8 +971,9 @@ h2 {
 
 .risk-warning-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 4px 8px;
   font-size: 0.88rem;
   margin-bottom: 4px;
 }
@@ -878,10 +1004,16 @@ h2 {
   background: #fffafa;
 }
 
+/* Missing evidence is neutral (P0.5): a quiet line, not a panel. */
 .risk-warning-banner.neutral-risk {
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  color: #334155;
+  background: transparent;
+  border: 1px dashed #b9b3a7;
+  color: var(--text-body);
+  padding: 6px 10px;
+}
+
+.risk-warning-banner.neutral-risk .risk-warning-header {
+  margin-bottom: 0;
 }
 
 .neutral-title {
@@ -1333,73 +1465,64 @@ h2 {
 }
 
 /* Urgency Color Tiers */
-.deadline-badge-wrapper.urgency-critical {
-  background: #fef2f2;
-  color: #991b1b;
-  border-color: #fecaca;
+/* P0.5: deadline urgency is about time, not risk. Close deadlines use the orange "time"
+   colour; red and amber belong to venue risk (styles/indicators.css, DESIGN_SYSTEM.md §3.2).
+   Distant deadlines are neutral, not green. */
+.deadline-badge-wrapper.urgency-critical,
+.deadline-badge-wrapper.urgency-due-today {
+  background: #fceee3;
+  color: #a33f07;
+  border-color: #f5cdb0;
   font-weight: 600;
 }
 .deadline-badge-wrapper.urgency-critical .icon-critical {
-  color: #dc2626;
+  color: #a33f07;
 }
 
 .deadline-badge-wrapper.urgency-urgent {
-  background: #fffbeb;
-  color: #92400e;
-  border-color: #fde68a;
+  background: var(--bg-card);
+  color: #a33f07;
+  border-color: #f5cdb0;
   font-weight: 600;
 }
 .deadline-badge-wrapper.urgency-urgent .icon-urgent {
-  color: #d97706;
+  color: #a33f07;
 }
 
-.deadline-badge-wrapper.urgency-due-today {
-  background: #faf5ff;
-  color: #6b21a8;
-  border-color: #e9d5ff;
-  font-weight: 700;
-}
-
-.deadline-badge-wrapper.urgency-approaching {
-  background: #f8fafc;
-  color: #334155;
-  border-color: #cbd5e1;
-}
-.deadline-badge-wrapper.urgency-approaching .icon-approaching {
-  color: #475569;
-}
-
+.deadline-badge-wrapper.urgency-approaching,
 .deadline-badge-wrapper.urgency-distant {
-  background: #f0fdf4;
-  color: #166534;
-  border-color: #bbf7d0;
+  background: var(--bg-muted);
+  color: var(--text-body);
+  border-color: var(--border-color);
 }
+.deadline-badge-wrapper.urgency-approaching .icon-approaching,
 .deadline-badge-wrapper.urgency-distant .icon-distant {
-  color: #15803d;
+  color: var(--text-muted);
 }
 
 .deadline-badge-wrapper.urgency-expired {
-  background: #f1f5f9;
-  color: #64748b;
-  border-color: #e2e8f0;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  border-color: var(--border-color);
 }
 .deadline-badge-wrapper.urgency-expired .icon-expired {
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
+/* Sources disagree about the date: a data-quality note, not a venue risk. */
 .deadline-badge-wrapper.deadline-conflict {
-  background: #fffbeb;
-  color: #b45309;
-  border-color: #fde68a;
+  background: var(--bg-card);
+  color: var(--text-body);
+  border: 1px dashed var(--border-hover);
 }
 .deadline-badge-wrapper.deadline-conflict .icon-conflict {
-  color: #d97706;
+  color: var(--text-muted);
 }
 
 .deadline-badge-wrapper.urgency-unknown {
-  background: #f8fafc;
-  color: #64748b;
-  border-color: #e2e8f0;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  border-color: var(--border-color);
 }
 
 .deadline-extension-pill {
@@ -2085,6 +2208,106 @@ h2 {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   background: #ffffff;
+}
+
+/* ── Paper-based tools: purpose header and "choose a paper" state (P0.7) ──── */
+
+.tool-page-header {
+  margin-bottom: 20px;
+}
+
+.tool-page-header h1 {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.tool-page-header p {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.paper-context-required {
+  max-width: 760px;
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.paper-context-required h2 {
+  margin: 0 0 6px;
+  font-size: 1.15rem;
+}
+
+.paper-context-required > p {
+  margin: 0 0 16px;
+  color: var(--text-body);
+  max-width: 65ch;
+}
+
+.paper-context-search {
+  display: inline-flex;
+  text-decoration: none;
+}
+
+.paper-context-saved {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.paper-context-saved h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+
+.paper-context-saved ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.paper-context-saved-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.paper-context-saved-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 260px;
+}
+
+.paper-context-saved-title {
+  font-weight: 600;
+  color: var(--text-main);
+  overflow-wrap: anywhere;
+}
+
+.paper-context-saved-meta {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.paper-context-all-saved {
+  display: inline-block;
+  margin-top: 12px;
+  color: var(--primary);
+  font-weight: 600;
 }
 
 /* ── State Containers (Loading, Error, Empty, Prompt) ──────────────────────── */

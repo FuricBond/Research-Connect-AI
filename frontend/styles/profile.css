@@ -1,0 +1,73 @@
+/* P0.4 — the researcher profile's sections. Existing tokens only; P1 restyles it. */
+
+.profile-page {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.profile-sections {
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.profile-sections ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+}
+
+.profile-section-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.profile-section-link:hover {
+  color: var(--text-main);
+  border-bottom-color: var(--border-hover);
+}
+
+.profile-section-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-sm);
+}
+
+.profile-section-link.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.profile-section-header {
+  margin-bottom: 20px;
+}
+
+.profile-section-header h1 {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.profile-section-header p {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--text-muted);
+}
+
+.profile-section-body {
+  display: grid;
+  gap: 36px;
+  padding-bottom: 40px;
+  min-width: 0;
+}

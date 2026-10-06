@@ -550,7 +550,7 @@ function ResearcherPreferencesPage() {
         </Link>
         <ChevronRight size={14} color="var(--text-muted)" />
         <span style={{ fontSize: "13px", color: "var(--text-main)", fontWeight: 600 }}>
-          Preference Center (Phase 5.1)
+          Preference center
         </span>
       </div>
 

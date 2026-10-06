@@ -230,7 +230,6 @@
   border-radius: var(--radius-full);
   font-size: 11px;
   font-weight: 700;
-  text-transform: uppercase;
   letter-spacing: 0.03em;
 }
 
@@ -355,43 +354,6 @@
   gap: 16px;
 }
 
-.workspace-deadline-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.deadline-pill-critical {
-  color: #b91c1c;
-}
-
-.deadline-pill-urgent {
-  color: #c2410c;
-}
-
-.deadline-pill-normal {
-  color: #0f766e;
-}
-
-.deadline-pill-relaxed {
-  color: #475569;
-}
-
-.workspace-risk-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  background: var(--risk-high-bg);
-  color: var(--risk-high-text);
-  border: 1px solid var(--risk-high-border);
-}
-
 /* ── Interactive Workflow Controls ────────────────────────────────────────── */
 
 .workspace-card-actions {
@@ -404,10 +366,13 @@
   border-top: 1px dashed var(--border-color);
 }
 
-.workspace-transition-group {
+.workspace-transition-group,
+.workspace-card-tools {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .workspace-transition-label {

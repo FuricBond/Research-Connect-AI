@@ -516,8 +516,8 @@ export function RecommendationExplanationModal({
                       }}
                     >
                       Confidence: <strong>{explanation.confidence}</strong> (
-                      {(explanation.confidence_score * 100).toFixed(0)}%). Personalization adjustment strictly bounded
-                      by Phase 3.5 ranking rules.
+                      {(explanation.confidence_score * 100).toFixed(0)}%). Your preferences can only adjust
+                      the ranking within fixed limits.
                     </div>
                   </div>
                 )}

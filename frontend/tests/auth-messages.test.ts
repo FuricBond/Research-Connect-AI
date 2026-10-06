@@ -73,21 +73,21 @@ describe("resolveRedirectTarget", () => {
   });
 
   it("falls back when nothing was requested", () => {
-    expect(resolveRedirectTarget(null)).toBe("/researcher");
+    expect(resolveRedirectTarget(null)).toBe(DEFAULT_LANDING);
   });
 
   it("refuses an absolute URL to another site", () => {
-    expect(resolveRedirectTarget("https://evil.example/steal")).toBe("/researcher");
+    expect(resolveRedirectTarget("https://evil.example/steal")).toBe(DEFAULT_LANDING);
   });
 
   it("refuses a protocol-relative URL", () => {
     // "//evil.example" is a URL to another host, not a path on this one.
-    expect(resolveRedirectTarget("//evil.example/steal")).toBe("/researcher");
+    expect(resolveRedirectTarget("//evil.example/steal")).toBe(DEFAULT_LANDING);
   });
 
   it("does not send somebody back to the page they just left", () => {
-    expect(resolveRedirectTarget("/login")).toBe("/researcher");
-    expect(resolveRedirectTarget("/register")).toBe("/researcher");
+    expect(resolveRedirectTarget("/login")).toBe(DEFAULT_LANDING);
+    expect(resolveRedirectTarget("/register")).toBe(DEFAULT_LANDING);
   });
 });
 
@@ -98,6 +98,8 @@ describe("resolveRedirectTarget", () => {
 // actually leads, so a spelling the list does not anticipate is still caught.
 
 const ORIGIN = "http://localhost:3000";
+// Refused or missing destinations land on the signed-in home (P0.3; it was "/researcher").
+const DEFAULT_LANDING = "/dashboard";
 // Built rather than typed, so no layer of escaping can quietly change these characters.
 const BS = String.fromCharCode(92);
 const TAB = String.fromCharCode(9);
@@ -142,7 +144,7 @@ describe("resolveRedirectTarget — parser-based same-origin check (P1-01)", () 
   });
 
   it.each(UNSAFE_TARGETS)("refuses %s", (_label, input) => {
-    expect(resolveRedirectTarget(input, ORIGIN)).toBe("/researcher");
+    expect(resolveRedirectTarget(input, ORIGIN)).toBe(DEFAULT_LANDING);
   });
 
   it("never returns anything that leaves this origin, whatever it is given", () => {
@@ -162,15 +164,15 @@ describe("resolveRedirectTarget — parser-based same-origin check (P1-01)", () 
   });
 
   it("still refuses the sign-in pages when they carry a query or fragment", () => {
-    expect(resolveRedirectTarget("/login?next=/admin", ORIGIN)).toBe("/researcher");
-    expect(resolveRedirectTarget("/register#top", ORIGIN)).toBe("/researcher");
+    expect(resolveRedirectTarget("/login?next=/admin", ORIGIN)).toBe(DEFAULT_LANDING);
+    expect(resolveRedirectTarget("/register#top", ORIGIN)).toBe(DEFAULT_LANDING);
   });
 
   it("checks against the page's own origin when none is given", () => {
     // This is how the sign-in and registration pages call it.
     expect(window.location.origin).not.toBe("null");
     expect(resolveRedirectTarget("/workspace")).toBe("/workspace");
-    expect(resolveRedirectTarget("/" + BS + "evil.example")).toBe("/researcher");
-    expect(resolveRedirectTarget("/..//evil.example")).toBe("/researcher");
+    expect(resolveRedirectTarget("/" + BS + "evil.example")).toBe(DEFAULT_LANDING);
+    expect(resolveRedirectTarget("/..//evil.example")).toBe(DEFAULT_LANDING);
   });
 });

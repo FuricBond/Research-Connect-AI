@@ -221,18 +221,6 @@ export function RecommendationHistoryView({
             <h3 style={{ margin: 0, fontSize: "17px", fontWeight: 700 }}>
               Recommendation History & Evaluation
             </h3>
-            <span
-              style={{
-                fontSize: "11px",
-                fontWeight: 600,
-                background: "var(--primary-subtle)",
-                color: "var(--primary)",
-                padding: "2px 8px",
-                borderRadius: "10px",
-              }}
-            >
-              Phase 3.7
-            </span>
           </div>
           <p
             style={{
@@ -248,6 +236,7 @@ export function RecommendationHistoryView({
 
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <select
+            aria-label="Ranking version"
             value={versionFilter}
             onChange={(e) => setVersionFilter(e.target.value)}
             style={{
@@ -259,10 +248,10 @@ export function RecommendationHistoryView({
               color: "var(--text-main)",
             }}
           >
-            <option value="">All Ranking Versions</option>
-            <option value="phase3.7-v1">Phase 3.7 (Behavioral Personalization)</option>
-            <option value="phase3.5-personalized">Phase 3.5 (Personalized Ranking)</option>
-            <option value="phase2-baseline">Phase 2 (Baseline Relevance)</option>
+            <option value="">All ranking versions</option>
+            <option value="phase3.7-v1">Personalized with your activity</option>
+            <option value="phase3.5-personalized">Personalized with your preferences</option>
+            <option value="phase2-baseline">Relevance only</option>
           </select>
 
           <button

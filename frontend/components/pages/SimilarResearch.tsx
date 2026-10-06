@@ -7,7 +7,8 @@ import { SimilarResearchCard } from "../discovery/SimilarResearchCard";
 import { PaginationControls } from "../discovery/PaginationControls";
 import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
 import { getSimilarResearch, ApiError } from "../../services/api";
-import { getSelectedWork, setSelectedWork } from "../../hooks/useSelectedWork";
+import { getSelectedWork, setSelectedWork as rememberSelectedWork } from "../../hooks/useSelectedWork";
+import { PaperContextRequired, ToolPageHeader } from "../discovery/PaperContextRequired";
 import type {
   ExplanationSchema,
   ResearchWorkRead,
@@ -99,32 +100,37 @@ export function SimilarResearchPage() {
     router.push("/");
   };
 
+  // A paper picked on this page (P0.7) is remembered for the session like one picked in search.
+  const chooseWork = (work: ResearchWorkRead) => {
+    rememberSelectedWork(work);
+    setSelectedWork(work);
+    fetchSimilar(work.id, filters);
+  };
+
+  const header = (
+    <ToolPageHeader
+      title="Similar Research"
+      description="Finds the papers closest in meaning and topic to one paper you choose."
+    />
+  );
+
   if (!selectedWork) {
     return (
-      <section className="similar-research-page empty-selection">
-        <div className="state-container prompt-state">
-          <Compass size={32} className="prompt-icon" />
-          <h3>No Research Paper Selected</h3>
-          <p>
-            Please search for an academic paper in the <strong>Literature Search</strong> tab and click{" "}
-            <em>&quot;Find Similar Research&quot;</em> to explore nearest semantic neighbors and topic proximity.
-          </p>
-          <button type="button" className="action-btn primary-btn" onClick={handleBackToSearch}>
-            <ArrowLeft size={16} />
-            <span>Go to Literature Search</span>
-          </button>
-        </div>
+      <section className="similar-research-page empty-selection" aria-label="Similar Research">
+        {header}
+        <PaperContextRequired actionLabel="Find Similar Research" onChoose={chooseWork} />
       </section>
     );
   }
 
   return (
-    <section className="similar-research-page" aria-label="Similar Research Explorer">
+    <section className="similar-research-page" aria-label="Similar Research">
       {/* Back to search link */}
       <button type="button" className="back-link-btn" onClick={handleBackToSearch}>
         <ArrowLeft size={16} />
         <span>Back to Literature Search</span>
       </button>
+      {header}
 
       {/* Source Paper Banner */}
       <div className="source-paper-hero">

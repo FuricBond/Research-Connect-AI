@@ -265,8 +265,11 @@ describe("useUnreadNotificationCount", () => {
 
 describe("notifications page", () => {
   function renderPage() {
+    // As in app/layout.tsx: the navigation belongs to the layout, rendered once beside the
+    // page. (The page used to render a second copy of it; P0.2 removed that duplicate.)
     return render(
       <SessionProvider>
+        <DiscoveryNavbar />
         <NotificationsPageRoute />
       </SessionProvider>
     );

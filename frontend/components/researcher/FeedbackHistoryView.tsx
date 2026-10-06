@@ -144,9 +144,6 @@ export function FeedbackHistoryView({
             <h2 className="text-xl font-bold text-white tracking-tight">
               Recommendation Feedback & Behavioral Learning
             </h2>
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-900/60 text-emerald-300 border border-emerald-700/50">
-              Phase 3.6 Loop
-            </span>
           </div>
           <p className="text-sm text-slate-400 mt-1">
             Deterministic feedback aggregation with exponential decay (T₁/₂ = 30d), confidence scaling, and explicit preference dominance.
@@ -298,6 +295,7 @@ export function FeedbackHistoryView({
           <div className="flex items-center gap-2">
             <label className="text-xs text-slate-400">Filter:</label>
             <select
+              aria-label="Filter interactions"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
               className="bg-slate-950 text-slate-300 border border-slate-800 rounded px-2 py-1 text-xs focus:outline-none focus:border-indigo-500"

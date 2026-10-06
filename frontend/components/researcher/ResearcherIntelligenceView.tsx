@@ -230,20 +230,6 @@ export function ResearcherIntelligenceView({
             <h2 style={{ fontSize: "18px", fontWeight: 700, margin: 0 }}>
               Researcher Interest & Expertise Intelligence
             </h2>
-            <span
-              style={{
-                fontSize: "11px",
-                fontWeight: 600,
-                textTransform: "uppercase",
-                padding: "2px 8px",
-                borderRadius: "var(--radius-full)",
-                background: "#f3e8ff",
-                color: "#6b21a8",
-                letterSpacing: "0.5px",
-              }}
-            >
-              Phase 3.2
-            </span>
           </div>
           <p style={{ fontSize: "12px", color: "var(--text-muted)", margin: 0, lineHeight: "1.4" }}>
             Deterministic scholarly representation inferred from authored works, concepts, publication recency, and citation authority.

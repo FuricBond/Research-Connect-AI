@@ -18,6 +18,12 @@ interface OpportunityCardProps {
   onExplain: (item: OpportunityMatchItem, tab?: "match" | "risk" | "deadline") => void;
 }
 
+const DELIVERY_MODE_LABELS: Record<string, string> = {
+  OFFLINE: "In person",
+  ONLINE: "Online",
+  HYBRID: "Hybrid",
+};
+
 export function OpportunityCard({ item, onExplain }: OpportunityCardProps) {
   const { opportunity, rank, match_score, type_compatibility, topic_similarity, urgency, explanation } = item;
 
@@ -71,16 +77,6 @@ export function OpportunityCard({ item, onExplain }: OpportunityCardProps) {
         </div>
       </div>
 
-      {/* Risk & Trust Warning Banner (Phase 2.6F) */}
-      <RiskWarning
-        isPredatory={opportunity.is_predatory_flag}
-        riskScore={opportunity.risk_score}
-        riskReasons={opportunity.risk_reasons}
-        riskLevel={opportunity.risk_level}
-        riskConfidence={opportunity.risk_confidence}
-        onViewRiskDetails={() => onExplain(item, "risk")}
-      />
-
       {/* Title */}
       <h3 id={`opp-title-${opportunity.id}`} className="opportunity-title">
         {opportunity.website_url ? (
@@ -106,7 +102,7 @@ export function OpportunityCard({ item, onExplain }: OpportunityCardProps) {
           {opportunity.delivery_mode && (
             <span className="meta-item">
               <Globe size={13} />
-              <span>{opportunity.delivery_mode}</span>
+              <span>{DELIVERY_MODE_LABELS[opportunity.delivery_mode] ?? opportunity.delivery_mode}</span>
             </span>
           )}
 
@@ -137,6 +133,16 @@ export function OpportunityCard({ item, onExplain }: OpportunityCardProps) {
           )}
         </div>
       </div>
+
+      {/* Venue risk (trust) — after the title and venue facts, styled apart from the deadline */}
+      <RiskWarning
+        isPredatory={opportunity.is_predatory_flag}
+        riskScore={opportunity.risk_score}
+        riskReasons={opportunity.risk_reasons}
+        riskLevel={opportunity.risk_level}
+        riskConfidence={opportunity.risk_confidence}
+        onViewRiskDetails={() => onExplain(item, "risk")}
+      />
 
       {/* Summary / Description snippet */}
       {(opportunity.summary || opportunity.description) && (

@@ -164,9 +164,6 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
               <h3 className="text-lg font-bold text-foreground tracking-tight">
                 Personalization Quality & Contextual Adaptation
               </h3>
-              <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-primary/15 text-primary">
-                Phase 5.7
-              </span>
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">
               Deterministic evaluation of personalization usefulness, observed lift, and bounded contextual adaptation.

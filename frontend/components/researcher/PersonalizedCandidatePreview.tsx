@@ -200,19 +200,14 @@ export function PersonalizedCandidatePreview({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold tracking-wide uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
-                Phase 3.4
-              </span>
               <h2 className="text-xl font-bold text-white tracking-tight">
                 Personalized Candidate Preview
               </h2>
             </div>
             <p className="text-sm text-slate-300 max-w-2xl">
-              Generates the initial candidate pool matching canonical profiles, Phase 3.2 scholarly expertise,
-              and Phase 3.3 personal preferences.{" "}
-              <strong className="text-indigo-300">
-                Strict boundary: Unranked candidate set. Personalized ranking will be introduced in Phase 3.5.
-              </strong>
+              The calls considered for you before ranking: those that match your profile, the expertise
+              in your publications and your stated preferences.{" "}
+              <strong className="text-indigo-300">This list is not ranked.</strong>
             </p>
           </div>
 
@@ -268,6 +263,7 @@ export function PersonalizedCandidatePreview({
           <div className="flex items-center gap-2 ml-2">
             <span className="text-slate-400 font-medium">Limit:</span>
             <select
+              aria-label="Number of candidates"
               value={selectedLimit}
               onChange={(e) => setSelectedLimit(Number(e.target.value))}
               className="bg-slate-800 border border-slate-700 text-slate-200 rounded px-2.5 py-1 text-xs focus:ring-indigo-500"
@@ -514,7 +510,7 @@ export function PersonalizedCandidatePreview({
 
                     {opp.risk_reasons && opp.risk_reasons.length > 0 && (
                       <div className="pt-1 border-t border-slate-800">
-                        <span className="font-semibold text-slate-300">Phase 2.6 Risk Assessment: </span>
+                        <span className="font-semibold text-slate-300">Venue risk: </span>
                         <span className="text-slate-400">
                           {opp.risk_reasons.join("; ")}
                         </span>
@@ -523,7 +519,7 @@ export function PersonalizedCandidatePreview({
 
                     {opp.deadline_explanation && (
                       <div className="pt-1 border-t border-slate-800">
-                        <span className="font-semibold text-slate-300">Phase 2.7 Deadline Timing: </span>
+                        <span className="font-semibold text-slate-300">Deadline: </span>
                         <span className="text-slate-400">{opp.deadline_explanation}</span>
                       </div>
                     )}

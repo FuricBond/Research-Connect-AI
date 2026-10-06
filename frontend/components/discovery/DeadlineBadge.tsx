@@ -3,7 +3,7 @@
 import React from "react";
 import { AlertTriangle, ArrowUpRight, Calendar, Clock, History, Info } from "lucide-react";
 import type { OpportunityDeadline } from "../../types/opportunity";
-import { formatDeadlineDate } from "../../utils/date";
+import { describeTimeLeft, formatDeadlineDate } from "../../utils/date";
 
 interface DeadlineBadgeProps {
   deadlineIntelligence?: OpportunityDeadline | null;
@@ -32,7 +32,7 @@ export const DeadlineBadge: React.FC<DeadlineBadgeProps> = ({
     // Format localized date and timezone safely without client-side day shifting
     let dateStr = "";
     if (norm?.local_date) {
-      dateStr = norm.local_date;
+      dateStr = formatDeadlineDate(norm.local_date);
       if (norm.timezone_name) {
         dateStr += ` ${norm.timezone_name}`;
       }
@@ -41,7 +41,7 @@ export const DeadlineBadge: React.FC<DeadlineBadgeProps> = ({
     }
 
     // Determine status text and urgency styling
-    let labelText = "Deadline unknown";
+    let labelText = "No deadline listed";
     let urgencyClass = "urgency-unknown";
     let statusIcon = <Clock size={13} className="badge-icon" />;
 
@@ -53,7 +53,9 @@ export const DeadlineBadge: React.FC<DeadlineBadgeProps> = ({
       switch (ass.status) {
         case "DUE_TODAY":
           urgencyClass = "urgency-due-today";
-          labelText = `Due today! (${ass.hours_remaining ? `${Math.round(ass.hours_remaining)}h left` : "urgent"})`;
+          labelText = ass.hours_remaining
+            ? `Due today · ${describeTimeLeft(ass.hours_remaining / 24)}`
+            : "Due today";
           statusIcon = <Clock size={13} className="badge-icon icon-critical" />;
           break;
         case "UPCOMING":
@@ -71,22 +73,20 @@ export const DeadlineBadge: React.FC<DeadlineBadgeProps> = ({
             statusIcon = <Calendar size={13} className="badge-icon icon-distant" />;
           }
 
-          if (ass.days_remaining !== null && ass.days_remaining !== undefined) {
-            const days = Math.round(ass.days_remaining);
-            labelText = `${dateStr} (${days}d left)`;
-          } else {
-            labelText = dateStr || "Upcoming";
+          {
+            const left = describeTimeLeft(ass.days_remaining);
+            labelText = dateStr ? `Due ${dateStr}${left ? ` · ${left}` : ""}` : left || "Upcoming";
           }
           break;
         case "EXPIRED":
           urgencyClass = "urgency-expired";
-          labelText = `Expired ${dateStr ? `(${dateStr})` : ""}`;
+          labelText = dateStr ? `Closed ${dateStr}` : "Closed";
           statusIcon = <History size={13} className="badge-icon icon-expired" />;
           break;
         case "MISSING":
         default:
           urgencyClass = "urgency-unknown";
-          labelText = "Deadline unknown";
+          labelText = "No deadline listed";
           statusIcon = <Info size={13} className="badge-icon icon-unknown" />;
           break;
       }
@@ -115,7 +115,7 @@ export const DeadlineBadge: React.FC<DeadlineBadgeProps> = ({
     return (
       <div
         className={`deadline-badge-wrapper ${urgencyClass}`}
-        role={onInspectDeadlines ? "button" : "status"}
+        role={onInspectDeadlines ? "button" : undefined}
         tabIndex={onInspectDeadlines ? 0 : undefined}
         onClick={onInspectDeadlines}
         onKeyDown={(e) => {
@@ -124,7 +124,7 @@ export const DeadlineBadge: React.FC<DeadlineBadgeProps> = ({
             onInspectDeadlines();
           }
         }}
-        aria-label={`Deadline status: ${labelText}${isExtended ? " (Extended)" : ""}`}
+        aria-label={onInspectDeadlines ? `Deadline: ${labelText}${isExtended ? " (extended)" : ""}. Show the deadline timeline` : undefined}
         title="Click to view full deadline intelligence & milestone timeline"
       >
         <div className="deadline-badge-main">
@@ -149,10 +149,16 @@ export const DeadlineBadge: React.FC<DeadlineBadgeProps> = ({
     return (
       <div
         className="deadline-badge-wrapper urgency-approaching fallback-mode"
-        role={onInspectDeadlines ? "button" : "status"}
+        role={onInspectDeadlines ? "button" : undefined}
         tabIndex={onInspectDeadlines ? 0 : undefined}
         onClick={onInspectDeadlines}
-        aria-label={`Submission deadline: ${formatted}`}
+        onKeyDown={(e) => {
+          if (onInspectDeadlines && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            onInspectDeadlines();
+          }
+        }}
+        aria-label={onInspectDeadlines ? `Deadline: due ${formatted}. Show the deadline details` : undefined}
       >
         <div className="deadline-badge-main">
           <Clock size={13} className="badge-icon" />
@@ -172,7 +178,7 @@ export const DeadlineBadge: React.FC<DeadlineBadgeProps> = ({
     <div className="deadline-badge-wrapper urgency-unknown">
       <div className="deadline-badge-main">
         <Clock size={13} className="badge-icon icon-unknown" />
-        <span className="deadline-badge-text">Deadline unknown</span>
+        <span className="deadline-badge-text">No deadline listed</span>
       </div>
     </div>
   );

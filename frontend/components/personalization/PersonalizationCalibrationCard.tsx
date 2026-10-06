@@ -164,9 +164,6 @@ export const PersonalizationCalibrationCard: React.FC<PersonalizationCalibration
               <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                 Personalization Calibration & Feedback Loop
               </h3>
-              <span className="text-xs px-2 py-0.5 font-semibold bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 rounded-full">
-                Phase 5.6
-              </span>
             </div>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Measures recommendation performance against your subsequent feedback and applies bounded, explainable calibration modifiers.

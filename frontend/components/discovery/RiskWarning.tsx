@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AlertTriangle, AlertCircle, HelpCircle, ShieldCheck, ChevronRight } from "lucide-react";
+import { ChevronRight, ShieldAlert, ShieldQuestion, ShieldX } from "lucide-react";
 
 interface RiskWarningProps {
   isPredatory?: boolean | null;
@@ -33,11 +33,11 @@ export const RiskWarning: React.FC<RiskWarningProps> = ({
 
   if (isHighRisk) {
     return (
-      <div className="risk-warning-banner high-risk" role="alert">
+      <div className="risk-warning-banner high-risk">
         <div className="risk-warning-header">
-          <AlertTriangle size={18} className="risk-icon" />
-          <strong>Potential Publication Integrity Risk</strong>
-          <span className="risk-badge">Penalized in Ranking (-80%)</span>
+          <ShieldX size={18} className="risk-icon" aria-hidden="true" />
+          <strong>High risk: possible publication-integrity concerns</strong>
+          <span className="risk-badge">Ranked lower</span>
           {onViewRiskDetails && (
             <button
               type="button"
@@ -45,7 +45,7 @@ export const RiskWarning: React.FC<RiskWarningProps> = ({
               onClick={onViewRiskDetails}
               title="Inspect corroborated risk evidence and provenance"
             >
-              <span>Why? Inspect Evidence</span>
+              <span>View evidence</span>
               <ChevronRight size={13} />
             </button>
           )}
@@ -66,10 +66,10 @@ export const RiskWarning: React.FC<RiskWarningProps> = ({
 
   if (isMediumRisk) {
     return (
-      <div className="risk-warning-banner medium-risk" role="status">
+      <div className="risk-warning-banner medium-risk">
         <div className="risk-warning-header">
-          <AlertCircle size={16} className="risk-icon" />
-          <span>Elevated Cautionary Risk Score ({(numericRisk * 100).toFixed(0)}%)</span>
+          <ShieldAlert size={16} className="risk-icon" aria-hidden="true" />
+          <span>Some risk signs: review this venue before submitting</span>
           {onViewRiskDetails && (
             <button
               type="button"
@@ -77,7 +77,7 @@ export const RiskWarning: React.FC<RiskWarningProps> = ({
               onClick={onViewRiskDetails}
               title="Inspect cautionary indicators and trust mitigation"
             >
-              <span>Inspect Evidence</span>
+              <span>View evidence</span>
               <ChevronRight size={13} />
             </button>
           )}
@@ -91,10 +91,11 @@ export const RiskWarning: React.FC<RiskWarningProps> = ({
 
   if (isInsufficient) {
     return (
-      <div className="risk-warning-banner neutral-risk" role="status">
+      <div className="risk-warning-banner neutral-risk">
         <div className="risk-warning-header">
-          <HelpCircle size={15} className="risk-icon" />
-          <span className="neutral-title">Limited Metadata Available (Neutral Assessment)</span>
+          <ShieldQuestion size={15} className="risk-icon" aria-hidden="true" />
+          <span className="neutral-title">Risk not assessed</span>
+          <span className="neutral-text">Not enough information about this venue. This is not a warning.</span>
           {onViewRiskDetails && (
             <button
               type="button"
@@ -107,9 +108,6 @@ export const RiskWarning: React.FC<RiskWarningProps> = ({
             </button>
           )}
         </div>
-        <p className="risk-description neutral-text">
-          Insufficient evidence to establish verified trust or elevated risk. Missing data is strictly neutral and does not indicate predatory behavior.
-        </p>
       </div>
     );
   }

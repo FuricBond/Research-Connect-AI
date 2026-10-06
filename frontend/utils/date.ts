@@ -53,3 +53,58 @@ export function calculateRemainingDays(iso: string | null | undefined): number |
   const diffMs = deadlineDate.getTime() - now.getTime();
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 }
+
+/**
+ * P0.5 — how much time is left before a deadline, in words.
+ *
+ * `daysRemaining` is the fractional day count the deadline intelligence returns (for example
+ * 3.7978). It is shown as whole units — "3 days left", "18 hours left" — never as the raw float.
+ * Returns null when there is nothing to say.
+ */
+export function describeTimeLeft(daysRemaining: number | null | undefined): string | null {
+  if (daysRemaining === null || daysRemaining === undefined || Number.isNaN(daysRemaining)) return null;
+  if (daysRemaining < 0) return "Closed";
+  if (daysRemaining < 1) {
+    const hours = Math.floor(daysRemaining * 24);
+    if (hours < 1) return "Due within the hour";
+    return `${hours} hour${hours === 1 ? "" : "s"} left`;
+  }
+  const days = Math.floor(daysRemaining);
+  return `${days} day${days === 1 ? "" : "s"} left`;
+}
+
+/**
+ * How pressing a deadline is, as a presentation tone. Deadline urgency is about time only; it
+ * is styled apart from venue risk (see components/indicators).
+ *   passed  — the deadline is over
+ *   urgent  — two days or less (or the intelligence says CRITICAL / DUE_TODAY)
+ *   soon    — a week or less (or URGENT)
+ *   open    — further away
+ *   unknown — no usable deadline
+ */
+export type DeadlineTone = "passed" | "urgent" | "soon" | "open" | "unknown";
+
+export function deadlineTone(
+  daysRemaining: number | null | undefined,
+  status?: string | null,
+  urgencyTier?: string | null
+): DeadlineTone {
+  if (status === "EXPIRED" || urgencyTier === "EXPIRED") return "passed";
+  if (status === "DUE_TODAY" || urgencyTier === "DUE_TODAY" || urgencyTier === "CRITICAL") return "urgent";
+  if (daysRemaining === null || daysRemaining === undefined || Number.isNaN(daysRemaining)) {
+    if (urgencyTier === "URGENT") return "soon";
+    if (status === "MISSING" || status === "INVALID" || !status) return "unknown";
+    return "open";
+  }
+  if (daysRemaining < 0) return "passed";
+  if (daysRemaining <= 2) return "urgent";
+  if (daysRemaining <= 7 || urgencyTier === "URGENT") return "soon";
+  return "open";
+}
+
+/** "CAMERA_READY" -> "Camera ready": enum values shown to people in sentence case. */
+export function humanizeEnum(value: string | null | undefined): string {
+  if (!value) return "";
+  const words = value.replace(/[_-]+/g, " ").trim().toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}

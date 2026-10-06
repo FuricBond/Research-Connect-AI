@@ -1,0 +1,315 @@
+{
+ "phase": "after",
+ "landing": "/dashboard",
+ "overflow": {
+  "/dashboard": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/workspace": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/reading-list": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/calendar": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/notifications": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/postings": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/researcher": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/similar": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/opportunities": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/browse": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/peers": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/supervisors": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/submissions": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  },
+  "/settings/notifications": {
+   "320": 0,
+   "360": 0,
+   "390": 0,
+   "768": 0,
+   "1024": 0,
+   "1280": 0,
+   "1440": 0
+  }
+ },
+ "axe": {
+  "/dashboard@1440": [],
+  "/workspace@1440": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 3
+   }
+  ],
+  "/researcher@1440": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 4
+   }
+  ],
+  "/researcher?section=interests@1440": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 3
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "/researcher?section=recommendations@1440": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 103
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "/researcher?section=personalization@1440": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 100
+   }
+  ],
+  "/researcher?section=history@1440": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 8
+   }
+  ],
+  "/similar@1440": [],
+  "/opportunities@1440": [],
+  "/notifications@1440": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 2
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "/settings/notifications@1440": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 6
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "nodes": 2
+   }
+  ],
+  "/calendar@1440": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 8
+   }
+  ],
+  "/dashboard@390": [],
+  "/workspace@390": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 3
+   }
+  ],
+  "/researcher@390": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 4
+   }
+  ],
+  "/researcher?section=interests@390": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 3
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "/researcher?section=recommendations@390": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 103
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "/researcher?section=personalization@390": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 100
+   }
+  ],
+  "/researcher?section=history@390": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 8
+   }
+  ],
+  "/similar@390": [],
+  "/opportunities@390": [],
+  "/notifications@390": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 2
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "nodes": 1
+   }
+  ],
+  "/settings/notifications@390": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 2
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "nodes": 2
+   }
+  ],
+  "/calendar@390": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "nodes": 8
+   }
+  ]
+ }
+}

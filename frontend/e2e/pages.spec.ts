@@ -20,7 +20,13 @@ test("every signed-in page renders against the live API without contract errors"
   await signInThroughTheForm(page, DEMO.student, DEMO_PASSWORD);
 
   const pages: [string, RegExp][] = [
-    ["/researcher", /Researcher Interest & Expertise Intelligence/],
+    ["/dashboard", /Welcome back/],
+    // P0: the profile is split into sections; interests are their own section.
+    ["/researcher?section=interests", /Researcher Interest & Expertise Intelligence/],
+    ["/researcher?section=recommendations", /Unified Evidence-Backed Recommendations/],
+    // Opened directly, the paper-based tools explain themselves instead of dead-ending.
+    ["/similar", /Similar Research/],
+    ["/opportunities", /Opportunity Matcher/],
     ["/researcher/preferences", /Researcher Preferences Foundation/],
     ["/workspace", /Opportunity Workspace/],
     ["/submissions", /Submissions/],

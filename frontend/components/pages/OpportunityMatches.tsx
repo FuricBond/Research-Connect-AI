@@ -7,14 +7,14 @@ import {
   BookOpen,
   Calendar,
   Loader2,
-  Sparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { OpportunityCard } from "../discovery/OpportunityCard";
 import { PaginationControls } from "../discovery/PaginationControls";
 import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
 import { matchOpportunitiesForResearch, ApiError } from "../../services/api";
-import { getSelectedWork } from "../../hooks/useSelectedWork";
+import { getSelectedWork, setSelectedWork as rememberSelectedWork } from "../../hooks/useSelectedWork";
+import { PaperContextRequired, ToolPageHeader } from "../discovery/PaperContextRequired";
 import type {
   ExplanationSchema,
   OpportunityMatchItem,
@@ -140,32 +140,37 @@ export function OpportunityMatchesPage() {
     router.push("/");
   };
 
+  // A paper picked on this page (P0.7) is remembered for the session like one picked in search.
+  const chooseWork = (work: ResearchWorkRead) => {
+    rememberSelectedWork(work);
+    setSelectedWork(work);
+    fetchMatches(work.id, filters);
+  };
+
+  const header = (
+    <ToolPageHeader
+      title="Opportunity Matcher"
+      description="Ranks calls for papers and venues for one paper you choose, with each call's deadline and venue risk."
+    />
+  );
+
   if (!selectedWork) {
     return (
-      <section className="opportunity-matches-page empty-selection">
-        <div className="state-container prompt-state">
-          <Sparkles size={32} className="prompt-icon" />
-          <h3>No Research Paper Selected</h3>
-          <p>
-            Please search for an academic paper in the <strong>Literature Search</strong> tab and click{" "}
-            <em>&quot;Match Calls &amp; Venues&quot;</em> to evaluate venue quality, publication type compatibility, and upcoming deadlines.
-          </p>
-          <button type="button" className="action-btn primary-btn" onClick={handleBackToSearch}>
-            <ArrowLeft size={16} />
-            <span>Go to Literature Search</span>
-          </button>
-        </div>
+      <section className="opportunity-matches-page empty-selection" aria-label="Opportunity Matcher">
+        {header}
+        <PaperContextRequired actionLabel="Match Calls & Venues" onChoose={chooseWork} />
       </section>
     );
   }
 
   return (
-    <section className="opportunity-matches-page" aria-label="Research Opportunity Matcher">
+    <section className="opportunity-matches-page" aria-label="Opportunity Matcher">
       {/* Back button */}
       <button type="button" className="back-link-btn" onClick={handleBackToSearch}>
         <ArrowLeft size={16} />
         <span>Back to Literature Search</span>
       </button>
+      {header}
 
       {/* Target Paper Banner */}
       <div className="source-paper-hero">

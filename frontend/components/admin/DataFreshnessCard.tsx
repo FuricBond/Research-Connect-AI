@@ -118,77 +118,81 @@ export function DataFreshnessCard() {
         </div>
       ) : refresh !== null ? (
         <>
-          <table className="auth-admin-table" aria-label="Research refresh status">
-            <tbody>
-              <tr>
-                <th scope="row">Scheduled refresh</th>
-                <td>{refresh.enabled ? `On, ${formatInterval(refresh.interval_seconds)}` : "Off"}</td>
-              </tr>
-              <tr>
-                <th scope="row">Last run</th>
-                <td>
-                  {refresh.last_run_started_at ? (
-                    <>
-                      <span className="auth-admin-name">{formatRelative(refresh.last_run_started_at)}</span>
-                      <span className="auth-admin-email">{formatAbsolute(refresh.last_run_started_at)}</span>
-                    </>
-                  ) : (
-                    "Never"
-                  )}
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Last run status</th>
-                <td>{statusLabel(refresh.last_run_status)}</td>
-              </tr>
-              <tr>
-                <th scope="row">Papers added (24 h)</th>
-                <td>{refresh.works_added_last_24h}</td>
-              </tr>
-              <tr>
-                <th scope="row">Next run</th>
-                <td>
-                  {refresh.next_run_estimate ? (
-                    <>
-                      <span className="auth-admin-name">{formatRelative(refresh.next_run_estimate)}</span>
-                      <span className="auth-admin-email">{formatAbsolute(refresh.next_run_estimate)}</span>
-                    </>
-                  ) : (
-                    "Not scheduled"
-                  )}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="auth-admin-table-scroll" role="region" aria-label="Research refresh status" tabIndex={0}>
+            <table className="auth-admin-table" aria-label="Research refresh status">
+              <tbody>
+                <tr>
+                  <th scope="row">Scheduled refresh</th>
+                  <td>{refresh.enabled ? `On, ${formatInterval(refresh.interval_seconds)}` : "Off"}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Last run</th>
+                  <td>
+                    {refresh.last_run_started_at ? (
+                      <>
+                        <span className="auth-admin-name">{formatRelative(refresh.last_run_started_at)}</span>
+                        <span className="auth-admin-email">{formatAbsolute(refresh.last_run_started_at)}</span>
+                      </>
+                    ) : (
+                      "Never"
+                    )}
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Last run status</th>
+                  <td>{statusLabel(refresh.last_run_status)}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Papers added (24 h)</th>
+                  <td>{refresh.works_added_last_24h}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Next run</th>
+                  <td>
+                    {refresh.next_run_estimate ? (
+                      <>
+                        <span className="auth-admin-name">{formatRelative(refresh.next_run_estimate)}</span>
+                        <span className="auth-admin-email">{formatAbsolute(refresh.next_run_estimate)}</span>
+                      </>
+                    ) : (
+                      "Not scheduled"
+                    )}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           {runs.length === 0 ? (
             <div className="auth-admin-empty">No research refresh has run yet.</div>
           ) : (
-            <table className="auth-admin-table" aria-label="Recent research refresh runs">
-              <thead>
-                <tr>
-                  <th scope="col">Lane</th>
-                  <th scope="col">Subfield</th>
-                  <th scope="col">Inserted</th>
-                  <th scope="col">Updated</th>
-                  <th scope="col">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {runs.map((run) => {
-                  const { lane, subfield } = passOf(run);
-                  return (
-                    <tr key={run.id}>
-                      <td>{lane}</td>
-                      <td>{subfield}</td>
-                      <td>{run.records_inserted}</td>
-                      <td>{run.records_updated}</td>
-                      <td>{statusLabel(run.status, run.error_message)}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="auth-admin-table-scroll" role="region" aria-label="Recent research refresh runs" tabIndex={0}>
+              <table className="auth-admin-table" aria-label="Recent research refresh runs">
+                <thead>
+                  <tr>
+                    <th scope="col">Lane</th>
+                    <th scope="col">Subfield</th>
+                    <th scope="col">Inserted</th>
+                    <th scope="col">Updated</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {runs.map((run) => {
+                    const { lane, subfield } = passOf(run);
+                    return (
+                      <tr key={run.id}>
+                        <td>{lane}</td>
+                        <td>{subfield}</td>
+                        <td>{run.records_inserted}</td>
+                        <td>{run.records_updated}</td>
+                        <td>{statusLabel(run.status, run.error_message)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </>
       ) : null}

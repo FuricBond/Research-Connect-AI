@@ -500,9 +500,6 @@ export function PersonalizationSummaryView({
               <TrendingUp size={16} color="#8b5cf6" />
               <span>Learned from Activity</span>
             </div>
-            <span style={{ fontSize: "11px", color: "#64748b", background: "#ffffff", padding: "2px 8px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
-              Phase 3.6 Behavioral
-            </span>
           </div>
 
           {summary.behavioral_signals_count > 0 ? (

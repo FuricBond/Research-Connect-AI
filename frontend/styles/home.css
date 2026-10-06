@@ -1,0 +1,190 @@
+/* P0.3 — the signed-in home. Restrained on purpose: existing tokens only, no new visual
+   language; P1 restyles it with the design system. */
+
+.home-page {
+  display: grid;
+  gap: 28px;
+  max-width: 1040px;
+}
+
+.home-header h1 {
+  margin: 0 0 6px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+  overflow-wrap: anywhere;
+}
+
+.home-header p {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 70ch;
+}
+
+.home-section {
+  display: grid;
+  gap: 12px;
+}
+
+.home-section > h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.home-panel {
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.home-panel-title {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.home-panel-text,
+.home-muted {
+  margin: 0;
+  color: var(--text-body);
+}
+
+.home-muted {
+  color: var(--text-muted);
+}
+
+.home-page a:not(.home-link) {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.home-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--risk-high-text);
+}
+
+.home-retry {
+  padding: 4px 10px;
+  border: 1px solid var(--border-hover);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.home-deadlines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.home-deadline {
+  display: grid;
+  gap: 4px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.home-deadline:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.home-deadline-title {
+  color: var(--text-main);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.home-page a.home-deadline-title {
+  color: var(--text-main);
+}
+
+.home-deadline-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+}
+
+.home-deadline-status {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.home-more {
+  padding-top: 10px;
+}
+
+.home-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.home-link {
+  display: grid;
+  gap: 4px;
+  height: 100%;
+  padding: 14px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.home-link:hover {
+  border-color: var(--primary);
+}
+
+.home-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.home-link-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.home-link-title svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.home-link-description {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 767px) {
+  .home-header h1 {
+    font-size: 1.45rem;
+  }
+
+  .home-panel {
+    padding: 14px 16px;
+  }
+
+  .home-links {
+    grid-template-columns: 1fr;
+  }
+}

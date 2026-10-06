@@ -2,188 +2,164 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, BookMarked, BookOpen, Briefcase, Calendar, CalendarDays, Compass, FileText, GraduationCap, Megaphone, ShieldCheck, Sparkles, User, Users } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import { ChevronDown, Menu } from "lucide-react";
 import { useSession } from "../auth/SessionProvider";
 import { useUnreadNotificationCount } from "../../hooks/useUnreadNotificationCount";
+import { NAV_GROUP_LABELS, menuGroups, navigationFor, type ResolvedNavItem } from "../../utils/navigation";
 
 /**
- * DiscoveryNavbar — migrated from React tab-state to Next.js Link navigation.
+ * The header navigation (P0 bridge to the future application shell).
  *
- * Active tab is detected from the current pathname instead of a prop,
- * so it works correctly with server-side rendering and browser history.
+ * The destinations come from utils/navigation.ts. Each one is either shown in the bar from a
+ * given width or listed in the "More" menu (called "Menu" on phones), and the menu lists
+ * exactly the destinations the bar is not showing at that width — so nothing is lost when the
+ * window is narrow. The bar never scrolls sideways. The current page carries
+ * aria-current="page", in the bar and in the menu.
  *
- * Tabs whose pages need an account appear only once there is one, and the administration
- * tab only for an ADMIN account. Hiding a tab is a convenience, never a permission: the
- * pages behind them are guarded and the backend authorises every request.
+ * Tabs whose pages need an account appear only once there is one, and role-specific tabs only
+ * for that role. Hiding a tab is a convenience, never a permission: the pages behind them are
+ * guarded and the backend authorises every request.
  */
 export function DiscoveryNavbar() {
-  const pathname = usePathname();
-  const { status, hasRole } = useSession();
+  const pathname = usePathname() ?? "/";
+  const { status, role } = useSession();
 
   // Treat "still restoring" as not signed in: a tab that appears is better than one that
   // appears and then vanishes.
-  const isAuthenticated = status === "authenticated";
-  const isAdmin = isAuthenticated && hasRole("ADMIN");
-  const isStudent = isAuthenticated && hasRole("STUDENT");
+  const isAuthenticated = status === "authenticated" && role !== null;
   // Phase 5.16: refreshed every 30 s while the tab is visible.
   const unreadCount = useUnreadNotificationCount(isAuthenticated);
 
-  const isSearch = pathname === "/";
-  const isSimilar = pathname === "/similar";
-  const isOpportunities = pathname === "/opportunities";
-  const isBrowse = pathname === "/browse";
-  const isPostings = pathname.startsWith("/postings");
-  const isPeers = pathname.startsWith("/peers");
-  const isSupervisors = pathname.startsWith("/supervisors");
-  const isWorkspace = pathname.startsWith("/workspace");
-  const isSubmissions = pathname.startsWith("/submissions");
-  const isReadingList = pathname.startsWith("/reading-list");
-  const isCalendar = pathname.startsWith("/calendar");
-  const isResearcher = pathname.startsWith("/researcher");
-  const isAdminRoute = pathname.startsWith("/admin");
-  const isNotifications = pathname.startsWith("/notifications") || pathname.startsWith("/settings/notifications");
+  const items = navigationFor(isAuthenticated ? role : null, pathname);
+  const barItems = items.filter((item) => item.placement !== "menu");
+  const groups = menuGroups(items);
+  const activeItem = items.find((item) => item.active);
+
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuId = useId();
+  const menuButton = useRef<HTMLButtonElement>(null);
+  const menuArea = useRef<HTMLDivElement>(null);
+
+  // Following a link closes the menu.
+  useEffect(() => setMenuOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!menuArea.current?.contains(event.target as Node)) setMenuOpen(false);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        menuButton.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [menuOpen]);
 
   return (
-    <nav className="discovery-nav" aria-label="Main Discovery Navigation">
-      <div className="discovery-nav-tabs">
-        <Link
-          href="/"
-          className={`discovery-nav-tab ${isSearch ? "active" : ""}`}
-        >
-          <BookOpen size={16} />
-          <span>Literature Search</span>
-        </Link>
+    <nav className="discovery-nav" aria-label="Main">
+      <ul className="discovery-nav-tabs">
+        {barItems.map((item) => (
+          <li key={item.href} className="discovery-nav-item" data-inline={item.placement}>
+            <NavLink item={item} className="discovery-nav-tab" unreadCount={unreadCount} />
+          </li>
+        ))}
+      </ul>
 
-        <Link
-          href="/similar"
-          className={`discovery-nav-tab ${isSimilar ? "active" : ""}`}
-        >
-          <Compass size={16} />
-          <span>Similar Research</span>
-          {isSimilar && <span className="nav-pill">Active</span>}
-        </Link>
-
-        <Link
-          href="/opportunities"
-          className={`discovery-nav-tab ${isOpportunities ? "active" : ""}`}
-        >
-          <Sparkles size={16} />
-          <span>Opportunity Matcher</span>
-          {isOpportunities && <span className="nav-pill">Active</span>}
-        </Link>
-
-        <Link
-          href="/browse"
-          className={`discovery-nav-tab ${isBrowse ? "active" : ""}`}
-        >
-          <Calendar size={16} />
-          <span>Browse All Calls</span>
-        </Link>
-
-        <Link
-          href="/postings"
-          className={`discovery-nav-tab ${isPostings ? "active" : ""}`}
-        >
-          <Megaphone size={16} />
-          <span>Research Postings</span>
-          {isPostings && <span className="nav-pill">Active</span>}
-        </Link>
-
-        {isAuthenticated && (
-          <>
-        <Link
-          href="/workspace"
-          className={`discovery-nav-tab ${isWorkspace ? "active" : ""}`}
-        >
-          <Briefcase size={16} />
-          <span>Opportunity Workspace</span>
-          {isWorkspace && <span className="nav-pill">Active</span>}
-        </Link>
-
-        <Link
-          href="/submissions"
-          className={`discovery-nav-tab ${isSubmissions ? "active" : ""}`}
-        >
-          <FileText size={16} />
-          <span>Submissions</span>
-          {isSubmissions && <span className="nav-pill">Active</span>}
-        </Link>
-
-        <Link
-          href="/reading-list"
-          className={`discovery-nav-tab ${isReadingList ? "active" : ""}`}
-        >
-          <BookMarked size={16} />
-          <span>Reading List</span>
-          {isReadingList && <span className="nav-pill">Active</span>}
-        </Link>
-
-        <Link
-          href="/calendar"
-          className={`discovery-nav-tab ${isCalendar ? "active" : ""}`}
-        >
-          <CalendarDays size={16} />
-          <span>Research Calendar</span>
-          {isCalendar && <span className="nav-pill">Active</span>}
-        </Link>
-
-        <Link
-          href="/peers"
-          className={`discovery-nav-tab ${isPeers ? "active" : ""}`}
-        >
-          <Users size={16} />
-          <span>Find Peers</span>
-          {isPeers && <span className="nav-pill">Active</span>}
-        </Link>
-
-        {isStudent && (
-          <Link
-            href="/supervisors"
-            className={`discovery-nav-tab ${isSupervisors ? "active" : ""}`}
+      {groups.length > 0 && (
+        <div className="discovery-nav-more" ref={menuArea}>
+          <button
+            ref={menuButton}
+            type="button"
+            className="discovery-nav-more-btn"
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
+            onClick={() => setMenuOpen((open) => !open)}
+            // The button marks the current section only while that section's link is inside the
+            // menu at this width (see the styles keyed on data-active-inline).
+            data-active-inline={activeItem && activeItem.placement !== "always" ? activeItem.placement : undefined}
           >
-            <GraduationCap size={16} />
-            <span>Find a Supervisor</span>
-            {isSupervisors && <span className="nav-pill">Active</span>}
-          </Link>
-        )}
+            <Menu size={16} aria-hidden="true" className="discovery-nav-more-icon-narrow" />
+            <span className="discovery-nav-more-label-wide">More</span>
+            <span className="discovery-nav-more-label-narrow">Menu</span>
+            <ChevronDown size={14} aria-hidden="true" className="discovery-nav-more-chevron" />
+          </button>
 
-        <Link
-          href="/researcher"
-          className={`discovery-nav-tab ${isResearcher ? "active" : ""}`}
-        >
-          <User size={16} />
-          <span>Researcher Profile</span>
-          {isResearcher && <span className="nav-pill">Active</span>}
-        </Link>
-
-        <Link
-          href="/notifications"
-          className={`discovery-nav-tab ${isNotifications ? "active" : ""}`}
-        >
-          <Bell size={16} />
-          <span>Notifications</span>
-          {unreadCount !== null && unreadCount > 0 && (
-            <span className="nav-unread-badge">
-              {unreadCount > 99 ? "99+" : unreadCount}
-              <span className="visually-hidden"> unread</span>
-            </span>
-          )}
-          {isNotifications && <span className="nav-pill">Active</span>}
-        </Link>
-          </>
-        )}
-
-        {isAdmin && (
-          <Link
-            href="/admin"
-            className={`discovery-nav-tab ${isAdminRoute ? "active" : ""}`}
-          >
-            <ShieldCheck size={16} />
-            <span>Administration</span>
-            {isAdminRoute && <span className="nav-pill">Active</span>}
-          </Link>
-        )}
-      </div>
+          <div id={menuId} className="discovery-nav-menu" hidden={!menuOpen}>
+            {groups.map(({ group, items: groupItems }) => (
+              <div
+                key={group}
+                className="discovery-nav-menu-group"
+                role="group"
+                aria-labelledby={`${menuId}-${group}`}
+                data-hide-from={emptyFrom(groupItems)}
+              >
+                <p id={`${menuId}-${group}`} className="discovery-nav-menu-heading">
+                  {NAV_GROUP_LABELS[group]}
+                </p>
+                <ul>
+                  {groupItems.map((item) => (
+                    <li key={item.href} className="discovery-nav-menu-item" data-inline={item.placement}>
+                      <NavLink item={item} className="discovery-nav-menu-link" unreadCount={unreadCount} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </nav>
+  );
+}
+
+const WIDTH_ORDER = ["md", "lg", "xl"] as const;
+
+/**
+ * The width from which every destination of a menu group is in the bar, so the group (and its
+ * heading) has nothing left to show; undefined when the group always keeps something.
+ */
+function emptyFrom(items: readonly ResolvedNavItem[]): (typeof WIDTH_ORDER)[number] | undefined {
+  if (items.some((item) => item.placement === "menu")) return undefined;
+  let widest: (typeof WIDTH_ORDER)[number] | undefined;
+  for (const item of items) {
+    const index = WIDTH_ORDER.indexOf(item.placement as (typeof WIDTH_ORDER)[number]);
+    if (index >= 0 && (widest === undefined || index > WIDTH_ORDER.indexOf(widest))) widest = WIDTH_ORDER[index];
+  }
+  return widest;
+}
+
+function NavLink({
+  item,
+  className,
+  unreadCount,
+}: {
+  item: ResolvedNavItem;
+  className: string;
+  unreadCount: number | null;
+}) {
+  const Icon = item.icon;
+  return (
+    <Link
+      href={item.href}
+      className={`${className}${item.active ? " active" : ""}`}
+      aria-current={item.active ? "page" : undefined}
+    >
+      <Icon size={16} aria-hidden="true" />
+      <span>{item.label}</span>
+      {item.showsUnreadCount && unreadCount !== null && unreadCount > 0 && (
+        <span className="nav-unread-badge">
+          {unreadCount > 99 ? "99+" : unreadCount}
+          <span className="visually-hidden"> unread</span>
+        </span>
+      )}
+    </Link>
   );
 }

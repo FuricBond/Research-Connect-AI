@@ -26,7 +26,6 @@ import {
   UserPlus,
   Users,
 } from "lucide-react";
-import { DiscoveryNavbar } from "@/components/discovery/DiscoveryNavbar";
 import {
   fetchNotificationDeliveryStatus,
   fetchNotifications,
@@ -225,9 +224,7 @@ function NotificationsPage() {
 
   return (
     <div className="discovery-container">
-      <DiscoveryNavbar />
-
-      <main className="notifications-container">
+      <div className="notifications-container">
         {/* Header */}
         <div className="notifications-header">
           <div className="notifications-header-top">
@@ -491,7 +488,7 @@ function NotificationsPage() {
             })}
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
+import { humanizeEnum } from "../../utils/date";
 
 import React, { useState } from "react";
 import {
   BookOpen,
   Building2,
   ExternalLink,
-  GraduationCap,
   Mail,
   Pencil,
   Save,
@@ -104,28 +104,6 @@ export function ResearcherProfileView({
 
   return (
     <div style={{ maxWidth: "1000px", margin: "0 auto", padding: "24px 16px" }}>
-      {/* Notice Banner */}
-      <div
-        style={{
-          background: "#f0fdf4",
-          border: "1px solid #bbf7d0",
-          borderRadius: "var(--radius-md)",
-          padding: "12px 16px",
-          marginBottom: "20px",
-          fontSize: "13px",
-          color: "#166534",
-          display: "flex",
-          alignItems: "center",
-          gap: "8px",
-        }}
-      >
-        <GraduationCap size={18} color="#0f766e" />
-        <span>
-          <strong>Phase 3.1: Researcher Profile Foundation</strong> — Canonical identity and
-          knowledge layer connectivity. Recommendations remain unpersonalized until Phase 3.4+.
-        </span>
-      </div>
-
       {/* Completeness Badge */}
       <ProfileCompletenessBadge completeness={profile.completeness} />
 
@@ -193,9 +171,10 @@ export function ResearcherProfileView({
             marginBottom: "20px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", minWidth: 0 }}>
             <div
               style={{
+                flexShrink: 0,
                 width: "64px",
                 height: "64px",
                 borderRadius: "var(--radius-full)",
@@ -210,8 +189,8 @@ export function ResearcherProfileView({
               <User size={32} />
             </div>
 
-            <div>
-              <h1 style={{ margin: "0 0 4px 0", fontSize: "24px", fontWeight: 700 }}>
+            <div style={{ minWidth: 0 }}>
+              <h1 style={{ margin: "0 0 4px 0", fontSize: "24px", fontWeight: 700, overflowWrap: "anywhere" }}>
                 {profile.full_name}
               </h1>
               <div
@@ -225,23 +204,26 @@ export function ResearcherProfileView({
                 }}
               >
                 {profile.email && (
-                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <Mail size={14} />
+                  <span style={{ display: "flex", alignItems: "center", gap: "4px", minWidth: 0, overflowWrap: "anywhere" }}>
+                    <Mail size={14} style={{ flexShrink: 0 }} />
                     {profile.email}
                   </span>
                 )}
-                <span
-                  style={{
-                    background: "var(--bg-muted)",
-                    padding: "2px 8px",
-                    borderRadius: "var(--radius-full)",
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    color: "var(--primary)",
-                  }}
-                >
-                  {profile.academic_status}
-                </span>
+                {/* An unset stage ("UNKNOWN") is simply not shown. */}
+                {profile.academic_status && profile.academic_status !== "UNKNOWN" && (
+                  <span
+                    style={{
+                      background: "var(--bg-muted)",
+                      padding: "2px 8px",
+                      borderRadius: "var(--radius-full)",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      color: "var(--primary)",
+                    }}
+                  >
+                    {humanizeEnum(profile.academic_status)}
+                  </span>
+                )}
                 {profile.canonical_researcher_id && (
                   <span
                     style={{

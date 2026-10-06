@@ -283,7 +283,18 @@
 
 .auth-admin {
   display: grid;
+  /* P0.6: the column may shrink below a table's width; the tables scroll in their own box. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
+}
+
+.auth-admin-table-scroll {
+  overflow-x: auto;
+}
+
+.auth-admin-table-scroll:focus-visible {
+  outline: 2px solid var(--primary, #0f766e);
+  outline-offset: 2px;
 }
 
 .auth-admin-head {

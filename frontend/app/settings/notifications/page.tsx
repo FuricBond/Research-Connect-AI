@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Save,
 } from "lucide-react";
-import { DiscoveryNavbar } from "@/components/discovery/DiscoveryNavbar";
 import {
   changePassword,
   fetchNotificationDeliveryStatus,
@@ -195,9 +194,7 @@ function NotificationSettingsPage() {
 
   return (
     <div className="discovery-container">
-      <DiscoveryNavbar />
-
-      <main className="preferences-container">
+      <div className="preferences-container">
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
           <Link
@@ -272,6 +269,7 @@ function NotificationSettingsPage() {
               <label className="switch">
                 <input
                   type="checkbox"
+                  aria-label="In-App Notifications"
                   checked={preferences?.in_app_enabled ?? true}
                   onChange={() => handleTogglePreference("in_app_enabled")}
                 />
@@ -321,6 +319,7 @@ function NotificationSettingsPage() {
               <label className="switch">
                 <input
                   type="checkbox"
+                  aria-label="Upcoming Deadline Reminders"
                   checked={preferences?.deadline_reminders_enabled ?? true}
                   onChange={() => handleTogglePreference("deadline_reminders_enabled")}
                 />
@@ -336,6 +335,7 @@ function NotificationSettingsPage() {
               <label className="switch">
                 <input
                   type="checkbox"
+                  aria-label="Deadline Extensions"
                   checked={preferences?.extension_notifications_enabled ?? true}
                   onChange={() => handleTogglePreference("extension_notifications_enabled")}
                 />
@@ -351,6 +351,7 @@ function NotificationSettingsPage() {
               <label className="switch">
                 <input
                   type="checkbox"
+                  aria-label="Deadline Conflicts"
                   checked={preferences?.conflict_notifications_enabled ?? true}
                   onChange={() => handleTogglePreference("conflict_notifications_enabled")}
                 />
@@ -366,6 +367,7 @@ function NotificationSettingsPage() {
               <label className="switch">
                 <input
                   type="checkbox"
+                  aria-label="Calendar Planning Events"
                   checked={preferences?.calendar_event_reminders_enabled ?? true}
                   onChange={() => handleTogglePreference("calendar_event_reminders_enabled")}
                 />
@@ -416,65 +418,68 @@ function NotificationSettingsPage() {
             Define exact time offsets for advance deadline reminders (e.g. 14 days, 3 days, 24 hours).
           </p>
 
-          <table className="rules-table">
-            <thead>
-              <tr>
-                <th>Offset</th>
-                <th>Channel</th>
-                <th>Target Milestone</th>
-                <th>Status</th>
-                <th style={{ textAlign: "right" }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rules.map((rule) => (
-                <tr key={rule.id}>
-                  <td style={{ fontWeight: 600 }}>
-                    {rule.offset_amount} {rule.offset_unit.toLowerCase()} before
-                  </td>
-                  <td>
-                    <span className="notification-pill channel">
-                      {/* Push delivery does not exist yet; older rules may still name it. */}
-                      {rule.delivery_channel === "PUSH" ? "Push (not available yet)" : rule.delivery_channel}
-                    </span>
-                  </td>
-                  <td>
-                    {rule.event_type ? rule.event_type.replace("_", " ") : "All Milestones"}
-                  </td>
-                  <td>
-                    <span
-                      style={{
-                        color: rule.is_active ? "#059669" : "var(--text-muted)",
-                        fontSize: 12,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {rule.is_active ? "Active" : "Paused"}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: "right" }}>
-                    <button
-                      type="button"
-                      className="notification-btn-icon"
-                      onClick={() => handleDeleteRule(rule.id)}
-                      title="Delete Rule"
-                    >
-                      <Trash2 size={14} color="#ef4444" />
-                    </button>
-                  </td>
+          <div className="rules-table-scroll" role="region" aria-label="Configured reminder schedules" tabIndex={0}>
+            <table className="rules-table">
+              <thead>
+                <tr>
+                  <th>Offset</th>
+                  <th>Channel</th>
+                  <th>Target Milestone</th>
+                  <th>Status</th>
+                  <th style={{ textAlign: "right" }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rules.map((rule) => (
+                  <tr key={rule.id}>
+                    <td style={{ fontWeight: 600 }}>
+                      {rule.offset_amount} {rule.offset_unit.toLowerCase()} before
+                    </td>
+                    <td>
+                      <span className="notification-pill channel">
+                        {/* Push delivery does not exist yet; older rules may still name it. */}
+                        {rule.delivery_channel === "PUSH" ? "Push (not available yet)" : rule.delivery_channel}
+                      </span>
+                    </td>
+                    <td>
+                      {rule.event_type ? rule.event_type.replace("_", " ") : "All Milestones"}
+                    </td>
+                    <td>
+                      <span
+                        style={{
+                          color: rule.is_active ? "#059669" : "var(--text-muted)",
+                          fontSize: 12,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {rule.is_active ? "Active" : "Paused"}
+                      </span>
+                    </td>
+                    <td style={{ textAlign: "right" }}>
+                      <button
+                        type="button"
+                        className="notification-btn-icon"
+                        onClick={() => handleDeleteRule(rule.id)}
+                        title="Delete Rule"
+                      >
+                        <Trash2 size={14} color="#ef4444" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {/* Add Rule Form */}
           <form className="rule-add-form" onSubmit={handleAddRule}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
               <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Remind me</span>
               <input
                 type="number"
                 min="1"
                 max="365"
+                aria-label="Reminder amount"
                 value={newOffsetAmount}
                 onChange={(e) => setNewOffsetAmount(Number(e.target.value))}
                 className="notifications-select"
@@ -483,6 +488,7 @@ function NotificationSettingsPage() {
               />
               <select
                 className="notifications-select"
+                aria-label="Reminder unit"
                 value={newOffsetUnit}
                 onChange={(e) => setNewOffsetUnit(e.target.value as OffsetUnit)}
               >
@@ -493,6 +499,7 @@ function NotificationSettingsPage() {
               <span style={{ fontSize: 13, color: "var(--text-muted)" }}>before via</span>
               <select
                 className="notifications-select"
+                aria-label="Reminder channel"
                 value={newChannel}
                 onChange={(e) => setNewChannel(e.target.value as DeliveryChannel)}
               >
@@ -578,7 +585,7 @@ function NotificationSettingsPage() {
             </button>
           </form>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

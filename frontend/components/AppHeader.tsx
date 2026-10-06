@@ -1,28 +1,32 @@
 "use client";
 
+import Link from "next/link";
 import { GraduationCap } from "lucide-react";
 import { AuthMenu } from "./auth/AuthMenu";
+import { useSession } from "./auth/SessionProvider";
 
 /**
- * AppHeader — static top navigation bar.
- * Extracted from App.tsx. Rendered once in app/layout.tsx.
+ * AppHeader — the brand and the account control, rendered once in app/layout.tsx.
+ * The brand leads home: the signed-in home for an account, literature search for a visitor.
  */
 export function AppHeader() {
+  const { status } = useSession();
+  const home = status === "authenticated" ? "/dashboard" : "/";
+
   return (
     <header className="app-header">
       <div className="header-inner">
-        <div className="brand-wrap">
-          <div className="brand-icon-box">
+        <Link href={home} className="brand-wrap" aria-label="ResearchConnect AI home">
+          <div className="brand-icon-box" aria-hidden="true">
             <GraduationCap size={22} />
           </div>
           <div>
             <span className="brand-name">ResearchConnect AI</span>
             <span className="brand-tagline">Academic Intelligence &amp; Discovery</span>
           </div>
-        </div>
+        </Link>
 
         <div className="header-meta">
-          <span className="phase-indicator">Phase 2.7 Intelligence Engine</span>
           <AuthMenu />
         </div>
       </div>

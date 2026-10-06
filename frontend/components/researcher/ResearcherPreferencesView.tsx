@@ -370,7 +370,7 @@ export function ResearcherPreferencesView({
                 Personal Preferences
               </h3>
               <span style={{ fontSize: "13px", color: "var(--text-muted)" }}>
-                Phase 3.3 — Canonical preference intelligence and attribute affinity
+                What you have told us you are looking for, and what your activity suggests
               </span>
             </div>
           </div>

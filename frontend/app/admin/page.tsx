@@ -135,72 +135,74 @@ function AdminConsole() {
       ) : users.length === 0 ? (
         <div className="auth-admin-empty">No accounts match this filter.</div>
       ) : (
-        <table className="auth-admin-table">
-          <thead>
-            <tr>
-              <th scope="col">Account</th>
-              <th scope="col">Role</th>
-              <th scope="col">Active</th>
-              <th scope="col">Verified</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((row) => (
-              <tr key={row.id} className={pendingId === row.id ? "auth-admin-row-pending" : ""}>
-                <td>
-                  <span className="auth-admin-name">{row.full_name}</span>
-                  <span className="auth-admin-email">{row.email}</span>
-                </td>
-                <td>
-                  <select
-                    value={row.role}
-                    disabled={pendingId === row.id}
-                    onChange={(e) => applyChange(row, { role: e.target.value as PlatformRole })}
-                    aria-label={`Role for ${row.email}`}
-                  >
-                    {ASSIGNABLE_ROLES.map((value) => (
-                      <option key={value} value={value}>
-                        {ROLE_LABELS[value]}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td>
-                  <label className="auth-admin-toggle">
-                    <input
-                      type="checkbox"
-                      checked={row.is_active}
-                      disabled={pendingId === row.id}
-                      onChange={(e) => applyChange(row, { is_active: e.target.checked })}
-                      aria-label={`Active for ${row.email}`}
-                    />
-                    <span>{row.is_active ? "Active" : "Disabled"}</span>
-                  </label>
-                </td>
-                <td>
-                  <label className="auth-admin-toggle">
-                    <input
-                      type="checkbox"
-                      checked={row.is_verified}
-                      disabled={pendingId === row.id}
-                      onChange={(e) => applyChange(row, { is_verified: e.target.checked })}
-                      aria-label={`Verified for ${row.email}`}
-                    />
-                    <span>
-                      {row.is_verified ? (
-                        <>
-                          <ShieldCheck size={12} aria-hidden="true" /> Verified
-                        </>
-                      ) : (
-                        "Unverified"
-                      )}
-                    </span>
-                  </label>
-                </td>
+        <div className="auth-admin-table-scroll" role="region" aria-label="Accounts" tabIndex={0}>
+          <table className="auth-admin-table">
+            <thead>
+              <tr>
+                <th scope="col">Account</th>
+                <th scope="col">Role</th>
+                <th scope="col">Active</th>
+                <th scope="col">Verified</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {users.map((row) => (
+                <tr key={row.id} className={pendingId === row.id ? "auth-admin-row-pending" : ""}>
+                  <td>
+                    <span className="auth-admin-name">{row.full_name}</span>
+                    <span className="auth-admin-email">{row.email}</span>
+                  </td>
+                  <td>
+                    <select
+                      value={row.role}
+                      disabled={pendingId === row.id}
+                      onChange={(e) => applyChange(row, { role: e.target.value as PlatformRole })}
+                      aria-label={`Role for ${row.email}`}
+                    >
+                      {ASSIGNABLE_ROLES.map((value) => (
+                        <option key={value} value={value}>
+                          {ROLE_LABELS[value]}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td>
+                    <label className="auth-admin-toggle">
+                      <input
+                        type="checkbox"
+                        checked={row.is_active}
+                        disabled={pendingId === row.id}
+                        onChange={(e) => applyChange(row, { is_active: e.target.checked })}
+                        aria-label={`Active for ${row.email}`}
+                      />
+                      <span>{row.is_active ? "Active" : "Disabled"}</span>
+                    </label>
+                  </td>
+                  <td>
+                    <label className="auth-admin-toggle">
+                      <input
+                        type="checkbox"
+                        checked={row.is_verified}
+                        disabled={pendingId === row.id}
+                        onChange={(e) => applyChange(row, { is_verified: e.target.checked })}
+                        aria-label={`Verified for ${row.email}`}
+                      />
+                      <span>
+                        {row.is_verified ? (
+                          <>
+                            <ShieldCheck size={12} aria-hidden="true" /> Verified
+                          </>
+                        ) : (
+                          "Unverified"
+                        )}
+                      </span>
+                    </label>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   );

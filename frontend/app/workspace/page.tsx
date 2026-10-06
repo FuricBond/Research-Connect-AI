@@ -24,7 +24,6 @@ import {
   Archive,
   ArrowRight,
   Briefcase,
-  Calendar,
   Clock,
   ExternalLink,
   FileText,
@@ -39,6 +38,10 @@ import {
   X,
 } from "lucide-react";
 import { RequireAuth } from "../../components/auth/RequireAuth";
+import { DeadlineCountdown } from "../../components/indicators/DeadlineCountdown";
+import { RiskIndicator } from "../../components/indicators/RiskIndicator";
+import { humanizeEnum } from "../../utils/date";
+import { workspaceDeadline } from "../../utils/workspace";
 
 type FilterTab = "ALL" | WorkspaceStatus;
 
@@ -372,6 +375,7 @@ function WorkspacePage() {
           </div>
 
           <select
+            aria-label="Filter by priority"
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
             className="workspace-select"
@@ -422,13 +426,7 @@ function WorkspacePage() {
             const isMutating = mutatingId === item.id;
             const opp = item.opportunity;
             const venueOrOrg = opp?.publisher || opp?.organizer;
-            const deadlineInfo = opp?.deadline_intelligence;
-            const primaryDeadline =
-              opp?.submission_deadline ||
-              deadlineInfo?.primary_view?.canonical_deadline?.utc_deadline ||
-              deadlineInfo?.primary_view?.canonical_deadline?.local_date;
-            const daysRemaining = deadlineInfo?.primary_view?.canonical_assessment?.days_remaining;
-            const urgency = deadlineInfo?.overall_urgency_tier || "UNKNOWN";
+            const deadline = workspaceDeadline(opp);
             const riskLevel =
               opp?.risk_explanation?.risk_level ||
               (opp?.risk_score !== null && opp?.risk_score !== undefined
@@ -445,14 +443,14 @@ function WorkspacePage() {
                   <div className="workspace-card-title-area">
                     <div className="workspace-card-badges">
                       <span className={`workspace-status-badge ${getStatusBadgeClass(item.status)}`}>
-                        {item.status}
+                        {humanizeEnum(item.status)}
                       </span>
                       <span className={`workspace-priority-badge ${getPriorityBadgeClass(item.priority)}`}>
-                        {item.priority}
+                        {humanizeEnum(item.priority)} priority
                       </span>
                       {item.archived_at && (
                         <span className="workspace-status-badge status-badge-archived">
-                          ARCHIVED
+                          Archived
                         </span>
                       )}
                     </div>
@@ -469,7 +467,7 @@ function WorkspacePage() {
                       )}
                       {opp?.opportunity_type && (
                         <span className="workspace-meta-item">
-                          <strong>Type:</strong> {opp.opportunity_type}
+                          <strong>Type:</strong> {humanizeEnum(opp.opportunity_type)}
                         </span>
                       )}
                       <span className="workspace-meta-item">
@@ -497,33 +495,13 @@ function WorkspacePage() {
                 {opp && (
                   <div className="workspace-intel-strip">
                     <div className="workspace-intel-left">
-                      {primaryDeadline ? (
-                        <span
-                          className={`workspace-deadline-pill ${
-                            urgency === "CRITICAL"
-                              ? "deadline-pill-critical"
-                              : urgency === "URGENT"
-                              ? "deadline-pill-urgent"
-                              : "deadline-pill-normal"
-                          }`}
-                        >
-                          <Calendar size={13} />
-                          Deadline: {new Date(primaryDeadline).toLocaleDateString()}
-                          {daysRemaining !== null && daysRemaining !== undefined && (
-                            <span>({daysRemaining}d remaining)</span>
-                          )}
-                        </span>
-                      ) : (
-                        <span className="workspace-meta-item">
-                          <Calendar size={13} /> No deadline specified
-                        </span>
-                      )}
-
-                      {riskLevel && riskLevel !== "UNKNOWN" && (
-                        <span className="workspace-risk-pill">
-                          Risk: {riskLevel}
-                        </span>
-                      )}
+                      <DeadlineCountdown
+                        deadline={deadline.deadline}
+                        daysRemaining={deadline.daysRemaining}
+                        status={deadline.status}
+                        urgencyTier={deadline.urgencyTier}
+                      />
+                      <RiskIndicator level={riskLevel} isPredatory={opp.is_predatory_flag} />
                     </div>
                   </div>
                 )}
@@ -626,25 +604,27 @@ function WorkspacePage() {
                           onClick={() => handleTransition(item.id, nextStatus)}
                           disabled={isMutating}
                           className="workspace-action-btn"
+                          aria-label={`Move to ${humanizeEnum(nextStatus)}`}
                         >
                           {isMutating ? (
                             <Loader2 size={12} className="animate-spin" />
                           ) : (
                             <ArrowRight size={12} />
                           )}
-                          {nextStatus}
+                          {humanizeEnum(nextStatus)}
                         </button>
                       ))
                     ) : (
-                      <span style={{ fontSize: "12px", color: "var(--text-subtle)" }}>
-                        Terminal state
+                      <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+                        Final status
                       </span>
                     )}
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div className="workspace-card-tools">
                     {/* Priority Selector */}
                     <select
+                      aria-label={`Priority for ${opp?.title || "this opportunity"}`}
                       value={item.priority}
                       onChange={(e) =>
                         handlePriorityChange(item.id, e.target.value as WorkspacePriority)

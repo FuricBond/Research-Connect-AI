@@ -233,6 +233,7 @@ export const PersonalizationSettingsCard: React.FC<PersonalizationSettingsCardPr
 
               <button
                 onClick={() => handleToggle("personalization_enabled")}
+                aria-label="Personalization"
                 disabled={isUpdating}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                   settings.personalization_enabled
@@ -273,6 +274,7 @@ export const PersonalizationSettingsCard: React.FC<PersonalizationSettingsCardPr
 
               <button
                 onClick={() => handleToggle("adaptive_signals_enabled")}
+                aria-label="Adaptive Behavioral Learning"
                 disabled={isUpdating || !settings.personalization_enabled}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                   settings.adaptive_signals_enabled && settings.personalization_enabled
@@ -315,6 +317,7 @@ export const PersonalizationSettingsCard: React.FC<PersonalizationSettingsCardPr
 
               <button
                 onClick={() => handleToggle("feedback_learning_enabled")}
+                aria-label="Feedback Learning from Future Interactions"
                 disabled={isUpdating}
                 className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
                   settings.feedback_learning_enabled
