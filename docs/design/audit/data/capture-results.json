@@ -1,0 +1,7362 @@
+[
+ {
+  "role": "public",
+  "name": "search-landing",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 1457,
+  "metrics": {
+   "lcp": 160,
+   "cls": 0.001,
+   "dcl": 43,
+   "load": 99,
+   "jsFiles": 18,
+   "jsKB": 165
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1024",
+  "file": "screenshots/public/search-landing__1024.jpg",
+  "pageHeight": 817,
+  "horizontalOverflowPx": 0
+ },
+ {
+  "role": "public",
+  "name": "search-landing",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 1457,
+  "metrics": {
+   "lcp": 160,
+   "cls": 0.001,
+   "dcl": 43,
+   "load": 99,
+   "jsFiles": 18,
+   "jsKB": 165
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1280",
+  "file": "screenshots/public/search-landing__1280.jpg",
+  "pageHeight": 817,
+  "horizontalOverflowPx": 0
+ },
+ {
+  "role": "public",
+  "name": "search-landing",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 1457,
+  "metrics": {
+   "lcp": 160,
+   "cls": 0.001,
+   "dcl": 43,
+   "load": 99,
+   "jsFiles": 18,
+   "jsKB": 165
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/public/search-landing__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "h4"
+   },
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "Search research literature",
+    "visible": false,
+    "outline": "none 0px",
+    "shadow": "none"
+   },
+   {
+    "tag": "button",
+    "name": "Graph Neural Networks for molecular pred",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "button",
+    "name": "Attention mechanisms in transformer arch",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "button",
+    "name": "Medical image segmentation using deep le",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "button",
+    "name": "RAG retrieval augmented generation with ",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "button",
+    "name": "Filters & Ranking Mode",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   null
+  ]
+ },
+ {
+  "role": "public",
+  "name": "search-landing",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 1344,
+  "metrics": {
+   "lcp": 56,
+   "cls": 0,
+   "dcl": 53,
+   "load": 78,
+   "jsFiles": 15,
+   "jsKB": 148
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "360",
+  "file": "screenshots/public/search-landing__360.jpg",
+  "pageHeight": 1215,
+  "horizontalOverflowPx": 0
+ },
+ {
+  "role": "public",
+  "name": "search-landing",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 1344,
+  "metrics": {
+   "lcp": 56,
+   "cls": 0,
+   "dcl": 53,
+   "load": 78,
+   "jsFiles": 15,
+   "jsKB": 148
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/public/search-landing__390.jpg",
+  "pageHeight": 1165,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "h4"
+   },
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ]
+ },
+ {
+  "role": "public",
+  "name": "search-landing",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 1344,
+  "metrics": {
+   "lcp": 56,
+   "cls": 0,
+   "dcl": 53,
+   "load": 78,
+   "jsFiles": 15,
+   "jsKB": 148
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "768",
+  "file": "screenshots/public/search-landing__768.jpg",
+  "pageHeight": 1024,
+  "horizontalOverflowPx": 0
+ },
+ {
+  "role": "public",
+  "name": "login",
+  "route": "/login",
+  "finalUrl": "/login",
+  "wallMs": 1331,
+  "metrics": {
+   "lcp": 88,
+   "cls": 0.001,
+   "dcl": 13,
+   "load": 53,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1024",
+  "file": "screenshots/public/login__1024.jpg",
+  "pageHeight": 768,
+  "horizontalOverflowPx": 0
+ },
+ {
+  "role": "public",
+  "name": "login",
+  "route": "/login",
+  "finalUrl": "/login",
+  "wallMs": 1331,
+  "metrics": {
+   "lcp": 88,
+   "cls": 0.001,
+   "dcl": 13,
+   "load": 53,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1280",
+  "file": "screenshots/public/login__1280.jpg",
+  "pageHeight": 800,
+  "horizontalOverflowPx": 0
+ },
+ {
+  "role": "public",
+  "name": "login",
+  "route": "/login",
+  "finalUrl": "/login",
+  "wallMs": 1331,
+  "metrics": {
+   "lcp": 88,
+   "cls": 0.001,
+   "dcl": 13,
+   "load": 53,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/public/login__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 0,
+  "axe": [],
+  "focus": [
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "",
+    "visible": true,
+    "outline": "solid 2px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "",
+    "visible": true,
+    "outline": "solid 2px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create one",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   null,
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "public",
+  "name": "login",
+  "route": "/login",
+  "finalUrl": "/login",
+  "wallMs": 1336,
+  "metrics": {
+   "lcp": 88,
+   "cls": 0,
+   "dcl": 36,
+   "load": 62,
+   "jsFiles": 15,
+   "jsKB": 144
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "360",
+  "file": "screenshots/public/login__360.jpg",
+  "pageHeight": 800,
+  "horizontalOverflowPx": 0
+ },
+ {
+  "role": "public",
+  "name": "login",
+  "route": "/login",
+  "finalUrl": "/login",
+  "wallMs": 1336,
+  "metrics": {
+   "lcp": 88,
+   "cls": 0,
+   "dcl": 36,
+   "load": 62,
+   "jsFiles": 15,
+   "jsKB": 144
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/public/login__390.jpg",
+  "pageHeight": 844,
+  "horizontalOverflowPx": 0,
+  "axe": []
+ },
+ {
+  "role": "public",
+  "name": "login",
+  "route": "/login",
+  "finalUrl": "/login",
+  "wallMs": 1336,
+  "metrics": {
+   "lcp": 88,
+   "cls": 0,
+   "dcl": 36,
+   "load": 62,
+   "jsFiles": 15,
+   "jsKB": 144
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "768",
+  "file": "screenshots/public/login__768.jpg",
+  "pageHeight": 1024,
+  "horizontalOverflowPx": 0
+ },
+ {
+  "role": "public",
+  "name": "register",
+  "route": "/register",
+  "finalUrl": "/register",
+  "wallMs": 1331,
+  "metrics": {
+   "lcp": 92,
+   "cls": 0.001,
+   "dcl": 29,
+   "load": 54,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/public/register__1440.jpg",
+  "pageHeight": 970,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 4,
+    "sample": "label[for=\"register-password\"] > .auth-field-hint | .auth-field:nth-child(4) > .auth-field-hint | label[for=\"register-institution\"] > .auth-field-hint"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "",
+    "visible": true,
+    "outline": "solid 2px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "",
+    "visible": true,
+    "outline": "solid 2px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "",
+    "visible": true,
+    "outline": "solid 2px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "",
+    "visible": true,
+    "outline": "solid 2px",
+    "shadow": "none"
+   },
+   {
+    "tag": "select",
+    "name": "Student researcherFaculty",
+    "visible": true,
+    "outline": "solid 2px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "",
+    "visible": true,
+    "outline": "solid 2px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "",
+    "visible": true,
+    "outline": "solid 2px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "public",
+  "name": "register",
+  "route": "/register",
+  "finalUrl": "/register",
+  "wallMs": 1345,
+  "metrics": {
+   "lcp": 88,
+   "cls": 0,
+   "dcl": 32,
+   "load": 59,
+   "jsFiles": 16,
+   "jsKB": 151
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/public/register__390.jpg",
+  "pageHeight": 1239,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 4,
+    "sample": "label[for=\"register-password\"] > .auth-field-hint | .auth-field:nth-child(4) > .auth-field-hint | label[for=\"register-institution\"] > .auth-field-hint"
+   }
+  ]
+ },
+ {
+  "role": "public",
+  "name": "browse-calls",
+  "route": "/browse",
+  "finalUrl": "/browse",
+  "wallMs": 1320,
+  "metrics": {
+   "lcp": 144,
+   "cls": 0.001,
+   "dcl": 12,
+   "load": 56,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 1,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/public/browse-calls__1440.jpg",
+  "pageHeight": 3668,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Source",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Source",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Source",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Source",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Source",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Source",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Source",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "public",
+  "name": "browse-calls",
+  "route": "/browse",
+  "finalUrl": "/browse",
+  "wallMs": 1344,
+  "metrics": {
+   "lcp": 116,
+   "cls": 0,
+   "dcl": 32,
+   "load": 57,
+   "jsFiles": 17,
+   "jsKB": 153
+  },
+  "apiCalls": 1,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/public/browse-calls__390.jpg",
+  "pageHeight": 5455,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ]
+ },
+ {
+  "role": "public",
+  "name": "postings",
+  "route": "/postings",
+  "finalUrl": "/postings",
+  "wallMs": 1403,
+  "metrics": {
+   "lcp": 44,
+   "cls": 0.001,
+   "dcl": 14,
+   "load": 62,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 1,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/public/postings__1440.jpg",
+  "pageHeight": 4105,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 1,
+    "sample": ".deadline-passed"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research PostingsActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "button",
+    "name": "Discover",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "Search postings",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "select",
+    "name": "Filter by category",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "select",
+    "name": "Filter by work mode",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "button",
+    "name": "Refresh",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research assistant: explainable graph ne",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "public",
+  "name": "postings",
+  "route": "/postings",
+  "finalUrl": "/postings",
+  "wallMs": 1367,
+  "metrics": {
+   "lcp": 40,
+   "cls": 0,
+   "dcl": 37,
+   "load": 61,
+   "jsFiles": 17,
+   "jsKB": 158
+  },
+  "apiCalls": 1,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/public/postings__390.jpg",
+  "pageHeight": 7347,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 1,
+    "sample": ".deadline-passed"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   }
+  ]
+ },
+ {
+  "role": "public",
+  "name": "similar-no-selection",
+  "route": "/similar",
+  "finalUrl": "/similar",
+  "wallMs": 1352,
+  "metrics": {
+   "lcp": 48,
+   "cls": 0.001,
+   "dcl": 14,
+   "load": 68,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/public/similar-no-selection__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar ResearchActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "button",
+    "name": "Go to Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   null,
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar ResearchActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "public",
+  "name": "not-found",
+  "route": "/this-page-does-not-exist",
+  "finalUrl": "/this-page-does-not-exist",
+  "wallMs": 1341,
+  "metrics": {
+   "lcp": 40,
+   "cls": 0.001,
+   "dcl": 14,
+   "load": 59,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "vp": "1440",
+  "file": "screenshots/public/not-found__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Return to Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   null,
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "public",
+  "name": "protected-redirect",
+  "route": "/workspace",
+  "finalUrl": "/login?next=%2Fworkspace",
+  "wallMs": 1352,
+  "metrics": {
+   "lcp": 440,
+   "cls": 0.001,
+   "dcl": 45,
+   "load": 74,
+   "jsFiles": 20,
+   "jsKB": 168
+  },
+  "apiCalls": 0,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/public/protected-redirect__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 0,
+  "axe": [],
+  "focus": [
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "",
+    "visible": true,
+    "outline": "solid 2px",
+    "shadow": "none"
+   },
+   {
+    "tag": "input",
+    "name": "",
+    "visible": true,
+    "outline": "solid 2px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create one",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   null,
+   {
+    "tag": "a",
+    "name": "Sign in",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Create account",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "similar-no-selection",
+  "route": "/similar",
+  "finalUrl": "/similar",
+  "wallMs": 1347,
+  "metrics": {
+   "lcp": 36,
+   "cls": 0,
+   "dcl": 11,
+   "load": 57,
+   "jsFiles": 18,
+   "jsKB": 161
+  },
+  "apiCalls": 2,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/similar-no-selection__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar ResearchActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "similar-no-selection",
+  "route": "/similar",
+  "finalUrl": "/similar",
+  "wallMs": 1353,
+  "metrics": {
+   "lcp": 52,
+   "cls": 0,
+   "dcl": 48,
+   "load": 81,
+   "jsFiles": 13,
+   "jsKB": 141
+  },
+  "apiCalls": 2,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/similar-no-selection__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "opportunity-matcher-no-selection",
+  "route": "/opportunities",
+  "finalUrl": "/opportunities",
+  "wallMs": 1358,
+  "metrics": {
+   "lcp": 40,
+   "cls": 0,
+   "dcl": 14,
+   "load": 65,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 2,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/opportunity-matcher-no-selection__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity MatcherActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "search-results",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 2247,
+  "metrics": {
+   "lcp": 44,
+   "cls": 0.001,
+   "dcl": 13,
+   "load": 63,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1024",
+  "file": "screenshots/student/search-results__1024.jpg",
+  "pageHeight": 7486,
+  "horizontalOverflowPx": 1205
+ },
+ {
+  "role": "student",
+  "name": "search-results",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 2247,
+  "metrics": {
+   "lcp": 44,
+   "cls": 0.001,
+   "dcl": 13,
+   "load": 63,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1280",
+  "file": "screenshots/student/search-results__1280.jpg",
+  "pageHeight": 7461,
+  "horizontalOverflowPx": 1009
+ },
+ {
+  "role": "student",
+  "name": "search-results",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 2247,
+  "metrics": {
+   "lcp": 44,
+   "cls": 0.001,
+   "dcl": 13,
+   "load": 63,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/search-results__1440.jpg",
+  "pageHeight": 7461,
+  "horizontalOverflowPx": 929,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 19,
+    "sample": "a[title=\"DOI: 10.48550/arxiv.2011.04573\"] > span | article:nth-child(2) > .paper-metadata-row > .doi-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > span | article:nth-child(3) > .paper-metadata-row > .doi-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > span"
+   },
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "search-results",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 2152,
+  "metrics": {
+   "lcp": 40,
+   "cls": 0,
+   "dcl": 37,
+   "load": 65,
+   "jsFiles": 13,
+   "jsKB": 137
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "360",
+  "file": "screenshots/student/search-results__360.jpg",
+  "pageHeight": 11218,
+  "horizontalOverflowPx": 1869
+ },
+ {
+  "role": "student",
+  "name": "search-results",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 2152,
+  "metrics": {
+   "lcp": 40,
+   "cls": 0,
+   "dcl": 37,
+   "load": 65,
+   "jsFiles": 13,
+   "jsKB": 137
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/search-results__390.jpg",
+  "pageHeight": 10472,
+  "horizontalOverflowPx": 1839,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 19,
+    "sample": "a[title=\"DOI: 10.48550/arxiv.2011.04573\"] > span | article:nth-child(2) > .paper-metadata-row > .doi-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > span | article:nth-child(3) > .paper-metadata-row > .doi-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > span"
+   },
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "search-results",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 2152,
+  "metrics": {
+   "lcp": 40,
+   "cls": 0,
+   "dcl": 37,
+   "load": 65,
+   "jsFiles": 13,
+   "jsKB": 137
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "768",
+  "file": "screenshots/student/search-results__768.jpg",
+  "pageHeight": 7774,
+  "horizontalOverflowPx": 1461
+ },
+ {
+  "role": "student",
+  "name": "search-why-this-drawer",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 2775,
+  "metrics": {
+   "lcp": 52,
+   "cls": 0,
+   "dcl": 17,
+   "load": 70,
+   "jsFiles": 19,
+   "jsKB": 162
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/search-why-this-drawer__1440.jpg",
+  "pageHeight": 7461,
+  "horizontalOverflowPx": 929,
+  "axe": [
+   {
+    "id": "aria-dialog-name",
+    "impact": "serious",
+    "tags": [],
+    "help": "ARIA dialog and alertdialog nodes should have an accessible name",
+    "nodes": 1,
+    "sample": ".drawer-overlay"
+   },
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 21,
+    "sample": "a[title=\"DOI: 10.48550/arxiv.2011.04573\"] > span | article:nth-child(2) > .paper-metadata-row > .doi-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > span | article:nth-child(3) > .paper-metadata-row > .doi-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > span"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "search-why-this-drawer",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 2715,
+  "metrics": {
+   "lcp": 44,
+   "cls": 0,
+   "dcl": 40,
+   "load": 65,
+   "jsFiles": 14,
+   "jsKB": 143
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/search-why-this-drawer__390.jpg",
+  "pageHeight": 10472,
+  "horizontalOverflowPx": 1839,
+  "axe": [
+   {
+    "id": "aria-dialog-name",
+    "impact": "serious",
+    "tags": [],
+    "help": "ARIA dialog and alertdialog nodes should have an accessible name",
+    "nodes": 1,
+    "sample": ".drawer-overlay"
+   },
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 55,
+    "sample": "a[title=\"DOI: 10.48550/arxiv.2011.04573\"] > span | article:nth-child(2) > .paper-metadata-row > .doi-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > span | article:nth-child(3) > .paper-metadata-row > .doi-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > span"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "similar-research",
+  "route": "/",
+  "finalUrl": "/similar",
+  "wallMs": 2257,
+  "metrics": {
+   "lcp": 48,
+   "cls": 0,
+   "dcl": 13,
+   "load": 68,
+   "jsFiles": 19,
+   "jsKB": 162
+  },
+  "apiCalls": 5,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/similar-research__1440.jpg",
+  "pageHeight": 6543,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 19,
+    "sample": "article:nth-child(1) > .paper-metadata-row > .doi-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > span | article:nth-child(3) > .paper-metadata-row > .doi-link[target=\"_blank\"][rel=\"noopener noreferrer\"] > span | article:nth-child(4) > .paper-metadata-row > .doi-link[target=\"_blank\"][rel=\"noopene"
+   },
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "similar-research",
+  "route": "/",
+  "error": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /find similar research/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"action-btn secondary-btn\">\u2026</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    "
+ },
+ {
+  "role": "student",
+  "name": "opportunity-matcher",
+  "route": "/",
+  "finalUrl": "/opportunities",
+  "wallMs": 2216,
+  "metrics": {
+   "lcp": 44,
+   "cls": 0,
+   "dcl": 12,
+   "load": 62,
+   "jsFiles": 19,
+   "jsKB": 162
+  },
+  "apiCalls": 5,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/opportunity-matcher__1440.jpg",
+  "pageHeight": 5778,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 75,
+    "sample": "article:nth-child(1) > .card-top-row > .card-top-left > .quality-neutral.quality-badge[title=\"Standard academic listing\"] > span | article:nth-child(1) > .card-top-row > .score-group > .score-meter.opportunity-meter[title=\"Composite Match Score: 35%\"] > .score-label | article:nth-child(1) > footer >"
+   },
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "opportunity-matcher",
+  "route": "/",
+  "error": "TimeoutError: locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('button', { name: /match calls/i }).first()\u001b[22m\n\u001b[2m    - locator resolved to <button type=\"button\" class=\"action-btn primary-btn\">\u2026</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    - waiting fo"
+ },
+ {
+  "role": "student",
+  "name": "browse-calls",
+  "route": "/browse",
+  "finalUrl": "/browse",
+  "wallMs": 1357,
+  "metrics": {
+   "lcp": 144,
+   "cls": 0,
+   "dcl": 30,
+   "load": 57,
+   "jsFiles": 19,
+   "jsKB": 162
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/browse-calls__1440.jpg",
+  "pageHeight": 3668,
+  "horizontalOverflowPx": 929,
+  "axe": [
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "browse-calls",
+  "route": "/browse",
+  "finalUrl": "/browse",
+  "wallMs": 1347,
+  "metrics": {
+   "lcp": 116,
+   "cls": 0,
+   "dcl": 34,
+   "load": 59,
+   "jsFiles": 15,
+   "jsKB": 146
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/browse-calls__390.jpg",
+  "pageHeight": 5455,
+  "horizontalOverflowPx": 1839,
+  "axe": [
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "postings",
+  "route": "/postings",
+  "finalUrl": "/postings",
+  "wallMs": 1386,
+  "metrics": {
+   "lcp": 44,
+   "cls": 0.02,
+   "dcl": 12,
+   "load": 59,
+   "jsFiles": 20,
+   "jsKB": 167
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1024",
+  "file": "screenshots/student/postings__1024.jpg",
+  "pageHeight": 5031,
+  "horizontalOverflowPx": 1256
+ },
+ {
+  "role": "student",
+  "name": "postings",
+  "route": "/postings",
+  "finalUrl": "/postings",
+  "wallMs": 1386,
+  "metrics": {
+   "lcp": 44,
+   "cls": 0.02,
+   "dcl": 12,
+   "load": 59,
+   "jsFiles": 20,
+   "jsKB": 167
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1280",
+  "file": "screenshots/student/postings__1280.jpg",
+  "pageHeight": 5031,
+  "horizontalOverflowPx": 1060
+ },
+ {
+  "role": "student",
+  "name": "postings",
+  "route": "/postings",
+  "finalUrl": "/postings",
+  "wallMs": 1386,
+  "metrics": {
+   "lcp": 44,
+   "cls": 0.02,
+   "dcl": 12,
+   "load": 59,
+   "jsFiles": 20,
+   "jsKB": 167
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/postings__1440.jpg",
+  "pageHeight": 5031,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 1,
+    "sample": ".deadline-passed"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research PostingsActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "postings",
+  "route": "/postings",
+  "finalUrl": "/postings",
+  "wallMs": 1388,
+  "metrics": {
+   "lcp": 40,
+   "cls": 0,
+   "dcl": 37,
+   "load": 62,
+   "jsFiles": 16,
+   "jsKB": 151
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "360",
+  "file": "screenshots/student/postings__360.jpg",
+  "pageHeight": 9522,
+  "horizontalOverflowPx": 1920
+ },
+ {
+  "role": "student",
+  "name": "postings",
+  "route": "/postings",
+  "finalUrl": "/postings",
+  "wallMs": 1388,
+  "metrics": {
+   "lcp": 40,
+   "cls": 0,
+   "dcl": 37,
+   "load": 62,
+   "jsFiles": 16,
+   "jsKB": 151
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/postings__390.jpg",
+  "pageHeight": 8605,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 1,
+    "sample": ".deadline-passed"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "postings",
+  "route": "/postings",
+  "finalUrl": "/postings",
+  "wallMs": 1388,
+  "metrics": {
+   "lcp": 40,
+   "cls": 0,
+   "dcl": 37,
+   "load": 62,
+   "jsFiles": 16,
+   "jsKB": 151
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "768",
+  "file": "screenshots/student/postings__768.jpg",
+  "pageHeight": 5575,
+  "horizontalOverflowPx": 1512
+ },
+ {
+  "role": "student",
+  "name": "posting-detail",
+  "route": "/postings/fa52c464-8fe8-46cb-a956-0708820f0f7e",
+  "finalUrl": "/postings/fa52c464-8fe8-46cb-a956-0708820f0f7e",
+  "wallMs": 1425,
+  "metrics": {
+   "lcp": 184,
+   "cls": 0.056,
+   "dcl": 80,
+   "load": 107,
+   "jsFiles": 21,
+   "jsKB": 171
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/posting-detail__1440.jpg",
+  "pageHeight": 1275,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 8,
+    "sample": "section:nth-child(6) > dl > .posting-fact:nth-child(1) > dt | section:nth-child(6) > dl > .posting-fact:nth-child(2) > dt | section:nth-child(6) > dl > .posting-fact:nth-child(3) > dt"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research PostingsActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "posting-detail",
+  "route": "/postings/fa52c464-8fe8-46cb-a956-0708820f0f7e",
+  "finalUrl": "/postings/fa52c464-8fe8-46cb-a956-0708820f0f7e",
+  "wallMs": 1392,
+  "metrics": {
+   "lcp": 136,
+   "cls": 0,
+   "dcl": 23,
+   "load": 68,
+   "jsFiles": 18,
+   "jsKB": 161
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/posting-detail__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 8,
+    "sample": "section:nth-child(6) > dl > .posting-fact:nth-child(1) > dt | section:nth-child(6) > dl > .posting-fact:nth-child(2) > dt | section:nth-child(6) > dl > .posting-fact:nth-child(3) > dt"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "my-applications",
+  "route": "/postings/applications",
+  "finalUrl": "/postings/applications",
+  "wallMs": 1409,
+  "metrics": {
+   "lcp": 108,
+   "cls": 0.029,
+   "dcl": 11,
+   "load": 56,
+   "jsFiles": 20,
+   "jsKB": 166
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/my-applications__1440.jpg",
+  "pageHeight": 975,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research PostingsActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "my-applications",
+  "route": "/postings/applications",
+  "finalUrl": "/postings/applications",
+  "wallMs": 1373,
+  "metrics": {
+   "lcp": 108,
+   "cls": 0,
+   "dcl": 37,
+   "load": 66,
+   "jsFiles": 17,
+   "jsKB": 157
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/my-applications__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "supervisors",
+  "route": "/supervisors",
+  "finalUrl": "/supervisors",
+  "wallMs": 1468,
+  "metrics": {
+   "lcp": 108,
+   "cls": 0,
+   "dcl": 37,
+   "load": 64,
+   "jsFiles": 21,
+   "jsKB": 170
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/supervisors__1440.jpg",
+  "pageHeight": 5350,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 15,
+    "sample": "article:nth-child(1) > .peer-topic-groups > div > .peer-topic-label | article:nth-child(1) > section > .peer-topic-label | article:nth-child(2) > .peer-topic-groups > div > .peer-topic-label"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   },
+   {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > section"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a SupervisorActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "supervisors",
+  "route": "/supervisors",
+  "finalUrl": "/supervisors",
+  "wallMs": 1400,
+  "metrics": {
+   "lcp": 108,
+   "cls": 0,
+   "dcl": 36,
+   "load": 71,
+   "jsFiles": 16,
+   "jsKB": 151
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/supervisors__390.jpg",
+  "pageHeight": 8848,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 15,
+    "sample": "article:nth-child(1) > .peer-topic-groups > div > .peer-topic-label | article:nth-child(1) > section > .peer-topic-label | article:nth-child(2) > .peer-topic-groups > div > .peer-topic-label"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   },
+   {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > section"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "peers",
+  "route": "/peers",
+  "finalUrl": "/peers",
+  "wallMs": 1374,
+  "metrics": {
+   "lcp": 96,
+   "cls": 0.066,
+   "dcl": 33,
+   "load": 59,
+   "jsFiles": 21,
+   "jsKB": 170
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/peers__1440.jpg",
+  "pageHeight": 997,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 1,
+    "sample": ".posting-field-hint"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find PeersActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "peers",
+  "route": "/peers",
+  "finalUrl": "/peers",
+  "wallMs": 1340,
+  "metrics": {
+   "lcp": 100,
+   "cls": 0,
+   "dcl": 35,
+   "load": 62,
+   "jsFiles": 16,
+   "jsKB": 151
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/peers__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 1,
+    "sample": ".posting-field-hint"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "workspace",
+  "route": "/workspace",
+  "finalUrl": "/workspace",
+  "wallMs": 1420,
+  "metrics": {
+   "lcp": 172,
+   "cls": 0.067,
+   "dcl": 15,
+   "load": 66,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1024",
+  "file": "screenshots/student/workspace__1024.jpg",
+  "pageHeight": 2289,
+  "horizontalOverflowPx": 1256
+ },
+ {
+  "role": "student",
+  "name": "workspace",
+  "route": "/workspace",
+  "finalUrl": "/workspace",
+  "wallMs": 1420,
+  "metrics": {
+   "lcp": 172,
+   "cls": 0.067,
+   "dcl": 15,
+   "load": 66,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1280",
+  "file": "screenshots/student/workspace__1280.jpg",
+  "pageHeight": 2157,
+  "horizontalOverflowPx": 1060
+ },
+ {
+  "role": "student",
+  "name": "workspace",
+  "route": "/workspace",
+  "finalUrl": "/workspace",
+  "wallMs": 1420,
+  "metrics": {
+   "lcp": 172,
+   "cls": 0.067,
+   "dcl": 15,
+   "load": 66,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/workspace__1440.jpg",
+  "pageHeight": 2157,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 3,
+    "sample": ".workspace-card:nth-child(1) > .workspace-notes-section > p | .workspace-card:nth-child(2) > .workspace-notes-section > p | .workspace-card:nth-child(3) > .workspace-notes-section > p"
+   },
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 5,
+    "sample": ".workspace-filter-row > select | .workspace-card:nth-child(1) > .workspace-card-actions > div:nth-child(2) > select | .workspace-card:nth-child(2) > .workspace-card-actions > div:nth-child(2) > select"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity WorkspaceActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "workspace",
+  "route": "/workspace",
+  "finalUrl": "/workspace",
+  "wallMs": 1388,
+  "metrics": {
+   "lcp": 136,
+   "cls": 0,
+   "dcl": 33,
+   "load": 59,
+   "jsFiles": 15,
+   "jsKB": 145
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "360",
+  "file": "screenshots/student/workspace__360.jpg",
+  "pageHeight": 4473,
+  "horizontalOverflowPx": 1920
+ },
+ {
+  "role": "student",
+  "name": "workspace",
+  "route": "/workspace",
+  "finalUrl": "/workspace",
+  "wallMs": 1388,
+  "metrics": {
+   "lcp": 136,
+   "cls": 0,
+   "dcl": 33,
+   "load": 59,
+   "jsFiles": 15,
+   "jsKB": 145
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/workspace__390.jpg",
+  "pageHeight": 4211,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 3,
+    "sample": ".workspace-card:nth-child(1) > .workspace-notes-section > p | .workspace-card:nth-child(2) > .workspace-notes-section > p | .workspace-card:nth-child(3) > .workspace-notes-section > p"
+   },
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 5,
+    "sample": ".workspace-filter-row > select | .workspace-card:nth-child(1) > .workspace-card-actions > div:nth-child(2) > select | .workspace-card:nth-child(2) > .workspace-card-actions > div:nth-child(2) > select"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "workspace",
+  "route": "/workspace",
+  "finalUrl": "/workspace",
+  "wallMs": 1388,
+  "metrics": {
+   "lcp": 136,
+   "cls": 0,
+   "dcl": 33,
+   "load": 59,
+   "jsFiles": 15,
+   "jsKB": 145
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "768",
+  "file": "screenshots/student/workspace__768.jpg",
+  "pageHeight": 3040,
+  "horizontalOverflowPx": 1512
+ },
+ {
+  "role": "student",
+  "name": "workspace-item",
+  "route": "/workspace/9cf09f89-a5a6-4111-b352-410be982b886",
+  "finalUrl": "/workspace/9cf09f89-a5a6-4111-b352-410be982b886",
+  "wallMs": 1779,
+  "metrics": {
+   "lcp": 536,
+   "cls": 0,
+   "dcl": 39,
+   "load": 65,
+   "jsFiles": 20,
+   "jsKB": 170
+  },
+  "apiCalls": 7,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/workspace-item__1440.jpg",
+  "pageHeight": 1028,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "h3"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity WorkspaceActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "workspace-item",
+  "route": "/workspace/9cf09f89-a5a6-4111-b352-410be982b886",
+  "finalUrl": "/workspace/9cf09f89-a5a6-4111-b352-410be982b886",
+  "wallMs": 1758,
+  "metrics": {
+   "lcp": 512,
+   "cls": 0,
+   "dcl": 50,
+   "load": 77,
+   "jsFiles": 18,
+   "jsKB": 161
+  },
+  "apiCalls": 7,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/workspace-item__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "h3"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "workspace-submission",
+  "route": "/workspace/9cf09f89-a5a6-4111-b352-410be982b886/submission",
+  "finalUrl": "/workspace/9cf09f89-a5a6-4111-b352-410be982b886/submission",
+  "wallMs": 1686,
+  "metrics": {
+   "lcp": 476,
+   "cls": 0,
+   "dcl": 35,
+   "load": 61,
+   "jsFiles": 20,
+   "jsKB": 173
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/workspace-submission__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 1,
+    "sample": "select"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity WorkspaceActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "workspace-submission",
+  "route": "/workspace/9cf09f89-a5a6-4111-b352-410be982b886/submission",
+  "finalUrl": "/workspace/9cf09f89-a5a6-4111-b352-410be982b886/submission",
+  "wallMs": 1714,
+  "metrics": {
+   "lcp": 464,
+   "cls": 0,
+   "dcl": 23,
+   "load": 67,
+   "jsFiles": 18,
+   "jsKB": 164
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/workspace-submission__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 1,
+    "sample": "select"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "submissions",
+  "route": "/submissions",
+  "finalUrl": "/submissions",
+  "wallMs": 1354,
+  "metrics": {
+   "lcp": 124,
+   "cls": 0.027,
+   "dcl": 13,
+   "load": 55,
+   "jsFiles": 19,
+   "jsKB": 162
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/submissions__1440.jpg",
+  "pageHeight": 939,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "h3"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "SubmissionsActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "submissions",
+  "route": "/submissions",
+  "finalUrl": "/submissions",
+  "wallMs": 1358,
+  "metrics": {
+   "lcp": 120,
+   "cls": 0,
+   "dcl": 16,
+   "load": 61,
+   "jsFiles": 17,
+   "jsKB": 153
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/submissions__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "h3"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "reading-list",
+  "route": "/reading-list",
+  "finalUrl": "/reading-list",
+  "wallMs": 1362,
+  "metrics": {
+   "lcp": 100,
+   "cls": 0.001,
+   "dcl": 18,
+   "load": 62,
+   "jsFiles": 19,
+   "jsKB": 166
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1024",
+  "file": "screenshots/student/reading-list__1024.jpg",
+  "pageHeight": 2231,
+  "horizontalOverflowPx": 1256
+ },
+ {
+  "role": "student",
+  "name": "reading-list",
+  "route": "/reading-list",
+  "finalUrl": "/reading-list",
+  "wallMs": 1362,
+  "metrics": {
+   "lcp": 100,
+   "cls": 0.001,
+   "dcl": 18,
+   "load": 62,
+   "jsFiles": 19,
+   "jsKB": 166
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1280",
+  "file": "screenshots/student/reading-list__1280.jpg",
+  "pageHeight": 2198,
+  "horizontalOverflowPx": 1060
+ },
+ {
+  "role": "student",
+  "name": "reading-list",
+  "route": "/reading-list",
+  "finalUrl": "/reading-list",
+  "wallMs": 1362,
+  "metrics": {
+   "lcp": 100,
+   "cls": 0.001,
+   "dcl": 18,
+   "load": 62,
+   "jsFiles": 19,
+   "jsKB": 166
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/reading-list__1440.jpg",
+  "pageHeight": 2198,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 5,
+    "sample": "article:nth-child(1) > .posting-field > label > .posting-field-hint | article:nth-child(2) > .posting-field > label > .posting-field-hint | article:nth-child(3) > .posting-field > label > .posting-field-hint"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading ListActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "reading-list",
+  "route": "/reading-list",
+  "finalUrl": "/reading-list",
+  "wallMs": 1353,
+  "metrics": {
+   "lcp": 100,
+   "cls": 0,
+   "dcl": 21,
+   "load": 65,
+   "jsFiles": 14,
+   "jsKB": 142
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "360",
+  "file": "screenshots/student/reading-list__360.jpg",
+  "pageHeight": 3200,
+  "horizontalOverflowPx": 1920
+ },
+ {
+  "role": "student",
+  "name": "reading-list",
+  "route": "/reading-list",
+  "finalUrl": "/reading-list",
+  "wallMs": 1353,
+  "metrics": {
+   "lcp": 100,
+   "cls": 0,
+   "dcl": 21,
+   "load": 65,
+   "jsFiles": 14,
+   "jsKB": 142
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/reading-list__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 5,
+    "sample": "article:nth-child(1) > .posting-field > label > .posting-field-hint | article:nth-child(2) > .posting-field > label > .posting-field-hint | article:nth-child(3) > .posting-field > label > .posting-field-hint"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "reading-list",
+  "route": "/reading-list",
+  "finalUrl": "/reading-list",
+  "wallMs": 1353,
+  "metrics": {
+   "lcp": 100,
+   "cls": 0,
+   "dcl": 21,
+   "load": 65,
+   "jsFiles": 14,
+   "jsKB": 142
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "768",
+  "file": "screenshots/student/reading-list__768.jpg",
+  "pageHeight": 3040,
+  "horizontalOverflowPx": 1512
+ },
+ {
+  "role": "student",
+  "name": "calendar",
+  "route": "/calendar",
+  "finalUrl": "/calendar",
+  "wallMs": 1392,
+  "metrics": {
+   "lcp": 104,
+   "cls": 0.004,
+   "dcl": 34,
+   "load": 60,
+   "jsFiles": 19,
+   "jsKB": 168
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1024",
+  "file": "screenshots/student/calendar__1024.jpg",
+  "pageHeight": 1266,
+  "horizontalOverflowPx": 1256
+ },
+ {
+  "role": "student",
+  "name": "calendar",
+  "route": "/calendar",
+  "finalUrl": "/calendar",
+  "wallMs": 1392,
+  "metrics": {
+   "lcp": 104,
+   "cls": 0.004,
+   "dcl": 34,
+   "load": 60,
+   "jsFiles": 19,
+   "jsKB": 168
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1280",
+  "file": "screenshots/student/calendar__1280.jpg",
+  "pageHeight": 1266,
+  "horizontalOverflowPx": 1060
+ },
+ {
+  "role": "student",
+  "name": "calendar",
+  "route": "/calendar",
+  "finalUrl": "/calendar",
+  "wallMs": 1392,
+  "metrics": {
+   "lcp": 104,
+   "cls": 0.004,
+   "dcl": 34,
+   "load": 60,
+   "jsFiles": 19,
+   "jsKB": 168
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/calendar__1440.jpg",
+  "pageHeight": 1266,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 8,
+    "sample": ".calendar-add-btn > span | .active.filter-pill | .other-month.day-cell:nth-child(1) > .day-cell-top > .day-number"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research CalendarActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "calendar",
+  "route": "/calendar",
+  "finalUrl": "/calendar",
+  "wallMs": 1386,
+  "metrics": {
+   "lcp": 112,
+   "cls": 0,
+   "dcl": 36,
+   "load": 67,
+   "jsFiles": 14,
+   "jsKB": 145
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "360",
+  "file": "screenshots/student/calendar__360.jpg",
+  "pageHeight": 3200,
+  "horizontalOverflowPx": 1920
+ },
+ {
+  "role": "student",
+  "name": "calendar",
+  "route": "/calendar",
+  "finalUrl": "/calendar",
+  "wallMs": 1386,
+  "metrics": {
+   "lcp": 112,
+   "cls": 0,
+   "dcl": 36,
+   "load": 67,
+   "jsFiles": 14,
+   "jsKB": 145
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/calendar__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 8,
+    "sample": ".calendar-add-btn > span | .active.filter-pill | .other-month.day-cell:nth-child(1) > .day-cell-top > .day-number"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "calendar",
+  "route": "/calendar",
+  "finalUrl": "/calendar",
+  "wallMs": 1386,
+  "metrics": {
+   "lcp": 112,
+   "cls": 0,
+   "dcl": 36,
+   "load": 67,
+   "jsFiles": 14,
+   "jsKB": 145
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "768",
+  "file": "screenshots/student/calendar__768.jpg",
+  "pageHeight": 3040,
+  "horizontalOverflowPx": 1512
+ },
+ {
+  "role": "student",
+  "name": "notifications",
+  "route": "/notifications",
+  "finalUrl": "/notifications",
+  "wallMs": 1400,
+  "metrics": {
+   "lcp": 168,
+   "cls": 0.003,
+   "dcl": 41,
+   "load": 69,
+   "jsFiles": 21,
+   "jsKB": 175
+  },
+  "apiCalls": 5,
+  "dupes": [
+   "GET /api/v1/notifications/unread-count x2"
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1024",
+  "file": "screenshots/student/notifications__1024.jpg",
+  "pageHeight": 2478,
+  "horizontalOverflowPx": 1205
+ },
+ {
+  "role": "student",
+  "name": "notifications",
+  "route": "/notifications",
+  "finalUrl": "/notifications",
+  "wallMs": 1400,
+  "metrics": {
+   "lcp": 168,
+   "cls": 0.003,
+   "dcl": 41,
+   "load": 69,
+   "jsFiles": 21,
+   "jsKB": 175
+  },
+  "apiCalls": 5,
+  "dupes": [
+   "GET /api/v1/notifications/unread-count x2"
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1280",
+  "file": "screenshots/student/notifications__1280.jpg",
+  "pageHeight": 2320,
+  "horizontalOverflowPx": 1009
+ },
+ {
+  "role": "student",
+  "name": "notifications",
+  "route": "/notifications",
+  "finalUrl": "/notifications",
+  "wallMs": 1400,
+  "metrics": {
+   "lcp": 168,
+   "cls": 0.003,
+   "dcl": 41,
+   "load": 69,
+   "jsFiles": 21,
+   "jsKB": 175
+  },
+  "apiCalls": 5,
+  "dupes": [
+   "GET /api/v1/notifications/unread-count x2"
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/notifications__1440.jpg",
+  "pageHeight": 2320,
+  "horizontalOverflowPx": 929,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 2,
+    "sample": ".notifications-btn-primary > span | .notifications-tab.active > .notifications-tab-badge"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": ".notification-card.unread:nth-child(1) > .notification-content > .notification-content-header > h3"
+   },
+   {
+    "id": "landmark-main-is-top-level",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Main landmark should not be contained in another landmark",
+    "nodes": 1,
+    "sample": ".notifications-container"
+   },
+   {
+    "id": "landmark-no-duplicate-main",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Document should not have more than one main landmark",
+    "nodes": 1,
+    "sample": ".main-content"
+   },
+   {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+    "nodes": 2,
+    "sample": ".app-shell > nav | .main-content"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unreadActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "notifications",
+  "route": "/notifications",
+  "finalUrl": "/notifications",
+  "wallMs": 1400,
+  "metrics": {
+   "lcp": 152,
+   "cls": 0,
+   "dcl": 21,
+   "load": 65,
+   "jsFiles": 18,
+   "jsKB": 159
+  },
+  "apiCalls": 5,
+  "dupes": [
+   "GET /api/v1/notifications/unread-count x2"
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "360",
+  "file": "screenshots/student/notifications__360.jpg",
+  "pageHeight": 9558,
+  "horizontalOverflowPx": 1869
+ },
+ {
+  "role": "student",
+  "name": "notifications",
+  "route": "/notifications",
+  "finalUrl": "/notifications",
+  "wallMs": 1400,
+  "metrics": {
+   "lcp": 152,
+   "cls": 0,
+   "dcl": 21,
+   "load": 65,
+   "jsFiles": 18,
+   "jsKB": 159
+  },
+  "apiCalls": 5,
+  "dupes": [
+   "GET /api/v1/notifications/unread-count x2"
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/notifications__390.jpg",
+  "pageHeight": 8381,
+  "horizontalOverflowPx": 1839,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 2,
+    "sample": ".notifications-btn-primary > span | .notifications-tab.active > .notifications-tab-badge"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": ".notification-card.unread:nth-child(1) > .notification-content > .notification-content-header > h3"
+   },
+   {
+    "id": "landmark-main-is-top-level",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Main landmark should not be contained in another landmark",
+    "nodes": 1,
+    "sample": ".notifications-container"
+   },
+   {
+    "id": "landmark-no-duplicate-main",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Document should not have more than one main landmark",
+    "nodes": 1,
+    "sample": ".main-content"
+   },
+   {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+    "nodes": 2,
+    "sample": ".app-shell > nav | .main-content"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "notifications",
+  "route": "/notifications",
+  "finalUrl": "/notifications",
+  "wallMs": 1400,
+  "metrics": {
+   "lcp": 152,
+   "cls": 0,
+   "dcl": 21,
+   "load": 65,
+   "jsFiles": 18,
+   "jsKB": 159
+  },
+  "apiCalls": 5,
+  "dupes": [
+   "GET /api/v1/notifications/unread-count x2"
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "768",
+  "file": "screenshots/student/notifications__768.jpg",
+  "pageHeight": 2972,
+  "horizontalOverflowPx": 1461
+ },
+ {
+  "role": "student",
+  "name": "notification-settings",
+  "route": "/settings/notifications",
+  "finalUrl": "/settings/notifications",
+  "wallMs": 1374,
+  "metrics": {
+   "lcp": 112,
+   "cls": 0.002,
+   "dcl": 13,
+   "load": 58,
+   "jsFiles": 22,
+   "jsKB": 175
+  },
+  "apiCalls": 6,
+  "dupes": [
+   "GET /api/v1/notifications/unread-count x2"
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/notification-settings__1440.jpg",
+  "pageHeight": 2348,
+  "horizontalOverflowPx": 929,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 6,
+    "sample": "tr:nth-child(1) > td:nth-child(4) > span | tr:nth-child(2) > td:nth-child(4) > span | tr:nth-child(3) > td:nth-child(4) > span"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 2,
+    "sample": ".preferences-section:nth-child(2) > .preference-toggle-list > .preference-toggle-item:nth-child(1) > .preference-toggle-info > h4 | .preferences-section:nth-child(3) > .preference-toggle-list > .preference-toggle-item:nth-child(1) > .preference-toggle-info > h4"
+   },
+   {
+    "id": "label",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Form elements must have labels",
+    "nodes": 6,
+    "sample": ".preferences-section:nth-child(2) > .preference-toggle-list > .preference-toggle-item:nth-child(1) > .switch > input[type=\"checkbox\"] | .preferences-section:nth-child(3) > .preference-toggle-list > .preference-toggle-item:nth-child(1) > .switch > input[type=\"checkbox\"] | .preferences-section:nth-chi"
+   },
+   {
+    "id": "landmark-main-is-top-level",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Main landmark should not be contained in another landmark",
+    "nodes": 1,
+    "sample": ".preferences-container"
+   },
+   {
+    "id": "landmark-no-duplicate-main",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Document should not have more than one main landmark",
+    "nodes": 1,
+    "sample": ".main-content"
+   },
+   {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+    "nodes": 2,
+    "sample": ".app-shell > nav | .main-content"
+   },
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 2,
+    "sample": ".rule-add-form > div > select:nth-child(3) | select:nth-child(5)"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unreadActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "notification-settings",
+  "route": "/settings/notifications",
+  "finalUrl": "/settings/notifications",
+  "wallMs": 1371,
+  "metrics": {
+   "lcp": 120,
+   "cls": 0,
+   "dcl": 19,
+   "load": 65,
+   "jsFiles": 17,
+   "jsKB": 157
+  },
+  "apiCalls": 6,
+  "dupes": [
+   "GET /api/v1/notifications/unread-count x2"
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/notification-settings__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1839,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 2,
+    "sample": ".rule-add-form > .notifications-btn-primary[type=\"submit\"] > span | form[aria-label=\"Change password\"] > .notifications-btn-primary[type=\"submit\"] > span"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 2,
+    "sample": ".preferences-section:nth-child(2) > .preference-toggle-list > .preference-toggle-item:nth-child(1) > .preference-toggle-info > h4 | .preferences-section:nth-child(3) > .preference-toggle-list > .preference-toggle-item:nth-child(1) > .preference-toggle-info > h4"
+   },
+   {
+    "id": "label",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Form elements must have labels",
+    "nodes": 6,
+    "sample": ".preferences-section:nth-child(2) > .preference-toggle-list > .preference-toggle-item:nth-child(1) > .switch > input[type=\"checkbox\"] | .preferences-section:nth-child(3) > .preference-toggle-list > .preference-toggle-item:nth-child(1) > .switch > input[type=\"checkbox\"] | .preferences-section:nth-chi"
+   },
+   {
+    "id": "landmark-main-is-top-level",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Main landmark should not be contained in another landmark",
+    "nodes": 1,
+    "sample": ".preferences-container"
+   },
+   {
+    "id": "landmark-no-duplicate-main",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Document should not have more than one main landmark",
+    "nodes": 1,
+    "sample": ".main-content"
+   },
+   {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+    "nodes": 2,
+    "sample": ".app-shell > nav | .main-content"
+   },
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 2,
+    "sample": ".rule-add-form > div > select:nth-child(3) | select:nth-child(5)"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "researcher-profile",
+  "route": "/researcher",
+  "finalUrl": "/researcher",
+  "wallMs": 2118,
+  "metrics": {
+   "lcp": 172,
+   "cls": 0.001,
+   "dcl": 14,
+   "load": 64,
+   "jsFiles": 21,
+   "jsKB": 216
+  },
+  "apiCalls": 25,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/researcher-profile__1440.jpg",
+  "pageHeight": 25378,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "button-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Buttons must have discernible text",
+    "nodes": 3,
+    "sample": ".bg-gray-50\\/50.dark\\:bg-gray-800\\/30.dark\\:border-gray-800:nth-child(1) > .w-11.border-2.border-transparent | .bg-gray-50\\/50.dark\\:bg-gray-800\\/30.dark\\:border-gray-800:nth-child(2) > .w-11.border-2.border-transparent | .bg-gray-50\\/50.dark\\:bg-gray-800\\/30.dark\\:border-gray-800:nth-child(3) > .w-"
+   },
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 215,
+    "sample": "main > div > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div > div > div:nth-child(2) | div:nth-child(3) > div:nth-child(2) > div:nth-child(2) > div:nth-child(2) > span | main > div > div:nth-child(1) > div:nth-child(4) > div:nth-child(2)"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": ".bg-slate-800\\/90 > .items-start.gap-3.justify-between > .min-w-0.flex-1 > h4"
+   },
+   {
+    "id": "scrollable-region-focusable",
+    "impact": "serious",
+    "tags": [
+     "wcag2a",
+     "wcag211",
+     "wcag213"
+    ],
+    "help": "Scrollable region must have keyboard access",
+    "nodes": 1,
+    "sample": ".divide-gray-100"
+   },
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 4,
+    "sample": ".ml-2 > select | .text-slate-300.gap-2.flex:nth-child(3) > .focus\\:ring-1 | .focus\\:border-indigo-500"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher ProfileActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "researcher-profile",
+  "route": "/researcher",
+  "finalUrl": "/researcher",
+  "wallMs": 3945,
+  "metrics": {
+   "lcp": 156,
+   "cls": 0.002,
+   "dcl": 20,
+   "load": 74,
+   "jsFiles": 17,
+   "jsKB": 205
+  },
+  "apiCalls": 25,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/researcher-profile__390.jpg",
+  "pageHeight": 49685,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "button-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Buttons must have discernible text",
+    "nodes": 3,
+    "sample": ".bg-gray-50\\/50.dark\\:bg-gray-800\\/30.dark\\:border-gray-800:nth-child(1) > .w-11.border-2.border-transparent | .bg-gray-50\\/50.dark\\:bg-gray-800\\/30.dark\\:border-gray-800:nth-child(2) > .w-11.border-2.border-transparent | .bg-gray-50\\/50.dark\\:bg-gray-800\\/30.dark\\:border-gray-800:nth-child(3) > .w-"
+   },
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 209,
+    "sample": "main > div > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div > div > div:nth-child(2) | div:nth-child(3) > div:nth-child(2) > div:nth-child(2) > div:nth-child(2) > span | main > div > div:nth-child(1) > div:nth-child(4) > div:nth-child(2)"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": ".bg-slate-800\\/90 > .items-start.gap-3.justify-between > .min-w-0.flex-1 > h4"
+   },
+   {
+    "id": "scrollable-region-focusable",
+    "impact": "serious",
+    "tags": [
+     "wcag2a",
+     "wcag211",
+     "wcag213"
+    ],
+    "help": "Scrollable region must have keyboard access",
+    "nodes": 1,
+    "sample": ".divide-gray-100"
+   },
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 4,
+    "sample": ".ml-2 > select | .text-slate-300.gap-2.flex:nth-child(3) > .focus\\:ring-1 | .focus\\:border-indigo-500"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "researcher-preferences",
+  "route": "/researcher/preferences",
+  "finalUrl": "/researcher/preferences",
+  "wallMs": 1400,
+  "metrics": {
+   "lcp": 156,
+   "cls": 0.007,
+   "dcl": 12,
+   "load": 56,
+   "jsFiles": 22,
+   "jsKB": 224
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/researcher-preferences__1440.jpg",
+  "pageHeight": 1893,
+  "horizontalOverflowPx": 980,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 11,
+    "sample": "div:nth-child(1) > div:nth-child(3) > div:nth-child(1) > span:nth-child(2) | div:nth-child(4) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2) > span:nth-child(2) | div:nth-child(4) > div:nth-child(1) > div:nth-child(3) > div:nth-child(3) > span:nth-child(2)"
+   },
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 5,
+    "sample": "div:nth-child(3) > form > select | div:nth-child(4) > form > select | div:nth-child(2) > select"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher ProfileActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "researcher-preferences",
+  "route": "/researcher/preferences",
+  "finalUrl": "/researcher/preferences",
+  "wallMs": 1392,
+  "metrics": {
+   "lcp": 152,
+   "cls": 0,
+   "dcl": 20,
+   "load": 64,
+   "jsFiles": 17,
+   "jsKB": 205
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/student/researcher-preferences__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1890,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 11,
+    "sample": "div:nth-child(1) > div:nth-child(3) > div:nth-child(1) > span:nth-child(2) | div:nth-child(4) > div:nth-child(1) > div:nth-child(3) > div:nth-child(2) > span:nth-child(2) | div:nth-child(4) > div:nth-child(1) > div:nth-child(3) > div:nth-child(3) > span:nth-child(2)"
+   },
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 5,
+    "sample": "div:nth-child(3) > form > select | div:nth-child(4) > form > select | div:nth-child(2) > select"
+   }
+  ]
+ },
+ {
+  "role": "student",
+  "name": "admin-denied",
+  "route": "/admin",
+  "finalUrl": "/admin",
+  "wallMs": 1354,
+  "metrics": {
+   "lcp": 108,
+   "cls": 0,
+   "dcl": 34,
+   "load": 62,
+   "jsFiles": 20,
+   "jsKB": 167
+  },
+  "apiCalls": 2,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/student/admin-denied__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 929,
+  "axe": [
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find a Supervisor",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications11 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "faculty",
+  "name": "postings-mine",
+  "route": "/postings",
+  "finalUrl": "/postings",
+  "wallMs": 1393,
+  "metrics": {
+   "lcp": 44,
+   "cls": 0,
+   "dcl": 12,
+   "load": 61,
+   "jsFiles": 20,
+   "jsKB": 167
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/faculty/postings-mine__1440.jpg",
+  "pageHeight": 4105,
+  "horizontalOverflowPx": 798,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 1,
+    "sample": ".deadline-passed"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research PostingsActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications1 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "button",
+    "name": "New posting",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "faculty",
+  "name": "postings-mine",
+  "route": "/postings",
+  "finalUrl": "/postings",
+  "wallMs": 1416,
+  "metrics": {
+   "lcp": 64,
+   "cls": 0,
+   "dcl": 36,
+   "load": 84,
+   "jsFiles": 17,
+   "jsKB": 162
+  },
+  "apiCalls": 3,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/faculty/postings-mine__390.jpg",
+  "pageHeight": 7398,
+  "horizontalOverflowPx": 1708,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 1,
+    "sample": ".deadline-passed"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "article:nth-child(1) > .posting-card-head > h3"
+   }
+  ]
+ },
+ {
+  "role": "faculty",
+  "name": "posting-manage",
+  "route": "/postings/fa52c464-8fe8-46cb-a956-0708820f0f7e",
+  "finalUrl": "/postings/fa52c464-8fe8-46cb-a956-0708820f0f7e",
+  "wallMs": 1406,
+  "metrics": {
+   "lcp": 148,
+   "cls": 0,
+   "dcl": 22,
+   "load": 67,
+   "jsFiles": 20,
+   "jsKB": 169
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/faculty/posting-manage__1440.jpg",
+  "pageHeight": 1366,
+  "horizontalOverflowPx": 798,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 8,
+    "sample": "section:nth-child(6) > dl > .posting-fact:nth-child(1) > dt | section:nth-child(6) > dl > .posting-fact:nth-child(2) > dt | section:nth-child(6) > dl > .posting-fact:nth-child(3) > dt"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research PostingsActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications1 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Back to postings",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "faculty",
+  "name": "posting-manage",
+  "route": "/postings/fa52c464-8fe8-46cb-a956-0708820f0f7e",
+  "finalUrl": "/postings/fa52c464-8fe8-46cb-a956-0708820f0f7e",
+  "wallMs": 1365,
+  "metrics": {
+   "lcp": 128,
+   "cls": 0,
+   "dcl": 36,
+   "load": 62,
+   "jsFiles": 17,
+   "jsKB": 159
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/faculty/posting-manage__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1708,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 8,
+    "sample": "section:nth-child(6) > dl > .posting-fact:nth-child(1) > dt | section:nth-child(6) > dl > .posting-fact:nth-child(2) > dt | section:nth-child(6) > dl > .posting-fact:nth-child(3) > dt"
+   }
+  ]
+ },
+ {
+  "role": "faculty",
+  "name": "notifications",
+  "route": "/notifications",
+  "finalUrl": "/notifications",
+  "wallMs": 1391,
+  "metrics": {
+   "lcp": 168,
+   "cls": 0.001,
+   "dcl": 31,
+   "load": 59,
+   "jsFiles": 22,
+   "jsKB": 176
+  },
+  "apiCalls": 5,
+  "dupes": [
+   "GET /api/v1/notifications/unread-count x2"
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/faculty/notifications__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 746,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 1,
+    "sample": ".notifications-btn-primary > span"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "h3"
+   },
+   {
+    "id": "landmark-main-is-top-level",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Main landmark should not be contained in another landmark",
+    "nodes": 1,
+    "sample": ".notifications-container"
+   },
+   {
+    "id": "landmark-no-duplicate-main",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Document should not have more than one main landmark",
+    "nodes": 1,
+    "sample": ".main-content"
+   },
+   {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+    "nodes": 2,
+    "sample": ".app-shell > nav | .main-content"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications1 unreadActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "faculty",
+  "name": "notifications",
+  "route": "/notifications",
+  "finalUrl": "/notifications",
+  "wallMs": 1375,
+  "metrics": {
+   "lcp": 148,
+   "cls": 0,
+   "dcl": 35,
+   "load": 62,
+   "jsFiles": 17,
+   "jsKB": 158
+  },
+  "apiCalls": 5,
+  "dupes": [
+   "GET /api/v1/notifications/unread-count x2"
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/faculty/notifications__390.jpg",
+  "pageHeight": 3376,
+  "horizontalOverflowPx": 1656,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 1,
+    "sample": ".notifications-btn-primary > span"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "h3"
+   },
+   {
+    "id": "landmark-main-is-top-level",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Main landmark should not be contained in another landmark",
+    "nodes": 1,
+    "sample": ".notifications-container"
+   },
+   {
+    "id": "landmark-no-duplicate-main",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Document should not have more than one main landmark",
+    "nodes": 1,
+    "sample": ".main-content"
+   },
+   {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+    "nodes": 2,
+    "sample": ".app-shell > nav | .main-content"
+   }
+  ]
+ },
+ {
+  "role": "faculty",
+  "name": "researcher-profile",
+  "route": "/researcher",
+  "finalUrl": "/researcher",
+  "wallMs": 1818,
+  "metrics": {
+   "lcp": 184,
+   "cls": 0.001,
+   "dcl": 11,
+   "load": 59,
+   "jsFiles": 21,
+   "jsKB": 215
+  },
+  "apiCalls": 25,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/faculty/researcher-profile__1440.jpg",
+  "pageHeight": 24309,
+  "horizontalOverflowPx": 798,
+  "axe": [
+   {
+    "id": "button-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Buttons must have discernible text",
+    "nodes": 3,
+    "sample": ".bg-gray-50\\/50.dark\\:bg-gray-800\\/30.dark\\:border-gray-800:nth-child(1) > .w-11.border-2.border-transparent | .bg-gray-50\\/50.dark\\:bg-gray-800\\/30.dark\\:border-gray-800:nth-child(2) > .w-11.border-2.border-transparent | .bg-gray-50\\/50.dark\\:bg-gray-800\\/30.dark\\:border-gray-800:nth-child(3) > .w-"
+   },
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 183,
+    "sample": "main > div > div:nth-child(1) > div:nth-child(2) > div:nth-child(1) > div > div > div:nth-child(2) | div:nth-child(3) > div:nth-child(2) > div:nth-child(2) > div:nth-child(2) > span | main > div > div:nth-child(1) > div:nth-child(4) > div:nth-child(2)"
+   },
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 2,
+    "sample": ".pb-4.sm\\:items-center.border-slate-100 > div > .gap-2.flex.items-center > .dark\\:text-slate-100.text-slate-900 | .bg-slate-800\\/90 > .items-start.gap-3.justify-between > .min-w-0.flex-1 > h4"
+   },
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 4,
+    "sample": ".ml-2 > select | .text-slate-300.gap-2.flex:nth-child(3) > .focus\\:ring-1 | .focus\\:border-indigo-500"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher ProfileActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications1 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "button",
+    "name": "Toggle profile completeness breakdown",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "faculty",
+  "name": "workspace-empty",
+  "route": "/workspace",
+  "finalUrl": "/workspace",
+  "wallMs": 1342,
+  "metrics": {
+   "lcp": 124,
+   "cls": 0.036,
+   "dcl": 16,
+   "load": 60,
+   "jsFiles": 18,
+   "jsKB": 160
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/faculty/workspace-empty__1440.jpg",
+  "pageHeight": 1069,
+  "horizontalOverflowPx": 798,
+  "axe": [
+   {
+    "id": "select-name",
+    "impact": "critical",
+    "tags": [
+     "wcag2a",
+     "wcag412"
+    ],
+    "help": "Select element must have an accessible name",
+    "nodes": 1,
+    "sample": "select"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity WorkspaceActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications1 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "button",
+    "name": "Refresh",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "faculty",
+  "name": "supervisors-denied",
+  "route": "/supervisors",
+  "finalUrl": "/supervisors",
+  "wallMs": 1366,
+  "metrics": {
+   "lcp": 108,
+   "cls": 0,
+   "dcl": 41,
+   "load": 71,
+   "jsFiles": 22,
+   "jsKB": 174
+  },
+  "apiCalls": 2,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/faculty/supervisors-denied__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 746,
+  "axe": [],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications1 unread",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "admin",
+  "name": "admin-console",
+  "route": "/admin",
+  "finalUrl": "/admin",
+  "wallMs": 1345,
+  "metrics": {
+   "lcp": 104,
+   "cls": 0.05,
+   "dcl": 11,
+   "load": 54,
+   "jsFiles": 19,
+   "jsKB": 166
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1024",
+  "file": "screenshots/admin/admin-console__1024.jpg",
+  "pageHeight": 3861,
+  "horizontalOverflowPx": 0
+ },
+ {
+  "role": "admin",
+  "name": "admin-console",
+  "route": "/admin",
+  "finalUrl": "/admin",
+  "wallMs": 1345,
+  "metrics": {
+   "lcp": 104,
+   "cls": 0.05,
+   "dcl": 11,
+   "load": 54,
+   "jsFiles": 19,
+   "jsKB": 166
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1280",
+  "file": "screenshots/admin/admin-console__1280.jpg",
+  "pageHeight": 3861,
+  "horizontalOverflowPx": 0
+ },
+ {
+  "role": "admin",
+  "name": "admin-console",
+  "route": "/admin",
+  "finalUrl": "/admin",
+  "wallMs": 1345,
+  "metrics": {
+   "lcp": 104,
+   "cls": 0.05,
+   "dcl": 11,
+   "load": 54,
+   "jsFiles": 19,
+   "jsKB": 166
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/admin/admin-console__1440.jpg",
+  "pageHeight": 3861,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 14,
+    "sample": "tr:nth-child(1) > th[scope=\"row\"] | tr:nth-child(2) > th[scope=\"row\"] | tr:nth-child(3) > th[scope=\"row\"]"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "AdministrationActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "admin",
+  "name": "admin-console",
+  "route": "/admin",
+  "finalUrl": "/admin",
+  "wallMs": 1392,
+  "metrics": {
+   "lcp": 124,
+   "cls": 0,
+   "dcl": 27,
+   "load": 76,
+   "jsFiles": 14,
+   "jsKB": 146
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "360",
+  "file": "screenshots/admin/admin-console__360.jpg",
+  "pageHeight": 4045,
+  "horizontalOverflowPx": 208
+ },
+ {
+  "role": "admin",
+  "name": "admin-console",
+  "route": "/admin",
+  "finalUrl": "/admin",
+  "wallMs": 1392,
+  "metrics": {
+   "lcp": 124,
+   "cls": 0,
+   "dcl": 27,
+   "load": 76,
+   "jsFiles": 14,
+   "jsKB": 146
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "390",
+  "file": "screenshots/admin/admin-console__390.jpg",
+  "pageHeight": 4045,
+  "horizontalOverflowPx": 178,
+  "axe": [
+   {
+    "id": "color-contrast",
+    "impact": "serious",
+    "tags": [
+     "wcag2aa",
+     "wcag143"
+    ],
+    "help": "Elements must meet minimum color contrast ratio thresholds",
+    "nodes": 13,
+    "sample": "tr:nth-child(1) > th[scope=\"row\"] | tr:nth-child(2) > th[scope=\"row\"] | tr:nth-child(3) > th[scope=\"row\"]"
+   }
+  ]
+ },
+ {
+  "role": "admin",
+  "name": "admin-console",
+  "route": "/admin",
+  "finalUrl": "/admin",
+  "wallMs": 1392,
+  "metrics": {
+   "lcp": 124,
+   "cls": 0,
+   "dcl": 27,
+   "load": 76,
+   "jsFiles": 14,
+   "jsKB": 146
+  },
+  "apiCalls": 4,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "768",
+  "file": "screenshots/admin/admin-console__768.jpg",
+  "pageHeight": 3897,
+  "horizontalOverflowPx": 0
+ },
+ {
+  "role": "admin",
+  "name": "notifications",
+  "route": "/notifications",
+  "finalUrl": "/notifications",
+  "wallMs": 1383,
+  "metrics": {
+   "lcp": 160,
+   "cls": 0,
+   "dcl": 22,
+   "load": 65,
+   "jsFiles": 22,
+   "jsKB": 176
+  },
+  "apiCalls": 5,
+  "dupes": [
+   "GET /api/v1/notifications/unread-count x2"
+  ],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/admin/notifications__1440.jpg",
+  "pageHeight": 913,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "h3"
+   },
+   {
+    "id": "landmark-main-is-top-level",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Main landmark should not be contained in another landmark",
+    "nodes": 1,
+    "sample": ".notifications-container"
+   },
+   {
+    "id": "landmark-no-duplicate-main",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Document should not have more than one main landmark",
+    "nodes": 1,
+    "sample": ".main-content"
+   },
+   {
+    "id": "landmark-unique",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Landmarks should have a unique role or role/label/title (i.e. accessible name) combination",
+    "nodes": 2,
+    "sample": ".app-shell > nav | .main-content"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "NotificationsActive",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Administration",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ },
+ {
+  "role": "admin",
+  "name": "search-landing",
+  "route": "/",
+  "finalUrl": "/",
+  "wallMs": 1350,
+  "metrics": {
+   "lcp": 44,
+   "cls": 0,
+   "dcl": 12,
+   "load": 66,
+   "jsFiles": 19,
+   "jsKB": 162
+  },
+  "apiCalls": 2,
+  "dupes": [],
+  "failures": [],
+  "consoleErrors": [],
+  "vp": "1440",
+  "file": "screenshots/admin/search-landing__1440.jpg",
+  "pageHeight": 900,
+  "horizontalOverflowPx": 0,
+  "axe": [
+   {
+    "id": "heading-order",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Heading levels should only increase by one",
+    "nodes": 1,
+    "sample": "h4"
+   },
+   {
+    "id": "page-has-heading-one",
+    "impact": "moderate",
+    "tags": [],
+    "help": "Page should contain a level-one heading",
+    "nodes": 1,
+    "sample": "html"
+   }
+  ],
+  "focus": [
+   {
+    "tag": "button",
+    "name": "Sign out",
+    "visible": true,
+    "outline": "auto 1px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Literature Search",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Similar Research",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Matcher",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Browse All Calls",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Postings",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Opportunity Workspace",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Submissions",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Reading List",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Research Calendar",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Find Peers",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Researcher Profile",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Notifications",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   },
+   {
+    "tag": "a",
+    "name": "Administration",
+    "visible": true,
+    "outline": "auto 3px",
+    "shadow": "none"
+   }
+  ]
+ }
+]

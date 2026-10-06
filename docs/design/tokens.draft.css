@@ -1,0 +1,334 @@
+/*
+ * ResearchConnect AI — design tokens (DRAFT).
+ *
+ * Status: proposal for review. This file is NOT imported anywhere in the application.
+ * Phase P1 of docs/design/FRONTEND_REDESIGN_PLAN.md copies it to frontend/styles/tokens.css
+ * once the plan is approved. Specification and rationale: docs/design/DESIGN_SYSTEM.md.
+ *
+ * Direction: "Scholarly Ledger" — paper-white surfaces, ink neutrals, one petrol-teal brand
+ * colour, serif titles for research objects, hairline rules instead of shadows.
+ *
+ * Every text/background pair below was checked against WCAG 2.2 (4.5:1 for text, 3:1 for
+ * control boundaries and focus indicators); the measured ratios are listed in
+ * DESIGN_SYSTEM.md §3.4. Do not introduce a colour that is not a token.
+ *
+ * Layers:
+ *   1. primitives  (--rc-p-*)  raw values; components must NOT use these directly
+ *   2. semantic    (--rc-*)    what components use; redefined per theme
+ *   3. data        (--rc-data-*) research-specific meaning (match, fit, risk, deadline, status)
+ */
+
+/* ── 1. Primitives ────────────────────────────────────────────────────────── */
+:root {
+  /* Ink (warm neutral) */
+  --rc-p-ink-0: #ffffff;
+  --rc-p-ink-25: #f7f6f3;   /* paper */
+  --rc-p-ink-50: #f0eee9;
+  --rc-p-ink-100: #e2ded6;  /* hairline */
+  --rc-p-ink-300: #b9b3a7;
+  --rc-p-ink-400: #8a8478;  /* control boundary, 3.72:1 on white */
+  --rc-p-ink-600: #615d56;  /* muted text, 6.55:1 on white */
+  --rc-p-ink-700: #47443f;
+  --rc-p-ink-900: #1b1a18;  /* ink */
+
+  /* Night (dark-theme neutrals) */
+  --rc-p-night-950: #0d0f10;
+  --rc-p-night-900: #111315;
+  --rc-p-night-850: #181b1e;
+  --rc-p-night-800: #1f2327;
+  --rc-p-night-700: #2c3136;
+  --rc-p-night-500: #6b737b;
+  --rc-p-night-300: #a19c93;
+  --rc-p-night-200: #c4bfb6;
+  --rc-p-night-100: #eceae6;
+
+  /* Petrol (brand) */
+  --rc-p-petrol-50: #e7f2f0;
+  --rc-p-petrol-100: #dceeea;
+  --rc-p-petrol-300: #7fcfc6;
+  --rc-p-petrol-400: #5fbdb3;
+  --rc-p-petrol-600: #0e6b66;
+  --rc-p-petrol-650: #0b5c57;
+  --rc-p-petrol-700: #0a5450;
+  --rc-p-petrol-dark-fill: #1f7a72;
+  --rc-p-petrol-dark-subtle: #14302d;
+  --rc-p-petrol-dark-muted: #173733;
+
+  /* Status hues */
+  --rc-p-blue-700: #1d5a9e;   --rc-p-blue-50: #e8f0fa;   --rc-p-blue-300: #8ab8ec;   --rc-p-blue-dark: #14263a;
+  --rc-p-green-700: #1b6e3f;  --rc-p-green-50: #e6f3ea;  --rc-p-green-300: #7ccb98;  --rc-p-green-dark: #132a1c;
+  --rc-p-amber-700: #8a5300;  --rc-p-amber-50: #fbf1dc;  --rc-p-amber-300: #e8b65c;  --rc-p-amber-dark: #2e2311;
+  --rc-p-red-700: #b42318;    --rc-p-red-50: #fcebe9;    --rc-p-red-300: #f19a90;    --rc-p-red-dark: #341614;
+  --rc-p-orange-700: #a33f07; --rc-p-orange-50: #fceee3; --rc-p-orange-300: #f2a26b; --rc-p-orange-dark: #33200f;
+}
+
+/* ── 2. Semantic tokens: light theme (default) ────────────────────────────── */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Surfaces */
+  --rc-bg: var(--rc-p-ink-25);
+  --rc-surface: var(--rc-p-ink-0);
+  --rc-surface-sunken: var(--rc-p-ink-50);
+  --rc-surface-raised: var(--rc-p-ink-0);          /* menus, popovers, dialogs (+ shadow) */
+  --rc-surface-selected: var(--rc-p-petrol-50);
+  --rc-overlay: rgb(27 26 24 / 0.45);               /* modal scrim */
+
+  /* Borders */
+  --rc-border: var(--rc-p-ink-100);                 /* decorative hairlines, card edges */
+  --rc-border-control: var(--rc-p-ink-400);         /* inputs, checkboxes: 1.4.11 ≥ 3:1 */
+  --rc-border-strong: var(--rc-p-ink-300);          /* section rules, table header rule */
+
+  /* Text */
+  --rc-text: var(--rc-p-ink-900);
+  --rc-text-secondary: var(--rc-p-ink-700);
+  --rc-text-muted: var(--rc-p-ink-600);             /* the lightest text allowed */
+  --rc-text-on-brand: #ffffff;
+  --rc-text-disabled: var(--rc-p-ink-300);          /* disabled controls only (exempt) */
+  --rc-link: var(--rc-p-petrol-650);
+
+  /* Brand */
+  --rc-brand: var(--rc-p-petrol-600);
+  --rc-brand-hover: var(--rc-p-petrol-700);
+  --rc-brand-subtle: var(--rc-p-petrol-50);
+  --rc-brand-text: var(--rc-p-petrol-650);
+  --rc-focus-ring: var(--rc-p-petrol-600);
+
+  /* Feedback */
+  --rc-info: var(--rc-p-blue-700);         --rc-info-subtle: var(--rc-p-blue-50);
+  --rc-success: var(--rc-p-green-700);     --rc-success-subtle: var(--rc-p-green-50);
+  --rc-warning: var(--rc-p-amber-700);     --rc-warning-subtle: var(--rc-p-amber-50);
+  --rc-danger: var(--rc-p-red-700);        --rc-danger-subtle: var(--rc-p-red-50);
+  --rc-danger-hover: #8f1c13;
+
+  /* ── 3. Data colours (research meaning) ── */
+  /* Relevance / match / fit: one sequential petrol scale. Low is neutral, never red. */
+  --rc-data-match-strong-bg: var(--rc-p-petrol-600);  --rc-data-match-strong-fg: #ffffff;
+  --rc-data-match-good-bg: var(--rc-p-petrol-100);    --rc-data-match-good-fg: var(--rc-p-petrol-650);
+  --rc-data-match-partial-bg: var(--rc-p-ink-50);     --rc-data-match-partial-fg: var(--rc-p-ink-700);
+  --rc-data-match-weak-bg: transparent;               --rc-data-match-weak-fg: var(--rc-p-ink-600);
+  --rc-data-meter-track: var(--rc-p-ink-100);
+  --rc-data-meter-fill: var(--rc-p-petrol-600);
+
+  /* Risk (venue trust): shield icon + label + colour; filled badges. */
+  --rc-data-risk-low-fg: var(--rc-p-green-700);       --rc-data-risk-low-bg: var(--rc-p-green-50);
+  --rc-data-risk-caution-fg: var(--rc-p-amber-700);   --rc-data-risk-caution-bg: var(--rc-p-amber-50);
+  --rc-data-risk-high-fg: var(--rc-p-red-700);        --rc-data-risk-high-bg: var(--rc-p-red-50);
+  --rc-data-risk-unknown-fg: var(--rc-p-ink-600);     --rc-data-risk-unknown-border: var(--rc-p-ink-300);
+
+  /* Deadline urgency (time): clock icon + countdown text; colour only when ≤ 7 days. */
+  --rc-data-deadline-fg: var(--rc-p-ink-700);
+  --rc-data-deadline-soon-fg: var(--rc-p-orange-700);          /* ≤ 7 days: text only */
+  --rc-data-deadline-urgent-fg: var(--rc-p-orange-700);        /* ≤ 48 h: text + tint */
+  --rc-data-deadline-urgent-bg: var(--rc-p-orange-50);
+  --rc-data-deadline-passed-fg: var(--rc-p-ink-600);           /* struck through */
+
+  /* Application status */
+  --rc-data-app-submitted: var(--rc-p-ink-700);
+  --rc-data-app-review: var(--rc-p-blue-700);        --rc-data-app-review-bg: var(--rc-p-blue-50);
+  --rc-data-app-shortlisted: var(--rc-p-petrol-650); --rc-data-app-shortlisted-bg: var(--rc-p-petrol-50);
+  --rc-data-app-offered-bg: var(--rc-p-petrol-600);  --rc-data-app-offered-fg: #ffffff;
+  --rc-data-app-accepted: var(--rc-p-green-700);     --rc-data-app-accepted-bg: var(--rc-p-green-50);
+  --rc-data-app-closed: var(--rc-p-ink-600);         /* not selected, declined, withdrawn */
+
+  /* Notifications */
+  --rc-data-unread-dot: var(--rc-p-petrol-600);
+  --rc-data-badge-count-bg: var(--rc-p-red-700);
+  --rc-data-badge-count-fg: #ffffff;
+
+  /* Elevation (shadows only for things that float) */
+  --rc-shadow-popover: 0 4px 16px rgb(27 26 24 / 0.10), 0 1px 3px rgb(27 26 24 / 0.08);
+  --rc-shadow-dialog: 0 16px 48px rgb(27 26 24 / 0.18), 0 2px 6px rgb(27 26 24 / 0.08);
+  --rc-shadow-sticky: 0 1px 0 var(--rc-border);
+}
+
+/* ── Dark theme ───────────────────────────────────────────────────────────── */
+/* Applied when the person chooses "Dark", or "System" while the OS is dark.
+   Until P11 ships, the application forces light (see the plan, §Dark theme). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --rc-bg: var(--rc-p-night-900);
+  --rc-surface: var(--rc-p-night-850);
+  --rc-surface-sunken: var(--rc-p-night-950);
+  --rc-surface-raised: var(--rc-p-night-800);
+  --rc-surface-selected: var(--rc-p-petrol-dark-subtle);
+  --rc-overlay: rgb(0 0 0 / 0.6);
+
+  --rc-border: var(--rc-p-night-700);
+  --rc-border-control: var(--rc-p-night-500);       /* 3.59:1 on surface */
+  --rc-border-strong: var(--rc-p-night-500);
+
+  --rc-text: var(--rc-p-night-100);
+  --rc-text-secondary: var(--rc-p-night-200);
+  --rc-text-muted: var(--rc-p-night-300);
+  --rc-text-on-brand: var(--rc-p-night-950);        /* dark text on the bright brand fill */
+  --rc-text-disabled: var(--rc-p-night-500);
+  --rc-link: var(--rc-p-petrol-300);
+
+  --rc-brand: var(--rc-p-petrol-400);
+  --rc-brand-hover: var(--rc-p-petrol-300);
+  --rc-brand-subtle: var(--rc-p-petrol-dark-subtle);
+  --rc-brand-text: var(--rc-p-petrol-300);
+  --rc-focus-ring: var(--rc-p-petrol-300);
+
+  --rc-info: var(--rc-p-blue-300);         --rc-info-subtle: var(--rc-p-blue-dark);
+  --rc-success: var(--rc-p-green-300);     --rc-success-subtle: var(--rc-p-green-dark);
+  --rc-warning: var(--rc-p-amber-300);     --rc-warning-subtle: var(--rc-p-amber-dark);
+  --rc-danger: var(--rc-p-red-300);        --rc-danger-subtle: var(--rc-p-red-dark);
+  --rc-danger-hover: #f5b3ab;
+
+  --rc-data-match-strong-bg: var(--rc-p-petrol-dark-fill);  --rc-data-match-strong-fg: #ffffff;
+  --rc-data-match-good-bg: var(--rc-p-petrol-dark-muted);   --rc-data-match-good-fg: var(--rc-p-petrol-300);
+  --rc-data-match-partial-bg: var(--rc-p-night-800);        --rc-data-match-partial-fg: var(--rc-p-night-200);
+  --rc-data-match-weak-fg: var(--rc-p-night-300);
+  --rc-data-meter-track: var(--rc-p-night-700);
+  --rc-data-meter-fill: var(--rc-p-petrol-400);
+
+  --rc-data-risk-low-fg: var(--rc-p-green-300);       --rc-data-risk-low-bg: var(--rc-p-green-dark);
+  --rc-data-risk-caution-fg: var(--rc-p-amber-300);   --rc-data-risk-caution-bg: var(--rc-p-amber-dark);
+  --rc-data-risk-high-fg: var(--rc-p-red-300);        --rc-data-risk-high-bg: var(--rc-p-red-dark);
+  --rc-data-risk-unknown-fg: var(--rc-p-night-300);   --rc-data-risk-unknown-border: var(--rc-p-night-500);
+
+  --rc-data-deadline-fg: var(--rc-p-night-200);
+  --rc-data-deadline-soon-fg: var(--rc-p-orange-300);
+  --rc-data-deadline-urgent-fg: var(--rc-p-orange-300);
+  --rc-data-deadline-urgent-bg: var(--rc-p-orange-dark);
+  --rc-data-deadline-passed-fg: var(--rc-p-night-300);
+
+  --rc-data-app-submitted: var(--rc-p-night-200);
+  --rc-data-app-review: var(--rc-p-blue-300);         --rc-data-app-review-bg: var(--rc-p-blue-dark);
+  --rc-data-app-shortlisted: var(--rc-p-petrol-300);  --rc-data-app-shortlisted-bg: var(--rc-p-petrol-dark-subtle);
+  --rc-data-app-offered-bg: var(--rc-p-petrol-dark-fill); --rc-data-app-offered-fg: #ffffff;
+  --rc-data-app-accepted: var(--rc-p-green-300);      --rc-data-app-accepted-bg: var(--rc-p-green-dark);
+  --rc-data-app-closed: var(--rc-p-night-300);
+
+  --rc-data-unread-dot: var(--rc-p-petrol-400);
+  --rc-data-badge-count-bg: var(--rc-p-red-300);
+  --rc-data-badge-count-fg: var(--rc-p-night-950);
+
+  --rc-shadow-popover: 0 4px 16px rgb(0 0 0 / 0.45), 0 0 0 1px var(--rc-p-night-700);
+  --rc-shadow-dialog: 0 16px 48px rgb(0 0 0 / 0.6), 0 0 0 1px var(--rc-p-night-700);
+}
+
+/* ── Typography ───────────────────────────────────────────────────────────── */
+:root {
+  /* next/font/local exposes these variables in P1 (see DESIGN_SYSTEM.md §4.1). */
+  --rc-font-sans: var(--font-source-sans, "Source Sans 3"), ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --rc-font-serif: var(--font-source-serif, "Source Serif 4"), ui-serif, Georgia, "Times New Roman", serif;
+  --rc-font-mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Scale (rem at a 16px root). size / line-height / weight / tracking */
+  --rc-text-display-size: 2rem;        --rc-text-display-lh: 1.2;   /* 32/38 serif 600, dashboard greeting only */
+  --rc-text-h1-size: 1.75rem;          --rc-text-h1-lh: 1.25;       /* 28/35 serif 600, -0.01em */
+  --rc-text-h2-size: 1.25rem;          --rc-text-h2-lh: 1.35;       /* 20/27 sans 600 */
+  --rc-text-h3-size: 1.0625rem;        --rc-text-h3-lh: 1.4;        /* 17/24 sans 600 */
+  --rc-text-title-size: 1.125rem;      --rc-text-title-lh: 1.35;    /* 18/24 serif 600: paper, call, posting titles */
+  --rc-text-body-size: 0.9375rem;      --rc-text-body-lh: 1.55;     /* 15/23 sans 400: UI copy */
+  --rc-text-reading-size: 1rem;        --rc-text-reading-lh: 1.65;  /* 16/26 sans 400: abstracts, descriptions, max 72ch */
+  --rc-text-small-size: 0.8125rem;     --rc-text-small-lh: 1.45;    /* 13/19 sans 400: metadata */
+  --rc-text-label-size: 0.75rem;       --rc-text-label-lh: 1.35;    /* 12/16 sans 600, +0.02em: field and column labels */
+  --rc-text-mono-size: 0.8125rem;                                    /* 13 mono: DOI, ORCID, IDs */
+
+  --rc-weight-regular: 400;
+  --rc-weight-medium: 500;
+  --rc-weight-semibold: 600;
+  --rc-weight-bold: 700;
+  --rc-tracking-tight: -0.01em;
+  --rc-tracking-label: 0.02em;
+  --rc-measure: 72ch;
+}
+
+/* ── Spacing (4px rhythm) ─────────────────────────────────────────────────── */
+:root {
+  --rc-space-0: 0;
+  --rc-space-1: 0.25rem;  /* 4  */
+  --rc-space-2: 0.5rem;   /* 8  */
+  --rc-space-3: 0.75rem;  /* 12 */
+  --rc-space-4: 1rem;     /* 16 */
+  --rc-space-5: 1.25rem;  /* 20 */
+  --rc-space-6: 1.5rem;   /* 24 */
+  --rc-space-8: 2rem;     /* 32 */
+  --rc-space-10: 2.5rem;  /* 40 */
+  --rc-space-12: 3rem;    /* 48 */
+  --rc-space-16: 4rem;    /* 64 */
+
+  --rc-page-padding: var(--rc-space-8);        /* ≥ 1280 */
+  --rc-section-gap: var(--rc-space-8);
+  --rc-card-padding: var(--rc-space-5);
+  --rc-card-padding-compact: var(--rc-space-4);
+  --rc-field-gap: var(--rc-space-4);
+  --rc-cell-padding-y: var(--rc-space-2);
+  --rc-cell-padding-x: var(--rc-space-3);
+
+  --rc-content-max: 75rem;     /* 1200 */
+  --rc-sidebar-width: 15.5rem; /* 248 */
+  --rc-sidebar-rail: 4rem;     /* 64 */
+  --rc-header-height: 3.5rem;  /* 56 */
+  --rc-bottom-nav-height: 3.5rem;
+  --rc-target-min: 2.75rem;    /* 44 touch target on coarse pointers */
+  --rc-control-height: 2.25rem;     /* 36 */
+  --rc-control-height-sm: 2rem;     /* 32 */
+  --rc-control-height-lg: 2.75rem;  /* 44 */
+}
+@media (max-width: 1279px) { :root { --rc-page-padding: var(--rc-space-6); } }
+@media (max-width: 767px) {
+  :root {
+    --rc-page-padding: var(--rc-space-4);
+    --rc-section-gap: var(--rc-space-6);
+    --rc-card-padding: var(--rc-space-4);
+  }
+}
+
+/* ── Shape ────────────────────────────────────────────────────────────────── */
+:root {
+  --rc-radius-xs: 2px;    /* focus ring offset corners, tiny marks */
+  --rc-radius-sm: 4px;    /* chips, tags, badges */
+  --rc-radius-md: 6px;    /* buttons, inputs, menus */
+  --rc-radius-lg: 8px;    /* cards, panels */
+  --rc-radius-xl: 12px;   /* dialogs, sheets */
+  --rc-radius-full: 9999px; /* avatars, switches, count badges only */
+  --rc-border-width: 1px;
+  --rc-focus-width: 2px;
+  --rc-focus-offset: 2px;
+}
+
+/* ── Motion ───────────────────────────────────────────────────────────────── */
+:root {
+  --rc-duration-instant: 80ms;   /* hover, press */
+  --rc-duration-fast: 140ms;     /* tooltip, popover, menu */
+  --rc-duration-base: 200ms;     /* drawer, dialog, accordion */
+  --rc-duration-slow: 280ms;     /* sheet on mobile */
+  --rc-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --rc-ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --rc-ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --rc-duration-instant: 0ms;
+    --rc-duration-fast: 0ms;
+    --rc-duration-base: 0ms;
+    --rc-duration-slow: 0ms;
+  }
+}
+
+/* ── Layering ─────────────────────────────────────────────────────────────── */
+:root {
+  --rc-z-base: 0;
+  --rc-z-sticky: 100;
+  --rc-z-header: 200;
+  --rc-z-dropdown: 300;
+  --rc-z-drawer: 400;
+  --rc-z-dialog: 500;
+  --rc-z-toast: 600;
+  --rc-z-tooltip: 700;
+}
+
+/* ── Breakpoints (for reference; CSS variables cannot be used in @media) ─────
+ *   sm  480px   large phones (landscape)
+ *   md  768px   tablets: drawer navigation, 2-column grids
+ *   lg  1024px  sidebar appears as a 64px rail
+ *   xl  1280px  sidebar expanded, filter rail beside results
+ *   2xl 1440px  wider content margins only; no new layout
+ */
