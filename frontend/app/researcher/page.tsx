@@ -354,9 +354,9 @@ function ResearcherPage() {
           {error && (
             <div
               style={{
-                background: "#fef2f2",
-                border: "1px solid #fecaca",
-                color: "#991b1b",
+                background: "var(--rc-danger-subtle)",
+                border: "1px solid var(--rc-danger-border)",
+                color: "var(--rc-danger)",
                 padding: "10px 14px",
                 borderRadius: "var(--radius-sm)",
                 marginBottom: "20px",
@@ -407,7 +407,7 @@ function ResearcherPage() {
                 <select
                   value={initStatus}
                   onChange={(e) => setInitStatus(e.target.value)}
-                  style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border-color)", borderRadius: "var(--radius-sm)", background: "#ffffff" }}
+                  style={{ width: "100%", padding: "8px 12px", border: "1px solid var(--border-color)", borderRadius: "var(--radius-sm)", background: "var(--rc-surface)" }}
                 >
                   <option value="UNDERGRADUATE">UNDERGRADUATE</option>
                   <option value="POSTGRADUATE">POSTGRADUATE</option>
@@ -455,7 +455,7 @@ function ResearcherPage() {
                 borderRadius: "var(--radius-sm)",
                 border: "none",
                 background: "var(--primary)",
-                color: "#ffffff",
+                color: "var(--rc-text-on-brand)",
                 fontWeight: 600,
                 fontSize: "14px",
                 cursor: "pointer",

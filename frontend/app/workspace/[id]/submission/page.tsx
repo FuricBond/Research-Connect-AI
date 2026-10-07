@@ -521,9 +521,9 @@ function SubmissionManagementPage({ params }: PageProps) {
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            background: "#fee2e2",
-            border: "1px solid #fca5a5",
-            color: "#b91c1c",
+            background: "var(--rc-danger-subtle)",
+            border: "1px solid var(--rc-danger-border)",
+            color: "var(--rc-danger)",
             borderRadius: "var(--radius-md)",
             padding: "12px 16px",
             marginBottom: "20px",
@@ -541,9 +541,9 @@ function SubmissionManagementPage({ params }: PageProps) {
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            background: "#dcfce7",
-            border: "1px solid #86efac",
-            color: "#15803d",
+            background: "var(--rc-success-subtle)",
+            border: "1px solid var(--rc-success-border)",
+            color: "var(--rc-success)",
             borderRadius: "var(--radius-md)",
             padding: "12px 16px",
             marginBottom: "20px",
@@ -792,7 +792,7 @@ function SubmissionManagementPage({ params }: PageProps) {
               {readiness && readiness.blocking_issues.length > 0 && (
                 <span
                   className="submission-tab-badge"
-                  style={{ background: "#fee2e2", color: "#b91c1c" }}
+                  style={{ background: "var(--rc-danger-subtle)", color: "var(--rc-danger)" }}
                 >
                   {readiness.blocking_issues.length}
                 </span>
@@ -988,11 +988,11 @@ function SubmissionManagementPage({ params }: PageProps) {
                         style={{
                           marginBottom: "14px",
                           padding: "10px",
-                          background: "#fffbeb",
-                          border: "1px solid #fde68a",
+                          background: "var(--rc-warning-subtle)",
+                          border: "1px solid var(--rc-warning-border)",
                           borderRadius: "var(--radius-md)",
                           fontSize: "12px",
-                          color: "#92400e",
+                          color: "var(--rc-warning)",
                         }}
                       >
                         <div style={{ fontWeight: 600, display: "flex", alignItems: "center", gap: "5px" }}>
@@ -1065,10 +1065,10 @@ function SubmissionManagementPage({ params }: PageProps) {
                       style={{
                         marginTop: "16px",
                         padding: "10px",
-                        background: "rgba(16, 185, 129, 0.08)",
+                        background: "color-mix(in srgb, var(--rc-success) 8%, transparent)",
                         borderRadius: "var(--radius-md)",
                         fontSize: "12px",
-                        color: "#065f46",
+                        color: "var(--rc-success)",
                       }}
                     >
                       Officially submitted on:{" "}
@@ -1081,10 +1081,10 @@ function SubmissionManagementPage({ params }: PageProps) {
                       style={{
                         marginTop: "10px",
                         padding: "10px",
-                        background: "rgba(59, 130, 246, 0.08)",
+                        background: "color-mix(in srgb, var(--rc-info) 8%, transparent)",
                         borderRadius: "var(--radius-md)",
                         fontSize: "12px",
-                        color: "#1e40af",
+                        color: "var(--rc-info)",
                       }}
                     >
                       Decision recorded on:{" "}
@@ -1334,13 +1334,13 @@ function SubmissionManagementPage({ params }: PageProps) {
                       </div>
                       <div>
                         <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>Completed Docs</div>
-                        <div style={{ fontSize: "18px", fontWeight: 700, color: "#10b981" }}>
+                        <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--rc-success)" }}>
                           {readiness.completed_document_count}
                         </div>
                       </div>
                       <div>
                         <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>Missing Docs</div>
-                        <div style={{ fontSize: "18px", fontWeight: 700, color: "#ef4444" }}>
+                        <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--rc-danger)" }}>
                           {readiness.missing_document_count}
                         </div>
                       </div>
@@ -1355,8 +1355,8 @@ function SubmissionManagementPage({ params }: PageProps) {
 
                   {/* Blocking Issues */}
                   {readiness.blocking_issues.length > 0 && (
-                    <div className="submission-card" style={{ borderLeft: "4px solid #ef4444" }}>
-                      <h4 style={{ margin: "0 0 10px 0", color: "#b91c1c", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <div className="submission-card" style={{ borderLeft: "4px solid var(--rc-danger)" }}>
+                      <h4 style={{ margin: "0 0 10px 0", color: "var(--rc-danger)", display: "flex", alignItems: "center", gap: "6px" }}>
                         <ShieldAlert size={16} /> Blocking Issues ({readiness.blocking_issues.length})
                       </h4>
                       <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "0 0 12px 0" }}>
@@ -1382,8 +1382,8 @@ function SubmissionManagementPage({ params }: PageProps) {
 
                   {/* Warnings */}
                   {readiness.warnings.length > 0 && (
-                    <div className="submission-card" style={{ borderLeft: "4px solid #f59e0b" }}>
-                      <h4 style={{ margin: "0 0 10px 0", color: "#b45309", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <div className="submission-card" style={{ borderLeft: "4px solid var(--rc-warning)" }}>
+                      <h4 style={{ margin: "0 0 10px 0", color: "var(--rc-warning)", display: "flex", alignItems: "center", gap: "6px" }}>
                         <AlertTriangle size={16} /> Warnings & Recommendations ({readiness.warnings.length})
                       </h4>
                       <div className="readiness-issues-list">
@@ -1462,7 +1462,7 @@ function SubmissionManagementPage({ params }: PageProps) {
                                 marginTop: "6px",
                                 fontSize: "11px",
                                 color: "var(--text-muted)",
-                                background: "rgba(0,0,0,0.02)",
+                                background: "color-mix(in srgb, var(--rc-text) 2%, transparent)",
                                 padding: "4px 8px",
                                 borderRadius: "4px",
                               }}
@@ -1487,7 +1487,7 @@ function SubmissionManagementPage({ params }: PageProps) {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0, 0, 0, 0.5)",
+            background: "var(--rc-overlay)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1647,7 +1647,7 @@ function SubmissionManagementPage({ params }: PageProps) {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0, 0, 0, 0.5)",
+            background: "var(--rc-overlay)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1774,7 +1774,7 @@ function SubmissionManagementPage({ params }: PageProps) {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0, 0, 0, 0.5)",
+            background: "var(--rc-overlay)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

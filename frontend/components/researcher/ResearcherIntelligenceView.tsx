@@ -76,7 +76,7 @@ export function ResearcherIntelligenceView({
       <div
         style={{
           background: "var(--bg-card)",
-          border: "1px solid #fecaca",
+          border: "1px solid var(--rc-danger-border)",
           borderRadius: "var(--radius-lg)",
           padding: "24px",
           marginTop: "24px",
@@ -84,7 +84,7 @@ export function ResearcherIntelligenceView({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "#991b1b" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--rc-danger)" }}>
             <Info size={18} />
             <span style={{ fontSize: "14px", fontWeight: 600 }}>Failed to load research intelligence</span>
           </div>
@@ -92,9 +92,9 @@ export function ResearcherIntelligenceView({
             onClick={onRefresh}
             style={{
               padding: "6px 12px",
-              background: "#fee2e2",
-              border: "1px solid #fca5a5",
-              color: "#991b1b",
+              background: "var(--rc-danger-subtle)",
+              border: "1px solid var(--rc-danger-border)",
+              color: "var(--rc-danger)",
               borderRadius: "var(--radius-sm)",
               fontSize: "12px",
               fontWeight: 600,
@@ -104,7 +104,7 @@ export function ResearcherIntelligenceView({
             Retry
           </button>
         </div>
-        <p style={{ fontSize: "13px", color: "#7f1d1d", margin: "8px 0 0 0" }}>{error}</p>
+        <p style={{ fontSize: "13px", color: "var(--rc-danger)", margin: "8px 0 0 0" }}>{error}</p>
       </div>
     );
   }
@@ -145,42 +145,42 @@ export function ResearcherIntelligenceView({
     switch (classification) {
       case "PRIMARY_EXPERTISE":
         return {
-          bg: "#ede9fe",
-          border: "#c4b5fd",
-          text: "#5b21b6",
+          bg: "var(--rc-brand-subtle)",
+          border: "var(--rc-brand-border)",
+          text: "var(--rc-brand-text)",
           label: "Primary Expertise",
           icon: <Brain size={12} />,
         };
       case "SECONDARY_EXPERTISE":
         return {
-          bg: "#eff6ff",
-          border: "#bfdbfe",
-          text: "#1e40af",
+          bg: "var(--rc-info-subtle)",
+          border: "var(--rc-info-border)",
+          text: "var(--rc-info)",
           label: "Secondary Expertise",
           icon: <Layers size={12} />,
         };
       case "EMERGING_INTEREST":
         return {
-          bg: "#ecfdf5",
-          border: "#a7f3d0",
-          text: "#065f46",
+          bg: "var(--rc-success-subtle)",
+          border: "var(--rc-success-border)",
+          text: "var(--rc-success)",
           label: "Emerging Interest",
           icon: <Flame size={12} />,
         };
       case "WEAK_INTEREST":
         return {
-          bg: "#f8fafc",
-          border: "#e2e8f0",
-          text: "#475569",
+          bg: "var(--rc-bg)",
+          border: "var(--rc-border)",
+          text: "var(--rc-text-secondary)",
           label: "Declared / Incidental",
           icon: <Compass size={12} />,
         };
       case "INSUFFICIENT_EVIDENCE":
       default:
         return {
-          bg: "#fffbeb",
-          border: "#fde68a",
-          text: "#92400e",
+          bg: "var(--rc-warning-subtle)",
+          border: "var(--rc-warning-border)",
+          text: "var(--rc-warning)",
           label: "Sparse Evidence",
           icon: <Info size={12} />,
         };
@@ -221,8 +221,8 @@ export function ResearcherIntelligenceView({
                 width: "28px",
                 height: "28px",
                 borderRadius: "var(--radius-md)",
-                background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
-                color: "#ffffff",
+                background: "var(--rc-brand-subtle)",
+                color: "var(--rc-brand-text)",
               }}
             >
               <Brain size={16} />
@@ -290,14 +290,14 @@ export function ResearcherIntelligenceView({
 
         <div
           style={{
-            background: "#ede9fe",
-            border: "1px solid #ddd6fe",
+            background: "var(--rc-brand-subtle)",
+            border: "1px solid var(--rc-brand-border)",
             borderRadius: "var(--radius-md)",
             padding: "12px",
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: "20px", fontWeight: 700, color: "#5b21b6" }}>
+          <div style={{ fontSize: "20px", fontWeight: 700, color: "var(--rc-brand-text)" }}>
             {intelligence.summary.primary_expertise_count}
           </div>
           <div style={{ fontSize: "11px", color: "#6d28d9", fontWeight: 500, marginTop: "2px" }}>
@@ -307,14 +307,14 @@ export function ResearcherIntelligenceView({
 
         <div
           style={{
-            background: "#ecfdf5",
-            border: "1px solid #a7f3d0",
+            background: "var(--rc-success-subtle)",
+            border: "1px solid var(--rc-success-border)",
             borderRadius: "var(--radius-md)",
             padding: "12px",
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: "20px", fontWeight: 700, color: "#065f46" }}>
+          <div style={{ fontSize: "20px", fontWeight: 700, color: "var(--rc-success)" }}>
             {intelligence.summary.emerging_interest_count}
           </div>
           <div style={{ fontSize: "11px", color: "#047857", fontWeight: 500, marginTop: "2px" }}>
@@ -377,7 +377,7 @@ export function ResearcherIntelligenceView({
             borderRadius: "var(--radius-full)",
             border: "none",
             background: activeTab === "ALL" ? "var(--primary)" : "transparent",
-            color: activeTab === "ALL" ? "#ffffff" : "var(--text-muted)",
+            color: activeTab === "ALL" ? "var(--rc-text-on-brand)" : "var(--text-muted)",
             fontSize: "12px",
             fontWeight: 600,
             cursor: "pointer",
@@ -392,8 +392,8 @@ export function ResearcherIntelligenceView({
             padding: "6px 14px",
             borderRadius: "var(--radius-full)",
             border: "none",
-            background: activeTab === "PRIMARY" ? "#5b21b6" : "transparent",
-            color: activeTab === "PRIMARY" ? "#ffffff" : "var(--text-muted)",
+            background: activeTab === "PRIMARY" ? "var(--rc-brand)" : "transparent",
+            color: activeTab === "PRIMARY" ? "var(--rc-text-on-brand)" : "var(--text-muted)",
             fontSize: "12px",
             fontWeight: 600,
             cursor: "pointer",
@@ -408,8 +408,8 @@ export function ResearcherIntelligenceView({
             padding: "6px 14px",
             borderRadius: "var(--radius-full)",
             border: "none",
-            background: activeTab === "EMERGING" ? "#065f46" : "transparent",
-            color: activeTab === "EMERGING" ? "#ffffff" : "var(--text-muted)",
+            background: activeTab === "EMERGING" ? "var(--rc-brand)" : "transparent",
+            color: activeTab === "EMERGING" ? "var(--rc-text-on-brand)" : "var(--text-muted)",
             fontSize: "12px",
             fontWeight: 600,
             cursor: "pointer",
@@ -424,8 +424,8 @@ export function ResearcherIntelligenceView({
             padding: "6px 14px",
             borderRadius: "var(--radius-full)",
             border: "none",
-            background: activeTab === "SECONDARY" ? "#1e40af" : "transparent",
-            color: activeTab === "SECONDARY" ? "#ffffff" : "var(--text-muted)",
+            background: activeTab === "SECONDARY" ? "var(--rc-brand)" : "transparent",
+            color: activeTab === "SECONDARY" ? "var(--rc-text-on-brand)" : "var(--text-muted)",
             fontSize: "12px",
             fontWeight: 600,
             cursor: "pointer",
@@ -518,7 +518,7 @@ export function ResearcherIntelligenceView({
                         style={{
                           height: "100%",
                           width: `${Math.round(item.strength * 100)}%`,
-                          background: "linear-gradient(90deg, #4f46e5, #7c3aed)",
+                          background: "var(--rc-data-meter-fill)",
                           borderRadius: "3px",
                         }}
                       />
@@ -536,7 +536,7 @@ export function ResearcherIntelligenceView({
                         style={{
                           height: "100%",
                           width: `${Math.round(item.confidence * 100)}%`,
-                          background: "#10b981",
+                          background: "var(--rc-success)",
                           borderRadius: "3px",
                         }}
                       />
@@ -552,8 +552,8 @@ export function ResearcherIntelligenceView({
                       fontSize: "11px",
                       padding: "4px 8px",
                       borderRadius: "var(--radius-sm)",
-                      background: item.recency_score >= 0.75 ? "#ecfdf5" : "#f1f5f9",
-                      color: item.recency_score >= 0.75 ? "#065f46" : "#475569",
+                      background: item.recency_score >= 0.75 ? "var(--rc-success-subtle)" : "var(--rc-surface-sunken)",
+                      color: item.recency_score >= 0.75 ? "var(--rc-success)" : "var(--rc-text-secondary)",
                       fontWeight: 600,
                     }}
                   >

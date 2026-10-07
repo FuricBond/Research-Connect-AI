@@ -220,7 +220,7 @@ export function PersonalizedRankingPreview({
           </div>
           <div>
             <div className="text-xs text-slate-400">Max Promotion / Demotion</div>
-            <div className="text-sm font-semibold text-slate-200 mt-1">
+            <div className="text-sm font-semibold text-slate-800 mt-1">
               <span className="text-emerald-400">+{ablation.max_rank_promotion}</span> /{" "}
               <span className="text-amber-400">{ablation.max_rank_demotion}</span>
             </div>

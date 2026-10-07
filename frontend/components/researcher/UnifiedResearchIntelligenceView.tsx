@@ -201,9 +201,9 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
   const getIdentityBadge = (status: string, isAmbiguous: boolean) => {
     if (isAmbiguous) {
       return {
-        bg: "#fef2f2",
-        color: "#b91c1c",
-        border: "#fecaca",
+        bg: "var(--rc-danger-subtle)",
+        color: "var(--rc-danger)",
+        border: "var(--rc-danger-border)",
         label: "Ambiguous Identity",
         icon: AlertTriangle,
       };
@@ -211,26 +211,26 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
     switch (status) {
       case "CANONICAL_RESOLVED":
         return {
-          bg: "#ecfdf5",
-          color: "#047857",
-          border: "#a7f3d0",
+          bg: "var(--rc-success-subtle)",
+          color: "var(--rc-success)",
+          border: "var(--rc-success-border)",
           label: "Canonical Resolved",
           icon: UserCheck,
         };
       case "SELF_DECLARED_ONLY":
         return {
-          bg: "#eff6ff",
-          color: "#1d4ed8",
-          border: "#bfdbfe",
+          bg: "var(--rc-info-subtle)",
+          color: "var(--rc-info)",
+          border: "var(--rc-info-border)",
           label: "Self-Declared",
           icon: Info,
         };
       case "COLD_START":
       default:
         return {
-          bg: "#f9fafb",
-          color: "#4b5563",
-          border: "#e5e7eb",
+          bg: "var(--rc-bg)",
+          color: "var(--rc-text-secondary)",
+          border: "var(--rc-border)",
           label: "Cold Start",
           icon: Sparkles,
         };

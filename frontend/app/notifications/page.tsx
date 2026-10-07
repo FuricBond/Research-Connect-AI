@@ -355,7 +355,7 @@ function NotificationsPage() {
           </div>
         ) : error ? (
           <div className="notifications-empty">
-            <AlertTriangle size={32} color="#ef4444" />
+            <AlertTriangle size={32} color="var(--rc-danger)" />
             <h3>Unable to Load Notifications</h3>
             <p>{error}</p>
             <button

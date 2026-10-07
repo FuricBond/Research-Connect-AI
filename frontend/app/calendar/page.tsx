@@ -341,7 +341,7 @@ function CalendarPage() {
         </div>
 
         {exportError && (
-          <p role="alert" style={{ color: "#f87171", margin: "8px 0 0 0", fontSize: "13px" }}>
+          <p role="alert" style={{ color: "var(--rc-danger)", margin: "8px 0 0 0", fontSize: "13px" }}>
             {exportError}
           </p>
         )}
@@ -360,7 +360,7 @@ function CalendarPage() {
             <span className="calendar-stat-label">Unresolved Conflicts</span>
             <span
               className="calendar-stat-value"
-              style={{ color: stats.conflicts > 0 ? "#f87171" : "inherit" }}
+              style={{ color: stats.conflicts > 0 ? "var(--rc-danger)" : "inherit" }}
             >
               {stats.conflicts}
             </span>
@@ -369,7 +369,7 @@ function CalendarPage() {
             <span className="calendar-stat-label">Deadline Extensions</span>
             <span
               className="calendar-stat-value"
-              style={{ color: stats.extensions > 0 ? "#60a5fa" : "inherit" }}
+              style={{ color: stats.extensions > 0 ? "var(--rc-info)" : "inherit" }}
             >
               {stats.extensions}
             </span>
@@ -447,11 +447,11 @@ function CalendarPage() {
       ) : error ? (
         <div
           style={{
-            background: "rgba(239, 68, 68, 0.1)",
-            border: "1px solid rgba(239, 68, 68, 0.3)",
+            background: "color-mix(in srgb, var(--rc-danger) 10%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--rc-danger) 30%, transparent)",
             padding: "20px",
             borderRadius: "8px",
-            color: "#fca5a5",
+            color: "var(--rc-danger)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
@@ -464,8 +464,8 @@ function CalendarPage() {
             style={{
               marginTop: "12px",
               background: "transparent",
-              border: "1px solid #fca5a5",
-              color: "#fca5a5",
+              border: "1px solid var(--rc-danger-border)",
+              color: "var(--rc-danger)",
               padding: "6px 12px",
               borderRadius: "4px",
               cursor: "pointer",

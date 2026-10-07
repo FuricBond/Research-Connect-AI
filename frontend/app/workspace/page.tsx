@@ -329,7 +329,7 @@ function WorkspacePage() {
           <button
             onClick={() => setError(null)}
             className="workspace-action-btn"
-            style={{ background: "transparent", border: "none", color: "#991b1b" }}
+            style={{ background: "transparent", border: "none", color: "var(--rc-danger)" }}
           >
             <X size={16} />
           </button>

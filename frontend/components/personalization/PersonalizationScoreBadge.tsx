@@ -26,40 +26,40 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
 
   // Visual styling token selection
   let badgeLabel = `${pct}% Match`;
-  let badgeBg = "rgba(59, 130, 246, 0.12)";
-  let badgeColor = "#3b82f6";
-  let badgeBorder = "rgba(59, 130, 246, 0.3)";
+  let badgeBg = "color-mix(in srgb, var(--rc-info) 12%, transparent)";
+  let badgeColor = "var(--rc-info)";
+  let badgeBorder = "color-mix(in srgb, var(--rc-info) 30%, transparent)";
   let badgeIcon = "★";
 
   if (matchState === "EXCLUDED_MATCH") {
     badgeLabel = "Excluded Match";
-    badgeBg = "rgba(239, 68, 68, 0.12)";
-    badgeColor = "#ef4444";
-    badgeBorder = "rgba(239, 68, 68, 0.3)";
+    badgeBg = "color-mix(in srgb, var(--rc-danger) 12%, transparent)";
+    badgeColor = "var(--rc-danger)";
+    badgeBorder = "color-mix(in srgb, var(--rc-danger) 30%, transparent)";
     badgeIcon = "✕";
   } else if (matchState === "CONFLICT") {
     badgeLabel = `${pct}% Conflict`;
-    badgeBg = "rgba(245, 158, 11, 0.15)";
-    badgeColor = "#f59e0b";
-    badgeBorder = "rgba(245, 158, 11, 0.4)";
+    badgeBg = "color-mix(in srgb, var(--rc-warning) 15%, transparent)";
+    badgeColor = "var(--rc-warning)";
+    badgeBorder = "color-mix(in srgb, var(--rc-warning) 40%, transparent)";
     badgeIcon = "⚠";
   } else if (matchState === "NEUTRAL" && pct === 0) {
     badgeLabel = "Neutral (No Prefs)";
-    badgeBg = "rgba(255, 255, 255, 0.05)";
-    badgeColor = "#94a3b8";
-    badgeBorder = "rgba(255, 255, 255, 0.1)";
+    badgeBg = "var(--rc-hover)";
+    badgeColor = "var(--rc-text-muted)";
+    badgeBorder = "var(--rc-hover)";
     badgeIcon = "○";
   } else if (pct >= 70) {
     badgeLabel = `${pct}% High Match`;
-    badgeBg = "rgba(16, 185, 129, 0.12)";
-    badgeColor = "#10b981";
-    badgeBorder = "rgba(16, 185, 129, 0.3)";
+    badgeBg = "color-mix(in srgb, var(--rc-success) 12%, transparent)";
+    badgeColor = "var(--rc-success)";
+    badgeBorder = "color-mix(in srgb, var(--rc-success) 30%, transparent)";
     badgeIcon = "✓";
   } else if (pct < 40) {
     badgeLabel = `${pct}% Low Match`;
-    badgeBg = "rgba(148, 163, 184, 0.12)";
-    badgeColor = "#94a3b8";
-    badgeBorder = "rgba(148, 163, 184, 0.25)";
+    badgeBg = "color-mix(in srgb, var(--rc-text-muted) 12%, transparent)";
+    badgeColor = "var(--rc-text-muted)";
+    badgeBorder = "color-mix(in srgb, var(--rc-text-muted) 25%, transparent)";
     badgeIcon = "◐";
   }
 
@@ -102,17 +102,17 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
             zIndex: 50,
             width: "360px",
             maxWidth: "90vw",
-            backgroundColor: "#0f172a",
-            border: "1px solid #334155",
+            backgroundColor: "var(--rc-surface-inverse)",
+            border: "1px solid var(--rc-border-control)",
             borderRadius: "8px",
             padding: "14px",
-            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5)",
+            boxShadow: "var(--rc-shadow-dialog)",
             fontSize: "12px",
-            color: "#e2e8f0",
+            color: "var(--rc-text)",
           }}
         >
           {/* Header */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", borderBottom: "1px solid #1e293b", paddingBottom: "8px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", borderBottom: "1px solid var(--rc-border-control)", paddingBottom: "8px" }}>
             <div>
               <span style={{ fontWeight: 700, fontSize: "13px", color: badgeColor }}>
                 {pct}% Personalization Score
@@ -127,7 +127,7 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
               style={{
                 background: "none",
                 border: "none",
-                color: "#94a3b8",
+                color: "var(--rc-text-muted)",
                 cursor: "pointer",
                 fontSize: "14px",
                 padding: "2px 6px",
@@ -138,7 +138,7 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
           </div>
 
           {/* Executive Summary */}
-          <div style={{ marginBottom: "12px", color: "#cbd5e1", lineHeight: "1.4", fontStyle: "italic" }}>
+          <div style={{ marginBottom: "12px", color: "var(--rc-text)", lineHeight: "1.4", fontStyle: "italic" }}>
             {explanation.summary}
           </div>
 
@@ -148,10 +148,10 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
               <div style={{ fontSize: "11px", fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
                 Positive Signals (+{Math.round(score.positive_contribution * 100)}%)
               </div>
-              <ul style={{ margin: "0", paddingLeft: "16px", color: "#94a3b8" }}>
+              <ul style={{ margin: "0", paddingLeft: "16px", color: "var(--rc-text-muted)" }}>
                 {breakdown.positive_contributions.map((c, idx) => (
                   <li key={`pos-${idx}`} style={{ marginBottom: "2px" }}>
-                    <span style={{ color: "#e2e8f0", fontWeight: 500 }}>
+                    <span style={{ color: "var(--rc-text)", fontWeight: 500 }}>
                       {c.dimension.replace("_", " ")}:
                     </span>{" "}
                     {c.explanation}
@@ -167,10 +167,10 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
               <div style={{ fontSize: "11px", fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
                 Negative Signals (-{Math.round(score.negative_penalty * 100)}%)
               </div>
-              <ul style={{ margin: "0", paddingLeft: "16px", color: "#94a3b8" }}>
+              <ul style={{ margin: "0", paddingLeft: "16px", color: "var(--rc-text-muted)" }}>
                 {breakdown.negative_contributions.map((c, idx) => (
                   <li key={`neg-${idx}`} style={{ marginBottom: "2px" }}>
-                    <span style={{ color: "#fca5a5", fontWeight: 500 }}>
+                    <span style={{ color: "var(--rc-danger)", fontWeight: 500 }}>
                       {c.dimension.replace("_", " ")}:
                     </span>{" "}
                     {c.explanation}
@@ -186,7 +186,7 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
               <div style={{ fontSize: "11px", fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
                 Preference Conflicts
               </div>
-              <ul style={{ margin: "0", paddingLeft: "16px", color: "#fde68a" }}>
+              <ul style={{ margin: "0", paddingLeft: "16px", color: "var(--rc-warning)" }}>
                 {breakdown.unresolved_contributions
                   .filter((c) => c.match_type === "CONFLICT")
                   .map((c, idx) => (

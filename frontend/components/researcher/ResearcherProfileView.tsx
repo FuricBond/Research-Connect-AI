@@ -111,9 +111,9 @@ export function ResearcherProfileView({
       {errorMessage && (
         <div
           style={{
-            background: "#fef2f2",
-            border: "1px solid #fecaca",
-            color: "#991b1b",
+            background: "var(--rc-danger-subtle)",
+            border: "1px solid var(--rc-danger-border)",
+            color: "var(--rc-danger)",
             padding: "10px 14px",
             borderRadius: "var(--radius-sm)",
             marginBottom: "16px",
@@ -131,9 +131,9 @@ export function ResearcherProfileView({
       {successMessage && (
         <div
           style={{
-            background: "#f0fdf4",
-            border: "1px solid #bbf7d0",
-            color: "#166534",
+            background: "var(--rc-success-subtle)",
+            border: "1px solid var(--rc-success-border)",
+            color: "var(--rc-success)",
             padding: "10px 14px",
             borderRadius: "var(--radius-sm)",
             marginBottom: "16px",
@@ -227,8 +227,8 @@ export function ResearcherProfileView({
                 {profile.canonical_researcher_id && (
                   <span
                     style={{
-                      background: "#e0f2fe",
-                      color: "#0369a1",
+                      background: "var(--rc-info-subtle)",
+                      color: "var(--rc-info)",
                       padding: "2px 8px",
                       borderRadius: "var(--radius-full)",
                       fontSize: "11px",
@@ -498,9 +498,9 @@ export function ResearcherProfileView({
                       gap: "6px",
                       padding: "6px 12px",
                       borderRadius: "var(--radius-sm)",
-                      background: "#f0fdf4",
-                      border: "1px solid #bbf7d0",
-                      color: "#166534",
+                      background: "var(--rc-success-subtle)",
+                      border: "1px solid var(--rc-success-border)",
+                      color: "var(--rc-success)",
                       fontSize: "12px",
                       textDecoration: "none",
                       fontWeight: 500,
@@ -523,9 +523,9 @@ export function ResearcherProfileView({
                       gap: "6px",
                       padding: "6px 12px",
                       borderRadius: "var(--radius-sm)",
-                      background: "#f0f9ff",
-                      border: "1px solid #bae6fd",
-                      color: "#0369a1",
+                      background: "var(--rc-info-subtle)",
+                      border: "1px solid var(--rc-info-border)",
+                      color: "var(--rc-info)",
                       fontSize: "12px",
                       textDecoration: "none",
                       fontWeight: 500,

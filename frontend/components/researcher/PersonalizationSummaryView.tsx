@@ -72,31 +72,31 @@ export function PersonalizationSummaryView({
     switch (confidence) {
       case "High":
         return {
-          bg: "#ecfdf5",
-          color: "#047857",
-          border: "#a7f3d0",
+          bg: "var(--rc-success-subtle)",
+          color: "var(--rc-success)",
+          border: "var(--rc-success-border)",
           label: "High Confidence",
         };
       case "Moderate":
         return {
-          bg: "#eff6ff",
-          color: "#1d4ed8",
-          border: "#bfdbfe",
+          bg: "var(--rc-info-subtle)",
+          color: "var(--rc-info)",
+          border: "var(--rc-info-border)",
           label: "Moderate Confidence",
         };
       case "Low":
         return {
-          bg: "#fffbeb",
-          color: "#b45309",
-          border: "#fde68a",
+          bg: "var(--rc-warning-subtle)",
+          color: "var(--rc-warning)",
+          border: "var(--rc-warning-border)",
           label: "Low Confidence",
         };
       case "Cold Start":
       default:
         return {
-          bg: "#f3f4f6",
-          color: "#4b5563",
-          border: "#e5e7eb",
+          bg: "var(--rc-surface-sunken)",
+          color: "var(--rc-text-secondary)",
+          border: "var(--rc-border)",
           label: "Cold Start",
         };
     }
@@ -106,12 +106,12 @@ export function PersonalizationSummaryView({
     return (
       <div
         style={{
-          background: "var(--bg-card, #ffffff)",
-          border: "1px solid var(--border-color, #e2e8f0)",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-color)",
           borderRadius: "var(--radius-lg, 12px)",
           padding: "32px",
           textAlign: "center",
-          color: "var(--text-muted, #64748b)",
+          color: "var(--text-muted)",
         }}
       >
         <div style={{ display: "inline-block", animation: "spin 1s linear infinite", marginBottom: "8px" }}>
@@ -126,15 +126,15 @@ export function PersonalizationSummaryView({
     return (
       <div
         style={{
-          background: "var(--bg-card, #ffffff)",
-          border: "1px solid var(--border-color, #e2e8f0)",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-color)",
           borderRadius: "var(--radius-lg, 12px)",
           padding: "24px",
-          color: "#b91c1c",
+          color: "var(--rc-danger)",
         }}
       >
         <div style={{ fontWeight: 600, marginBottom: "8px" }}>Could not load personalization state</div>
-        <div style={{ fontSize: "13px", color: "var(--text-muted, #64748b)", marginBottom: "16px" }}>
+        <div style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "16px" }}>
           {error || "Researcher summary data is currently unavailable."}
         </div>
         <button
@@ -144,8 +144,8 @@ export function PersonalizationSummaryView({
             fontSize: "12px",
             fontWeight: 600,
             borderRadius: "6px",
-            border: "1px solid var(--border-color, #cbd5e1)",
-            background: "var(--bg-card, #ffffff)",
+            border: "1px solid var(--border-color)",
+            background: "var(--bg-card)",
             cursor: "pointer",
           }}
         >
@@ -160,11 +160,11 @@ export function PersonalizationSummaryView({
   return (
     <div
       style={{
-        background: "var(--bg-card, #ffffff)",
-        border: "1px solid var(--border-color, #e2e8f0)",
+        background: "var(--bg-card)",
+        border: "1px solid var(--border-color)",
         borderRadius: "var(--radius-lg, 12px)",
         padding: "24px",
-        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+        boxShadow: "none",
         display: "flex",
         flexDirection: "column",
         gap: "24px",
@@ -182,12 +182,12 @@ export function PersonalizationSummaryView({
       >
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-            <Sparkles size={20} color="var(--primary, #2563eb)" />
-            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "var(--text-main, #0f172a)" }}>
+            <Sparkles size={20} color="var(--primary)" />
+            <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "var(--text-main)" }}>
               Your Research Personalization
             </h3>
           </div>
-          <p style={{ margin: 0, fontSize: "13px", color: "var(--text-muted, #64748b)" }}>
+          <p style={{ margin: 0, fontSize: "13px", color: "var(--text-muted)" }}>
             Real-time breakdown of declared preferences, verified research expertise, and learned behavioral signals.
           </p>
         </div>
@@ -219,13 +219,13 @@ export function PersonalizationSummaryView({
               fontSize: "12px",
               fontWeight: 600,
               borderRadius: "6px",
-              border: "1px solid var(--border-color, #cbd5e1)",
-              background: "var(--bg-main, #f8fafc)",
+              border: "1px solid var(--border-color)",
+              background: "var(--bg-main)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               gap: "6px",
-              color: "var(--text-main, #334155)",
+              color: "var(--text-main)",
             }}
           >
             <RefreshCw size={13} className={isRefreshing ? "animate-spin" : ""} />
@@ -245,15 +245,15 @@ export function PersonalizationSummaryView({
         <div
           style={{
             padding: "16px",
-            background: "var(--bg-main, #f8fafc)",
+            background: "var(--bg-main)",
             borderRadius: "8px",
-            border: "1px solid var(--border-color, #e2e8f0)",
+            border: "1px solid var(--border-color)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#64748b", fontSize: "12px", fontWeight: 600 }}>
-            <Layers size={14} color="#3b82f6" /> Research Interests
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--rc-text-muted)", fontSize: "12px", fontWeight: 600 }}>
+            <Layers size={14} color="var(--rc-info)" /> Research Interests
           </div>
-          <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main, #0f172a)" }}>
+          <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main)" }}>
             {summary.active_interests_count}
           </div>
           <div style={{ fontSize: "11px", color: "var(--text-muted, #64748b)", marginTop: "2px" }}>
@@ -264,15 +264,15 @@ export function PersonalizationSummaryView({
         <div
           style={{
             padding: "16px",
-            background: "var(--bg-main, #f8fafc)",
+            background: "var(--bg-main)",
             borderRadius: "8px",
-            border: "1px solid var(--border-color, #e2e8f0)",
+            border: "1px solid var(--border-color)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#64748b", fontSize: "12px", fontWeight: 600 }}>
-            <Award size={14} color="#10b981" /> Strong Expertise
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--rc-text-muted)", fontSize: "12px", fontWeight: 600 }}>
+            <Award size={14} color="var(--rc-success)" /> Strong Expertise
           </div>
-          <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main, #0f172a)" }}>
+          <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main)" }}>
             {summary.strong_expertise_count}
           </div>
           <div style={{ fontSize: "11px", color: "var(--text-muted, #64748b)", marginTop: "2px" }}>
@@ -283,15 +283,15 @@ export function PersonalizationSummaryView({
         <div
           style={{
             padding: "16px",
-            background: "var(--bg-main, #f8fafc)",
+            background: "var(--bg-main)",
             borderRadius: "8px",
-            border: "1px solid var(--border-color, #e2e8f0)",
+            border: "1px solid var(--border-color)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#64748b", fontSize: "12px", fontWeight: 600 }}>
-            <BookmarkCheck size={14} color="#8b5cf6" /> Explicit Preferences
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--rc-text-muted)", fontSize: "12px", fontWeight: 600 }}>
+            <BookmarkCheck size={14} color="var(--rc-brand-text)" /> Explicit Preferences
           </div>
-          <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main, #0f172a)" }}>
+          <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main)" }}>
             {summary.explicit_preferences_count}
           </div>
           <div style={{ fontSize: "11px", color: "var(--text-muted, #64748b)", marginTop: "2px" }}>
@@ -302,15 +302,15 @@ export function PersonalizationSummaryView({
         <div
           style={{
             padding: "16px",
-            background: "var(--bg-main, #f8fafc)",
+            background: "var(--bg-main)",
             borderRadius: "8px",
-            border: "1px solid var(--border-color, #e2e8f0)",
+            border: "1px solid var(--border-color)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#64748b", fontSize: "12px", fontWeight: 600 }}>
-            <Activity size={14} color="#f59e0b" /> Behavioral Signals
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--rc-text-muted)", fontSize: "12px", fontWeight: 600 }}>
+            <Activity size={14} color="var(--rc-warning)" /> Behavioral Signals
           </div>
-          <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main, #0f172a)" }}>
+          <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main)" }}>
             {summary.behavioral_signals_count}
           </div>
           <div style={{ fontSize: "11px", color: "var(--text-muted, #64748b)", marginTop: "2px" }}>
@@ -324,20 +324,20 @@ export function PersonalizationSummaryView({
         <div
           style={{
             padding: "18px 20px",
-            background: "#eff6ff",
-            border: "1px solid #bfdbfe",
+            background: "var(--rc-info-subtle)",
+            border: "1px solid var(--rc-info-border)",
             borderRadius: "8px",
             display: "flex",
             alignItems: "flex-start",
             gap: "14px",
           }}
         >
-          <Compass size={22} color="#2563eb" style={{ flexShrink: 0, marginTop: "2px" }} />
+          <Compass size={22} color="var(--rc-info)" style={{ flexShrink: 0, marginTop: "2px" }} />
           <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: "14px", color: "#1e3a8a", marginBottom: "4px" }}>
+            <div style={{ fontWeight: 700, fontSize: "14px", color: "var(--rc-info)", marginBottom: "4px" }}>
               Cold-Start Mode: Building Your Personalization Foundation
             </div>
-            <div style={{ fontSize: "13px", color: "#1e40af", lineHeight: "1.5", marginBottom: "12px" }}>
+            <div style={{ fontSize: "13px", color: "var(--rc-info)", lineHeight: "1.5", marginBottom: "12px" }}>
               Your recommendations are currently based mainly on research relevance. We have not yet recorded enough
               interests or explicit preferences to customize candidate ranking.
             </div>
@@ -350,8 +350,8 @@ export function PersonalizationSummaryView({
                     fontSize: "12px",
                     fontWeight: 600,
                     borderRadius: "6px",
-                    background: "#2563eb",
-                    color: "#ffffff",
+                    background: "var(--rc-brand)",
+                    color: "var(--rc-text-on-brand)",
                     border: "none",
                     cursor: "pointer",
                     display: "flex",
@@ -370,9 +370,9 @@ export function PersonalizationSummaryView({
                     fontSize: "12px",
                     fontWeight: 600,
                     borderRadius: "6px",
-                    background: "#ffffff",
-                    color: "#2563eb",
-                    border: "1px solid #bfdbfe",
+                    background: "var(--rc-surface)",
+                    color: "var(--rc-info)",
+                    border: "1px solid var(--rc-info-border)",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
@@ -392,17 +392,17 @@ export function PersonalizationSummaryView({
         <div
           style={{
             padding: "14px 18px",
-            background: "#fefce8",
-            border: "1px solid #fef08a",
+            background: "var(--rc-warning-subtle)",
+            border: "1px solid var(--rc-warning-border)",
             borderRadius: "8px",
             display: "flex",
             alignItems: "center",
             gap: "12px",
             fontSize: "13px",
-            color: "#854d0e",
+            color: "var(--rc-warning)",
           }}
         >
-          <Clock size={18} color="#a16207" style={{ flexShrink: 0 }} />
+          <Clock size={18} color="var(--rc-warning)" style={{ flexShrink: 0 }} />
           <div>
             <strong>We&apos;re still learning your preferences:</strong> Save or dismiss opportunities in your
             recommendation feed to help our deterministic ranker tune future proposals to your preferences.
@@ -421,15 +421,15 @@ export function PersonalizationSummaryView({
         {/* Explicit Drivers Panel */}
         <div
           style={{
-            border: "1px solid var(--border-color, #e2e8f0)",
+            border: "1px solid var(--border-color)",
             borderRadius: "8px",
             padding: "16px",
-            background: "var(--bg-main, #f8fafc)",
+            background: "var(--bg-main)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 700, fontSize: "13px", color: "var(--text-main, #0f172a)" }}>
-              <BookmarkCheck size={16} color="#2563eb" />
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 700, fontSize: "13px", color: "var(--text-main)" }}>
+              <BookmarkCheck size={16} color="var(--rc-info)" />
               <span>Explicit Preferences</span>
             </div>
             <span style={{ fontSize: "11px", color: "#64748b", background: "#ffffff", padding: "2px 8px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
@@ -444,22 +444,22 @@ export function PersonalizationSummaryView({
                   style={{
                     fontSize: "12px",
                     padding: "6px 10px",
-                    background: "#ffffff",
+                    background: "var(--rc-surface)",
                     borderRadius: "6px",
-                    border: "1px solid #e2e8f0",
-                    color: "#334155",
+                    border: "1px solid var(--rc-border)",
+                    color: "var(--rc-text-secondary)",
                     display: "flex",
                     alignItems: "center",
                     gap: "6px",
                   }}
                 >
-                  <CheckCircle2 size={13} color="#16a34a" />
+                  <CheckCircle2 size={13} color="var(--rc-success)" />
                   <span>{sig}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: "12px", color: "var(--text-muted, #64748b)", padding: "10px 0" }}>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", padding: "10px 0" }}>
               No explicit opportunity type, mode, or career stage preferences configured yet.
             </div>
           )}
@@ -470,7 +470,7 @@ export function PersonalizationSummaryView({
                 style={{
                   fontSize: "11px",
                   fontWeight: 600,
-                  color: "#2563eb",
+                  color: "var(--rc-info)",
                   background: "transparent",
                   border: "none",
                   cursor: "pointer",
@@ -489,15 +489,15 @@ export function PersonalizationSummaryView({
         {/* Learned from Activity Panel */}
         <div
           style={{
-            border: "1px solid var(--border-color, #e2e8f0)",
+            border: "1px solid var(--border-color)",
             borderRadius: "8px",
             padding: "16px",
-            background: "var(--bg-main, #f8fafc)",
+            background: "var(--bg-main)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 700, fontSize: "13px", color: "var(--text-main, #0f172a)" }}>
-              <TrendingUp size={16} color="#8b5cf6" />
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 700, fontSize: "13px", color: "var(--text-main)" }}>
+              <TrendingUp size={16} color="var(--rc-brand-text)" />
               <span>Learned from Activity</span>
             </div>
           </div>
@@ -558,8 +558,8 @@ export function PersonalizationSummaryView({
                         key={idx}
                         style={{
                           fontSize: "11px",
-                          color: "#991b1b",
-                          background: "#fef2f2",
+                          color: "var(--rc-danger)",
+                          background: "var(--rc-danger-subtle)",
                           padding: "4px 8px",
                           borderRadius: "4px",
                           display: "flex",
@@ -567,7 +567,7 @@ export function PersonalizationSummaryView({
                           gap: "4px",
                         }}
                       >
-                        <TrendingDown size={12} color="#dc2626" />
+                        <TrendingDown size={12} color="var(--rc-danger)" />
                         <span>{neg}</span>
                       </div>
                     ))}
@@ -576,7 +576,7 @@ export function PersonalizationSummaryView({
               )}
             </div>
           ) : (
-            <div style={{ fontSize: "12px", color: "var(--text-muted, #64748b)", padding: "10px 0" }}>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)", padding: "10px 0" }}>
               No behavioral preferences learned yet. As you save, view, or dismiss opportunities, patterns will emerge
               here.
             </div>
@@ -589,9 +589,9 @@ export function PersonalizationSummaryView({
 
 function SignalBadge({ item }: { item: LearnedSignalItem }) {
   const isPositive = item.direction === "POSITIVE";
-  const badgeBg = isPositive ? "#f0fdf4" : "#fef2f2";
-  const badgeBorder = isPositive ? "#bbf7d0" : "#fecaca";
-  const badgeColor = isPositive ? "#166534" : "#991b1b";
+  const badgeBg = isPositive ? "var(--rc-success-subtle)" : "var(--rc-danger-subtle)";
+  const badgeBorder = isPositive ? "var(--rc-success-border)" : "var(--rc-danger-border)";
+  const badgeColor = isPositive ? "var(--rc-success)" : "var(--rc-danger)";
 
   return (
     <span

@@ -321,7 +321,7 @@ function WorkspaceCollaborationPage({ params }: PageProps) {
 
       {/* Notifications / Alerts */}
       {error && (
-        <div style={{ background: "#fee2e2", color: "#991b1b", padding: "12px 16px", borderRadius: 8, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ background: "var(--rc-danger-subtle)", color: "var(--rc-danger)", padding: "12px 16px", borderRadius: 8, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <AlertCircle size={18} />
             <span>{error}</span>
@@ -331,7 +331,7 @@ function WorkspaceCollaborationPage({ params }: PageProps) {
       )}
 
       {actionSuccess && (
-        <div style={{ background: "#dcfce7", color: "#166534", padding: "12px 16px", borderRadius: 8, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ background: "var(--rc-success-subtle)", color: "var(--rc-success)", padding: "12px 16px", borderRadius: 8, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <CheckCircle2 size={18} />
             <span>{actionSuccess}</span>
@@ -452,7 +452,7 @@ function WorkspaceCollaborationPage({ params }: PageProps) {
               )}
             </p>
             {workspaceItem?.notes && (
-              <div style={{ marginTop: 16, padding: 12, background: "var(--bg-hover, #f9fafb)", borderRadius: 6, border: "1px solid var(--border-color)" }}>
+              <div style={{ marginTop: 16, padding: 12, background: "var(--bg-hover)", borderRadius: 6, border: "1px solid var(--border-color)" }}>
                 <strong style={{ fontSize: 12, textTransform: "uppercase", color: "var(--text-muted)" }}>Workspace Notes:</strong>
                 <p style={{ margin: "4px 0 0 0", fontSize: 13 }}>{workspaceItem.notes}</p>
               </div>
@@ -474,7 +474,7 @@ function WorkspaceCollaborationPage({ params }: PageProps) {
             </div>
             <div className="collab-card" style={{ marginBottom: 0 }}>
               <h4 style={{ margin: "0 0 8px 0", fontSize: 13, color: "var(--text-muted)" }}>Pending Invitations</h4>
-              <div style={{ fontSize: 24, fontWeight: 700, color: "#d97706" }}>
+              <div style={{ fontSize: 24, fontWeight: 700, color: "var(--rc-warning)" }}>
                 {invitations.filter((i) => i.status === "PENDING").length}
               </div>
               <p style={{ margin: "4px 0 0 0", fontSize: 12, color: "var(--text-muted)" }}>Awaiting response</p>
@@ -703,7 +703,7 @@ function WorkspaceCollaborationPage({ params }: PageProps) {
                     alignItems: "center",
                     justifyContent: "space-between",
                     padding: "12px 16px",
-                    background: "var(--bg-hover, #fafafa)",
+                    background: "var(--bg-hover)",
                     border: "1px solid var(--border-color)",
                     borderRadius: 8,
                   }}
@@ -844,8 +844,8 @@ function WorkspaceCollaborationPage({ params }: PageProps) {
                 </div>
 
                 {createdInviteToken && (
-                  <div style={{ padding: 12, background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 6 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#166534", marginBottom: 4 }}>
+                  <div style={{ padding: 12, background: "var(--rc-success-subtle)", border: "1px solid var(--rc-success-border)", borderRadius: 6 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--rc-success)", marginBottom: 4 }}>
                       Invitation Generated Successfully!
                     </div>
                     <div style={{ fontSize: 11, color: "var(--text-muted)", wordBreak: "break-all" }}>

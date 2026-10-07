@@ -58,31 +58,31 @@ export function RecommendationExplanationModal({
     switch (strength) {
       case "Highly personalized":
         return {
-          bg: "#eef2ff",
-          color: "#4338ca",
-          border: "#c7d2fe",
+          bg: "var(--rc-brand-subtle)",
+          color: "var(--rc-brand-text)",
+          border: "var(--rc-brand-border)",
           icon: <Sparkles size={13} />,
         };
       case "Personalized":
         return {
-          bg: "#ecfdf5",
-          color: "#047857",
-          border: "#a7f3d0",
+          bg: "var(--rc-success-subtle)",
+          color: "var(--rc-success)",
+          border: "var(--rc-success-border)",
           icon: <TrendingUp size={13} />,
         };
       case "Some personalization":
         return {
-          bg: "#eff6ff",
-          color: "#1d4ed8",
-          border: "#bfdbfe",
+          bg: "var(--rc-info-subtle)",
+          color: "var(--rc-info)",
+          border: "var(--rc-info-border)",
           icon: <Award size={13} />,
         };
       case "General recommendation":
       default:
         return {
-          bg: "#f3f4f6",
-          color: "#4b5563",
-          border: "#e5e7eb",
+          bg: "var(--rc-surface-sunken)",
+          color: "var(--rc-text-secondary)",
+          border: "var(--rc-border)",
           icon: <Info size={13} />,
         };
     }
@@ -182,7 +182,7 @@ export function RecommendationExplanationModal({
         {/* Body */}
         <div style={{ padding: "20px 24px", overflowY: "auto", flex: 1 }}>
           {loading ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "var(--text-muted, #64748b)" }}>
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--text-muted)" }}>
               <div style={{ marginBottom: "8px" }}>Loading ranking explanation...</div>
               <div style={{ fontSize: "12px" }}>Analyzing ground-truth personalization signals</div>
             </div>
@@ -196,14 +196,14 @@ export function RecommendationExplanationModal({
                     alignItems: "center",
                     gap: "8px",
                     padding: "10px 14px",
-                    background: "#f8fafc",
-                    border: "1px solid #cbd5e1",
+                    background: "var(--rc-bg)",
+                    border: "1px solid var(--rc-border-strong)",
                     borderRadius: "8px",
                     fontSize: "12px",
-                    color: "#475569",
+                    color: "var(--rc-text-secondary)",
                   }}
                 >
-                  <History size={15} color="#64748b" />
+                  <History size={15} color="var(--rc-text-muted)" />
                   <div>
                     <strong>Historical Snapshot:</strong> Explaining point-in-time recommendation from{" "}
                     {new Date(explanation.generated_at).toLocaleDateString()} (Ranking v{explanation.ranking_version}).
@@ -247,9 +247,9 @@ export function RecommendationExplanationModal({
                   style={{
                     padding: "10px 12px",
                     borderRadius: "8px",
-                    background: isHighRisk ? "#fef2f2" : "#f0fdf4",
-                    border: `1px solid ${isHighRisk ? "#fecaca" : "#bbf7d0"}`,
-                    color: isHighRisk ? "#991b1b" : "#166534",
+                    background: isHighRisk ? "var(--rc-danger-subtle)" : "var(--rc-success-subtle)",
+                    border: `1px solid ${isHighRisk ? "var(--rc-danger-border)" : "var(--rc-success-border)"}`,
+                    color: isHighRisk ? "var(--rc-danger)" : "var(--rc-success)",
                     display: "flex",
                     flexDirection: "column",
                     gap: "2px",
@@ -269,9 +269,9 @@ export function RecommendationExplanationModal({
                   style={{
                     padding: "10px 12px",
                     borderRadius: "8px",
-                    background: "#f8fafc",
-                    border: "1px solid #e2e8f0",
-                    color: "#334155",
+                    background: "var(--rc-bg)",
+                    border: "1px solid var(--rc-border)",
+                    color: "var(--rc-text-secondary)",
                     display: "flex",
                     flexDirection: "column",
                     gap: "2px",
@@ -281,7 +281,7 @@ export function RecommendationExplanationModal({
                     Timeline
                   </span>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 600 }}>
-                    <Calendar size={13} color="#64748b" />
+                    <Calendar size={13} color="var(--rc-text-muted)" />
                     {explanation.deadline_summary || "Deadline recorded"}
                   </div>
                 </div>
@@ -295,10 +295,10 @@ export function RecommendationExplanationModal({
                     alignItems: "flex-start",
                     gap: "10px",
                     padding: "12px 14px",
-                    background: "#fff1f2",
-                    border: "1px solid #fda4af",
+                    background: "var(--rc-danger-subtle)",
+                    border: "1px solid var(--rc-danger-border)",
                     borderRadius: "8px",
-                    color: "#9f1239",
+                    color: "var(--rc-danger)",
                     fontSize: "13px",
                   }}
                 >
@@ -319,7 +319,7 @@ export function RecommendationExplanationModal({
                     fontWeight: 700,
                     textTransform: "uppercase",
                     letterSpacing: "0.04em",
-                    color: "var(--text-muted, #475569)",
+                    color: "var(--text-muted)",
                   }}
                 >
                   Top Matching Reasons
@@ -329,10 +329,10 @@ export function RecommendationExplanationModal({
                     display: "flex",
                     flexDirection: "column",
                     gap: "8px",
-                    background: "var(--bg-main, #f8fafc)",
+                    background: "var(--bg-main)",
                     padding: "12px 16px",
                     borderRadius: "8px",
-                    border: "1px solid var(--border-color, #e2e8f0)",
+                    border: "1px solid var(--border-color)",
                   }}
                 >
                   {explanation.primary_reasons.length > 0 ? (
@@ -345,19 +345,19 @@ export function RecommendationExplanationModal({
                           gap: "8px",
                           fontSize: "13px",
                           lineHeight: "1.4",
-                          color: "var(--text-main, #1e293b)",
+                          color: "var(--text-main)",
                         }}
                       >
                         <CheckCircle2
                           size={15}
-                          color="#059669"
+                          color="var(--rc-success)"
                           style={{ flexShrink: 0, marginTop: "2px" }}
                         />
                         <span>{reason}</span>
                       </div>
                     ))
                   ) : (
-                    <div style={{ fontSize: "13px", color: "var(--text-muted, #64748b)" }}>
+                    <div style={{ fontSize: "13px", color: "var(--text-muted)" }}>
                       Recommended based on general opportunity discovery and profile keyword alignment.
                     </div>
                   )}
@@ -368,11 +368,11 @@ export function RecommendationExplanationModal({
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {/* Explicit Preferences */}
                 {explanation.preference_reasons.length > 0 && (
-                  <div style={{ borderLeft: "3px solid #3b82f6", paddingLeft: "12px" }}>
-                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#1d4ed8", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{ borderLeft: "3px solid var(--rc-info)", paddingLeft: "12px" }}>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--rc-info)", display: "flex", alignItems: "center", gap: "6px" }}>
                       <BookmarkCheck size={14} /> Explicit Preferences
                     </div>
-                    <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", fontSize: "12px", color: "#334155" }}>
+                    <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", fontSize: "12px", color: "var(--rc-text-secondary)" }}>
                       {explanation.preference_reasons.map((r, idx) => (
                         <li key={idx}>{r}</li>
                       ))}
@@ -382,11 +382,11 @@ export function RecommendationExplanationModal({
 
                 {/* Research Expertise & Interests */}
                 {explanation.expertise_reasons.length > 0 && (
-                  <div style={{ borderLeft: "3px solid #10b981", paddingLeft: "12px" }}>
-                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#047857", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{ borderLeft: "3px solid var(--rc-success)", paddingLeft: "12px" }}>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--rc-success)", display: "flex", alignItems: "center", gap: "6px" }}>
                       <Award size={14} /> Research Expertise & Focus
                     </div>
-                    <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", fontSize: "12px", color: "#334155" }}>
+                    <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", fontSize: "12px", color: "var(--rc-text-secondary)" }}>
                       {explanation.expertise_reasons.map((r, idx) => (
                         <li key={idx}>{r}</li>
                       ))}
@@ -396,11 +396,11 @@ export function RecommendationExplanationModal({
 
                 {/* Behavioral Learning Signals */}
                 {explanation.behavioral_reasons.length > 0 && (
-                  <div style={{ borderLeft: "3px solid #8b5cf6", paddingLeft: "12px" }}>
-                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#6d28d9", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{ borderLeft: "3px solid var(--rc-brand)", paddingLeft: "12px" }}>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--rc-brand-text)", display: "flex", alignItems: "center", gap: "6px" }}>
                       <TrendingUp size={14} /> Learned from Your Activity
                     </div>
-                    <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", fontSize: "12px", color: "#334155" }}>
+                    <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", fontSize: "12px", color: "var(--rc-text-secondary)" }}>
                       {explanation.behavioral_reasons.map((r, idx) => (
                         <li key={idx}>{r}</li>
                       ))}
@@ -410,11 +410,11 @@ export function RecommendationExplanationModal({
 
                 {/* Negative Demotion Signals */}
                 {explanation.negative_reasons.length > 0 && (
-                  <div style={{ borderLeft: "3px solid #ef4444", paddingLeft: "12px" }}>
-                    <div style={{ fontSize: "12px", fontWeight: 700, color: "#b91c1c", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <div style={{ borderLeft: "3px solid var(--rc-danger)", paddingLeft: "12px" }}>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--rc-danger)", display: "flex", alignItems: "center", gap: "6px" }}>
                       <TrendingDown size={14} /> Signals Lowering Ranking
                     </div>
-                    <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", fontSize: "12px", color: "#334155" }}>
+                    <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", fontSize: "12px", color: "var(--rc-text-secondary)" }}>
                       {explanation.negative_reasons.map((r, idx) => (
                         <li key={idx}>{r}</li>
                       ))}
@@ -426,7 +426,7 @@ export function RecommendationExplanationModal({
               {/* Developer / Diagnostic Score Breakdown (Collapsible) */}
               <div
                 style={{
-                  border: "1px solid var(--border-color, #e2e8f0)",
+                  border: "1px solid var(--border-color)",
                   borderRadius: "8px",
                   overflow: "hidden",
                 }}
@@ -439,12 +439,12 @@ export function RecommendationExplanationModal({
                     alignItems: "center",
                     justifyContent: "space-between",
                     padding: "10px 14px",
-                    background: "var(--bg-main, #f8fafc)",
+                    background: "var(--bg-main)",
                     border: "none",
                     cursor: "pointer",
                     fontSize: "12px",
                     fontWeight: 600,
-                    color: "var(--text-muted, #475569)",
+                    color: "var(--text-muted)",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
@@ -455,7 +455,7 @@ export function RecommendationExplanationModal({
                 </button>
 
                 {showDiagnosticScores && (
-                  <div style={{ padding: "12px 14px", fontSize: "12px", background: "var(--bg-card, #ffffff)" }}>
+                  <div style={{ padding: "12px 14px", fontSize: "12px", background: "var(--bg-card)" }}>
                     <div
                       style={{
                         display: "grid",
@@ -463,7 +463,7 @@ export function RecommendationExplanationModal({
                         gap: "8px",
                         textAlign: "center",
                         padding: "8px 0",
-                        borderBottom: "1px solid var(--border-color, #e2e8f0)",
+                        borderBottom: "1px solid var(--border-color)",
                       }}
                     >
                       <div>
@@ -479,7 +479,7 @@ export function RecommendationExplanationModal({
                             fontWeight: 700,
                             fontFamily: "monospace",
                             fontSize: "13px",
-                            color: explanation.personalization_contribution >= 0 ? "#16a34a" : "#dc2626",
+                            color: explanation.personalization_contribution >= 0 ? "var(--rc-success)" : "var(--rc-danger)",
                           }}
                         >
                           {explanation.personalization_contribution >= 0
@@ -500,7 +500,7 @@ export function RecommendationExplanationModal({
                             fontWeight: 700,
                             fontFamily: "monospace",
                             fontSize: "13px",
-                            color: "var(--primary, #2563eb)",
+                            color: "var(--primary)",
                           }}
                         >
                           {explanation.final_score.toFixed(3)}
@@ -511,7 +511,7 @@ export function RecommendationExplanationModal({
                       style={{
                         marginTop: "8px",
                         fontSize: "11px",
-                        color: "var(--text-muted, #64748b)",
+                        color: "var(--text-muted)",
                         lineHeight: "1.4",
                       }}
                     >
@@ -524,7 +524,7 @@ export function RecommendationExplanationModal({
               </div>
             </div>
           ) : (
-            <div style={{ padding: "30px", textAlign: "center", color: "var(--text-muted, #64748b)" }}>
+            <div style={{ padding: "30px", textAlign: "center", color: "var(--text-muted)" }}>
               No explanation available for this opportunity.
             </div>
           )}

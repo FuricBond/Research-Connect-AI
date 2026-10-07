@@ -8,10 +8,10 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  border: 1px dashed var(--color-border, #e2e8f0);
+  border: 1px dashed var(--color-border);
   border-radius: 10px;
   padding: 2rem 1.25rem;
-  color: var(--color-text-muted, #64748b);
+  color: var(--color-text-muted);
   font-size: 0.875rem;
   justify-content: center;
 }
@@ -20,9 +20,9 @@
   align-items: flex-start;
   justify-content: flex-start;
   border-style: solid;
-  border-color: #fde68a;
-  background: #fffbeb;
-  color: #92400e;
+  border-color: var(--rc-warning-border);
+  background: var(--rc-warning-subtle);
+  color: var(--rc-warning);
   text-align: left;
 }
 
@@ -64,9 +64,9 @@
 .auth-card {
   width: 100%;
   max-width: 400px;
-  border: 1px solid var(--color-border, #e2e8f0);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: var(--color-surface, #ffffff);
+  background: var(--color-surface);
   box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.07));
   padding: 1.75rem;
 }
@@ -85,7 +85,7 @@
   margin: 0 0 1.25rem;
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: var(--color-text-muted, #64748b);
+  color: var(--color-text-muted);
 }
 
 .auth-form {
@@ -108,7 +108,7 @@
 .auth-field label {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--color-text, #334155);
+  color: var(--color-text);
   display: flex;
   align-items: baseline;
   gap: 0.4rem;
@@ -118,29 +118,29 @@
 .auth-field-hint {
   font-size: 0.75rem;
   font-weight: 400;
-  color: var(--color-text-muted, #94a3b8);
+  color: var(--color-text-muted);
 }
 
 .auth-field input,
 .auth-field select {
   padding: 0.5rem 0.6rem;
-  border: 1px solid var(--color-border, #e2e8f0);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 0.875rem;
   font-family: inherit;
-  background: var(--color-surface, #ffffff);
+  background: var(--color-surface);
   color: inherit;
 }
 
 .auth-field input:focus-visible,
 .auth-field select:focus-visible {
-  outline: 2px solid var(--primary, #0f766e);
+  outline: 2px solid var(--primary);
   outline-offset: 1px;
 }
 
 .auth-field input:disabled,
 .auth-field select:disabled {
-  background: var(--bg-muted, #f1f5f9);
+  background: var(--bg-muted);
   cursor: not-allowed;
 }
 
@@ -151,17 +151,17 @@
   gap: 0.4rem;
   margin-top: 0.25rem;
   padding: 0.55rem 0.8rem;
-  border: 1px solid var(--primary, #0f766e);
+  border: 1px solid var(--primary);
   border-radius: 6px;
-  background: var(--primary, #0f766e);
-  color: #ffffff;
+  background: var(--primary);
+  color: var(--rc-text-on-brand);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
 }
 
 .auth-submit:hover:not(:disabled) {
-  background: var(--primary-hover, #115e59);
+  background: var(--primary-hover);
 }
 
 .auth-submit:disabled {
@@ -174,10 +174,10 @@
   align-items: flex-start;
   gap: 0.5rem;
   margin-bottom: 1rem;
-  border: 1px solid #fecaca;
+  border: 1px solid var(--rc-danger-border);
   border-radius: 8px;
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--rc-danger-subtle);
+  color: var(--rc-danger);
   padding: 0.6rem 0.75rem;
   font-size: 0.8125rem;
   line-height: 1.45;
@@ -186,12 +186,12 @@
 .auth-alt {
   margin: 1.1rem 0 0;
   font-size: 0.8125rem;
-  color: var(--color-text-muted, #64748b);
+  color: var(--color-text-muted);
   text-align: center;
 }
 
 .auth-link {
-  color: var(--primary, #0f766e);
+  color: var(--primary);
   font-weight: 600;
   text-decoration: none;
 }
@@ -234,12 +234,12 @@
 .auth-menu-name {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: var(--text-main, #0f172a);
+  color: var(--text-main);
 }
 
 .auth-menu-role {
   font-size: 0.7rem;
-  color: var(--text-muted, #64748b);
+  color: var(--text-muted);
 }
 
 .auth-menu-btn {
@@ -247,9 +247,9 @@
   align-items: center;
   gap: 0.3rem;
   padding: 0.35rem 0.65rem;
-  border: 1px solid var(--color-border, #e2e8f0);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-full, 9999px);
-  background: var(--color-surface, #ffffff);
+  background: var(--color-surface);
   color: inherit;
   font-size: 0.78rem;
   font-weight: 500;
@@ -259,8 +259,8 @@
 }
 
 .auth-menu-btn:hover:not(:disabled) {
-  border-color: var(--primary, #0f766e);
-  color: var(--primary, #0f766e);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .auth-menu-btn:disabled {
@@ -269,14 +269,14 @@
 }
 
 .auth-menu-btn.primary {
-  background: var(--primary, #0f766e);
-  border-color: var(--primary, #0f766e);
-  color: #ffffff;
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--rc-text-on-brand);
 }
 
 .auth-menu-btn.primary:hover {
-  background: var(--primary-hover, #115e59);
-  color: #ffffff;
+  background: var(--primary-hover);
+  color: var(--rc-text-on-brand);
 }
 
 /* ── Administration table ── */
@@ -293,7 +293,7 @@
 }
 
 .auth-admin-table-scroll:focus-visible {
-  outline: 2px solid var(--primary, #0f766e);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -313,7 +313,7 @@
 .auth-admin-subtitle {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--color-text-muted, #64748b);
+  color: var(--color-text-muted);
 }
 
 .auth-admin-filters {
@@ -327,11 +327,11 @@
   align-items: center;
   gap: 0.4rem;
   flex: 1 1 220px;
-  border: 1px solid var(--color-border, #e2e8f0);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   padding: 0.35rem 0.6rem;
-  background: var(--color-surface, #ffffff);
-  color: var(--color-text-muted, #64748b);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
 }
 
 .auth-admin-search input {
@@ -340,16 +340,16 @@
   background: transparent;
   font: inherit;
   font-size: 0.875rem;
-  color: var(--text-main, #0f172a);
+  color: var(--text-main);
   width: 100%;
 }
 
 .auth-admin-filters select {
   padding: 0.4rem 0.6rem;
-  border: 1px solid var(--color-border, #e2e8f0);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 0.875rem;
-  background: var(--color-surface, #ffffff);
+  background: var(--color-surface);
   color: inherit;
 }
 
@@ -363,7 +363,7 @@
 .auth-admin-table td {
   text-align: left;
   padding: 0.6rem 0.5rem;
-  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
 }
 
@@ -371,15 +371,15 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--color-text-muted, #94a3b8);
+  color: var(--color-text-muted);
 }
 
 .auth-admin-table select {
   padding: 0.3rem 0.45rem;
-  border: 1px solid var(--color-border, #e2e8f0);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   font-size: 0.8125rem;
-  background: var(--color-surface, #ffffff);
+  background: var(--color-surface);
   color: inherit;
 }
 
@@ -390,13 +390,13 @@
 .auth-admin-name {
   display: block;
   font-weight: 600;
-  color: var(--text-main, #0f172a);
+  color: var(--text-main);
 }
 
 .auth-admin-email {
   display: block;
   font-size: 0.75rem;
-  color: var(--color-text-muted, #64748b);
+  color: var(--color-text-muted);
 }
 
 .auth-admin-toggle {
@@ -413,10 +413,10 @@
 }
 
 .auth-admin-empty {
-  border: 1px dashed var(--color-border, #e2e8f0);
+  border: 1px dashed var(--color-border);
   border-radius: 10px;
   padding: 2rem 1rem;
   text-align: center;
-  color: var(--color-text-muted, #64748b);
+  color: var(--color-text-muted);
   font-size: 0.875rem;
 }

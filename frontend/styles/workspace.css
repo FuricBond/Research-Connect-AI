@@ -113,19 +113,19 @@
 
 .workspace-pipeline-tab.active {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--rc-text-on-brand);
 }
 
 .workspace-tab-count {
   font-size: 11px;
-  background: rgba(0, 0, 0, 0.08);
+  background: color-mix(in srgb, var(--rc-text) 8%, transparent);
   padding: 1px 7px;
   border-radius: var(--radius-full);
 }
 
 .workspace-pipeline-tab.active .workspace-tab-count {
-  background: rgba(255, 255, 255, 0.25);
-  color: #ffffff;
+  background: var(--rc-active);
+  color: var(--rc-text-on-brand);
 }
 
 .workspace-filter-row {
@@ -155,7 +155,7 @@
 
 .workspace-search-input:focus {
   border-color: var(--primary);
-  background: #ffffff;
+  background: var(--rc-surface);
 }
 
 .workspace-search-icon {
@@ -170,7 +170,7 @@
   font-size: 13px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
-  background: #ffffff;
+  background: var(--rc-surface);
   color: var(--text-main);
   outline: none;
   cursor: pointer;
@@ -234,45 +234,45 @@
 }
 
 .status-badge-saved {
-  background: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
+  background: var(--rc-info-subtle);
+  color: var(--rc-info);
+  border: 1px solid var(--rc-info-border);
 }
 
 .status-badge-considering {
-  background: #fdf4ff;
-  color: #a21caf;
-  border: 1px solid #f5d0fe;
+  background: var(--rc-brand-subtle);
+  color: var(--rc-brand-text);
+  border: 1px solid var(--rc-brand-border);
 }
 
 .status-badge-planning {
-  background: #fefce8;
-  color: #a16207;
-  border: 1px solid #fef08a;
+  background: var(--rc-warning-subtle);
+  color: var(--rc-warning);
+  border: 1px solid var(--rc-warning-border);
 }
 
 .status-badge-applied {
-  background: #f0fdf4;
-  color: #15803d;
-  border: 1px solid #bbf7d0;
+  background: var(--rc-success-subtle);
+  color: var(--rc-success);
+  border: 1px solid var(--rc-success-border);
 }
 
 .status-badge-accepted {
-  background: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
+  background: var(--rc-success-subtle);
+  color: var(--rc-success);
+  border: 1px solid var(--rc-success-border);
 }
 
 .status-badge-rejected {
-  background: #fef2f2;
-  color: #b91c1c;
-  border: 1px solid #fecaca;
+  background: var(--rc-danger-subtle);
+  color: var(--rc-danger);
+  border: 1px solid var(--rc-danger-border);
 }
 
 .status-badge-archived {
-  background: #f1f5f9;
-  color: #64748b;
-  border: 1px solid #cbd5e1;
+  background: var(--rc-surface-sunken);
+  color: var(--rc-text-muted);
+  border: 1px solid var(--rc-border-strong);
 }
 
 .workspace-priority-badge {
@@ -390,7 +390,7 @@
   font-weight: 600;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
-  background: #ffffff;
+  background: var(--rc-surface);
   color: var(--text-body);
   cursor: pointer;
   transition: all 0.15s ease-in-out;
@@ -403,14 +403,14 @@
 }
 
 .workspace-action-btn.danger:hover {
-  background: #fef2f2;
-  color: #991b1b;
-  border-color: #fecaca;
+  background: var(--rc-danger-subtle);
+  color: var(--rc-danger);
+  border-color: var(--rc-danger-border);
 }
 
 .workspace-action-btn.primary {
   background: var(--primary);
-  color: #ffffff;
+  color: var(--rc-text-on-brand);
   border-color: var(--primary);
 }
 
@@ -423,7 +423,7 @@
 .workspace-notes-section {
   margin-top: 12px;
   padding: 10px 14px;
-  background: #ffffff;
+  background: var(--rc-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
 }
@@ -485,7 +485,7 @@
 }
 
 .workspace-tag-remove:hover {
-  color: #b91c1c;
+  color: var(--rc-danger);
 }
 
 .workspace-tag-input {
@@ -500,7 +500,7 @@
 .workspace-tag-input:focus {
   border-style: solid;
   border-color: var(--primary);
-  background: #ffffff;
+  background: var(--rc-surface);
 }
 
 /* ── Empty & Error States ─────────────────────────────────────────────────── */
@@ -536,11 +536,11 @@
 }
 
 .workspace-error-banner {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: var(--rc-danger-subtle);
+  border: 1px solid var(--rc-danger-border);
   border-radius: var(--radius-md);
   padding: 16px 20px;
-  color: #991b1b;
+  color: var(--rc-danger);
   display: flex;
   align-items: center;
   justify-content: space-between;

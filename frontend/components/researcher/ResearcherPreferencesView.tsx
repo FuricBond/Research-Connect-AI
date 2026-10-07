@@ -109,7 +109,7 @@ export function ResearcherPreferencesView({
       <div
         style={{
           background: "var(--bg-card)",
-          border: "1px solid #fecaca",
+          border: "1px solid var(--rc-danger-border)",
           borderRadius: "var(--radius-lg)",
           padding: "24px",
           marginTop: "24px",
@@ -117,7 +117,7 @@ export function ResearcherPreferencesView({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "#991b1b" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", color: "var(--rc-danger)" }}>
             <AlertTriangle size={18} />
             <span style={{ fontSize: "14px", fontWeight: 600 }}>Failed to load personal preferences</span>
           </div>
@@ -125,9 +125,9 @@ export function ResearcherPreferencesView({
             onClick={onRefresh}
             style={{
               padding: "6px 12px",
-              background: "#fee2e2",
-              border: "1px solid #fca5a5",
-              color: "#991b1b",
+              background: "var(--rc-danger-subtle)",
+              border: "1px solid var(--rc-danger-border)",
+              color: "var(--rc-danger)",
               borderRadius: "var(--radius-sm)",
               fontSize: "12px",
               fontWeight: 600,
@@ -356,11 +356,11 @@ export function ResearcherPreferencesView({
                 width: "36px",
                 height: "36px",
                 borderRadius: "8px",
-                background: "linear-gradient(135deg, #0ea5e9, #38bdf8)",
+                background: "var(--rc-brand-subtle)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#fff",
+                color: "var(--rc-brand-text)",
               }}
             >
               <Sliders size={20} />
@@ -397,10 +397,10 @@ export function ResearcherPreferencesView({
                 style={{
                   color:
                     summary.confidence_level === "HIGH"
-                      ? "#16a34a"
+                      ? "var(--rc-success)"
                       : summary.confidence_level === "MEDIUM"
-                      ? "#ca8a04"
-                      : "#6b7280",
+                      ? "var(--rc-warning)"
+                      : "var(--rc-text-muted)",
                 }}
               >
                 {summary.confidence_level}
@@ -415,8 +415,8 @@ export function ResearcherPreferencesView({
               alignItems: "center",
               gap: "6px",
               padding: "7px 14px",
-              background: "rgba(14, 165, 233, 0.1)",
-              border: "1px solid rgba(14, 165, 233, 0.3)",
+              background: "color-mix(in srgb, var(--rc-info) 10%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--rc-info) 30%, transparent)",
               borderRadius: "var(--radius-md)",
               fontSize: "13px",
               fontWeight: 600,
@@ -455,8 +455,8 @@ export function ResearcherPreferencesView({
       {completeness && (
         <div
           style={{
-            background: "linear-gradient(135deg, rgba(14, 165, 233, 0.05), rgba(56, 189, 248, 0.02))",
-            border: "1px solid rgba(14, 165, 233, 0.2)",
+            background: "var(--rc-surface)",
+            border: "1px solid color-mix(in srgb, var(--rc-info) 20%, transparent)",
             borderRadius: "var(--radius-md)",
             padding: "16px 20px",
             marginBottom: "28px",
@@ -484,7 +484,7 @@ export function ResearcherPreferencesView({
               style={{
                 width: `${completeness.percentage}%`,
                 height: "100%",
-                background: "linear-gradient(90deg, #0ea5e9, #38bdf8)",
+                background: "var(--rc-data-meter-fill)",
                 borderRadius: "4px",
                 transition: "width 0.4s ease",
               }}
@@ -500,10 +500,10 @@ export function ResearcherPreferencesView({
                   style={{
                     fontSize: "11px",
                     padding: "2px 8px",
-                    background: "#f1f5f9",
-                    color: "#475569",
+                    background: "var(--rc-surface-sunken)",
+                    color: "var(--rc-text-secondary)",
                     borderRadius: "12px",
-                    border: "1px solid #cbd5e1",
+                    border: "1px solid var(--rc-border-strong)",
                   }}
                 >
                   {dim}
@@ -518,21 +518,21 @@ export function ResearcherPreferencesView({
       {conflicts.length > 0 && (
         <div
           style={{
-            background: "#fffbeb",
-            border: "1px solid #fde68a",
+            background: "var(--rc-warning-subtle)",
+            border: "1px solid var(--rc-warning-border)",
             borderRadius: "var(--radius-md)",
             padding: "16px",
             marginBottom: "28px",
           }}
         >
           <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
-            <AlertTriangle size={18} color="#d97706" style={{ marginTop: "2px", flexShrink: 0 }} />
+            <AlertTriangle size={18} color="var(--rc-warning)" style={{ marginTop: "2px", flexShrink: 0 }} />
             <div>
-              <h4 style={{ margin: "0 0 4px 0", fontSize: "14px", fontWeight: 700, color: "#92400e" }}>
+              <h4 style={{ margin: "0 0 4px 0", fontSize: "14px", fontWeight: 700, color: "var(--rc-warning)" }}>
                 Contradictory Preferences Detected
               </h4>
               {conflicts.map((c, i) => (
-                <p key={i} style={{ margin: "2px 0", fontSize: "13px", color: "#b45309" }}>
+                <p key={i} style={{ margin: "2px 0", fontSize: "13px", color: "var(--rc-warning)" }}>
                   • {c.reason}
                 </p>
               ))}
@@ -579,7 +579,7 @@ export function ResearcherPreferencesView({
                     fontWeight: 500,
                     cursor: "pointer",
                     border: active ? "1px solid var(--primary)" : "1px solid var(--border-color)",
-                    background: active ? "rgba(14, 165, 233, 0.15)" : "var(--bg-card)",
+                    background: active ? "color-mix(in srgb, var(--rc-info) 15%, transparent)" : "var(--bg-card)",
                     color: active ? "var(--primary)" : "var(--text-main)",
                     transition: "all 0.15s ease",
                   }}
@@ -602,7 +602,7 @@ export function ResearcherPreferencesView({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
-            <Laptop size={16} color="#8b5cf6" />
+            <Laptop size={16} color="var(--rc-brand-text)" />
             <h4 style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: "var(--text-main)" }}>
               Delivery Mode
             </h4>
@@ -627,9 +627,9 @@ export function ResearcherPreferencesView({
                     fontSize: "12px",
                     fontWeight: 500,
                     cursor: "pointer",
-                    border: active ? "1px solid #8b5cf6" : "1px solid var(--border-color)",
-                    background: active ? "rgba(139, 92, 246, 0.15)" : "var(--bg-card)",
-                    color: active ? "#7c3aed" : "var(--text-main)",
+                    border: active ? "1px solid var(--rc-brand)" : "1px solid var(--border-color)",
+                    background: active ? "color-mix(in srgb, var(--rc-brand) 15%, transparent)" : "var(--bg-card)",
+                    color: active ? "var(--rc-brand-text)" : "var(--text-main)",
                     transition: "all 0.15s ease",
                   }}
                 >
@@ -651,7 +651,7 @@ export function ResearcherPreferencesView({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
-            <Tag size={16} color="#10b981" />
+            <Tag size={16} color="var(--rc-success)" />
             <h4 style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: "var(--text-main)" }}>
               Preferred Topics
             </h4>
@@ -670,12 +670,12 @@ export function ResearcherPreferencesView({
                     alignItems: "center",
                     gap: "6px",
                     padding: "4px 10px",
-                    background: "rgba(16, 185, 129, 0.1)",
-                    border: "1px solid rgba(16, 185, 129, 0.3)",
+                    background: "color-mix(in srgb, var(--rc-success) 10%, transparent)",
+                    border: "1px solid color-mix(in srgb, var(--rc-success) 30%, transparent)",
                     borderRadius: "14px",
                     fontSize: "12px",
                     fontWeight: 500,
-                    color: "#065f46",
+                    color: "var(--rc-success)",
                   }}
                 >
                   <span>{top.display_label}</span>
@@ -716,7 +716,7 @@ export function ResearcherPreferencesView({
               style={{
                 padding: "6px 12px",
                 background: "var(--primary)",
-                color: "#fff",
+                color: "var(--rc-text-on-brand)",
                 border: "none",
                 borderRadius: "var(--radius-sm)",
                 fontSize: "12px",
@@ -743,7 +743,7 @@ export function ResearcherPreferencesView({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
-            <MapPin size={16} color="#f59e0b" />
+            <MapPin size={16} color="var(--rc-warning)" />
             <h4 style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: "var(--text-main)" }}>
               Locations & Regions
             </h4>
@@ -768,9 +768,9 @@ export function ResearcherPreferencesView({
                     fontSize: "12px",
                     fontWeight: 500,
                     cursor: "pointer",
-                    border: active ? "1px solid #f59e0b" : "1px solid var(--border-color)",
-                    background: active ? "rgba(245, 158, 11, 0.15)" : "var(--bg-card)",
-                    color: active ? "#b45309" : "var(--text-main)",
+                    border: active ? "1px solid var(--rc-warning)" : "1px solid var(--border-color)",
+                    background: active ? "color-mix(in srgb, var(--rc-warning) 15%, transparent)" : "var(--bg-card)",
+                    color: active ? "var(--rc-warning)" : "var(--text-main)",
                     transition: "all 0.15s ease",
                   }}
                 >
@@ -792,7 +792,7 @@ export function ResearcherPreferencesView({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
-            <Clock size={16} color="#ec4899" />
+            <Clock size={16} color="var(--rc-brand-text)" />
             <h4 style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: "var(--text-main)" }}>
               Deadline Preparation Window
             </h4>
@@ -817,14 +817,14 @@ export function ResearcherPreferencesView({
                     fontSize: "12px",
                     fontWeight: 500,
                     cursor: "pointer",
-                    border: active ? "1px solid #ec4899" : "1px solid var(--border-color)",
-                    background: active ? "rgba(236, 72, 153, 0.1)" : "var(--bg-card)",
-                    color: active ? "#be185d" : "var(--text-main)",
+                    border: active ? "1px solid var(--rc-brand)" : "1px solid var(--border-color)",
+                    background: active ? "color-mix(in srgb, var(--rc-brand) 10%, transparent)" : "var(--bg-card)",
+                    color: active ? "var(--rc-brand-text)" : "var(--text-main)",
                     textAlign: "left",
                   }}
                 >
                   <span>{opt.label}</span>
-                  {active && <CheckCircle2 size={14} color="#be185d" />}
+                  {active && <CheckCircle2 size={14} color="var(--rc-brand-text)" />}
                 </button>
               );
             })}
@@ -841,7 +841,7 @@ export function ResearcherPreferencesView({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
-            <Unlock size={16} color="#6366f1" />
+            <Unlock size={16} color="var(--rc-brand-text)" />
             <h4 style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: "var(--text-main)" }}>
               Publishing & Access Policy
             </h4>
@@ -862,15 +862,15 @@ export function ResearcherPreferencesView({
               fontSize: "13px",
               fontWeight: 600,
               cursor: "pointer",
-              border: isOpenAccessPreferred ? "1px solid #6366f1" : "1px solid var(--border-color)",
-              background: isOpenAccessPreferred ? "rgba(99, 102, 241, 0.15)" : "var(--bg-card)",
-              color: isOpenAccessPreferred ? "#4f46e5" : "var(--text-main)",
+              border: isOpenAccessPreferred ? "1px solid var(--rc-brand)" : "1px solid var(--border-color)",
+              background: isOpenAccessPreferred ? "color-mix(in srgb, var(--rc-brand) 15%, transparent)" : "var(--bg-card)",
+              color: isOpenAccessPreferred ? "var(--rc-brand-text)" : "var(--text-main)",
               textAlign: "left",
             }}
           >
             <span>Prefer Open Access Opportunities</span>
             {isOpenAccessPreferred ? (
-              <CheckCircle2 size={16} color="#4f46e5" />
+              <CheckCircle2 size={16} color="var(--rc-brand-text)" />
             ) : (
               <div
                 style={{
@@ -897,7 +897,7 @@ export function ResearcherPreferencesView({
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <BookmarkCheck size={18} color="#0284c7" />
+            <BookmarkCheck size={18} color="var(--rc-info)" />
             <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--text-main)" }}>
               Inferred Preferences
             </h4>
@@ -906,8 +906,8 @@ export function ResearcherPreferencesView({
                 fontSize: "11px",
                 fontWeight: 600,
                 padding: "2px 8px",
-                background: "#e0f2fe",
-                color: "#0369a1",
+                background: "var(--rc-info-subtle)",
+                color: "var(--rc-info)",
                 borderRadius: "10px",
               }}
             >
@@ -940,8 +940,8 @@ export function ResearcherPreferencesView({
                     style={{
                       fontSize: "11px",
                       fontWeight: 600,
-                      color: "#0284c7",
-                      background: "#f0f9ff",
+                      color: "var(--rc-info)",
+                      background: "var(--rc-info-subtle)",
                       padding: "2px 6px",
                       borderRadius: "4px",
                     }}
@@ -975,14 +975,14 @@ export function ResearcherPreferencesView({
           style={{
             marginTop: "24px",
             padding: "24px",
-            background: "linear-gradient(135deg, rgba(16, 185, 129, 0.03), rgba(5, 150, 105, 0.01))",
-            border: "1px solid rgba(16, 185, 129, 0.2)",
+            background: "var(--rc-surface)",
+            border: "1px solid color-mix(in srgb, var(--rc-success) 20%, transparent)",
             borderRadius: "var(--radius-md)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <Sparkles size={18} color="#059669" />
+              <Sparkles size={18} color="var(--rc-success)" />
               <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--text-main)" }}>
                 Derived Candidates from Scholarly Expertise
               </h4>
@@ -991,8 +991,8 @@ export function ResearcherPreferencesView({
                   fontSize: "11px",
                   fontWeight: 600,
                   padding: "2px 8px",
-                  background: "#d1fae5",
-                  color: "#065f46",
+                  background: "var(--rc-success-subtle)",
+                  color: "var(--rc-success)",
                   borderRadius: "10px",
                 }}
               >
@@ -1036,9 +1036,9 @@ export function ResearcherPreferencesView({
                       disabled={isSubmitting}
                       style={{
                         padding: "3px 8px",
-                        background: "rgba(16, 185, 129, 0.15)",
-                        border: "1px solid rgba(16, 185, 129, 0.3)",
-                        color: "#065f46",
+                        background: "color-mix(in srgb, var(--rc-success) 15%, transparent)",
+                        border: "1px solid color-mix(in srgb, var(--rc-success) 30%, transparent)",
+                        color: "var(--rc-success)",
                         borderRadius: "4px",
                         fontSize: "11px",
                         fontWeight: 600,

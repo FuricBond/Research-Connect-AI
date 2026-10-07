@@ -577,11 +577,11 @@ function ResearcherPreferencesPage() {
                 width: "40px",
                 height: "40px",
                 borderRadius: "10px",
-                background: "linear-gradient(135deg, #0ea5e9, #6366f1)",
+                background: "var(--rc-brand-subtle)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#fff",
+                color: "var(--rc-brand-text)",
               }}
             >
               <Sliders size={22} />
@@ -603,8 +603,8 @@ function ResearcherPreferencesPage() {
             <div
               style={{
                 padding: "8px 14px",
-                background: "rgba(14, 165, 233, 0.08)",
-                border: "1px solid rgba(14, 165, 233, 0.25)",
+                background: "color-mix(in srgb, var(--rc-info) 8%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--rc-info) 25%, transparent)",
                 borderRadius: "var(--radius-md)",
                 fontSize: "13px",
                 fontWeight: 600,
@@ -643,14 +643,14 @@ function ResearcherPreferencesPage() {
         <div
           style={{
             padding: "12px 18px",
-            background: "rgba(22, 163, 74, 0.1)",
-            border: "1px solid rgba(22, 163, 74, 0.3)",
+            background: "color-mix(in srgb, var(--rc-success) 10%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--rc-success) 30%, transparent)",
             borderRadius: "var(--radius-md)",
             marginBottom: "20px",
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            color: "#15803d",
+            color: "var(--rc-success)",
             fontSize: "13px",
             fontWeight: 500,
           }}
@@ -664,14 +664,14 @@ function ResearcherPreferencesPage() {
         <div
           style={{
             padding: "12px 18px",
-            background: "rgba(220, 38, 38, 0.1)",
-            border: "1px solid rgba(220, 38, 38, 0.3)",
+            background: "color-mix(in srgb, var(--rc-danger) 10%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--rc-danger) 30%, transparent)",
             borderRadius: "var(--radius-md)",
             marginBottom: "20px",
             display: "flex",
             alignItems: "center",
             gap: "10px",
-            color: "#b91c1c",
+            color: "var(--rc-danger)",
             fontSize: "13px",
             fontWeight: 500,
           }}
@@ -699,15 +699,15 @@ function ResearcherPreferencesPage() {
       >
         <span style={{ fontWeight: 600, color: "var(--text-main)" }}>State Legend:</span>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#16a34a" }} />
+          <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--rc-success)" }} />
           <span><strong>Preferred:</strong> Explicitly desired opportunity attribute</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#6b7280" }} />
+          <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--rc-text-muted)" }} />
           <span><strong>Neutral:</strong> Unspecified (absence of preference ≠ negative preference)</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#dc2626" }} />
+          <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--rc-danger)" }} />
           <span><strong>Excluded:</strong> Explicitly filtered out dimension</span>
         </div>
       </div>
@@ -752,15 +752,15 @@ function ResearcherPreferencesPage() {
                     cursor: "pointer",
                     border:
                       state === "PREFERRED"
-                        ? "1px solid rgba(22, 163, 74, 0.4)"
+                        ? "1px solid color-mix(in srgb, var(--rc-success) 40%, transparent)"
                         : state === "EXCLUDED"
-                        ? "1px solid rgba(220, 38, 38, 0.4)"
+                        ? "1px solid color-mix(in srgb, var(--rc-danger) 40%, transparent)"
                         : "1px solid var(--border-color)",
                     background:
                       state === "PREFERRED"
-                        ? "rgba(22, 163, 74, 0.08)"
+                        ? "color-mix(in srgb, var(--rc-success) 8%, transparent)"
                         : state === "EXCLUDED"
-                        ? "rgba(220, 38, 38, 0.08)"
+                        ? "color-mix(in srgb, var(--rc-danger) 8%, transparent)"
                         : "var(--bg-hover)",
                     transition: "all 0.15s ease",
                   }}
@@ -774,11 +774,11 @@ function ResearcherPreferencesPage() {
                       borderRadius: "10px",
                       background:
                         state === "PREFERRED"
-                          ? "#16a34a"
+                          ? "var(--rc-success)"
                           : state === "EXCLUDED"
-                          ? "#dc2626"
+                          ? "var(--rc-danger)"
                           : "var(--border-color)",
-                      color: state === "NEUTRAL" ? "var(--text-muted)" : "#fff",
+                      color: state === "NEUTRAL" ? "var(--text-muted)" : "var(--rc-text-on-brand)",
                     }}
                   >
                     {state}
@@ -800,7 +800,7 @@ function ResearcherPreferencesPage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-            <Laptop size={18} color="#8b5cf6" />
+            <Laptop size={18} color="var(--rc-brand-text)" />
             <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--text-main)" }}>
               Delivery Modes
             </h2>
@@ -826,15 +826,15 @@ function ResearcherPreferencesPage() {
                     cursor: "pointer",
                     border:
                       state === "PREFERRED"
-                        ? "1px solid rgba(139, 92, 246, 0.4)"
+                        ? "1px solid color-mix(in srgb, var(--rc-brand) 40%, transparent)"
                         : state === "EXCLUDED"
-                        ? "1px solid rgba(220, 38, 38, 0.4)"
+                        ? "1px solid color-mix(in srgb, var(--rc-danger) 40%, transparent)"
                         : "1px solid var(--border-color)",
                     background:
                       state === "PREFERRED"
-                        ? "rgba(139, 92, 246, 0.08)"
+                        ? "color-mix(in srgb, var(--rc-brand) 8%, transparent)"
                         : state === "EXCLUDED"
-                        ? "rgba(220, 38, 38, 0.08)"
+                        ? "color-mix(in srgb, var(--rc-danger) 8%, transparent)"
                         : "var(--bg-hover)",
                     transition: "all 0.15s ease",
                   }}
@@ -848,11 +848,11 @@ function ResearcherPreferencesPage() {
                       borderRadius: "10px",
                       background:
                         state === "PREFERRED"
-                          ? "#8b5cf6"
+                          ? "var(--rc-brand)"
                           : state === "EXCLUDED"
-                          ? "#dc2626"
+                          ? "var(--rc-danger)"
                           : "var(--border-color)",
-                      color: state === "NEUTRAL" ? "var(--text-muted)" : "#fff",
+                      color: state === "NEUTRAL" ? "var(--text-muted)" : "var(--rc-text-on-brand)",
                     }}
                   >
                     {state}
@@ -874,7 +874,7 @@ function ResearcherPreferencesPage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-            <Tag size={18} color="#10b981" />
+            <Tag size={18} color="var(--rc-success)" />
             <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--text-main)" }}>
               Topics & Keywords
             </h2>
@@ -897,12 +897,12 @@ function ResearcherPreferencesPage() {
                       alignItems: "center",
                       gap: "6px",
                       padding: "4px 10px",
-                      background: isExcl ? "rgba(220, 38, 38, 0.1)" : "rgba(16, 185, 129, 0.1)",
-                      border: isExcl ? "1px solid rgba(220, 38, 38, 0.3)" : "1px solid rgba(16, 185, 129, 0.3)",
+                      background: isExcl ? "color-mix(in srgb, var(--rc-danger) 10%, transparent)" : "color-mix(in srgb, var(--rc-success) 10%, transparent)",
+                      border: isExcl ? "1px solid color-mix(in srgb, var(--rc-danger) 30%, transparent)" : "1px solid color-mix(in srgb, var(--rc-success) 30%, transparent)",
                       borderRadius: "14px",
                       fontSize: "12px",
                       fontWeight: 500,
-                      color: isExcl ? "#b91c1c" : "#065f46",
+                      color: isExcl ? "var(--rc-danger)" : "var(--rc-success)",
                     }}
                   >
                     <span>{isExcl ? `Excluded: ${top.display_label}` : top.display_label}</span>
@@ -959,7 +959,7 @@ function ResearcherPreferencesPage() {
                 borderRadius: "var(--radius-sm)",
                 background: "var(--primary)",
                 border: "none",
-                color: "#fff",
+                color: "var(--rc-text-on-brand)",
                 fontSize: "13px",
                 fontWeight: 600,
                 cursor: "pointer",
@@ -1047,7 +1047,7 @@ function ResearcherPreferencesPage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-            <Globe size={18} color="#0284c7" />
+            <Globe size={18} color="var(--rc-info)" />
             <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--text-main)" }}>
               Geographic & Institutions
             </h2>
@@ -1081,16 +1081,16 @@ function ResearcherPreferencesPage() {
                     fontWeight: 500,
                     cursor: "pointer",
                     border: isPref
-                      ? "1px solid #0284c7"
+                      ? "1px solid var(--rc-info)"
                       : isExcl
-                      ? "1px solid #dc2626"
+                      ? "1px solid var(--rc-danger)"
                       : "1px solid var(--border-color)",
                     background: isPref
-                      ? "rgba(2, 132, 199, 0.12)"
+                      ? "color-mix(in srgb, var(--rc-info) 12%, transparent)"
                       : isExcl
-                      ? "rgba(220, 38, 38, 0.12)"
+                      ? "color-mix(in srgb, var(--rc-danger) 12%, transparent)"
                       : "var(--bg-hover)",
-                    color: isPref ? "#0284c7" : isExcl ? "#dc2626" : "var(--text-main)",
+                    color: isPref ? "var(--rc-info)" : isExcl ? "var(--rc-danger)" : "var(--text-main)",
                   }}
                 >
                   {isPref && <Check size={12} style={{ display: "inline", marginRight: "4px" }} />}
@@ -1144,7 +1144,7 @@ function ResearcherPreferencesPage() {
                 borderRadius: "var(--radius-sm)",
                 background: "var(--primary)",
                 border: "none",
-                color: "#fff",
+                color: "var(--rc-text-on-brand)",
                 fontSize: "13px",
                 fontWeight: 600,
                 cursor: "pointer",
@@ -1166,7 +1166,7 @@ function ResearcherPreferencesPage() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-            <Banknote size={18} color="#eab308" />
+            <Banknote size={18} color="var(--rc-warning)" />
             <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--text-main)" }}>
               Funding & Career Stage
             </h2>
@@ -1292,7 +1292,7 @@ function ResearcherPreferencesPage() {
                 background: "var(--primary)",
                 border: "none",
                 borderRadius: "var(--radius-md)",
-                color: "#fff",
+                color: "var(--rc-text-on-brand)",
                 fontSize: "13px",
                 fontWeight: 600,
                 cursor: "pointer",
@@ -1309,14 +1309,14 @@ function ResearcherPreferencesPage() {
         <div
           style={{
             background: "var(--bg-card)",
-            border: "1px solid rgba(220, 38, 38, 0.3)",
+            border: "1px solid color-mix(in srgb, var(--rc-danger) 30%, transparent)",
             borderRadius: "var(--radius-lg)",
             padding: "24px",
             boxShadow: "var(--shadow-sm)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-            <ShieldAlert size={18} color="#dc2626" />
+            <ShieldAlert size={18} color="var(--rc-danger)" />
             <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--text-main)" }}>
               Explicit Exclusions
             </h2>
@@ -1337,14 +1337,14 @@ function ResearcherPreferencesPage() {
                       justifyContent: "space-between",
                       alignItems: "center",
                       padding: "8px 12px",
-                      background: "rgba(220, 38, 38, 0.06)",
-                      border: "1px solid rgba(220, 38, 38, 0.2)",
+                      background: "color-mix(in srgb, var(--rc-danger) 6%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--rc-danger) 20%, transparent)",
                       borderRadius: "var(--radius-sm)",
                       fontSize: "12px",
                     }}
                   >
                     <div>
-                      <span style={{ fontWeight: 600, color: "#dc2626" }}>[{excl.category}]</span>{" "}
+                      <span style={{ fontWeight: 600, color: "var(--rc-danger)" }}>[{excl.category}]</span>{" "}
                       <span style={{ color: "var(--text-main)" }}>{excl.display_label}</span>
                     </div>
                     <button

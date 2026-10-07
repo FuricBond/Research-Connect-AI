@@ -29,44 +29,44 @@ export const PreferenceMatchBadge: React.FC<PreferenceMatchBadgeProps> = ({
   > = {
     PREFERRED_MATCH: {
       label: "Matches your preferences",
-      bg: "rgba(16, 185, 129, 0.12)",
-      text: "#10b981",
-      border: "rgba(16, 185, 129, 0.3)",
+      bg: "color-mix(in srgb, var(--rc-success) 12%, transparent)",
+      text: "var(--rc-success)",
+      border: "color-mix(in srgb, var(--rc-success) 30%, transparent)",
       icon: "✓",
     },
     EXCLUDED_MATCH: {
       label: "Excluded by your preferences",
-      bg: "rgba(239, 68, 68, 0.12)",
-      text: "#ef4444",
-      border: "rgba(239, 68, 68, 0.3)",
+      bg: "color-mix(in srgb, var(--rc-danger) 12%, transparent)",
+      text: "var(--rc-danger)",
+      border: "color-mix(in srgb, var(--rc-danger) 30%, transparent)",
       icon: "✕",
     },
     CONFLICT: {
       label: "Preference conflict",
-      bg: "rgba(245, 158, 11, 0.15)",
-      text: "#f59e0b",
-      border: "rgba(245, 158, 11, 0.4)",
+      bg: "color-mix(in srgb, var(--rc-warning) 15%, transparent)",
+      text: "var(--rc-warning)",
+      border: "color-mix(in srgb, var(--rc-warning) 40%, transparent)",
       icon: "⚠",
     },
     PARTIAL_MATCH: {
       label: "Partial preference match",
-      bg: "rgba(59, 130, 246, 0.12)",
-      text: "#3b82f6",
-      border: "rgba(59, 130, 246, 0.3)",
+      bg: "color-mix(in srgb, var(--rc-info) 12%, transparent)",
+      text: "var(--rc-info)",
+      border: "color-mix(in srgb, var(--rc-info) 30%, transparent)",
       icon: "◐",
     },
     INSUFFICIENT_EVIDENCE: {
       label: "Insufficient preference evidence",
-      bg: "rgba(107, 114, 128, 0.12)",
-      text: "#9ca3af",
-      border: "rgba(107, 114, 128, 0.25)",
+      bg: "color-mix(in srgb, var(--rc-text-muted) 12%, transparent)",
+      text: "var(--rc-text-muted)",
+      border: "color-mix(in srgb, var(--rc-text-muted) 25%, transparent)",
       icon: "?",
     },
     NEUTRAL: {
       label: "Neutral preference",
-      bg: "rgba(255, 255, 255, 0.05)",
-      text: "#94a3b8",
-      border: "rgba(255, 255, 255, 0.1)",
+      bg: "var(--rc-hover)",
+      text: "var(--rc-text-muted)",
+      border: "var(--rc-hover)",
       icon: "○",
     },
   };
@@ -110,13 +110,13 @@ export const PreferenceMatchBadge: React.FC<PreferenceMatchBadgeProps> = ({
             zIndex: 40,
             marginTop: "6px",
             width: "320px",
-            backgroundColor: "#1e293b",
-            border: "1px solid rgba(255, 255, 255, 0.12)",
+            backgroundColor: "var(--rc-surface-inverse)",
+            border: "1px solid var(--rc-hover)",
             borderRadius: "8px",
-            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
+            boxShadow: "var(--rc-shadow-dialog)",
             padding: "12px",
             fontSize: "12px",
-            color: "#e2e8f0",
+            color: "var(--rc-text)",
           }}
         >
           <div style={{ fontWeight: 600, marginBottom: "6px", color: current.text }}>
@@ -129,7 +129,7 @@ export const PreferenceMatchBadge: React.FC<PreferenceMatchBadgeProps> = ({
               <div style={{ fontSize: "11px", fontWeight: 700, color: "#10b981", textTransform: "uppercase" }}>
                 Preferred Matches ({assessment.positive_matches.length})
               </div>
-              <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", color: "#cbd5e1" }}>
+              <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", color: "var(--rc-text)" }}>
                 {assessment.positive_matches.map((s) => (
                   <li key={s.signal_id} style={{ marginBottom: "2px" }}>
                     {s.explanation}
@@ -145,7 +145,7 @@ export const PreferenceMatchBadge: React.FC<PreferenceMatchBadgeProps> = ({
               <div style={{ fontSize: "11px", fontWeight: 700, color: "#ef4444", textTransform: "uppercase" }}>
                 Explicit Exclusions ({assessment.excluded_matches.length})
               </div>
-              <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", color: "#fca5a5" }}>
+              <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", color: "var(--rc-danger)" }}>
                 {assessment.excluded_matches.map((s) => (
                   <li key={s.signal_id} style={{ marginBottom: "2px" }}>
                     {s.explanation}
@@ -161,7 +161,7 @@ export const PreferenceMatchBadge: React.FC<PreferenceMatchBadgeProps> = ({
               <div style={{ fontSize: "11px", fontWeight: 700, color: "#f59e0b", textTransform: "uppercase" }}>
                 Conflicts ({assessment.conflicts.length})
               </div>
-              <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", color: "#fcd34d" }}>
+              <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", color: "var(--rc-warning)" }}>
                 {assessment.conflicts.map((s) => (
                   <li key={s.signal_id} style={{ marginBottom: "2px" }}>
                     {s.explanation}

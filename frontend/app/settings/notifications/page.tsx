@@ -217,10 +217,10 @@ function NotificationSettingsPage() {
           <div
             style={{
               padding: "10px 16px",
-              background: "rgba(16, 185, 129, 0.1)",
-              border: "1px solid #10b981",
+              background: "color-mix(in srgb, var(--rc-success) 10%, transparent)",
+              border: "1px solid var(--rc-success)",
               borderRadius: "var(--radius-md)",
-              color: "#059669",
+              color: "var(--rc-success)",
               fontSize: 13,
               display: "flex",
               alignItems: "center",
@@ -237,10 +237,10 @@ function NotificationSettingsPage() {
           <div
             style={{
               padding: "10px 16px",
-              background: "rgba(239, 68, 68, 0.1)",
-              border: "1px solid #ef4444",
+              background: "color-mix(in srgb, var(--rc-danger) 10%, transparent)",
+              border: "1px solid var(--rc-danger)",
               borderRadius: "var(--radius-md)",
-              color: "#dc2626",
+              color: "var(--rc-danger)",
               fontSize: 13,
               display: "flex",
               alignItems: "center",
@@ -447,7 +447,7 @@ function NotificationSettingsPage() {
                     <td>
                       <span
                         style={{
-                          color: rule.is_active ? "#059669" : "var(--text-muted)",
+                          color: rule.is_active ? "var(--rc-success)" : "var(--text-muted)",
                           fontSize: 12,
                           fontWeight: 600,
                         }}
@@ -462,7 +462,7 @@ function NotificationSettingsPage() {
                         onClick={() => handleDeleteRule(rule.id)}
                         title="Delete Rule"
                       >
-                        <Trash2 size={14} color="#ef4444" />
+                        <Trash2 size={14} color="var(--rc-danger)" />
                       </button>
                     </td>
                   </tr>
@@ -566,12 +566,12 @@ function NotificationSettingsPage() {
               className="notifications-select"
             />
             {passwordError && (
-              <p role="alert" style={{ margin: 0, color: "#ef4444", fontSize: 13 }}>
+              <p role="alert" style={{ margin: 0, color: "var(--rc-danger)", fontSize: 13 }}>
                 {passwordError}
               </p>
             )}
             {passwordChanged && (
-              <p role="status" style={{ margin: 0, color: "#059669", fontSize: 13 }}>
+              <p role="status" style={{ margin: 0, color: "var(--rc-success)", fontSize: 13 }}>
                 Password changed. Your other sessions have been signed out.
               </p>
             )}

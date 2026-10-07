@@ -154,34 +154,34 @@ export function RecommendationHistoryView({
     switch (status) {
       case "SUFFICIENT_DATA":
         return {
-          bg: "#ecfdf5",
-          color: "#059669",
-          border: "#a7f3d0",
+          bg: "var(--rc-success-subtle)",
+          color: "var(--rc-success)",
+          border: "var(--rc-success-border)",
           label: "Sufficient Data",
           icon: <CheckCircle2 size={13} />,
         };
       case "INSUFFICIENT_DATA":
         return {
-          bg: "#fffbeb",
-          color: "#d97706",
-          border: "#fde68a",
+          bg: "var(--rc-warning-subtle)",
+          color: "var(--rc-warning)",
+          border: "var(--rc-warning-border)",
           label: "Insufficient Data",
           icon: <Info size={13} />,
         };
       case "NO_FEEDBACK":
         return {
-          bg: "#fef3c7",
-          color: "#b45309",
-          border: "#fcd34d",
+          bg: "var(--rc-warning-subtle)",
+          color: "var(--rc-warning)",
+          border: "var(--rc-warning-border)",
           label: "No Feedback Recorded",
           icon: <Clock size={13} />,
         };
       case "NO_HISTORY":
       default:
         return {
-          bg: "#f3f4f6",
-          color: "#6b7280",
-          border: "#e5e7eb",
+          bg: "var(--rc-surface-sunken)",
+          color: "var(--rc-text-muted)",
+          border: "var(--rc-border)",
           label: "No History",
           icon: <History size={13} />,
         };
@@ -282,8 +282,8 @@ export function RecommendationHistoryView({
           style={{
             padding: "12px 16px",
             borderRadius: "var(--radius-sm)",
-            background: "#fee2e2",
-            color: "#991b1b",
+            background: "var(--rc-danger-subtle)",
+            color: "var(--rc-danger)",
             fontSize: "13px",
             marginBottom: "16px",
             display: "flex",
@@ -397,7 +397,7 @@ export function RecommendationHistoryView({
               <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
                 Recall@10
               </div>
-              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "#0284c7" }}>
+              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-info)" }}>
                 {formatMetric(evaluation.metrics.recall_at_10, true)}
               </div>
               <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Known relevant</div>
@@ -415,7 +415,7 @@ export function RecommendationHistoryView({
               <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
                 NDCG@10
               </div>
-              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "#7c3aed" }}>
+              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-brand-text)" }}>
                 {formatMetric(evaluation.metrics.ndcg_at_10)}
               </div>
               <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Graded gain</div>
@@ -433,7 +433,7 @@ export function RecommendationHistoryView({
               <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
                 Hit Rate@5
               </div>
-              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "#059669" }}>
+              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-success)" }}>
                 {formatMetric(evaluation.metrics.hit_rate_at_5, true)}
               </div>
               <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>≥1 hit in top 5</div>
@@ -451,7 +451,7 @@ export function RecommendationHistoryView({
               <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
                 Save Rate
               </div>
-              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "#2563eb" }}>
+              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-info)" }}>
                 {formatMetric(evaluation.metrics.save_rate, true)}
               </div>
               <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Bookmarked</div>
@@ -469,7 +469,7 @@ export function RecommendationHistoryView({
               <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
                 Engagement
               </div>
-              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "#d97706" }}>
+              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-warning)" }}>
                 {formatMetric(evaluation.metrics.engagement_rate, true)}
               </div>
               <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>View/Save/Apply</div>
@@ -487,7 +487,7 @@ export function RecommendationHistoryView({
               <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
                 Dismissal
               </div>
-              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "#dc2626" }}>
+              <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-danger)" }}>
                 {formatMetric(evaluation.metrics.dismissal_rate, true)}
               </div>
               <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Hidden / rejected</div>
@@ -732,7 +732,7 @@ export function RecommendationHistoryView({
             left: 0,
             right: 0,
             bottom: 0,
-            background: "rgba(0, 0, 0, 0.5)",
+            background: "var(--rc-overlay)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -883,16 +883,16 @@ export function RecommendationHistoryView({
                                       borderRadius: "4px",
                                       background:
                                         fb === "APPLY" || fb === "SAVE" || fb === "INTERESTED"
-                                          ? "#dcfce7"
+                                          ? "var(--rc-success-subtle)"
                                           : fb === "VIEW"
-                                          ? "#e0f2fe"
-                                          : "#fee2e2",
+                                          ? "var(--rc-info-subtle)"
+                                          : "var(--rc-danger-subtle)",
                                       color:
                                         fb === "APPLY" || fb === "SAVE" || fb === "INTERESTED"
-                                          ? "#15803d"
+                                          ? "var(--rc-success)"
                                           : fb === "VIEW"
-                                          ? "#0369a1"
-                                          : "#b91c1c",
+                                          ? "var(--rc-info)"
+                                          : "var(--rc-danger)",
                                     }}
                                   >
                                     {fb}
@@ -918,7 +918,7 @@ export function RecommendationHistoryView({
                                 display: "inline-flex",
                                 alignItems: "center",
                                 gap: "4px",
-                                color: "var(--primary, #2563eb)",
+                                color: "var(--primary)",
                               }}
                               title="Why was this recommended in this historical snapshot?"
                             >

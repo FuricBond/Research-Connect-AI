@@ -26,31 +26,31 @@ export function ProfileCompletenessBadge({ completeness }: ProfileCompletenessBa
     switch (completeness.level) {
       case "COMPLETE":
         return {
-          bar: "#0f766e",
-          bg: "#f0fdf4",
-          border: "#bbf7d0",
-          text: "#166534",
+          bar: "var(--rc-brand)",
+          bg: "var(--rc-success-subtle)",
+          border: "var(--rc-success-border)",
+          text: "var(--rc-success)",
         };
       case "INTERMEDIATE":
         return {
-          bar: "#0284c7",
-          bg: "#f0f9ff",
-          border: "#bae6fd",
-          text: "#0369a1",
+          bar: "var(--rc-brand)",
+          bg: "var(--rc-info-subtle)",
+          border: "var(--rc-info-border)",
+          text: "var(--rc-info)",
         };
       case "BASIC":
         return {
-          bar: "#d97706",
-          bg: "#fffbeb",
-          border: "#fde68a",
-          text: "#92400e",
+          bar: "var(--rc-warning)",
+          bg: "var(--rc-warning-subtle)",
+          border: "var(--rc-warning-border)",
+          text: "var(--rc-warning)",
         };
       default:
         return {
-          bar: "#64748b",
-          bg: "#f8fafc",
-          border: "#e2e8f0",
-          text: "#475569",
+          bar: "var(--rc-text-muted)",
+          bg: "var(--rc-bg)",
+          border: "var(--rc-border)",
+          text: "var(--rc-text-secondary)",
         };
     }
   };
@@ -112,7 +112,7 @@ export function ProfileCompletenessBadge({ completeness }: ProfileCompletenessBa
         style={{
           height: "6px",
           width: "100%",
-          background: "#e2e8f0",
+          background: "var(--rc-border)",
           borderRadius: "9999px",
           marginTop: "12px",
           overflow: "hidden",
@@ -152,9 +152,9 @@ export function ProfileCompletenessBadge({ completeness }: ProfileCompletenessBa
               }}
             >
               {present ? (
-                <CheckCircle2 size={14} color="#16a34a" />
+                <CheckCircle2 size={14} color="var(--rc-success)" />
               ) : (
-                <Circle size={14} color="#94a3b8" />
+                <Circle size={14} color="var(--rc-text-muted)" />
               )}
               <span style={{ textDecoration: present ? "none" : "none" }}>
                 {FIELD_LABELS[field] || field}
