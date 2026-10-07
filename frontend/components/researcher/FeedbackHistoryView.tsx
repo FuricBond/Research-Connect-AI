@@ -108,7 +108,7 @@ export function FeedbackHistoryView({
       case "NOT_INTERESTED":
         return <ThumbsDown size={14} className="text-rose-400" />;
       case "DISMISS":
-        return <XCircle size={14} className="text-slate-400" />;
+        return <XCircle size={14} className="text-slate-500" />;
       case "APPLY":
         return <Flame size={14} className="text-purple-400" />;
       case "VIEW":
@@ -126,7 +126,7 @@ export function FeedbackHistoryView({
       case "NOT_INTERESTED":
         return "bg-rose-950/60 text-rose-300 border-rose-800/50";
       case "DISMISS":
-        return "bg-slate-800 text-slate-300 border-slate-700";
+        return "bg-slate-100 text-slate-700 border-slate-300";
       case "APPLY":
         return "bg-purple-950/60 text-purple-300 border-purple-800/50";
       case "VIEW":
@@ -136,16 +136,16 @@ export function FeedbackHistoryView({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-6">
+    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xl space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-white tracking-tight">
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
               Recommendation Feedback & Behavioral Learning
             </h2>
           </div>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Deterministic feedback aggregation with exponential decay (T₁/₂ = 30d), confidence scaling, and explicit preference dominance.
           </p>
         </div>
@@ -153,7 +153,7 @@ export function FeedbackHistoryView({
         <button
           onClick={() => loadFeedbackData(true)}
           disabled={loading || isRefreshing}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-200 border border-slate-700 hover:bg-slate-700 hover:text-white transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-300 hover:bg-slate-200 hover:text-slate-900 transition-colors disabled:opacity-50"
         >
           <RefreshCw size={13} className={isRefreshing ? "animate-spin" : ""} />
           <span>Refresh Signals</span>
@@ -170,12 +170,12 @@ export function FeedbackHistoryView({
       {/* Summary KPI Cards */}
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
-            <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <div className="bg-slate-100 p-4 rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
               <span>Total Feedback</span>
               <Activity size={14} className="text-indigo-400" />
             </div>
-            <div className="text-2xl font-bold text-white font-mono mt-1">
+            <div className="text-2xl font-bold text-slate-900 font-mono mt-1">
               {summary.total_feedback_count}
             </div>
             <span className="text-xs text-slate-500">
@@ -183,15 +183,15 @@ export function FeedbackHistoryView({
             </span>
           </div>
 
-          <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
-            <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <div className="bg-slate-100 p-4 rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
               <span>Behavioral Confidence</span>
               <Shield size={14} className="text-emerald-400" />
             </div>
-            <div className="text-2xl font-bold text-white font-mono mt-1">
+            <div className="text-2xl font-bold text-slate-900 font-mono mt-1">
               {(summary.overall_confidence * 100).toFixed(1)}%
             </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
               <div
                 className="bg-emerald-500 h-full rounded-full transition-all duration-300"
                 style={{ width: `${Math.min(100, summary.overall_confidence * 100)}%` }}
@@ -199,8 +199,8 @@ export function FeedbackHistoryView({
             </div>
           </div>
 
-          <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
-            <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <div className="bg-slate-100 p-4 rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
               <span>Suppressed Items</span>
               <XCircle size={14} className="text-rose-400" />
             </div>
@@ -212,8 +212,8 @@ export function FeedbackHistoryView({
             </span>
           </div>
 
-          <div className="bg-slate-950 p-4 rounded-lg border border-slate-800">
-            <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+          <div className="bg-slate-100 p-4 rounded-lg border border-slate-200">
+            <div className="flex items-center justify-between text-slate-500 text-xs font-medium">
               <span>Feedback Distribution</span>
               <Layers size={14} className="text-blue-400" />
             </div>
@@ -240,8 +240,8 @@ export function FeedbackHistoryView({
       {/* Top Learned Preferences / Signals Preview */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-2">
-            <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+          <div className="bg-slate-100 p-4 rounded-lg border border-slate-200 space-y-2">
+            <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
               <CheckCircle2 size={13} className="text-emerald-400" />
               Learned Positive Topics (+Signal)
             </span>
@@ -263,8 +263,8 @@ export function FeedbackHistoryView({
             )}
           </div>
 
-          <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-2">
-            <span className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+          <div className="bg-slate-100 p-4 rounded-lg border border-slate-200 space-y-2">
+            <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
               <XCircle size={13} className="text-rose-400" />
               Learned Negative Topics (-Signal)
             </span>
@@ -291,14 +291,14 @@ export function FeedbackHistoryView({
       {/* Feedback History Log Table */}
       <div className="space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h3 className="text-sm font-semibold text-white">Recent Interaction History</h3>
+          <h3 className="text-sm font-semibold text-slate-900">Recent Interaction History</h3>
           <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-400">Filter:</label>
+            <label className="text-xs text-slate-500">Filter:</label>
             <select
               aria-label="Filter interactions"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="bg-slate-950 text-slate-300 border border-slate-800 rounded px-2 py-1 text-xs focus:outline-none focus:border-indigo-500"
+              className="bg-slate-100 text-slate-700 border border-slate-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-indigo-500"
             >
               <option value="">All Events</option>
               <option value="SAVE">SAVE</option>
@@ -312,9 +312,9 @@ export function FeedbackHistoryView({
         </div>
 
         {history.length > 0 ? (
-          <div className="overflow-x-auto rounded-lg border border-slate-800">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+          <div className="overflow-x-auto rounded-lg border border-slate-200">
+            <table className="w-full text-left text-xs text-slate-700">
+              <thead className="bg-slate-100 text-slate-500 text-xs tracking-wider border-b border-slate-200">
                 <tr>
                   <th className="py-2.5 px-3">Type</th>
                   <th className="py-2.5 px-3">Opportunity</th>
@@ -324,9 +324,9 @@ export function FeedbackHistoryView({
                   <th className="py-2.5 px-3 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 bg-slate-900/40">
+              <tbody className="divide-y divide-slate-200 bg-white">
                 {history.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
+                  <tr key={item.id} className="hover:bg-slate-100 transition-colors">
                     <td className="py-2 px-3 whitespace-nowrap">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold border ${getFeedbackBadgeClass(
@@ -337,16 +337,16 @@ export function FeedbackHistoryView({
                         {item.feedback_type}
                       </span>
                     </td>
-                    <td className="py-2 px-3 font-medium text-white max-w-[240px] truncate">
+                    <td className="py-2 px-3 font-medium text-slate-900 max-w-[240px] truncate">
                       {item.opportunity_title || item.opportunity_id}
                     </td>
-                    <td className="py-2 px-3 text-slate-400 whitespace-nowrap">
+                    <td className="py-2 px-3 text-slate-500 whitespace-nowrap">
                       {item.opportunity_type || "—"} / {item.delivery_mode || "—"}
                     </td>
-                    <td className="py-2 px-3 text-slate-400 text-[11px] whitespace-nowrap font-mono">
+                    <td className="py-2 px-3 text-slate-500 text-xs whitespace-nowrap font-mono">
                       {item.source}
                     </td>
-                    <td className="py-2 px-3 text-slate-400 whitespace-nowrap flex items-center gap-1">
+                    <td className="py-2 px-3 text-slate-500 whitespace-nowrap flex items-center gap-1">
                       <Clock size={11} />
                       {new Date(item.created_at).toLocaleDateString(undefined, {
                         month: "short",
@@ -371,7 +371,7 @@ export function FeedbackHistoryView({
             </table>
           </div>
         ) : (
-          <div className="py-8 text-center text-slate-500 text-xs bg-slate-950/40 rounded-lg border border-dashed border-slate-800">
+          <div className="py-8 text-center text-slate-500 text-xs bg-slate-100 rounded-lg border border-dashed border-slate-200">
             No feedback history found. Interact with recommendations to train the system.
           </div>
         )}

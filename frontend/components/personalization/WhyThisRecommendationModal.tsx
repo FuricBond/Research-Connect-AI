@@ -4,14 +4,12 @@ import React, { useEffect, useState } from "react";
 import {
   AlertCircle,
   CheckCircle2,
-  HelpCircle,
   Info,
   Loader2,
   MinusCircle,
   Shield,
   ShieldAlert,
   Sparkles,
-  X,
 } from "lucide-react";
 import { Button } from "../ui/Button/Button";
 import { Dialog } from "../ui/Dialog/Dialog";
@@ -83,32 +81,32 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
       case "STRONG_PERSONALIZATION":
         return {
           label: "Strong Personalization",
-          badgeClass: "bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800",
-          icon: <Sparkles className="w-4 h-4 mr-1 text-purple-600 dark:text-purple-400" />,
+          badgeClass: "bg-purple-100 text-purple-800 border-purple-300",
+          icon: <Sparkles className="w-4 h-4 mr-1 text-purple-600" />,
         };
       case "MODERATE_PERSONALIZATION":
         return {
           label: "Moderate Personalization",
-          badgeClass: "bg-indigo-100 text-indigo-800 border-indigo-300 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-800",
-          icon: <Sparkles className="w-4 h-4 mr-1 text-indigo-600 dark:text-indigo-400" />,
+          badgeClass: "bg-indigo-100 text-indigo-800 border-indigo-300",
+          icon: <Sparkles className="w-4 h-4 mr-1 text-indigo-600" />,
         };
       case "LOW_PERSONALIZATION":
         return {
           label: "Low Personalization",
-          badgeClass: "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800",
-          icon: <Info className="w-4 h-4 mr-1 text-blue-600 dark:text-blue-400" />,
+          badgeClass: "bg-blue-100 text-blue-800 border-blue-300",
+          icon: <Info className="w-4 h-4 mr-1 text-blue-600" />,
         };
       case "PERSONALIZATION_SUPPRESSED":
         return {
           label: "Personalization Suppressed",
-          badgeClass: "bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800",
-          icon: <ShieldAlert className="w-4 h-4 mr-1 text-amber-600 dark:text-amber-400" />,
+          badgeClass: "bg-amber-100 text-amber-800 border-amber-300",
+          icon: <ShieldAlert className="w-4 h-4 mr-1 text-amber-600" />,
         };
       case "NO_PERSONALIZATION":
       default:
         return {
           label: "No Personalization Influence",
-          badgeClass: "bg-gray-100 text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
+          badgeClass: "bg-gray-100 text-gray-700 border-gray-300",
           icon: <MinusCircle className="w-4 h-4 mr-1 text-gray-500" />,
         };
     }
@@ -116,10 +114,10 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
 
   const getFactorIcon = (factor: PersonalizationFactor) => {
     if (factor.polarity === "POSITIVE") {
-      return <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />;
+      return <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />;
     }
     if (factor.polarity === "NEGATIVE") {
-      return <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />;
+      return <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />;
     }
     return <MinusCircle className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />;
   };
@@ -140,13 +138,13 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
         <div className="space-y-5">
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-              <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400 mb-2" />
+              <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-2" />
               <p className="text-sm font-medium">Loading personalization explanation...</p>
             </div>
           )}
 
           {error && (
-            <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-lg text-rose-800 dark:text-rose-200 text-sm">
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-lg text-rose-800 text-sm">
               <p className="font-semibold flex items-center gap-1.5">
                 <AlertCircle className="w-4 h-4" /> Error loading explanation
               </p>
@@ -157,15 +155,15 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
           {!isLoading && !error && data && (
             <>
               {/* Opportunity Title & Impact Badge */}
-              <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-lg border border-gray-200 dark:border-gray-700/60 space-y-2">
-                <div className="text-xs tracking-wider font-semibold text-gray-500 dark:text-gray-400">
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-2">
+                <div className="text-xs tracking-wider font-semibold text-gray-500">
                   Opportunity
                 </div>
-                <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-base font-semibold text-gray-900">
                   {data.opportunity_title}
                 </h3>
                 <div className="pt-2 flex items-center gap-2">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">Personalization Impact:</span>
+                  <span className="text-xs text-gray-500">Personalization Impact:</span>
                   {(() => {
                     const badge = getImpactBadge(data.personalization_impact);
                     return (
@@ -182,38 +180,38 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
 
               {/* Score Breakdown (Base Relevance vs Personalization) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-3 bg-blue-50/60 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-900/40 rounded-lg">
-                  <div className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-lg">
+                  <div className="text-xs font-medium text-blue-700">
                     Core Base Relevance
                   </div>
-                  <div className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">
+                  <div className="text-2xl font-bold text-blue-900 mt-1">
                     {(data.base_relevance_score * 100).toFixed(0)}%
                   </div>
-                  <p className="text-[11px] text-blue-600/80 dark:text-blue-400 mt-0.5">
+                  <p className="text-xs text-blue-600 mt-0.5">
                     85% baseline weight
                   </p>
                 </div>
 
-                <div className="p-3 bg-purple-50/60 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/40 rounded-lg">
-                  <div className="text-xs font-medium text-purple-700 dark:text-purple-300">
+                <div className="p-3 bg-purple-50/60 border border-purple-200 rounded-lg">
+                  <div className="text-xs font-medium text-purple-700">
                     Personalization Fit
                   </div>
-                  <div className="text-2xl font-bold text-purple-900 dark:text-purple-100 mt-1">
+                  <div className="text-2xl font-bold text-purple-900 mt-1">
                     {(data.personalization_score * 100).toFixed(0)}%
                   </div>
-                  <p className="text-[11px] text-purple-600/80 dark:text-purple-400 mt-0.5">
+                  <p className="text-xs text-purple-600 mt-0.5">
                     15% bounded weight
                   </p>
                 </div>
 
-                <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 rounded-lg">
-                  <div className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                <div className="p-3 bg-emerald-50/60 border border-emerald-200 rounded-lg">
+                  <div className="text-xs font-medium text-emerald-700">
                     Final Ranking Score
                   </div>
-                  <div className="text-2xl font-bold text-emerald-900 dark:text-emerald-100 mt-1">
+                  <div className="text-2xl font-bold text-emerald-900 mt-1">
                     {(data.final_score * 100).toFixed(0)}%
                   </div>
-                  <p className="text-[11px] text-emerald-600/80 dark:text-emerald-400 mt-0.5">
+                  <p className="text-xs text-emerald-600 mt-0.5">
                     Deterministic blend
                   </p>
                 </div>
@@ -221,7 +219,7 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
 
               {/* Contributing Factors */}
               <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-indigo-500" />
                   Contributing Personalization Factors
                 </h4>
@@ -230,18 +228,18 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
                     {data.factors.map((f, idx) => (
                       <div
                         key={idx}
-                        className="flex items-start gap-2.5 p-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50"
+                        className="flex items-start gap-2.5 p-3 rounded-lg border border-gray-200 bg-white"
                       >
                         {getFactorIcon(f)}
                         <div className="text-xs space-y-0.5">
-                          <p className="font-medium text-gray-900 dark:text-gray-100">{f.summary}</p>
-                          <p className="text-gray-500 dark:text-gray-400">{f.evidence_basis}</p>
+                          <p className="font-medium text-gray-900">{f.summary}</p>
+                          <p className="text-gray-500">{f.evidence_basis}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 italic">
+                  <p className="text-xs text-gray-500 italic">
                     No active personalization factors contributed to this recommendation.
                   </p>
                 )}
@@ -249,11 +247,11 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
 
               {/* Summary Points */}
               {data.summary_points && data.summary_points.length > 0 && (
-                <div className="p-3.5 bg-gray-50 dark:bg-gray-800/40 rounded-lg border border-gray-200 dark:border-gray-700/60 space-y-1.5">
-                  <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
+                <div className="p-3.5 bg-gray-50 rounded-lg border border-gray-200 space-y-1.5">
+                  <div className="text-xs font-semibold text-gray-700 tracking-wide">
                     Summary Notes
                   </div>
-                  <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 list-disc list-inside">
+                  <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
                     {data.summary_points.map((pt, idx) => (
                       <li key={idx}>{pt}</li>
                     ))}
@@ -262,10 +260,10 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
               )}
 
               {/* Safety & Academic Guarantee Banner */}
-              <div className="p-3 bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-lg flex items-start gap-2.5">
-                <Shield className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
-                <div className="text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
-                  <span className="font-semibold text-slate-900 dark:text-slate-200">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-start gap-2.5">
+                <Shield className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-slate-600 space-y-0.5">
+                  <span className="font-semibold text-slate-900">
                     Academic Safety Guarantee:
                   </span>{" "}
                   Personalization influence is strictly bounded to ±15%. It can never override academic

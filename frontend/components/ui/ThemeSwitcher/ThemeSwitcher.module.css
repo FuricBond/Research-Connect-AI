@@ -1,0 +1,55 @@
+/* ThemeSwitcher: three native radios shown as a segmented control. */
+.group {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface-sunken);
+}
+
+.option {
+  position: relative;
+  display: inline-flex;
+}
+
+.option input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.face {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--rc-control-height-sm);
+  height: calc(var(--rc-control-height-sm) - 6px);
+  border-radius: var(--rc-radius-sm);
+  color: var(--rc-text-muted);
+  transition: background-color var(--rc-duration-instant) var(--rc-ease-standard), color var(--rc-duration-instant) var(--rc-ease-standard);
+}
+
+.option input:hover + .face {
+  color: var(--rc-text);
+}
+
+.option input:checked + .face {
+  background: var(--rc-surface);
+  color: var(--rc-brand-text);
+  box-shadow: 0 0 0 var(--rc-border-width) var(--rc-border);
+}
+
+.option input:focus-visible + .face {
+  outline: var(--rc-focus-width) solid var(--rc-focus-ring);
+  outline-offset: 1px;
+}
+
+@media (pointer: coarse) {
+  .face {
+    width: var(--rc-control-height-lg);
+    height: calc(var(--rc-control-height-lg) - 6px);
+  }
+}

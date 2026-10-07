@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AppHeader } from "../components/AppHeader";
 import { DiscoveryNavbar } from "../components/discovery/DiscoveryNavbar";
 import { SessionProvider } from "../components/auth/SessionProvider";
+import { THEME_INIT_SCRIPT } from "../utils/theme";
 import { fontVariables } from "./fonts";
 // The design system first (tokens, then element defaults), then the legacy page stylesheets,
 // whose class rules still win over element defaults while pages are migrated.
@@ -26,9 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={fontVariables}>
+    // data-theme is set before first paint by THEME_INIT_SCRIPT (light, dark, or the system's),
+    // so the server's "light" may differ from the attribute React finds: that is expected.
+    <html lang="en" className={fontVariables} data-theme="light" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
         <a className="rc-skip-link" href="#main-content">

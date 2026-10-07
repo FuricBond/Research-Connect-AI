@@ -162,6 +162,83 @@
   --rc-shadow-sticky: 0 1px 0 var(--rc-border);
 }
 
+/* ── Dark theme ───────────────────────────────────────────────────────────── */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --rc-bg: var(--rc-p-night-900);
+  --rc-surface: var(--rc-p-night-850);
+  --rc-surface-hover: #1c2023;
+  --rc-surface-sunken: var(--rc-p-night-950);
+  --rc-surface-raised: var(--rc-p-night-800);
+  --rc-surface-selected: var(--rc-p-petrol-dark-subtle);
+  --rc-surface-inverse: var(--rc-p-night-100);
+  --rc-overlay: rgb(0 0 0 / 0.6);
+
+  --rc-border: var(--rc-p-night-700);
+  --rc-border-control: var(--rc-p-night-500);         /* 3.59:1 on surface */
+  --rc-border-strong: var(--rc-p-night-500);
+
+  --rc-text: var(--rc-p-night-100);
+  --rc-text-secondary: var(--rc-p-night-200);
+  --rc-text-muted: var(--rc-p-night-300);
+  --rc-text-inverse: var(--rc-p-night-950);
+  --rc-text-on-brand: var(--rc-p-night-950);          /* dark text on the bright brand fill */
+  --rc-text-disabled: var(--rc-p-night-500);
+  --rc-link: var(--rc-p-petrol-300);
+
+  --rc-brand: var(--rc-p-petrol-400);
+  --rc-brand-hover: var(--rc-p-petrol-300);
+  --rc-brand-active: var(--rc-p-petrol-200);
+  --rc-brand-subtle: var(--rc-p-petrol-dark-subtle);
+  --rc-brand-border: var(--rc-p-petrol-dark-fill);
+  --rc-brand-text: var(--rc-p-petrol-300);
+
+  --rc-hover: rgb(236 234 230 / 0.06);
+  --rc-active: rgb(236 234 230 / 0.10);
+  --rc-disabled-bg: var(--rc-p-night-800);
+
+  --rc-focus-ring: var(--rc-p-petrol-300);
+
+  --rc-info: var(--rc-p-blue-300);         --rc-info-subtle: var(--rc-p-blue-dark);
+  --rc-success: var(--rc-p-green-300);     --rc-success-subtle: var(--rc-p-green-dark);
+  --rc-warning: var(--rc-p-amber-300);     --rc-warning-subtle: var(--rc-p-amber-dark);
+  --rc-danger: var(--rc-p-red-300);        --rc-danger-subtle: var(--rc-p-red-dark);
+  --rc-danger-hover: var(--rc-p-red-200);
+
+  --rc-data-match-strong-bg: var(--rc-p-petrol-dark-fill);  --rc-data-match-strong-fg: #ffffff;
+  --rc-data-match-good-bg: var(--rc-p-petrol-dark-muted);   --rc-data-match-good-fg: var(--rc-p-petrol-300);
+  --rc-data-match-partial-bg: var(--rc-p-night-800);        --rc-data-match-partial-fg: var(--rc-p-night-200);
+  --rc-data-match-weak-fg: var(--rc-p-night-300);
+  --rc-data-meter-track: var(--rc-p-night-700);
+  --rc-data-meter-fill: var(--rc-p-petrol-400);
+
+  --rc-data-risk-low-fg: var(--rc-p-green-300);       --rc-data-risk-low-bg: var(--rc-p-green-dark);
+  --rc-data-risk-caution-fg: var(--rc-p-amber-300);   --rc-data-risk-caution-bg: var(--rc-p-amber-dark);
+  --rc-data-risk-high-fg: var(--rc-p-red-300);        --rc-data-risk-high-bg: var(--rc-p-red-dark);
+  --rc-data-risk-unknown-fg: var(--rc-p-night-300);   --rc-data-risk-unknown-border: var(--rc-p-night-500);
+
+  --rc-data-deadline-fg: var(--rc-p-night-200);
+  --rc-data-deadline-soon-fg: var(--rc-p-orange-300);
+  --rc-data-deadline-urgent-fg: var(--rc-p-orange-300);
+  --rc-data-deadline-urgent-bg: var(--rc-p-orange-dark);
+  --rc-data-deadline-passed-fg: var(--rc-p-night-300);
+
+  --rc-data-app-submitted: var(--rc-p-night-200);
+  --rc-data-app-review: var(--rc-p-blue-300);         --rc-data-app-review-bg: var(--rc-p-blue-dark);
+  --rc-data-app-shortlisted: var(--rc-p-petrol-300);  --rc-data-app-shortlisted-bg: var(--rc-p-petrol-dark-subtle);
+  --rc-data-app-offered-bg: var(--rc-p-petrol-dark-fill); --rc-data-app-offered-fg: #ffffff;
+  --rc-data-app-accepted: var(--rc-p-green-300);      --rc-data-app-accepted-bg: var(--rc-p-green-dark);
+  --rc-data-app-closed: var(--rc-p-night-300);
+
+  --rc-data-unread-dot: var(--rc-p-petrol-400);
+  --rc-data-badge-count-bg: var(--rc-p-red-300);
+  --rc-data-badge-count-fg: var(--rc-p-night-950);
+
+  --rc-shadow-popover: 0 4px 16px rgb(0 0 0 / 0.45), 0 0 0 1px var(--rc-p-night-700);
+  --rc-shadow-dialog: 0 16px 48px rgb(0 0 0 / 0.6), 0 0 0 1px var(--rc-p-night-700);
+}
+
 /* ── Typography ───────────────────────────────────────────────────────────── */
 :root {
   /* app/fonts.ts defines the --font-source-* variables; the latin-ext family comes first (see there). */

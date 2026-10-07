@@ -87,42 +87,42 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
     switch (state) {
       case "POSITIVE":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
             <TrendingUp className="w-3 h-3" />
             Positive Lift
           </span>
         );
       case "NEGATIVE":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/20">
             <TrendingDown className="w-3 h-3" />
             Negative Change
           </span>
         );
       case "MIXED":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 border border-purple-500/20">
             <Scale className="w-3 h-3" />
             Mixed Outcomes
           </span>
         );
       case "STABLE":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 border border-blue-500/20">
             <CheckCircle2 className="w-3 h-3" />
             Stable
           </span>
         );
       case "EARLY_SIGNAL":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-600 border border-amber-500/20">
             <Clock className="w-3 h-3" />
             Early Signal
           </span>
         );
       case "EVALUATING":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 border border-indigo-500/20">
             <Activity className="w-3 h-3" />
             Evaluating
           </span>
@@ -130,7 +130,7 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
       case "INSUFFICIENT_DATA":
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20">
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-500/10 text-slate-600 border border-slate-500/20">
             <HelpCircle className="w-3 h-3" />
             Insufficient Evidence
           </span>
@@ -210,7 +210,7 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
                 <Sparkles className="w-3.5 h-3.5 text-primary" />
               </div>
               <div className="mt-2 flex items-baseline gap-1.5">
-                <span className={`text-xl font-extrabold ${evaluation.observed_personalization_lift > 0 ? "text-emerald-600 dark:text-emerald-400" : evaluation.observed_personalization_lift < 0 ? "text-rose-600 dark:text-rose-400" : "text-foreground"}`}>
+                <span className={`text-xl font-extrabold ${evaluation.observed_personalization_lift > 0 ? "text-emerald-600" : evaluation.observed_personalization_lift < 0 ? "text-rose-600" : "text-foreground"}`}>
                   {evaluation.observed_personalization_lift > 0 ? "+" : ""}
                   {(evaluation.observed_personalization_lift * 100).toFixed(1)}%
                 </span>
@@ -243,11 +243,11 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
                 <Scale className="w-3.5 h-3.5 text-amber-500" />
               </div>
               <div className="mt-2 flex items-baseline gap-1.5">
-                <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                <span className="text-xl font-extrabold text-emerald-600">
                   {evaluation.positive_outcomes_count}
                 </span>
                 <span className="text-muted-foreground text-xs">/</span>
-                <span className="text-xl font-extrabold text-rose-600 dark:text-rose-400">
+                <span className="text-xl font-extrabold text-rose-600">
                   {evaluation.negative_outcomes_count}
                 </span>
               </div>
@@ -364,7 +364,7 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
                     <div className="pt-2 border-t border-border/40 flex items-center justify-between text-xs">
                       <div>
                         <span className="text-muted-foreground">Lift: </span>
-                        <span className={`font-bold ${ctx.observed_lift > 0 ? "text-emerald-600 dark:text-emerald-400" : ctx.observed_lift < 0 ? "text-rose-600 dark:text-rose-400" : "text-foreground"}`}>
+                        <span className={`font-bold ${ctx.observed_lift > 0 ? "text-emerald-600" : ctx.observed_lift < 0 ? "text-rose-600" : "text-foreground"}`}>
                           {ctx.observed_lift > 0 ? "+" : ""}
                           {(ctx.observed_lift * 100).toFixed(1)}%
                         </span>

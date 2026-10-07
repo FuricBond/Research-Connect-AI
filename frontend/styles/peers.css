@@ -146,15 +146,3 @@
   line-height: 1.45;
 }
 
-@media (prefers-color-scheme: dark) {
-  .peer-chip.active {
-    background: #312e81;
-    border-color: #4338ca;
-    color: #e0e7ff;
-  }
-
-  .posting-skill.complementary {
-    background: #064e3b;
-    color: #a7f3d0;
-  }
-}

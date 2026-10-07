@@ -100,6 +100,8 @@ const config: Config = {
   corePlugins: {
     preflight: false,
   },
+  // `dark:` follows the application's theme, never the OS on its own.
+  darkMode: ["selector", '[data-theme="dark"]'],
   theme: {
     colors: palette("colors"),
     textColor: palette("text"),

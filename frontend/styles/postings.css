@@ -491,15 +491,3 @@
   padding-left: 0.6rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  .posting-skill {
-    background: #1e293b;
-    color: #cbd5e1;
-  }
-
-  .postings-error {
-    background: #450a0a;
-    border-color: #7f1d1d;
-    color: #fca5a5;
-  }
-}

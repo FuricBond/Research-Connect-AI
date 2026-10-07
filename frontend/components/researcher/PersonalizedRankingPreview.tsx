@@ -132,16 +132,16 @@ export function PersonalizedRankingPreview({
   const ablation = response?.ablation_summary;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl space-y-6">
+    <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-xl space-y-6">
       {/* Header & Architectural Scope Note */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-white tracking-tight">
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
               Personalized Recommendation Ranking
             </h2>
           </div>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Your ranking: relevance to your research, plus a small adjustment from your preferences (at most 0.15).
           </p>
         </div>
@@ -153,7 +153,7 @@ export function PersonalizedRankingPreview({
             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
               enablePersonalization
                 ? "bg-indigo-600/30 text-indigo-300 border-indigo-500/50 hover:bg-indigo-600/40"
-                : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
+                : "bg-slate-100 text-slate-500 border-slate-300 hover:bg-slate-200"
             }`}
             title="Switch between your personalized ranking and the base ranking"
             aria-pressed={enablePersonalization}
@@ -171,32 +171,32 @@ export function PersonalizedRankingPreview({
       </div>
 
       {/* Control Panel */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-950/60 p-3 rounded-lg border border-slate-800/80 text-xs">
-        <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-100 p-3 rounded-lg border border-slate-200 text-xs">
+        <label className="flex items-center gap-2 text-slate-700 cursor-pointer">
           <input
             type="checkbox"
             checked={includeInferred}
             onChange={(e) => setIncludeInferred(e.target.checked)}
-            className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-800"
+            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 bg-slate-100"
           />
           Include Inferred Preferences
         </label>
-        <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+        <label className="flex items-center gap-2 text-slate-700 cursor-pointer">
           <input
             type="checkbox"
             checked={includeExpertise}
             onChange={(e) => setIncludeExpertise(e.target.checked)}
-            className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-800"
+            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 bg-slate-100"
           />
           Include Scholarly Expertise
         </label>
-        <div className="flex items-center gap-2 text-slate-300">
+        <div className="flex items-center gap-2 text-slate-700">
           <span>Max Results:</span>
           <select
             aria-label="Maximum results"
             value={limit}
             onChange={(e) => setLimit(Number(e.target.value))}
-            className="bg-slate-800 border border-slate-700 text-white rounded px-2 py-0.5 text-xs focus:ring-1 focus:ring-indigo-500"
+            className="bg-slate-100 border border-slate-300 text-slate-900 rounded px-2 py-0.5 text-xs focus:ring-1 focus:ring-indigo-500"
           >
             <option value={10}>10</option>
             <option value={20}>20</option>
@@ -207,32 +207,32 @@ export function PersonalizedRankingPreview({
 
       {/* Ablation Summary Banner */}
       {ablation && (
-        <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/40 p-4 rounded-lg border border-indigo-900/30 grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
+        <div className="bg-slate-50 p-4 rounded-lg border border-indigo-900/30 grid grid-cols-2 md:grid-cols-5 gap-3 text-center">
           <div>
-            <div className="text-xs text-slate-400">Total Evaluated</div>
-            <div className="text-lg font-bold text-white">{ablation.total_candidates}</div>
+            <div className="text-xs text-slate-500">Total Evaluated</div>
+            <div className="text-lg font-bold text-slate-900">{ablation.total_candidates}</div>
           </div>
           <div>
-            <div className="text-xs text-slate-400">Reordered (R0 &rarr; R1)</div>
+            <div className="text-xs text-slate-500">Reordered (R0 &rarr; R1)</div>
             <div className="text-lg font-bold text-indigo-300">
               {ablation.reordered_candidates_count}
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400">Max Promotion / Demotion</div>
+            <div className="text-xs text-slate-500">Max Promotion / Demotion</div>
             <div className="text-sm font-semibold text-slate-800 mt-1">
               <span className="text-emerald-400">+{ablation.max_rank_promotion}</span> /{" "}
               <span className="text-amber-400">{ablation.max_rank_demotion}</span>
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400">Avg Personalization Adj</div>
+            <div className="text-xs text-slate-500">Avg Personalization Adj</div>
             <div className="text-lg font-bold text-cyan-300">
               +{ablation.average_personalization_adjustment.toFixed(4)}
             </div>
           </div>
           <div>
-            <div className="text-xs text-slate-400">Safety & Invariants</div>
+            <div className="text-xs text-slate-500">Safety & Invariants</div>
             <div className="text-sm font-semibold mt-1">
               {ablation.invariants_verified ? (
                 <span className="text-emerald-400 flex items-center justify-center gap-1">
@@ -255,7 +255,7 @@ export function PersonalizedRankingPreview({
 
       {/* Results Content */}
       {loading ? (
-        <div className="py-12 text-center text-slate-400 text-sm">
+        <div className="py-12 text-center text-slate-500 text-sm">
           Ranking calls for you…
         </div>
       ) : response && response.recommendations.length > 0 ? (
@@ -272,14 +272,14 @@ export function PersonalizedRankingPreview({
                   onClick={() => setSelectedCandidate(cand)}
                   className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
                     isSelected
-                      ? "bg-slate-800/90 border-indigo-500 shadow-md ring-1 ring-indigo-500/50"
-                      : "bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60"
+                      ? "bg-slate-100 border-indigo-500 shadow-md ring-1 ring-indigo-500/50"
+                      : "bg-slate-100 border-slate-200 hover:border-slate-300 hover:bg-white"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     {/* Rank & Delta Indicator */}
                     <div className="flex items-center gap-2 min-w-[58px]">
-                      <span className="text-base font-bold text-white">#{cand.rank}</span>
+                      <span className="text-base font-bold text-slate-900">#{cand.rank}</span>
                       {delta > 0 ? (
                         <span className="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/50">
                           +{delta}
@@ -298,8 +298,8 @@ export function PersonalizedRankingPreview({
                       <h4 className="text-xs font-semibold text-white truncate">
                         {cand.opportunity.title}
                       </h4>
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-slate-400">
-                        <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono">
+                      <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-500">
+                        <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono">
                           {cand.opportunity.opportunity_type}
                         </span>
                         <span>{cand.opportunity.delivery_mode}</span>
@@ -321,7 +321,7 @@ export function PersonalizedRankingPreview({
                         <div className="text-sm font-bold text-indigo-300 font-mono">
                           {cand.final_score.toFixed(4)}
                         </div>
-                        <div className="text-[10px] text-slate-400 font-mono">
+                        <div className="text-xs text-slate-500 font-mono">
                           Base: {cand.base_relevance_score.toFixed(3)}
                         </div>
                         {cand.personalization_adjustment > 0 && (
@@ -345,8 +345,8 @@ export function PersonalizedRankingPreview({
                   </div>
 
                   {/* Badges footer: Personalization strength + Risk warning */}
-                  <div className="mt-2 pt-2 border-t border-slate-800/60 flex items-center justify-between text-[10px]">
-                    <span className="text-slate-400 flex items-center gap-1">
+                  <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
+                    <span className="text-slate-500 flex items-center gap-1">
                       <Sparkles size={11} className="text-indigo-400" />
                       {cand.explanation?.personalization_strength ||
                         (cand.personalization_adjustment >= 0.08
@@ -369,45 +369,45 @@ export function PersonalizedRankingPreview({
 
           {/* Detailed Candidate Diagnostic Inspection Pane */}
           {selectedCandidate && (
-            <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-4 text-xs">
+            <div className="bg-slate-100 p-4 rounded-lg border border-slate-200 space-y-4 text-xs">
               <div>
                 <span className="text-xs font-bold tracking-wider text-indigo-400">
                   Candidate Diagnostic Inspection
                 </span>
-                <h3 className="text-sm font-bold text-white mt-1">
+                <h3 className="text-sm font-bold text-slate-900 mt-1">
                   {selectedCandidate.opportunity.title}
                 </h3>
-                <div className="text-slate-400 mt-0.5">
+                <div className="text-slate-500 mt-0.5">
                   Opportunity ID:{" "}
-                  <span className="font-mono text-[10px] text-slate-300">
+                  <span className="font-mono text-xs text-slate-700">
                     {selectedCandidate.opportunity_id}
                   </span>
                 </div>
               </div>
 
               {/* Ranks & Score Decomposition */}
-              <div className="grid grid-cols-3 gap-2 bg-slate-900/80 p-2.5 rounded border border-slate-800 font-mono text-center">
+              <div className="grid grid-cols-3 gap-2 bg-white p-2.5 rounded border border-slate-200 font-mono text-center">
                 <div>
-                  <div className="text-[10px] text-slate-400">Final Rank (R1)</div>
+                  <div className="text-xs text-slate-500">Final Rank (R1)</div>
                   <div className="text-base font-bold text-indigo-300">
                     #{selectedCandidate.rank}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-slate-400">Base Rank (R0)</div>
-                  <div className="text-base font-bold text-slate-400">
+                  <div className="text-xs text-slate-500">Base Rank (R0)</div>
+                  <div className="text-base font-bold text-slate-500">
                     #{selectedCandidate.base_rank}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[10px] text-slate-400">Movement</div>
+                  <div className="text-xs text-slate-500">Movement</div>
                   <div
                     className={`text-base font-bold ${
                       selectedCandidate.rank_delta > 0
                         ? "text-emerald-400"
                         : selectedCandidate.rank_delta < 0
                         ? "text-amber-400"
-                        : "text-slate-400"
+                        : "text-slate-500"
                     }`}
                   >
                     {selectedCandidate.rank_delta > 0
@@ -419,42 +419,42 @@ export function PersonalizedRankingPreview({
 
               {/* Score Component Breakdown */}
               <div className="space-y-2">
-                <span className="text-[11px] font-semibold text-slate-300">
+                <span className="text-xs font-semibold text-slate-700">
                   Personalization Adjustment Attribution
                 </span>
                 <div className="space-y-1.5 text-xs">
-                  <div className="flex justify-between text-slate-300">
+                  <div className="flex justify-between text-slate-700">
                     <span>Base relevance:</span>
                     <span className="font-mono font-bold">
                       {selectedCandidate.base_relevance_score.toFixed(4)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-300">
+                  <div className="flex justify-between text-slate-700">
                     <span>Explicit Preferences (40%):</span>
                     <span className="font-mono">
                       {selectedCandidate.score_breakdown.explicit_preference_score.toFixed(4)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-300">
+                  <div className="flex justify-between text-slate-700">
                     <span>Inferred Preferences (15%):</span>
                     <span className="font-mono">
                       {selectedCandidate.score_breakdown.inferred_preference_score.toFixed(4)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-300">
+                  <div className="flex justify-between text-slate-700">
                     <span>Scholarly Expertise (25%):</span>
                     <span className="font-mono">
                       {selectedCandidate.score_breakdown.expertise_match_score.toFixed(4)}
                     </span>
                   </div>
-                  <div className="flex justify-between text-slate-300">
+                  <div className="flex justify-between text-slate-700">
                     <span>Profile Signals (10%):</span>
                     <span className="font-mono">
                       {selectedCandidate.score_breakdown.profile_match_score.toFixed(4)}
                     </span>
                   </div>
                   {selectedCandidate.score_breakdown.behavioral_score != null && (
-                    <div className="flex justify-between text-slate-300">
+                    <div className="flex justify-between text-slate-700">
                       <span>Learned from your activity:</span>
                       <span
                         className={`font-mono ${
@@ -468,19 +468,19 @@ export function PersonalizedRankingPreview({
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between text-slate-300">
+                  <div className="flex justify-between text-slate-700">
                     <span>Relevance Damping Factor:</span>
                     <span className="font-mono">
                       {selectedCandidate.score_breakdown.relevance_damping.toFixed(4)}
                     </span>
                   </div>
-                  <div className="border-t border-slate-800 pt-1 flex justify-between font-semibold text-emerald-400">
+                  <div className="border-t border-slate-200 pt-1 flex justify-between font-semibold text-emerald-400">
                     <span>Total Bounded Adjustment (&le;0.15):</span>
                     <span className="font-mono">
                       +{selectedCandidate.personalization_adjustment.toFixed(4)}
                     </span>
                   </div>
-                  <div className="flex justify-between font-bold text-white text-xs border-t border-slate-800 pt-1">
+                  <div className="flex justify-between font-bold text-slate-900 text-xs border-t border-slate-200 pt-1">
                     <span>Final Composite Score:</span>
                     <span className="font-mono text-indigo-300">
                       {selectedCandidate.final_score.toFixed(4)}
@@ -491,7 +491,7 @@ export function PersonalizedRankingPreview({
 
               {/* Matched Personalization Signals */}
               <div className="space-y-1.5">
-                <span className="text-[11px] font-semibold text-slate-300">
+                <span className="text-xs font-semibold text-slate-700">
                   Matched Researcher Signals
                 </span>
                 <div className="flex flex-wrap gap-1.5">
@@ -514,7 +514,7 @@ export function PersonalizedRankingPreview({
                   {selectedCandidate.matched_signals.matched_topics.map((t, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[10px]"
+                      className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-xs"
                     >
                       {t}
                     </span>
@@ -530,7 +530,7 @@ export function PersonalizedRankingPreview({
               </div>
 
               {/* Venue risk and deadline, in the canonical indicators */}
-              <div className="border-t border-slate-800 pt-3 space-y-2">
+              <div className="border-t border-slate-200 pt-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-500 text-xs">Venue risk:</span>
                   {/* P0.5: an unknown level is "not assessed", never "low risk". */}
@@ -550,9 +550,9 @@ export function PersonalizedRankingPreview({
                 </div>
 
                 {/* Phase 3.6 Interactive Recommendation Feedback Loop */}
-                <div className="border-t border-slate-800/80 pt-2.5 mt-2 space-y-1.5">
+                <div className="border-t border-slate-200 pt-2.5 mt-2 space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-slate-300">
+                    <span className="text-xs font-semibold text-slate-700">
                       Recommendation Feedback:
                     </span>
                     {feedbackStatus[selectedCandidate.opportunity_id] && (
@@ -617,7 +617,7 @@ export function PersonalizedRankingPreview({
                         )
                       }
                       disabled={isSubmittingFeedback}
-                      className="px-2 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[11px] font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                      className="px-2 py-1.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
                       title="Dismiss & Suppress (-0.20 weight)"
                     >
                       <span>✕</span> Dismiss
@@ -629,7 +629,7 @@ export function PersonalizedRankingPreview({
           )}
         </div>
       ) : (
-        <div className="py-10 text-center text-slate-400 text-sm">
+        <div className="py-10 text-center text-slate-500 text-sm">
           No candidates available for personalized ranking.
         </div>
       )}
