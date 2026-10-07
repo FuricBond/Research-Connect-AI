@@ -9,6 +9,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { Button, IconButton } from "../components/ui/Button/Button";
 import { Checkbox, RadioGroup, Select, Switch, TextArea, TextInput } from "../components/ui/Field/Field";
 import { Dialog, Drawer } from "../components/ui/Dialog/Dialog";
+import { SkeletonList } from "../components/ui/State/State";
 import { PriorityLabel, StatusBadge } from "../components/ui/Badge/Badge";
 import { PageHeader } from "../components/ui/PageHeader/PageHeader";
 import { MatchScore, matchBand } from "../components/research/MatchScore";
@@ -158,6 +159,13 @@ describe.each(["dialog", "drawer"] as const)("%s", (kind) => {
 });
 
 describe("states", () => {
+  it("marks loading placeholders busy with one spoken status", () => {
+    const { container } = render(<SkeletonList rows={3} label="Loading results" />);
+    expect(container.firstElementChild).toHaveAttribute("aria-busy", "true");
+    expect(screen.getAllByRole("status")).toHaveLength(1);
+    expect(screen.getByRole("status")).toHaveTextContent("Loading results");
+  });
+
   it("gives a page exactly one h1", () => {
     render(<PageHeader title="Literature search" description="Find papers." />);
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
