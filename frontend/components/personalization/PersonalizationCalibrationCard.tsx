@@ -273,7 +273,7 @@ export const PersonalizationCalibrationCard: React.FC<PersonalizationCalibration
               >
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2 border-b border-slate-100 dark:border-slate-800/60">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 tracking-wider">
                       {item.dimension.replace("_", " ")}
                     </span>
                     <span className="text-sm font-bold text-slate-900 dark:text-white">

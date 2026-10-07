@@ -92,8 +92,7 @@
 
 .peer-topic-label {
   display: block;
-  font-size: 0.6875rem;
-  text-transform: uppercase;
+  font-size: var(--rc-text-label-size);
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
   margin-bottom: 0.25rem;
@@ -125,8 +124,7 @@
 }
 
 .peer-signal-table th {
-  font-size: 0.6875rem;
-  text-transform: uppercase;
+  font-size: var(--rc-text-label-size);
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
   font-weight: 600;

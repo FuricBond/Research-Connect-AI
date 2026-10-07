@@ -453,7 +453,7 @@ function WorkspaceCollaborationPage({ params }: PageProps) {
             </p>
             {workspaceItem?.notes && (
               <div style={{ marginTop: 16, padding: 12, background: "var(--bg-hover)", borderRadius: 6, border: "1px solid var(--border-color)" }}>
-                <strong style={{ fontSize: 12, textTransform: "uppercase", color: "var(--text-muted)" }}>Workspace Notes:</strong>
+                <strong style={{ fontSize: 12, color: "var(--text-muted)" }}>Workspace Notes:</strong>
                 <p style={{ margin: "4px 0 0 0", fontSize: 13 }}>{workspaceItem.notes}</p>
               </div>
             )}
@@ -647,7 +647,7 @@ function WorkspaceCollaborationPage({ params }: PageProps) {
                     <div style={{ display: "flex", gap: 6 }}>
                       <select
                         className="collab-select"
-                        style={{ padding: "2px 6px", fontSize: 11 }}
+                        style={{ padding: "2px 6px", fontSize: "var(--rc-text-label-size)" }}
                         value={member.role}
                         onChange={(e) => handleRoleChange(member.id, e.target.value as WorkspaceRole)}
                       >
@@ -848,7 +848,7 @@ function WorkspaceCollaborationPage({ params }: PageProps) {
                     <div style={{ fontSize: 12, fontWeight: 600, color: "var(--rc-success)", marginBottom: 4 }}>
                       Invitation Generated Successfully!
                     </div>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)", wordBreak: "break-all" }}>
+                    <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", wordBreak: "break-all" }}>
                       Token: <code>{createdInviteToken}</code>
                     </div>
                   </div>

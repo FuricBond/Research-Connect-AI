@@ -216,7 +216,7 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
                 </span>
                 <span className="text-xs text-muted-foreground">vs baseline</span>
               </div>
-              <span className="text-[10px] text-muted-foreground mt-1">Empirical observation</span>
+              <span className="text-xs text-muted-foreground mt-1">Empirical observation</span>
             </div>
 
             {/* Engagement Rate */}
@@ -233,7 +233,7 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
                   ({evaluation.attributed_interactions_count}/{evaluation.recommendations_evaluated_count})
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground mt-1">Interacted / Exposed</span>
+              <span className="text-xs text-muted-foreground mt-1">Interacted / Exposed</span>
             </div>
 
             {/* Positive vs Negative Feedback */}
@@ -251,7 +251,7 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
                   {evaluation.negative_outcomes_count}
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground mt-1">
+              <span className="text-xs text-muted-foreground mt-1">
                 {(evaluation.observed_positive_rate * 100).toFixed(0)}% pos rate
               </span>
             </div>
@@ -271,7 +271,7 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
                   {(evaluation.novelty_rate * 100).toFixed(0)}%
                 </span>
               </div>
-              <span className="text-[10px] text-muted-foreground mt-1">Diversity / Novelty</span>
+              <span className="text-xs text-muted-foreground mt-1">Diversity / Novelty</span>
             </div>
           </div>
 
@@ -280,7 +280,7 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
             <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+                <span className="text-xs font-semibold tracking-wider text-primary">
                   Evaluation Summary
                 </span>
                 {getStateBadge(evaluation.evaluation_state)}
@@ -292,7 +292,7 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
           </div>
 
           {/* Precedence Hierarchy Indicator */}
-          <div className="p-3 rounded-xl bg-muted/40 border border-border/40 text-[11px] text-muted-foreground flex flex-wrap items-center gap-2">
+          <div className="p-3 rounded-xl bg-muted/40 border border-border/40 text-xs text-muted-foreground flex flex-wrap items-center gap-2">
             <span className="font-semibold text-foreground">Architecture Pipeline:</span>
             <span className="px-1.5 py-0.5 rounded bg-background border border-border/60">Explicit Preferences</span>
             <span>→</span>
@@ -351,7 +351,7 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
                   >
                     <div>
                       <div className="flex items-center justify-between gap-1 mb-1">
-                        <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">
+                        <span className="text-xs tracking-wider font-semibold text-muted-foreground">
                           {ctx.context_dimension.replace("_", " ")}
                         </span>
                         {getStateBadge(ctx.evaluation_state)}
@@ -375,7 +375,7 @@ export const PersonalizationQualityCard: React.FC<PersonalizationQualityCardProp
                       </div>
                     </div>
 
-                    <p className="text-[11px] text-muted-foreground line-clamp-2 leading-normal">
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-normal">
                       {ctx.explanation}
                     </p>
                   </div>

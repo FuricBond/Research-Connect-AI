@@ -768,7 +768,7 @@ function ResearcherPreferencesPage() {
                   <span style={{ fontWeight: 600, color: "var(--text-main)" }}>{t.label}</span>
                   <span
                     style={{
-                      fontSize: "11px",
+                      fontSize: "var(--rc-text-label-size)",
                       fontWeight: 700,
                       padding: "2px 8px",
                       borderRadius: "10px",
@@ -842,7 +842,7 @@ function ResearcherPreferencesPage() {
                   <span style={{ fontWeight: 600, color: "var(--text-main)" }}>{m.label}</span>
                   <span
                     style={{
-                      fontSize: "11px",
+                      fontSize: "var(--rc-text-label-size)",
                       fontWeight: 700,
                       padding: "2px 8px",
                       borderRadius: "10px",
@@ -986,7 +986,7 @@ function ResearcherPreferencesPage() {
                       background: "var(--bg-hover)",
                       border: "1px solid var(--border-color)",
                       borderRadius: "10px",
-                      fontSize: "11px",
+                      fontSize: "var(--rc-text-label-size)",
                       color: "var(--text-main)",
                     }}
                   >

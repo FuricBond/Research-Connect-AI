@@ -281,15 +281,15 @@ export function PersonalizedRankingPreview({
                     <div className="flex items-center gap-2 min-w-[58px]">
                       <span className="text-base font-bold text-white">#{cand.rank}</span>
                       {delta > 0 ? (
-                        <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/50">
+                        <span className="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800/50">
                           +{delta}
                         </span>
                       ) : delta < 0 ? (
-                        <span className="text-[10px] font-bold text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-800/50">
+                        <span className="text-xs font-bold text-amber-400 bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-800/50">
                           {delta}
                         </span>
                       ) : (
-                        <span className="text-[10px] text-slate-500 font-mono">=</span>
+                        <span className="text-xs text-slate-500 font-mono">=</span>
                       )}
                     </div>
 
@@ -325,7 +325,7 @@ export function PersonalizedRankingPreview({
                           Base: {cand.base_relevance_score.toFixed(3)}
                         </div>
                         {cand.personalization_adjustment > 0 && (
-                          <div className="text-[10px] text-emerald-400 font-mono">
+                          <div className="text-xs text-emerald-400 font-mono">
                             +{cand.personalization_adjustment.toFixed(3)}
                           </div>
                         )}
@@ -335,7 +335,7 @@ export function PersonalizedRankingPreview({
                       <button
                         type="button"
                         onClick={(e) => handleOpenExplanation(cand, e)}
-                        className="px-2 py-1 rounded bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/60 text-[10px] font-semibold flex items-center gap-1 transition-colors"
+                        className="px-2 py-1 rounded bg-indigo-950/80 hover:bg-indigo-900 text-indigo-300 border border-indigo-800/60 text-xs font-semibold flex items-center gap-1 transition-colors"
                         title="Why this recommendation?"
                       >
                         <HelpCircle size={11} />
@@ -373,7 +373,7 @@ export function PersonalizedRankingPreview({
           {selectedCandidate && (
             <div className="bg-slate-950 p-4 rounded-lg border border-slate-800 space-y-4 text-xs">
               <div>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">
+                <span className="text-xs font-bold tracking-wider text-indigo-400">
                   Candidate Diagnostic Inspection
                 </span>
                 <h3 className="text-sm font-bold text-white mt-1">
@@ -424,7 +424,7 @@ export function PersonalizedRankingPreview({
                 <span className="text-[11px] font-semibold text-slate-300">
                   Personalization Adjustment Attribution
                 </span>
-                <div className="space-y-1.5 text-[11px]">
+                <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between text-slate-300">
                     <span>Base relevance:</span>
                     <span className="font-mono font-bold">
@@ -500,7 +500,7 @@ export function PersonalizedRankingPreview({
                   {selectedCandidate.matched_signals.matched_preferences.map((p, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-800/40 text-[10px]"
+                      className="px-2 py-0.5 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-800/40 text-xs"
                     >
                       {p}
                     </span>
@@ -508,7 +508,7 @@ export function PersonalizedRankingPreview({
                   {selectedCandidate.matched_signals.matched_expertise.map((e, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-800/40 text-[10px]"
+                      className="px-2 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-800/40 text-xs"
                     >
                       {e}
                     </span>
@@ -524,7 +524,7 @@ export function PersonalizedRankingPreview({
                   {selectedCandidate.matched_signals.matched_preferences.length === 0 &&
                     selectedCandidate.matched_signals.matched_expertise.length === 0 &&
                     selectedCandidate.matched_signals.matched_topics.length === 0 && (
-                      <span className="text-slate-500 italic text-[10px]">
+                      <span className="text-slate-500 italic text-xs">
                         No specific preference/expertise match (fallback discovery)
                       </span>
                     )}
@@ -559,7 +559,7 @@ export function PersonalizedRankingPreview({
                       Recommendation Feedback:
                     </span>
                     {feedbackStatus[selectedCandidate.opportunity_id] && (
-                      <span className="text-[10px] text-emerald-400 font-medium font-mono">
+                      <span className="text-xs text-emerald-400 font-medium font-mono">
                         ✓ Recorded: {feedbackStatus[selectedCandidate.opportunity_id]}
                       </span>
                     )}
@@ -575,7 +575,7 @@ export function PersonalizedRankingPreview({
                         )
                       }
                       disabled={isSubmittingFeedback}
-                      className="px-2 py-1.5 rounded bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 border border-amber-800/50 text-[11px] font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                      className="px-2 py-1.5 rounded bg-amber-950/60 hover:bg-amber-900/60 text-amber-300 border border-amber-800/50 text-xs font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
                       title="Save bookmark (+0.25 weight)"
                     >
                       <span>★</span> Save
@@ -590,7 +590,7 @@ export function PersonalizedRankingPreview({
                         )
                       }
                       disabled={isSubmittingFeedback}
-                      className="px-2 py-1.5 rounded bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-800/50 text-[11px] font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                      className="px-2 py-1.5 rounded bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-800/50 text-xs font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
                       title="Interested (+0.30 weight)"
                     >
                       <span>👍</span> Like
@@ -605,7 +605,7 @@ export function PersonalizedRankingPreview({
                         )
                       }
                       disabled={isSubmittingFeedback}
-                      className="px-2 py-1.5 rounded bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 text-[11px] font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                      className="px-2 py-1.5 rounded bg-rose-950/60 hover:bg-rose-900/60 text-rose-300 border border-rose-800/50 text-xs font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
                       title="Not Interested (-0.30 weight)"
                     >
                       <span>👎</span> Dislike

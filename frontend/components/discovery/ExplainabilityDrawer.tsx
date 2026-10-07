@@ -311,7 +311,7 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                       {tier.signals.length > 0 && (
                         <div className="mt-2 pt-2 border-t border-gray-100 space-y-1">
                           {tier.signals.map((sig, sIdx) => (
-                            <div key={sIdx} className="flex items-center justify-between text-[11px] text-gray-500">
+                            <div key={sIdx} className="flex items-center justify-between text-xs text-gray-500">
                               <span>
                                 • <strong>{sig.evidence || sig.signal_type}</strong> ({sig.source})
                               </span>

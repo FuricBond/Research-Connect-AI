@@ -245,7 +245,7 @@ function ReadingListPage() {
                       onChange={() => toggleSelected(item.id)}
                       aria-label={`Select ${item.work.title}`}
                     />
-                    <h3 className="posting-card-title">
+                    <h3 className="posting-card-title rc-title">
                       {href ? (
                         <a href={href} target="_blank" rel="noopener noreferrer">
                           {item.work.title}

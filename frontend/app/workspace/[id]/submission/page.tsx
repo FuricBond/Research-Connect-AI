@@ -1327,25 +1327,25 @@ function SubmissionManagementPage({ params }: PageProps) {
                       }}
                     >
                       <div>
-                        <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>Required Docs</div>
+                        <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>Required Docs</div>
                         <div style={{ fontSize: "18px", fontWeight: 700 }}>
                           {readiness.required_document_count}
                         </div>
                       </div>
                       <div>
-                        <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>Completed Docs</div>
+                        <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>Completed Docs</div>
                         <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--rc-success)" }}>
                           {readiness.completed_document_count}
                         </div>
                       </div>
                       <div>
-                        <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>Missing Docs</div>
+                        <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>Missing Docs</div>
                         <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--rc-danger)" }}>
                           {readiness.missing_document_count}
                         </div>
                       </div>
                       <div>
-                        <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>Metadata Complete</div>
+                        <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>Metadata Complete</div>
                         <div style={{ fontSize: "18px", fontWeight: 700 }}>
                           {readiness.metadata_completeness >= 1 ? "100%" : `${Math.round(readiness.metadata_completeness * 100)}%`}
                         </div>
@@ -1420,7 +1420,7 @@ function SubmissionManagementPage({ params }: PageProps) {
                   <button
                     onClick={() => activeSubmission && loadSubmissionDetails(activeSubmission.id)}
                     className="doc-action-btn"
-                    style={{ fontSize: "11px" }}
+                    style={{ fontSize: "var(--rc-text-label-size)" }}
                   >
                     <RefreshCw size={11} /> Refresh
                   </button>
@@ -1460,7 +1460,7 @@ function SubmissionManagementPage({ params }: PageProps) {
                             <div
                               style={{
                                 marginTop: "6px",
-                                fontSize: "11px",
+                                fontSize: "var(--rc-text-label-size)",
                                 color: "var(--text-muted)",
                                 background: "color-mix(in srgb, var(--rc-text) 2%, transparent)",
                                 padding: "4px 8px",
@@ -1836,12 +1836,12 @@ function SubmissionManagementPage({ params }: PageProps) {
                       {ver.file_metadata?.mime_type && ` • ${ver.file_metadata.mime_type}`}
                     </div>
                     {ver.storage_reference && (
-                      <div style={{ fontSize: "11px", marginTop: "4px" }}>
+                      <div style={{ fontSize: "var(--rc-text-label-size)", marginTop: "4px" }}>
                         Ref: <code>{ver.storage_reference}</code>
                       </div>
                     )}
                     {ver.checksum && (
-                      <div style={{ fontSize: "11px", marginTop: "2px" }}>
+                      <div style={{ fontSize: "var(--rc-text-label-size)", marginTop: "2px" }}>
                         SHA-256: <code>{ver.checksum}</code>
                       </div>
                     )}

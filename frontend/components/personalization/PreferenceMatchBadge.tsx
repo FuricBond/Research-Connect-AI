@@ -97,7 +97,7 @@ export const PreferenceMatchBadge: React.FC<PreferenceMatchBadgeProps> = ({
         <span style={{ fontWeight: "bold" }}>{current.icon}</span>
         <span>{current.label}</span>
         {showDetails && assessment && (
-          <span style={{ fontSize: "10px", opacity: 0.7, marginLeft: "2px" }}>
+          <span style={{ fontSize: "var(--rc-text-label-size)", opacity: 0.7, marginLeft: "2px" }}>
             {isExpanded ? "▲" : "▼"}
           </span>
         )}
@@ -126,7 +126,7 @@ export const PreferenceMatchBadge: React.FC<PreferenceMatchBadgeProps> = ({
           {/* Positive Matches */}
           {assessment.positive_matches.length > 0 && (
             <div style={{ marginTop: "8px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#10b981", textTransform: "uppercase" }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, color: "var(--rc-success)", }}>
                 Preferred Matches ({assessment.positive_matches.length})
               </div>
               <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", color: "var(--rc-text)" }}>
@@ -142,7 +142,7 @@ export const PreferenceMatchBadge: React.FC<PreferenceMatchBadgeProps> = ({
           {/* Excluded Matches */}
           {assessment.excluded_matches.length > 0 && (
             <div style={{ marginTop: "8px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#ef4444", textTransform: "uppercase" }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, color: "var(--rc-danger)", }}>
                 Explicit Exclusions ({assessment.excluded_matches.length})
               </div>
               <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", color: "var(--rc-danger)" }}>
@@ -158,7 +158,7 @@ export const PreferenceMatchBadge: React.FC<PreferenceMatchBadgeProps> = ({
           {/* Conflicts */}
           {assessment.conflicts.length > 0 && (
             <div style={{ marginTop: "8px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#f59e0b", textTransform: "uppercase" }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, color: "var(--rc-warning)", }}>
                 Conflicts ({assessment.conflicts.length})
               </div>
               <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", color: "var(--rc-warning)" }}>
@@ -173,7 +173,7 @@ export const PreferenceMatchBadge: React.FC<PreferenceMatchBadgeProps> = ({
 
           {/* Missing Evidence */}
           {assessment.insufficient_evidence_dimensions.length > 0 && (
-            <div style={{ marginTop: "8px", fontSize: "11px", color: "#94a3b8" }}>
+            <div style={{ marginTop: "8px", fontSize: "var(--rc-text-label-size)", color: "var(--rc-text-muted)" }}>
               <span style={{ fontWeight: 600 }}>Unavailable Data:</span>{" "}
               {assessment.insufficient_evidence_dimensions
                 .map((d) => d.replace("_", " ").toLowerCase())

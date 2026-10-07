@@ -178,7 +178,7 @@ export function FeedbackHistoryView({
             <div className="text-2xl font-bold text-white font-mono mt-1">
               {summary.total_feedback_count}
             </div>
-            <span className="text-[10px] text-slate-500">
+            <span className="text-xs text-slate-500">
               {summary.is_cold_start ? "Cold Start Fallback" : "Active Behavioral Model"}
             </span>
           </div>
@@ -207,7 +207,7 @@ export function FeedbackHistoryView({
             <div className="text-2xl font-bold text-rose-300 font-mono mt-1">
               {summary.suppressed_count}
             </div>
-            <span className="text-[10px] text-slate-500">
+            <span className="text-xs text-slate-500">
               Omitted from candidate retrieval
             </span>
           </div>
@@ -217,7 +217,7 @@ export function FeedbackHistoryView({
               <span>Feedback Distribution</span>
               <Layers size={14} className="text-blue-400" />
             </div>
-            <div className="flex items-center gap-1.5 mt-2 flex-wrap text-[11px]">
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap text-xs">
               <span className="text-emerald-400 font-semibold" title="Interested / Save">
                 +{(summary.counts_by_type["SAVE"] || 0) + (summary.counts_by_type["INTERESTED"] || 0)}
               </span>
@@ -230,7 +230,7 @@ export function FeedbackHistoryView({
                 {summary.counts_by_type["VIEW"] || 0} views
               </span>
             </div>
-            <span className="text-[10px] text-slate-500 mt-1 block">
+            <span className="text-xs text-slate-500 mt-1 block">
               30-day temporal window
             </span>
           </div>
@@ -329,7 +329,7 @@ export function FeedbackHistoryView({
                   <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="py-2 px-3 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-semibold border ${getFeedbackBadgeClass(
+                        className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-xs font-semibold border ${getFeedbackBadgeClass(
                           item.feedback_type
                         )}`}
                       >

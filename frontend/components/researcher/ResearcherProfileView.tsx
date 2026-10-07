@@ -216,7 +216,7 @@ export function ResearcherProfileView({
                       background: "var(--bg-muted)",
                       padding: "2px 8px",
                       borderRadius: "var(--radius-full)",
-                      fontSize: "11px",
+                      fontSize: "var(--rc-text-label-size)",
                       fontWeight: 600,
                       color: "var(--primary)",
                     }}
@@ -231,7 +231,7 @@ export function ResearcherProfileView({
                       color: "var(--rc-info)",
                       padding: "2px 8px",
                       borderRadius: "var(--radius-full)",
-                      fontSize: "11px",
+                      fontSize: "var(--rc-text-label-size)",
                       fontWeight: 600,
                     }}
                   >
@@ -483,7 +483,7 @@ export function ResearcherProfileView({
 
             {/* External Identifiers */}
             <div>
-              <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", textTransform: "uppercase" }}>
+              <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", }}>
                 External Scholarly Identifiers
               </div>
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
@@ -540,7 +540,7 @@ export function ResearcherProfileView({
             {/* Bio */}
             {profile.bio && (
               <div>
-                <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px", textTransform: "uppercase" }}>
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "6px", }}>
                   Research Overview
                 </div>
                 <p style={{ margin: 0, fontSize: "14px", lineHeight: "1.6", color: "var(--text-body)" }}>
@@ -552,7 +552,7 @@ export function ResearcherProfileView({
             {/* Keywords */}
             {profile.keywords && profile.keywords.length > 0 && (
               <div>
-                <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", textTransform: "uppercase" }}>
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)", marginBottom: "8px", }}>
                   Research Keywords
                 </div>
                 <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>

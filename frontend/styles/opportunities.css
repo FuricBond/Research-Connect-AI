@@ -64,7 +64,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
   color: var(--primary);
   background: var(--primary-subtle);
   border: 1px solid var(--primary-border);

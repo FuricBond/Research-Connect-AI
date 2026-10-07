@@ -3,7 +3,10 @@ import { AppHeader } from "../components/AppHeader";
 import { DiscoveryNavbar } from "../components/discovery/DiscoveryNavbar";
 import { SessionProvider } from "../components/auth/SessionProvider";
 import { fontVariables } from "./fonts";
+// The design system first (tokens, then element defaults), then the legacy page stylesheets,
+// whose class rules still win over element defaults while pages are migrated.
 import "../styles/tokens.css";
+import "../styles/base.css";
 import "../styles/globals.css";
 // The header's identity control and the route guards render on every page, so their
 // styling is loaded here rather than per page.

@@ -37,7 +37,7 @@ export function ApplicationCard({ application, onTransition, busy = false }: App
   return (
     <article className="posting-card">
       <div className="posting-card-head">
-        <h3 className="posting-card-title">
+        <h3 className="posting-card-title rc-title">
           {isAuthorView ? (
             application.applicant.full_name ?? "Unnamed applicant"
           ) : (

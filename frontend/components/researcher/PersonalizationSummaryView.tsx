@@ -256,7 +256,7 @@ export function PersonalizationSummaryView({
           <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main)" }}>
             {summary.active_interests_count}
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted, #64748b)", marginTop: "2px" }}>
+          <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>
             Active topics tracked
           </div>
         </div>
@@ -275,7 +275,7 @@ export function PersonalizationSummaryView({
           <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main)" }}>
             {summary.strong_expertise_count}
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted, #64748b)", marginTop: "2px" }}>
+          <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>
             Verified domains
           </div>
         </div>
@@ -294,7 +294,7 @@ export function PersonalizationSummaryView({
           <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main)" }}>
             {summary.explicit_preferences_count}
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted, #64748b)", marginTop: "2px" }}>
+          <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>
             Configured rules
           </div>
         </div>
@@ -313,7 +313,7 @@ export function PersonalizationSummaryView({
           <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "6px", color: "var(--text-main)" }}>
             {summary.behavioral_signals_count}
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted, #64748b)", marginTop: "2px" }}>
+          <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>
             Learned from {summary.total_feedback_count} actions
           </div>
         </div>
@@ -432,7 +432,7 @@ export function PersonalizationSummaryView({
               <BookmarkCheck size={16} color="var(--rc-info)" />
               <span>Explicit Preferences</span>
             </div>
-            <span style={{ fontSize: "11px", color: "#64748b", background: "#ffffff", padding: "2px 8px", borderRadius: "10px", border: "1px solid #e2e8f0" }}>
+            <span style={{ fontSize: "var(--rc-text-label-size)", color: "var(--rc-text-muted)", background: "var(--rc-surface)", padding: "2px 8px", borderRadius: "10px", border: "1px solid var(--rc-border)" }}>
               Researcher Managed
             </span>
           </div>
@@ -468,7 +468,7 @@ export function PersonalizationSummaryView({
               <button
                 onClick={onNavigateToPreferences}
                 style={{
-                  fontSize: "11px",
+                  fontSize: "var(--rc-text-label-size)",
                   fontWeight: 600,
                   color: "var(--rc-info)",
                   background: "transparent",
@@ -507,7 +507,7 @@ export function PersonalizationSummaryView({
               {/* Learned Topics */}
               {summary.learned_topics.length > 0 && (
                 <div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", marginBottom: "4px" }}>
+                  <div style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, color: "var(--rc-text-muted)", marginBottom: "4px" }}>
                     Topics & Themes
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -521,7 +521,7 @@ export function PersonalizationSummaryView({
               {/* Learned Opportunity Types */}
               {summary.learned_opportunity_types.length > 0 && (
                 <div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", marginBottom: "4px" }}>
+                  <div style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, color: "var(--rc-text-muted)", marginBottom: "4px" }}>
                     Opportunity Formats
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -535,7 +535,7 @@ export function PersonalizationSummaryView({
               {/* Learned Delivery Modes */}
               {summary.learned_delivery_modes.length > 0 && (
                 <div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", marginBottom: "4px" }}>
+                  <div style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, color: "var(--rc-text-muted)", marginBottom: "4px" }}>
                     Delivery Modes
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -549,7 +549,7 @@ export function PersonalizationSummaryView({
               {/* Suppressed / Demotion signals */}
               {summary.top_negative_signals.length > 0 && (
                 <div>
-                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#b91c1c", textTransform: "uppercase", marginBottom: "4px" }}>
+                  <div style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, color: "var(--rc-danger)", marginBottom: "4px" }}>
                     Learned Demotions (From Dismissals)
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
@@ -557,7 +557,7 @@ export function PersonalizationSummaryView({
                       <div
                         key={idx}
                         style={{
-                          fontSize: "11px",
+                          fontSize: "var(--rc-text-label-size)",
                           color: "var(--rc-danger)",
                           background: "var(--rc-danger-subtle)",
                           padding: "4px 8px",
@@ -596,7 +596,7 @@ function SignalBadge({ item }: { item: LearnedSignalItem }) {
   return (
     <span
       style={{
-        fontSize: "11px",
+        fontSize: "var(--rc-text-label-size)",
         fontWeight: 600,
         padding: "3px 8px",
         borderRadius: "6px",
@@ -611,7 +611,7 @@ function SignalBadge({ item }: { item: LearnedSignalItem }) {
     >
       {isPositive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
       <span>{item.display_label}</span>
-      <span style={{ fontSize: "10px", opacity: 0.8 }}>({item.strength})</span>
+      <span style={{ fontSize: "var(--rc-text-label-size)" }}>({item.strength})</span>
     </span>
   );
 }

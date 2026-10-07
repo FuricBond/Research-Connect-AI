@@ -162,6 +162,34 @@
   --rc-shadow-sticky: 0 1px 0 var(--rc-border);
 }
 
+/* ── Typography ───────────────────────────────────────────────────────────── */
+:root {
+  /* app/fonts.ts defines the --font-source-* variables; the latin-ext family comes first (see there). */
+  --rc-font-sans: var(--font-source-sans-ext, "Source Sans 3"), var(--font-source-sans, "Source Sans 3"), ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --rc-font-serif: var(--font-source-serif-ext, "Source Serif 4"), var(--font-source-serif, "Source Serif 4"), ui-serif, Georgia, "Times New Roman", serif;
+  --rc-font-mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Scale (rem at a 16px root): 12–32px. */
+  --rc-text-display-size: 2rem;        --rc-text-display-lh: 1.2;   /* 32/38 serif 600: home greeting */
+  --rc-text-h1-size: 1.75rem;          --rc-text-h1-lh: 1.25;       /* 28/35 serif 600: page title */
+  --rc-text-h2-size: 1.25rem;          --rc-text-h2-lh: 1.35;       /* 20/27 sans 600: section */
+  --rc-text-h3-size: 1.0625rem;        --rc-text-h3-lh: 1.4;        /* 17/24 sans 600: card, panel */
+  --rc-text-title-size: 1.125rem;      --rc-text-title-lh: 1.35;    /* 18/24 serif 600: paper, call, posting */
+  --rc-text-reading-size: 1rem;        --rc-text-reading-lh: 1.65;  /* 16/26: abstracts, descriptions */
+  --rc-text-body-size: 0.9375rem;      --rc-text-body-lh: 1.55;     /* 15/23: UI copy */
+  --rc-text-small-size: 0.8125rem;     --rc-text-small-lh: 1.45;    /* 13/19: metadata, helper text */
+  --rc-text-label-size: 0.75rem;       --rc-text-label-lh: 1.35;    /* 12/16 600: labels (smallest text) */
+  --rc-text-mono-size: 0.8125rem;                                    /* 13: DOI, ORCID, IDs */
+
+  --rc-weight-regular: 400;
+  --rc-weight-medium: 500;
+  --rc-weight-semibold: 600;
+  --rc-weight-bold: 700;
+  --rc-tracking-tight: -0.01em;
+  --rc-tracking-label: 0.02em;
+  --rc-measure: 72ch;
+}
+
 /* ── Spacing and layout (4px rhythm) ──────────────────────────────────────── */
 :root {
   --rc-space-0: 0;

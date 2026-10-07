@@ -77,7 +77,6 @@
 .pipeline-title {
   font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
   margin-bottom: 20px;
@@ -233,7 +232,7 @@
 .badge-aoe {
   background: var(--rc-brand);
   color: var(--rc-text-on-brand);
-  font-size: 10px;
+  font-size: var(--rc-text-label-size);
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
@@ -242,7 +241,7 @@
 .badge-extension {
   background: var(--rc-success);
   color: var(--rc-text-on-brand);
-  font-size: 10px;
+  font-size: var(--rc-text-label-size);
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 4px;
@@ -255,9 +254,8 @@
   align-items: center;
   padding: 4px 10px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   font-weight: 700;
-  text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
@@ -581,7 +579,7 @@
 }
 
 .submission-tab-badge {
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   font-weight: 700;
   padding: 2px 7px;
   border-radius: 9999px;
@@ -637,7 +635,6 @@
   border-radius: 9999px;
   font-size: 13px;
   font-weight: 700;
-  text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
@@ -821,9 +818,8 @@
   align-items: center;
   padding: 2px 8px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   font-weight: 700;
-  text-transform: uppercase;
 }
 
 .doc-status-badge.required {
@@ -863,9 +859,8 @@
 }
 
 .doc-badge-req {
-  font-size: 10px;
+  font-size: var(--rc-text-label-size);
   font-weight: 700;
-  text-transform: uppercase;
   padding: 2px 6px;
   border-radius: 4px;
   background: color-mix(in srgb, var(--rc-info) 10%, transparent);
@@ -873,9 +868,8 @@
 }
 
 .doc-badge-opt {
-  font-size: 10px;
+  font-size: var(--rc-text-label-size);
   font-weight: 600;
-  text-transform: uppercase;
   padding: 2px 6px;
   border-radius: 4px;
   background: var(--rc-surface-sunken);
@@ -963,7 +957,7 @@
 }
 
 .version-meta {
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   color: var(--text-muted);
 }
 
@@ -1022,12 +1016,12 @@
 }
 
 .audit-event-time {
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   color: var(--text-muted);
 }
 
 .audit-event-actor {
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   color: var(--text-muted);
   margin-bottom: 6px;
 }

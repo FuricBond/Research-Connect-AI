@@ -216,11 +216,11 @@ export const PersonalizationSettingsCard: React.FC<PersonalizationSettingsCardPr
                 <div className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   <span>Personalization</span>
                   {settings.personalization_enabled ? (
-                    <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
                       Active
                     </span>
                   ) : (
-                    <span className="text-[10px] uppercase font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">
+                    <span className="text-xs font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">
                       Disabled
                     </span>
                   )}
@@ -257,11 +257,11 @@ export const PersonalizationSettingsCard: React.FC<PersonalizationSettingsCardPr
                 <div className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   <span>Adaptive Behavioral Learning</span>
                   {settings.adaptive_signals_enabled ? (
-                    <span className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">
+                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded border border-blue-200 dark:border-blue-800">
                       Active
                     </span>
                   ) : (
-                    <span className="text-[10px] uppercase font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">
+                    <span className="text-xs font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">
                       Disabled
                     </span>
                   )}
@@ -300,11 +300,11 @@ export const PersonalizationSettingsCard: React.FC<PersonalizationSettingsCardPr
                 <div className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                   <span>Feedback Learning from Future Interactions</span>
                   {settings.feedback_learning_enabled ? (
-                    <span className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
                       Enabled
                     </span>
                   ) : (
-                    <span className="text-[10px] uppercase font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">
+                    <span className="text-xs font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700">
                       Paused
                     </span>
                   )}
@@ -399,7 +399,7 @@ export const PersonalizationSettingsCard: React.FC<PersonalizationSettingsCardPr
                               <p className="text-gray-500 dark:text-gray-400">{ev.trigger_reason}</p>
                             )}
                           </div>
-                          <div className="text-right text-[11px] text-gray-400 shrink-0">
+                          <div className="text-right text-xs text-gray-400 shrink-0">
                             <p>{new Date(ev.created_at).toLocaleDateString()}</p>
                             <p>{new Date(ev.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
                           </div>

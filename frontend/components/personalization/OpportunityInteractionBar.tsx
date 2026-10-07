@@ -208,7 +208,7 @@ export const OpportunityInteractionBar: React.FC<OpportunityInteractionBarProps>
       {/* Transient Status Feedback */}
       {feedbackMessage && (
         <span
-          className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-600 bg-gray-50 px-2 py-0.5 rounded border border-gray-200 animate-fade-in"
+          className="inline-flex items-center gap-1 text-xs font-medium text-gray-600 bg-gray-50 px-2 py-0.5 rounded border border-gray-200 animate-fade-in"
           role="status"
           aria-live="polite"
         >

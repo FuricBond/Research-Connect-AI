@@ -227,32 +227,32 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
     switch (type) {
       case "STABLE":
         return (
-          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
             Stable
           </span>
         );
       case "EMERGING":
         return (
-          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
             Emerging Drift
           </span>
         );
       case "PERSISTENT":
         return (
-          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300">
             Persistent Drift
           </span>
         );
       case "REVERSING":
         return (
-          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
             Reversing Drift
           </span>
         );
       case "UNKNOWN":
       default:
         return (
-          <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+          <span className="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
             Unknown
           </span>
         );
@@ -262,14 +262,14 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
   const getEvidenceStrengthBadge = (strength: EvidenceStrength) => {
     switch (strength) {
       case "HIGH":
-        return <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">High Evidence</span>;
+        return <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">High Evidence</span>;
       case "MEDIUM":
-        return <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">Medium Evidence</span>;
+        return <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">Medium Evidence</span>;
       case "LOW":
-        return <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400">Low Evidence</span>;
+        return <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">Low Evidence</span>;
       case "INSUFFICIENT":
       default:
-        return <span className="text-[11px] font-semibold text-slate-500">Insufficient</span>;
+        return <span className="text-xs font-semibold text-slate-500">Insufficient</span>;
     }
   };
 
@@ -363,7 +363,7 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
                     {healthData.overall_health_state}
                   </span>
                 </div>
-                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
                   {healthData.health_summary}
                 </p>
               </div>
@@ -377,7 +377,7 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
                 <div className="mt-2 flex items-baseline gap-2">
                   {getGateBadge(healthData.governance_state)}
                 </div>
-                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
                   {healthData.governance_explanation}
                 </p>
               </div>
@@ -396,7 +396,7 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
                     ({healthData.drifting_signals_count} drifting, {healthData.stale_signals_count} stale)
                   </span>
                 </div>
-                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                   {healthData.adaptation_state === "SUSPENDED"
                     ? "Modifiers neutral (0.0). Core ranking remains authoritative."
                     : healthData.adaptation_state === "BOUNDED"
@@ -409,55 +409,55 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
             {/* 8 Health Dimensions Matrix */}
             {evaluation && (
               <div className="p-4 rounded-lg bg-slate-50/50 dark:bg-slate-800/30 border border-slate-200/50 dark:border-slate-800/70">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-3 flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold tracking-wider text-slate-600 dark:text-slate-400 mb-3 flex items-center gap-1.5">
                   <Scale className="w-3.5 h-3.5 text-indigo-500" />
                   Deterministic Health Dimensions
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <span className="text-slate-400 text-[11px] block">Signal Freshness</span>
+                    <span className="text-slate-400 text-xs block">Signal Freshness</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
                       {evaluation.signal_freshness}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 text-[11px] block">Evidence Sufficiency</span>
+                    <span className="text-slate-400 text-xs block">Evidence Sufficiency</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
                       {evaluation.evidence_sufficiency}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 text-[11px] block">Quality Stability</span>
+                    <span className="text-slate-400 text-xs block">Quality Stability</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
                       {evaluation.quality_stability}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 text-[11px] block">Context Stability</span>
+                    <span className="text-slate-400 text-xs block">Context Stability</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
                       {evaluation.context_stability}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 text-[11px] block">Preference Alignment</span>
+                    <span className="text-slate-400 text-xs block">Preference Alignment</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
                       {evaluation.preference_alignment}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 text-[11px] block">Recommendation Diversity</span>
+                    <span className="text-slate-400 text-xs block">Recommendation Diversity</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
                       {evaluation.recommendation_diversity}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 text-[11px] block">Drift Status</span>
+                    <span className="text-slate-400 text-xs block">Drift Status</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
                       {evaluation.drifting_signals_count > 0 ? "DRIFT_DETECTED" : "STABLE"}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 text-[11px] block">Windows (Hist / Recent)</span>
+                    <span className="text-slate-400 text-xs block">Windows (Hist / Recent)</span>
                     <span className="font-mono text-slate-800 dark:text-slate-200">
                       {evaluation.historical_window_days}d / {evaluation.recent_window_days}d
                     </span>
@@ -497,12 +497,12 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
 
               {activeTab === "SIGNALS" && (
                 <div className="flex items-center gap-1 text-xs">
-                  <span className="text-slate-400 text-[11px] mr-1">Filter:</span>
+                  <span className="text-slate-400 text-xs mr-1">Filter:</span>
                   {(["ALL", "DRIFTING", "STALE", "STABLE"] as const).map((filter) => (
                     <button
                       key={filter}
                       onClick={() => setSignalFilter(filter)}
-                      className={`px-2 py-0.5 rounded text-[11px] font-medium transition-colors ${
+                      className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
                         signalFilter === filter
                           ? "bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                           : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
@@ -533,11 +533,11 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
                           <span className="font-semibold text-slate-900 dark:text-slate-100">
                             {item.signal_value}
                           </span>
-                          <span className="text-[11px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                          <span className="text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                             {item.dimension}
                           </span>
                           {item.is_stale && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                            <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                               STALE
                             </span>
                           )}
@@ -550,7 +550,7 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
                       </div>
 
                       {/* Numerical Comparison */}
-                      <div className="grid grid-cols-3 gap-2 py-1.5 px-2.5 rounded bg-slate-50 dark:bg-slate-800/40 text-[11px]">
+                      <div className="grid grid-cols-3 gap-2 py-1.5 px-2.5 rounded bg-slate-50 dark:bg-slate-800/40 text-xs">
                         <div>
                           <span className="text-slate-400 block">Historical Strength</span>
                           <span className="font-mono font-medium text-slate-700 dark:text-slate-300">
@@ -585,7 +585,7 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
                       </div>
 
                       {/* Explanation */}
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 italic">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 italic">
                         &ldquo;{item.explanation}&rdquo;
                       </p>
                     </div>
@@ -613,22 +613,22 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
                             {event.event_type}
                           </span>
                           {event.previous_state && (
-                            <span className="text-slate-400 font-mono text-[11px]">
+                            <span className="text-slate-400 font-mono text-xs">
                               {event.previous_state} &rarr; {event.new_state}
                             </span>
                           )}
                           {!event.previous_state && (
-                            <span className="text-slate-400 font-mono text-[11px]">
+                            <span className="text-slate-400 font-mono text-xs">
                               &rarr; {event.new_state}
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {event.reason}
                         </p>
                       </div>
 
-                      <div className="text-right flex-shrink-0 text-[10px] text-slate-400 font-mono">
+                      <div className="text-right flex-shrink-0 text-xs text-slate-400 font-mono">
                         {new Date(event.reference_time || event.created_at).toLocaleString()}
                       </div>
                     </div>
@@ -642,7 +642,7 @@ export const PersonalizationGovernanceCard: React.FC<PersonalizationGovernanceCa
               <Lock className="w-4 h-4 mt-0.5 flex-shrink-0 text-indigo-600 dark:text-indigo-400" />
               <div className="space-y-0.5">
                 <p className="font-semibold">Explicit Preference & Relevance Dominance Guaranteed</p>
-                <p className="text-[11px] leading-relaxed opacity-90">
+                <p className="text-xs leading-relaxed opacity-90">
                   Behavioral drift detection operates under strict hierarchy: explicit exclusions and preferences are never overridden by behavioral changes. Suspended personalization reverts modifiers to neutral (0.0) without disrupting core ranking guarantees.
                 </p>
               </div>

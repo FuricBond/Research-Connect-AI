@@ -629,7 +629,6 @@ function CalendarPage() {
                   style={{
                     fontSize: "12px",
                     fontWeight: 700,
-                    textTransform: "uppercase",
                     color: "var(--primary-accent)",
                     letterSpacing: "0.05em",
                   }}

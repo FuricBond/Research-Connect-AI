@@ -176,7 +176,7 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
             <>
               {/* Opportunity Title & Impact Badge */}
               <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-lg border border-gray-200 dark:border-gray-700/60 space-y-2">
-                <div className="text-xs uppercase tracking-wider font-semibold text-gray-500 dark:text-gray-400">
+                <div className="text-xs tracking-wider font-semibold text-gray-500 dark:text-gray-400">
                   Opportunity
                 </div>
                 <h3 className="text-base font-semibold text-gray-900 dark:text-white">
@@ -268,7 +268,7 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
               {/* Summary Points */}
               {data.summary_points && data.summary_points.length > 0 && (
                 <div className="p-3.5 bg-gray-50 dark:bg-gray-800/40 rounded-lg border border-gray-200 dark:border-gray-700/60 space-y-1.5">
-                  <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                  <div className="text-xs font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                     Summary Notes
                   </div>
                   <ul className="text-xs text-gray-600 dark:text-gray-300 space-y-1 list-disc list-inside">

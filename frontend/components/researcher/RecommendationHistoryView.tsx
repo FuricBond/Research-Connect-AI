@@ -358,13 +358,13 @@ export function RecommendationHistoryView({
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", fontWeight: 600 }}>
                 Precision@5
               </div>
               <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--primary)" }}>
                 {formatMetric(evaluation.metrics.precision_at_5, true)}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Top 5 relevance</div>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>Top 5 relevance</div>
             </div>
 
             <div
@@ -376,13 +376,13 @@ export function RecommendationHistoryView({
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", fontWeight: 600 }}>
                 Precision@10
               </div>
               <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--primary)" }}>
                 {formatMetric(evaluation.metrics.precision_at_10, true)}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Top 10 relevance</div>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>Top 10 relevance</div>
             </div>
 
             <div
@@ -394,13 +394,13 @@ export function RecommendationHistoryView({
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", fontWeight: 600 }}>
                 Recall@10
               </div>
               <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-info)" }}>
                 {formatMetric(evaluation.metrics.recall_at_10, true)}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Known relevant</div>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>Known relevant</div>
             </div>
 
             <div
@@ -412,13 +412,13 @@ export function RecommendationHistoryView({
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", fontWeight: 600 }}>
                 NDCG@10
               </div>
               <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-brand-text)" }}>
                 {formatMetric(evaluation.metrics.ndcg_at_10)}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Graded gain</div>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>Graded gain</div>
             </div>
 
             <div
@@ -430,13 +430,13 @@ export function RecommendationHistoryView({
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", fontWeight: 600 }}>
                 Hit Rate@5
               </div>
               <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-success)" }}>
                 {formatMetric(evaluation.metrics.hit_rate_at_5, true)}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>≥1 hit in top 5</div>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>≥1 hit in top 5</div>
             </div>
 
             <div
@@ -448,13 +448,13 @@ export function RecommendationHistoryView({
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", fontWeight: 600 }}>
                 Save Rate
               </div>
               <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-info)" }}>
                 {formatMetric(evaluation.metrics.save_rate, true)}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Bookmarked</div>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>Bookmarked</div>
             </div>
 
             <div
@@ -466,13 +466,13 @@ export function RecommendationHistoryView({
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", fontWeight: 600 }}>
                 Engagement
               </div>
               <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-warning)" }}>
                 {formatMetric(evaluation.metrics.engagement_rate, true)}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>View/Save/Apply</div>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>View/Save/Apply</div>
             </div>
 
             <div
@@ -484,13 +484,13 @@ export function RecommendationHistoryView({
                 textAlign: "center",
               }}
             >
-              <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 600 }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", fontWeight: 600 }}>
                 Dismissal
               </div>
               <div style={{ fontSize: "18px", fontWeight: 700, marginTop: "4px", color: "var(--rc-danger)" }}>
                 {formatMetric(evaluation.metrics.dismissal_rate, true)}
               </div>
-              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>Hidden / rejected</div>
+              <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>Hidden / rejected</div>
             </div>
           </div>
 
@@ -558,7 +558,7 @@ export function RecommendationHistoryView({
                   <div style={{ fontSize: "12px", fontWeight: 700, marginBottom: "8px" }}>
                     {vComp.display_name}
                   </div>
-                  <div style={{ fontSize: "11px", color: "var(--text-muted)", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", display: "flex", flexDirection: "column", gap: "4px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span>Precision@5:</span>
                       <strong>{formatMetric(vComp.metrics.precision_at_5, true)}</strong>
@@ -654,14 +654,14 @@ export function RecommendationHistoryView({
                       <div style={{ fontWeight: 600 }}>
                         {new Date(snap.created_at).toLocaleDateString()}
                       </div>
-                      <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                      <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>
                         {new Date(snap.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </div>
                     </td>
                     <td style={{ padding: "10px" }}>
                       <span
                         style={{
-                          fontSize: "11px",
+                          fontSize: "var(--rc-text-label-size)",
                           fontFamily: "monospace",
                           background: "var(--bg-main)",
                           padding: "2px 6px",
@@ -674,7 +674,7 @@ export function RecommendationHistoryView({
                     </td>
                     <td style={{ padding: "10px", whiteSpace: "nowrap" }}>
                       <strong>{snap.returned_count}</strong>
-                      <span style={{ color: "var(--text-muted)", fontSize: "11px" }}> / {snap.candidate_count}</span>
+                      <span style={{ color: "var(--text-muted)", fontSize: "var(--rc-text-label-size)" }}> / {snap.candidate_count}</span>
                     </td>
                     <td style={{ padding: "10px" }}>
                       <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
@@ -702,7 +702,7 @@ export function RecommendationHistoryView({
                           alignItems: "center",
                           gap: "4px",
                           padding: "4px 8px",
-                          fontSize: "11px",
+                          fontSize: "var(--rc-text-label-size)",
                           fontWeight: 600,
                           borderRadius: "var(--radius-sm)",
                           border: "1px solid var(--border-color)",
@@ -768,7 +768,7 @@ export function RecommendationHistoryView({
                 <h4 style={{ margin: 0, fontSize: "16px", fontWeight: 700 }}>
                   Recommendation Snapshot Detail
                 </h4>
-                <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "2px" }}>
+                <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", marginTop: "2px" }}>
                   Snapshot ID: {selectedSnapshotId}
                 </div>
               </div>
@@ -854,7 +854,7 @@ export function RecommendationHistoryView({
                             <div style={{ fontWeight: 600 }}>
                               {item.opportunity?.title || `Opportunity ${item.opportunity_id.slice(0, 8)}`}
                             </div>
-                            <div style={{ fontSize: "10px", color: "var(--text-muted)" }}>
+                            <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>
                               {item.opportunity?.opportunity_type} • {item.opportunity?.delivery_mode}
                             </div>
                           </td>
@@ -877,7 +877,7 @@ export function RecommendationHistoryView({
                                   <span
                                     key={idx}
                                     style={{
-                                      fontSize: "10px",
+                                      fontSize: "var(--rc-text-label-size)",
                                       fontWeight: 600,
                                       padding: "2px 6px",
                                       borderRadius: "4px",
@@ -900,7 +900,7 @@ export function RecommendationHistoryView({
                                 ))}
                               </div>
                             ) : (
-                              <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>No interaction</span>
+                              <span style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>No interaction</span>
                             )}
                           </td>
                           <td style={{ padding: "8px", textAlign: "center" }}>
@@ -909,7 +909,7 @@ export function RecommendationHistoryView({
                               onClick={() => handleInspectHistoricalExplanation(item)}
                               style={{
                                 padding: "4px 8px",
-                                fontSize: "11px",
+                                fontSize: "var(--rc-text-label-size)",
                                 fontWeight: 600,
                                 borderRadius: "4px",
                                 border: "1px solid var(--border-color)",

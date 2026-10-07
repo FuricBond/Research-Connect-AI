@@ -169,7 +169,7 @@ export const AdaptiveSignalsCard: React.FC<AdaptiveSignalsCardProps> = ({
           <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
             {explanation.summary_explanation}
           </p>
-          <div className="flex flex-wrap items-center gap-4 mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400">
+          <div className="flex flex-wrap items-center gap-4 mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-500 dark:text-slate-400">
             <span>Established: <strong className="text-slate-800 dark:text-slate-200">{explanation.established_signals_count}</strong></span>
             <span>Emerging: <strong className="text-slate-800 dark:text-slate-200">{explanation.emerging_signals_count}</strong></span>
             <span>Mixed: <strong className="text-slate-800 dark:text-slate-200">{explanation.conflict_signals_count}</strong></span>
@@ -223,7 +223,7 @@ export const AdaptiveSignalsCard: React.FC<AdaptiveSignalsCardProps> = ({
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-200/70 dark:bg-slate-700/60 px-1.5 py-0.5 rounded">
+                    <span className="text-xs font-mono tracking-wider text-slate-500 dark:text-slate-400 bg-slate-200/70 dark:bg-slate-700/60 px-1.5 py-0.5 rounded">
                       {sig.dimension.replace("_", " ")}
                     </span>
                     <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
@@ -245,14 +245,14 @@ export const AdaptiveSignalsCard: React.FC<AdaptiveSignalsCardProps> = ({
                   <div className="text-[10px] text-slate-400 dark:text-slate-500">
                     Strength
                   </div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                     Conf: {(sig.confidence * 100).toFixed(0)}%
                   </div>
                 </div>
               </div>
 
               {/* Evidence Metrics Footer */}
-              <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                 <div className="flex items-center gap-3">
                   <span className="text-emerald-600 dark:text-emerald-400 font-medium">
                     +{sig.positive_evidence_count} positive

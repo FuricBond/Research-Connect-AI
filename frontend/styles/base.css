@@ -1,0 +1,147 @@
+/*
+ * Base styles: element defaults, the type scale, focus, and layout primitives, all from
+ * styles/tokens.css. Loaded after tokens.css and before every legacy page stylesheet, so a
+ * legacy class still wins over an element default while pages are migrated.
+ * Specification: docs/design/DESIGN_SYSTEM.md §4 (type), §5 (layout), §11 (accessibility).
+ */
+
+/* ── Document ─────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--rc-bg);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--rc-font-sans);
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  color: var(--rc-text);
+  background-color: var(--rc-bg);
+  /* Dates, counts, durations and scores line up; prose that needs proportional figures uses
+     .rc-reading. */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+hr {
+  border: 0;
+  border-top: var(--rc-border-width) solid var(--rc-border);
+  margin: var(--rc-space-6) 0;
+}
+
+::selection {
+  background: var(--rc-brand-subtle);
+  color: var(--rc-text);
+}
+
+/* ── Headings and text ────────────────────────────────────────────────────── */
+h1,
+h2,
+h3,
+h4,
+p {
+  margin-top: 0;
+}
+
+/* The page title: serif, one per page. */
+h1 {
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-h1-size);
+  line-height: var(--rc-text-h1-lh);
+  font-weight: var(--rc-weight-semibold);
+  letter-spacing: var(--rc-tracking-tight);
+  color: var(--rc-text);
+}
+
+h2 {
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+h3 {
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+h4 {
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+a {
+  color: var(--rc-link);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+code,
+kbd,
+samp {
+  font-family: var(--rc-font-mono);
+  font-size: var(--rc-text-mono-size);
+}
+
+strong,
+b {
+  font-weight: var(--rc-weight-semibold);
+}
+
+/* Type scale as classes, for elements whose tag is chosen for semantics. */
+.rc-display { font-family: var(--rc-font-serif); font-size: var(--rc-text-display-size); line-height: var(--rc-text-display-lh); font-weight: var(--rc-weight-semibold); letter-spacing: var(--rc-tracking-tight); color: var(--rc-text); }
+.rc-h1 { font-family: var(--rc-font-serif); font-size: var(--rc-text-h1-size); line-height: var(--rc-text-h1-lh); font-weight: var(--rc-weight-semibold); letter-spacing: var(--rc-tracking-tight); color: var(--rc-text); }
+.rc-h2 { font-family: var(--rc-font-sans); font-size: var(--rc-text-h2-size); line-height: var(--rc-text-h2-lh); font-weight: var(--rc-weight-semibold); color: var(--rc-text); }
+.rc-h3 { font-family: var(--rc-font-sans); font-size: var(--rc-text-h3-size); line-height: var(--rc-text-h3-lh); font-weight: var(--rc-weight-semibold); color: var(--rc-text); }
+/* A research object's title: paper, call, venue, posting. */
+.rc-title { font-family: var(--rc-font-serif); font-size: var(--rc-text-title-size); line-height: var(--rc-text-title-lh); font-weight: var(--rc-weight-semibold); color: var(--rc-text); }
+.rc-reading { font-size: var(--rc-text-reading-size); line-height: var(--rc-text-reading-lh); max-width: var(--rc-measure); font-variant-numeric: normal; color: var(--rc-text-secondary); }
+.rc-body { font-size: var(--rc-text-body-size); line-height: var(--rc-text-body-lh); }
+.rc-small { font-size: var(--rc-text-small-size); line-height: var(--rc-text-small-lh); }
+.rc-label { font-size: var(--rc-text-label-size); line-height: var(--rc-text-label-lh); font-weight: var(--rc-weight-semibold); letter-spacing: var(--rc-tracking-label); color: var(--rc-text-secondary); }
+.rc-meta { font-size: var(--rc-text-small-size); line-height: var(--rc-text-small-lh); color: var(--rc-text-muted); }
+.rc-mono { font-family: var(--rc-font-mono); font-size: var(--rc-text-mono-size); }
+.rc-num { font-variant-numeric: tabular-nums; }
+.rc-text-secondary { color: var(--rc-text-secondary); }
+.rc-text-muted { color: var(--rc-text-muted); }
+
+/* ── Tables ───────────────────────────────────────────────────────────────── */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+th {
+  font-size: var(--rc-text-label-size);
+  font-weight: var(--rc-weight-semibold);
+  letter-spacing: var(--rc-tracking-label);
+  color: var(--rc-text-secondary);
+  text-align: left;
+}

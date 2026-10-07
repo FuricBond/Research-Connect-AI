@@ -107,10 +107,9 @@
 }
 
 .calendar-stat-label {
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 4px;
 }
@@ -254,7 +253,6 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
@@ -325,7 +323,7 @@
 .event-chip {
   padding: 3px 6px;
   border-radius: var(--radius-sm, 4px);
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   font-weight: 500;
   text-align: left;
   cursor: pointer;
@@ -433,7 +431,7 @@
 }
 
 .agenda-day-badge {
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   font-weight: 600;
   color: var(--text-muted);
   background: var(--rc-hover);
@@ -473,11 +471,10 @@
 }
 
 .agenda-event-type-badge {
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   font-weight: 600;
   padding: 4px 8px;
   border-radius: 4px;
-  text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
 }
@@ -518,7 +515,7 @@
   border: 1px solid color-mix(in srgb, var(--rc-danger) 30%, transparent);
   padding: 3px 8px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   font-weight: 600;
 }
 
@@ -528,7 +525,7 @@
   border: 1px solid color-mix(in srgb, var(--rc-info) 30%, transparent);
   padding: 3px 8px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: var(--rc-text-label-size);
   font-weight: 600;
 }
 
@@ -731,7 +728,7 @@
 @media (max-width: 767px) {
   .weekday-header {
     padding: 8px 2px;
-    font-size: 11px;
+    font-size: var(--rc-text-label-size);
     letter-spacing: 0;
   }
 

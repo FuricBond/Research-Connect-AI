@@ -238,7 +238,7 @@
 }
 
 .auth-menu-role {
-  font-size: 0.7rem;
+  font-size: var(--rc-text-label-size);
   color: var(--text-muted);
 }
 
@@ -368,8 +368,7 @@
 }
 
 .auth-admin-table th {
-  font-size: 0.72rem;
-  text-transform: uppercase;
+  font-size: var(--rc-text-label-size);
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
 }

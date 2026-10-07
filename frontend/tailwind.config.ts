@@ -106,6 +106,17 @@ const config: Config = {
     backgroundColor: palette("fill"),
     borderColor: ({ theme }) => ({ ...palette("edge"), DEFAULT: theme("colors.gray.200", "currentColor") }),
     divideColor: palette("edge"),
+    extend: {
+      fontFamily: {
+        sans: ["var(--rc-font-sans)"],
+        serif: ["var(--rc-font-serif)"],
+        mono: ["var(--rc-font-mono)"],
+      },
+      // No text below 12px (DESIGN_SYSTEM.md §4.2).
+      fontSize: {
+        xs: ["0.75rem", { lineHeight: "1rem" }],
+      },
+    },
   },
 };
 

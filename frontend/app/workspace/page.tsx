@@ -508,7 +508,7 @@ function WorkspacePage() {
                       <button
                         onClick={() => setEditingNotesId(item.id)}
                         className="workspace-action-btn"
-                        style={{ padding: "2px 8px", fontSize: "11px" }}
+                        style={{ padding: "2px 8px", fontSize: "var(--rc-text-label-size)" }}
                         disabled={isMutating}
                       >
                         Edit Notes
@@ -517,7 +517,7 @@ function WorkspacePage() {
                       <button
                         onClick={() => handleSaveNotes(item.id)}
                         className="workspace-action-btn primary"
-                        style={{ padding: "2px 8px", fontSize: "11px" }}
+                        style={{ padding: "2px 8px", fontSize: "var(--rc-text-label-size)" }}
                         disabled={isMutating}
                       >
                         {isMutating ? <Loader2 size={11} className="animate-spin" /> : "Save"}
@@ -577,7 +577,7 @@ function WorkspacePage() {
                         <button
                           onClick={() => handleAddTag(item)}
                           className="workspace-action-btn"
-                          style={{ padding: "2px 6px", fontSize: "11px" }}
+                          style={{ padding: "2px 6px", fontSize: "var(--rc-text-label-size)" }}
                           disabled={isMutating}
                         >
                           <Plus size={11} />

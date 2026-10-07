@@ -493,12 +493,12 @@ export function ResearcherPreferencesView({
 
           {completeness.missing_dimensions.length > 0 && (
             <div style={{ marginTop: "10px", display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-              <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>Recommended to configure:</span>
+              <span style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>Recommended to configure:</span>
               {completeness.missing_dimensions.map((dim) => (
                 <span
                   key={dim}
                   style={{
-                    fontSize: "11px",
+                    fontSize: "var(--rc-text-label-size)",
                     padding: "2px 8px",
                     background: "var(--rc-surface-sunken)",
                     color: "var(--rc-text-secondary)",
@@ -903,7 +903,7 @@ export function ResearcherPreferencesView({
             </h4>
             <span
               style={{
-                fontSize: "11px",
+                fontSize: "var(--rc-text-label-size)",
                 fontWeight: 600,
                 padding: "2px 8px",
                 background: "var(--rc-info-subtle)",
@@ -938,7 +938,7 @@ export function ResearcherPreferencesView({
                   </span>
                   <span
                     style={{
-                      fontSize: "11px",
+                      fontSize: "var(--rc-text-label-size)",
                       fontWeight: 600,
                       color: "var(--rc-info)",
                       background: "var(--rc-info-subtle)",
@@ -952,7 +952,7 @@ export function ResearcherPreferencesView({
                 <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px" }}>
                   {pref.provenance_reasons.join(", ")}
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px", color: "var(--text-muted)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>
                   <span>Confidence: {(pref.confidence * 100).toFixed(0)}%</span>
                   <span>Recency: {(pref.recency_score * 100).toFixed(0)}%</span>
                 </div>
@@ -988,7 +988,7 @@ export function ResearcherPreferencesView({
               </h4>
               <span
                 style={{
-                  fontSize: "11px",
+                  fontSize: "var(--rc-text-label-size)",
                   fontWeight: 600,
                   padding: "2px 8px",
                   background: "var(--rc-success-subtle)",
@@ -1023,11 +1023,11 @@ export function ResearcherPreferencesView({
                   }}
                 >
                   <span style={{ fontWeight: 600, color: "var(--text-main)" }}>{cand.display_label}</span>
-                  <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                  <span style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>
                     ({(cand.strength * 100).toFixed(0)}% signal)
                   </span>
                   {alreadyDeclared ? (
-                    <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "#16a34a", fontSize: "11px", fontWeight: 600 }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "var(--rc-success)", fontSize: "var(--rc-text-label-size)", fontWeight: 600 }}>
                       <Check size={12} /> Adopted
                     </span>
                   ) : (
@@ -1040,7 +1040,7 @@ export function ResearcherPreferencesView({
                         border: "1px solid color-mix(in srgb, var(--rc-success) 30%, transparent)",
                         color: "var(--rc-success)",
                         borderRadius: "4px",
-                        fontSize: "11px",
+                        fontSize: "var(--rc-text-label-size)",
                         fontWeight: 600,
                         cursor: "pointer",
                       }}

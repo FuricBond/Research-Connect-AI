@@ -233,7 +233,7 @@ export function RecommendationExplanationModal({
                     gap: "2px",
                   }}
                 >
-                  <span style={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.04em" }}>
+                  <span style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, letterSpacing: "0.04em" }}>
                     Personalization
                   </span>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 700 }}>
@@ -255,7 +255,7 @@ export function RecommendationExplanationModal({
                     gap: "2px",
                   }}
                 >
-                  <span style={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.04em" }}>
+                  <span style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, letterSpacing: "0.04em" }}>
                     Trust & Safety
                   </span>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", fontWeight: 700 }}>
@@ -277,7 +277,7 @@ export function RecommendationExplanationModal({
                     gap: "2px",
                   }}
                 >
-                  <span style={{ fontSize: "10px", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.04em", color: "#64748b" }}>
+                  <span style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, letterSpacing: "0.04em", color: "var(--rc-text-muted)" }}>
                     Timeline
                   </span>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 600 }}>
@@ -317,7 +317,6 @@ export function RecommendationExplanationModal({
                     margin: "0 0 8px 0",
                     fontSize: "13px",
                     fontWeight: 700,
-                    textTransform: "uppercase",
                     letterSpacing: "0.04em",
                     color: "var(--text-muted)",
                   }}
@@ -467,13 +466,13 @@ export function RecommendationExplanationModal({
                       }}
                     >
                       <div>
-                        <div style={{ color: "var(--text-muted, #64748b)", fontSize: "11px" }}>Base Relevance</div>
+                        <div style={{ color: "var(--text-muted)", fontSize: "var(--rc-text-label-size)" }}>Base Relevance</div>
                         <div style={{ fontWeight: 700, fontFamily: "monospace", fontSize: "13px" }}>
                           {explanation.base_relevance_score.toFixed(3)}
                         </div>
                       </div>
                       <div>
-                        <div style={{ color: "var(--text-muted, #64748b)", fontSize: "11px" }}>Personalization</div>
+                        <div style={{ color: "var(--text-muted)", fontSize: "var(--rc-text-label-size)" }}>Personalization</div>
                         <div
                           style={{
                             fontWeight: 700,
@@ -488,13 +487,13 @@ export function RecommendationExplanationModal({
                         </div>
                       </div>
                       <div>
-                        <div style={{ color: "var(--text-muted, #64748b)", fontSize: "11px" }}>Final Rank</div>
+                        <div style={{ color: "var(--text-muted)", fontSize: "var(--rc-text-label-size)" }}>Final Rank</div>
                         <div style={{ fontWeight: 700, fontFamily: "monospace", fontSize: "13px" }}>
                           #{explanation.rank}
                         </div>
                       </div>
                       <div>
-                        <div style={{ color: "var(--text-muted, #64748b)", fontSize: "11px" }}>Final Score</div>
+                        <div style={{ color: "var(--text-muted)", fontSize: "var(--rc-text-label-size)" }}>Final Score</div>
                         <div
                           style={{
                             fontWeight: 700,
@@ -510,7 +509,7 @@ export function RecommendationExplanationModal({
                     <div
                       style={{
                         marginTop: "8px",
-                        fontSize: "11px",
+                        fontSize: "var(--rc-text-label-size)",
                         color: "var(--text-muted)",
                         lineHeight: "1.4",
                       }}

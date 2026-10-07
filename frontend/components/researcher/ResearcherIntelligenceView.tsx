@@ -283,7 +283,7 @@ export function ResearcherIntelligenceView({
           <div style={{ fontSize: "20px", fontWeight: 700, color: "var(--primary)" }}>
             {intelligence.summary.total_topics_analyzed}
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 500, marginTop: "2px" }}>
+          <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", fontWeight: 500, marginTop: "2px" }}>
             Total Topics Analyzed
           </div>
         </div>
@@ -300,7 +300,7 @@ export function ResearcherIntelligenceView({
           <div style={{ fontSize: "20px", fontWeight: 700, color: "var(--rc-brand-text)" }}>
             {intelligence.summary.primary_expertise_count}
           </div>
-          <div style={{ fontSize: "11px", color: "#6d28d9", fontWeight: 500, marginTop: "2px" }}>
+          <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--rc-brand-text)", fontWeight: 500, marginTop: "2px" }}>
             Primary Expertise
           </div>
         </div>
@@ -317,7 +317,7 @@ export function ResearcherIntelligenceView({
           <div style={{ fontSize: "20px", fontWeight: 700, color: "var(--rc-success)" }}>
             {intelligence.summary.emerging_interest_count}
           </div>
-          <div style={{ fontSize: "11px", color: "#047857", fontWeight: 500, marginTop: "2px" }}>
+          <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--rc-success)", fontWeight: 500, marginTop: "2px" }}>
             Emerging Interests
           </div>
         </div>
@@ -334,7 +334,7 @@ export function ResearcherIntelligenceView({
           <div style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-main)" }}>
             {intelligence.summary.total_works_analyzed}
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 500, marginTop: "2px" }}>
+          <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", fontWeight: 500, marginTop: "2px" }}>
             Analyzed Publications
           </div>
         </div>
@@ -352,7 +352,7 @@ export function ResearcherIntelligenceView({
             <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--text-main)", marginTop: "2px" }}>
               {intelligence.summary.active_years_span}
             </div>
-            <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: 500, marginTop: "4px" }}>
+            <div style={{ fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)", fontWeight: 500, marginTop: "4px" }}>
               Active Scholarly Span
             </div>
           </div>
@@ -475,7 +475,7 @@ export function ResearcherIntelligenceView({
                           display: "inline-flex",
                           alignItems: "center",
                           gap: "4px",
-                          fontSize: "11px",
+                          fontSize: "var(--rc-text-label-size)",
                           fontWeight: 600,
                           padding: "2px 8px",
                           borderRadius: "var(--radius-full)",
@@ -489,7 +489,7 @@ export function ResearcherIntelligenceView({
                       </span>
                     </div>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "4px", fontSize: "11px", color: "var(--text-muted)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "4px", fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>
                       <span>
                         <strong>{item.evidence_count}</strong> {item.evidence_count === 1 ? "work" : "works"}
                       </span>
@@ -509,7 +509,7 @@ export function ResearcherIntelligenceView({
                 <div style={{ display: "flex", alignItems: "center", gap: "20px", flexWrap: "wrap" }}>
                   {/* Strength Bar */}
                   <div style={{ minWidth: "120px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "3px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--rc-text-label-size)", marginBottom: "3px" }}>
                       <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>Strength</span>
                       <strong style={{ color: "var(--text-main)" }}>{(item.strength * 100).toFixed(1)}%</strong>
                     </div>
@@ -527,7 +527,7 @@ export function ResearcherIntelligenceView({
 
                   {/* Confidence Badge */}
                   <div style={{ minWidth: "100px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", marginBottom: "3px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "var(--rc-text-label-size)", marginBottom: "3px" }}>
                       <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>Confidence</span>
                       <strong style={{ color: "var(--text-main)" }}>{(item.confidence * 100).toFixed(0)}%</strong>
                     </div>
@@ -549,7 +549,7 @@ export function ResearcherIntelligenceView({
                       display: "flex",
                       alignItems: "center",
                       gap: "4px",
-                      fontSize: "11px",
+                      fontSize: "var(--rc-text-label-size)",
                       padding: "4px 8px",
                       borderRadius: "var(--radius-sm)",
                       background: item.recency_score >= 0.75 ? "var(--rc-success-subtle)" : "var(--rc-surface-sunken)",
@@ -595,7 +595,7 @@ export function ResearcherIntelligenceView({
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
                     {/* Left: Deterministic Provenance Reasons */}
                     <div>
-                      <h4 style={{ fontSize: "12px", fontWeight: 700, margin: "0 0 8px 0", textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.5px" }}>
+                      <h4 style={{ fontSize: "12px", fontWeight: 700, margin: "0 0 8px 0", color: "var(--text-muted)", letterSpacing: "0.5px" }}>
                         Scholarly Provenance & Evidence
                       </h4>
                       <ul style={{ margin: 0, paddingLeft: "16px", display: "grid", gap: "6px" }}>
@@ -609,7 +609,7 @@ export function ResearcherIntelligenceView({
 
                     {/* Right: Supporting Publications */}
                     <div>
-                      <h4 style={{ fontSize: "12px", fontWeight: 700, margin: "0 0 8px 0", textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.5px" }}>
+                      <h4 style={{ fontSize: "12px", fontWeight: 700, margin: "0 0 8px 0", color: "var(--text-muted)", letterSpacing: "0.5px" }}>
                         Supporting Authored Works ({item.supporting_works.length})
                       </h4>
                       {item.supporting_works.length === 0 ? (
@@ -632,7 +632,7 @@ export function ResearcherIntelligenceView({
                               <div style={{ fontWeight: 600, color: "var(--text-main)", marginBottom: "2px" }}>
                                 {work.title}
                               </div>
-                              <div style={{ display: "flex", gap: "10px", fontSize: "11px", color: "var(--text-muted)" }}>
+                              <div style={{ display: "flex", gap: "10px", fontSize: "var(--rc-text-label-size)", color: "var(--text-muted)" }}>
                                 {work.publication_year && <span>{work.publication_year}</span>}
                                 {work.cited_by_count > 0 && <span>{work.cited_by_count} citations</span>}
                                 {work.author_position && <span>Role: {work.author_position}</span>}

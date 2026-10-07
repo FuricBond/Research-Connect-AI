@@ -87,7 +87,7 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
         <span style={{ fontWeight: "bold" }}>{badgeIcon}</span>
         <span>{badgeLabel}</span>
         {showDetails && (
-          <span style={{ fontSize: "10px", opacity: 0.7, marginLeft: "2px" }}>
+          <span style={{ fontSize: "var(--rc-text-label-size)", opacity: 0.7, marginLeft: "2px" }}>
             {isExpanded ? "▲" : "▼"}
           </span>
         )}
@@ -117,7 +117,7 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
               <span style={{ fontWeight: 700, fontSize: "13px", color: badgeColor }}>
                 {pct}% Personalization Score
               </span>
-              <span style={{ marginLeft: "8px", fontSize: "11px", color: "#94a3b8" }}>
+              <span style={{ marginLeft: "8px", fontSize: "var(--rc-text-label-size)", color: "var(--rc-text-muted)" }}>
                 Confidence: {Math.round(score.confidence * 100)}%
               </span>
             </div>
@@ -145,7 +145,7 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
           {/* Positive Contributions */}
           {breakdown.positive_contributions.length > 0 && (
             <div style={{ marginBottom: "10px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, color: "var(--rc-success)", letterSpacing: "0.05em", marginBottom: "4px" }}>
                 Positive Signals (+{Math.round(score.positive_contribution * 100)}%)
               </div>
               <ul style={{ margin: "0", paddingLeft: "16px", color: "var(--rc-text-muted)" }}>
@@ -164,7 +164,7 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
           {/* Negative Penalties / Exclusions */}
           {breakdown.negative_contributions.length > 0 && (
             <div style={{ marginBottom: "10px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, color: "var(--rc-danger)", letterSpacing: "0.05em", marginBottom: "4px" }}>
                 Negative Signals (-{Math.round(score.negative_penalty * 100)}%)
               </div>
               <ul style={{ margin: "0", paddingLeft: "16px", color: "var(--rc-text-muted)" }}>
@@ -183,7 +183,7 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
           {/* Conflicting / Unresolved Signals */}
           {breakdown.unresolved_contributions.some((c) => c.match_type === "CONFLICT") && (
             <div style={{ marginBottom: "10px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, color: "var(--rc-warning)", letterSpacing: "0.05em", marginBottom: "4px" }}>
                 Preference Conflicts
               </div>
               <ul style={{ margin: "0", paddingLeft: "16px", color: "var(--rc-warning)" }}>
@@ -201,10 +201,10 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
           {/* Insufficient Evidence */}
           {breakdown.unresolved_contributions.some((c) => c.match_type === "INSUFFICIENT_EVIDENCE") && (
             <div style={{ marginBottom: "6px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "4px" }}>
+              <div style={{ fontSize: "var(--rc-text-label-size)", fontWeight: 700, color: "var(--rc-text-muted)", letterSpacing: "0.05em", marginBottom: "4px" }}>
                 Missing Opportunity Data
               </div>
-              <div style={{ color: "#94a3b8", fontSize: "11px" }}>
+              <div style={{ color: "var(--rc-text-muted)", fontSize: "var(--rc-text-label-size)" }}>
                 {breakdown.unresolved_contributions
                   .filter((c) => c.match_type === "INSUFFICIENT_EVIDENCE")
                   .map((c) => c.dimension.replace("_", " ").toLowerCase())
@@ -214,7 +214,7 @@ export const PersonalizationScoreBadge: React.FC<PersonalizationScoreBadgeProps>
           )}
 
           {/* Footer note */}
-          <div style={{ marginTop: "10px", paddingTop: "8px", borderTop: "1px solid #1e293b", fontSize: "10px", color: "#64748b", textAlign: "right" }}>
+          <div style={{ marginTop: "10px", paddingTop: "8px", borderTop: "1px solid var(--rc-border-control)", fontSize: "var(--rc-text-label-size)", color: "var(--rc-text-muted)", textAlign: "right" }}>
             Deterministic Scoring · Zero ML/LLM
           </div>
         </div>
