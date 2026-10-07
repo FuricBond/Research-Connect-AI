@@ -106,6 +106,29 @@ const config: Config = {
     backgroundColor: palette("fill"),
     borderColor: ({ theme }) => ({ ...palette("edge"), DEFAULT: theme("colors.gray.200", "currentColor") }),
     divideColor: palette("edge"),
+    // Cards are flat; only floating surfaces (menus, dialogs) cast a shadow.
+    boxShadow: {
+      none: "none",
+      sm: "none",
+      DEFAULT: "none",
+      md: "none",
+      lg: "none",
+      xl: "var(--rc-shadow-dialog)",
+      "2xl": "var(--rc-shadow-dialog)",
+      inner: "none",
+    },
+    // Chips 4 · controls 6 · cards 8 · dialogs 12.
+    borderRadius: {
+      none: "0",
+      sm: "var(--rc-radius-sm)",
+      DEFAULT: "var(--rc-radius-sm)",
+      md: "var(--rc-radius-md)",
+      lg: "var(--rc-radius-lg)",
+      xl: "var(--rc-radius-lg)",
+      "2xl": "var(--rc-radius-xl)",
+      "3xl": "var(--rc-radius-xl)",
+      full: "var(--rc-radius-full)",
+    },
     extend: {
       fontFamily: {
         sans: ["var(--rc-font-sans)"],

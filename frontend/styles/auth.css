@@ -67,7 +67,7 @@
   border: 1px solid var(--color-border);
   border-radius: 12px;
   background: var(--color-surface);
-  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.07));
+  box-shadow: var(--shadow-md);
   padding: 1.75rem;
 }
 
@@ -248,7 +248,7 @@
   gap: 0.3rem;
   padding: 0.35rem 0.65rem;
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-full, 9999px);
+  border-radius: var(--radius-full);
   background: var(--color-surface);
   color: inherit;
   font-size: 0.78rem;

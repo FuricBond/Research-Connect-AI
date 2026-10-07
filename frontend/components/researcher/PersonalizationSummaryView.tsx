@@ -108,7 +108,7 @@ export function PersonalizationSummaryView({
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border-color)",
-          borderRadius: "var(--radius-lg, 12px)",
+          borderRadius: "var(--radius-lg)",
           padding: "32px",
           textAlign: "center",
           color: "var(--text-muted)",
@@ -128,7 +128,7 @@ export function PersonalizationSummaryView({
         style={{
           background: "var(--bg-card)",
           border: "1px solid var(--border-color)",
-          borderRadius: "var(--radius-lg, 12px)",
+          borderRadius: "var(--radius-lg)",
           padding: "24px",
           color: "var(--rc-danger)",
         }}
@@ -162,7 +162,7 @@ export function PersonalizationSummaryView({
       style={{
         background: "var(--bg-card)",
         border: "1px solid var(--border-color)",
-        borderRadius: "var(--radius-lg, 12px)",
+        borderRadius: "var(--radius-lg)",
         padding: "24px",
         boxShadow: "none",
         display: "flex",

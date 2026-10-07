@@ -43,15 +43,17 @@
   --risk-high-bg: var(--rc-danger-subtle);
   --risk-high-border: var(--rc-danger-border);
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-full: 9999px;
+  /* Shape: buttons/inputs 6, cards 8 */
+  --radius-sm: var(--rc-radius-md);
+  --radius-md: var(--rc-radius-lg);
+  --radius-lg: var(--rc-radius-lg);
+  --radius-full: var(--rc-radius-full);
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
-  --shadow-drawer: -5px 0 25px rgba(0, 0, 0, 0.15);
+  /* Elevation: cards are flat; only floating things have shadows. */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: var(--rc-shadow-popover);
+  --shadow-drawer: var(--rc-shadow-dialog);
 
   /* Names used across the app but never defined before P1 (design-language audit V1, V2). */
   --color-primary: var(--rc-brand);
@@ -1430,7 +1432,7 @@ h2 {
 }
 
 .deadline-badge-wrapper[role="button"]:hover {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   transform: translateY(-1px);
 }
 
