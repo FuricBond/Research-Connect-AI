@@ -700,11 +700,11 @@ function CalendarPage() {
                 </div>
 
                 <div className="provenance-row">
-                  <span className="provenance-label">Provenance Type</span>
+                  <span className="provenance-label">Source</span>
                   <span className="provenance-val">
                     {selectedEvent.is_canonical_projection
-                      ? "Phase 2.7 Deadline Intelligence (Authoritative)"
-                      : "User Planning Task"}
+                      ? "Official deadline from the call"
+                      : "Your planning task"}
                   </span>
                 </div>
 

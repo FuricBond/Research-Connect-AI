@@ -9,6 +9,7 @@ import { PaginationControls } from "../discovery/PaginationControls";
 import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
 import { searchResearchWorks, lookupReadingList, ApiError } from "../../services/api";
 import { useSession } from "../auth/SessionProvider";
+import { PageHeader } from "../ui/PageHeader/PageHeader";
 import type {
   ExplanationSchema,
   QueryIntelligenceSchema,
@@ -159,13 +160,10 @@ export function DiscoverySearch() {
 
   return (
     <section className="discovery-search-page" aria-label="Research Literature Discovery">
-      <div className="page-intro">
-        <span className="eyebrow">Academic Literature Search</span>
-        <h2>Discover peer-reviewed papers with multi-channel hybrid intelligence.</h2>
-        <p className="page-desc">
-          Combines dense 384-dimensional semantic embeddings with PostgreSQL full-text cover density ranking and canonical taxonomy DAG proximity.
-        </p>
-      </div>
+      <PageHeader
+        title="Literature search"
+        description="Find papers by topic, method or author. Every result shows why it ranks where it does."
+      />
 
       <SearchBar
         initialQuery={query}
@@ -228,7 +226,7 @@ export function DiscoverySearch() {
       {!isLoading && items.length > 0 && (
         <div className="results-container">
           <div className="results-header">
-            <h3>Matching Research Works</h3>
+            <h2>Matching papers</h2>
             <span className="results-count-text">
               {total} total results found
             </span>

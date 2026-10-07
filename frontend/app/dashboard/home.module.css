@@ -1,0 +1,102 @@
+/* The signed-in home: layout only; every surface is a design-system primitive. */
+/* Block flow, so the page header's bottom margin is the only gap below it. */
+.page {
+  max-width: 65rem;
+}
+
+.page > section + section {
+  margin-top: var(--rc-section-gap);
+}
+
+.panels {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-stack-gap);
+}
+
+.panelTitle {
+  margin: 0 0 var(--rc-space-2);
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.panelText {
+  margin: 0;
+  color: var(--rc-text-secondary);
+}
+
+/* A tracked call: serif title (a research object), then its metadata row. */
+.deadline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  min-width: 0;
+}
+
+.deadlineTitle {
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.deadlineTitle:hover {
+  color: var(--rc-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2) var(--rc-space-3);
+}
+
+.more {
+  font-size: var(--rc-text-small-size);
+}
+
+/* "Continue your work": one link per card. */
+.links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  height: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+.linkTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rc-space-2);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.linkTitle svg {
+  flex-shrink: 0;
+  color: var(--rc-text-muted);
+}
+
+.linkDescription {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.card {
+  height: 100%;
+}

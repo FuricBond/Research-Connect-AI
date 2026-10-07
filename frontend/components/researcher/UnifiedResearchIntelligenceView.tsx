@@ -4,11 +4,9 @@ import { humanizeEnum } from "../../utils/date";
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Activity,
-  AlertCircle,
   AlertTriangle,
   Award,
   Bookmark,
-  Calendar,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
@@ -257,9 +255,10 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
                 Your research profile
               </span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            {/* The researcher page's section header is the h1; this card sits under it. */}
+            <h2 className="text-2xl font-bold text-gray-900">
               {context?.full_name || "Research Intelligence & Recommendations"}
-            </h1>
+            </h2>
             <p className="text-sm text-gray-500 mt-1">
               {[
                 context?.academic_status && context.academic_status !== "UNKNOWN"

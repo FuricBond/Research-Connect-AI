@@ -1,8 +1,10 @@
 # ResearchConnect AI — Design System
 
-> Status: **proposal for review** (planning phase). Nothing here is implemented yet.
-> Tokens: [`tokens.draft.css`](tokens.draft.css) (not imported by the app).
-> Evidence: [`audit/`](audit/README.md). Rollout: [`FRONTEND_REDESIGN_PLAN.md`](FRONTEND_REDESIGN_PLAN.md).
+> Status: **implemented in P1** (foundations). The tokens, fonts, themes, primitives and
+> enforcement below are live in `frontend/`; individual pages adopt them phase by phase
+> (P2 onward). See "Implementation map" at the end of this document.
+> Evidence: [`audit/`](audit/README.md), P1 results in [`audit/p1/`](audit/p1/README.md).
+> Rollout: [`FRONTEND_REDESIGN_PLAN.md`](FRONTEND_REDESIGN_PLAN.md).
 
 This document is written so that another frontend engineer can build every screen without
 guessing. Where it says **must**, a review should block a change that does otherwise.
@@ -635,3 +637,17 @@ files):
    `transition-duration` uses a token.
 5. An axe check (axe-core, already present) runs against the main routes in the e2e stack
    and fails on any serious or critical violation.
+
+## 13. Implementation map (P1)
+
+| Part | Where | Notes |
+|---|---|---|
+| Tokens (§3, §5, §6) | `frontend/styles/tokens.css` | The only file with colour literals. Light and dark values; `data-theme` on `<html>` selects. Adds `--rc-brand-active`, `--rc-text-inverse`/`--rc-surface-inverse`, `--rc-surface-hover`, interaction tints (`--rc-hover`, `--rc-active`, `--rc-disabled-bg`) and `--rc-*-border` edges to the draft. |
+| Element defaults, type classes, focus, layout primitives | `frontend/styles/base.css` | `.rc-display/.rc-h1…/.rc-title/.rc-reading/.rc-small/.rc-label/.rc-mono`, `.rc-container/.rc-stack/.rc-cluster/.rc-grid/.rc-switcher/.rc-ruled/.rc-scroll-x`, `.rc-skip-link`, `.rc-visually-hidden`; one `:focus-visible` ring; reduced motion. |
+| Fonts (§4.1) | `frontend/app/fonts.ts`, `frontend/app/fonts/*.woff2`, `OFL.txt` | `next/font/local`; latin preloaded (sans), latin-ext only on demand (`unicode-range`). |
+| Theme | `frontend/utils/theme.ts`, `components/ui/ThemeSwitcher` | Light, dark or system; stored in `localStorage` (`rc-theme`); applied before first paint by an inline script in `app/layout.tsx`. Styles never read `prefers-color-scheme`. Dark ships in P1 (the plan had P11). |
+| Primitives (§8) | `frontend/components/ui/<Name>/` | Button/ButtonLink/IconButton, Field/TextInput/TextArea/Select/SearchInput/Checkbox/RadioGroup/Switch, Card, Badge/StatusBadge/PriorityLabel, Dialog/Drawer (native `<dialog>`), Skeleton/SkeletonList, EmptyState, ErrorState, Alert, PageHeader/SectionHeader, ThemeSwitcher. CSS Modules + tokens. Usage: [`components/ui/README.md`](../../frontend/components/ui/README.md). |
+| Research indicators (§3.2, §8.5) | `frontend/components/research/` | DeadlineCountdown (DeadlineBadge), RiskIndicator (RiskBadge), MatchScore; `utils/date.ts`, `utils/risk.ts`. Every list that shows a call's deadline or venue risk uses them: home, workspace, recommendations, the candidate and ranking previews, submissions, the submission banner and the explanation drawer (`tests/canonical-indicators.test.tsx`). |
+| Status maps (§8.4) | `frontend/utils/status.ts` | `workspaceStatusMeta`, `applicationStatusMeta`, `postingStatusMeta`, `priorityMeta`. (In `utils/`, not `lib/`: the root `.gitignore` ignores every `lib/` directory.) |
+| Legacy bridge | `frontend/styles/globals.css` `:root`, `frontend/tailwind.config.ts` | Old CSS variables (including the 11 that were never defined) alias the tokens; Tailwind's palette resolves to the tokens (hue names → one brand, info, success, warning, danger; separate text/fill/edge maps), shadows flattened, radii on the scale. |
+| Enforcement (§12) | `frontend/tests/design-tokens.test.ts` | No colour literals outside `tokens.css`; no `dark:` classes, text < 12px, gradients or `prefers-color-scheme` in styles; module CSS uses tokens; inline-style ratchet; token contrast computed for both themes. |

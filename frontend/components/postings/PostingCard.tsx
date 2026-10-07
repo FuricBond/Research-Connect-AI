@@ -66,9 +66,9 @@ export function PostingCard({
   return (
     <article className="posting-card">
       <div className="posting-card-head">
-        <h3 className="posting-card-title">
+        <h2 className="posting-card-title rc-title">
           <Link href={`/postings/${posting.id}`}>{posting.title}</Link>
-        </h3>
+        </h2>
         <div className="posting-badges">
           <span className="posting-badge type">{POSTING_TYPE_LABELS[posting.posting_type]}</span>
           <span className={`posting-badge status-${posting.status}`}>

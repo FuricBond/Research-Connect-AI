@@ -8,11 +8,9 @@ import {
   Award,
   Calendar,
   CheckCircle2,
-  Clock,
   Cpu,
   Database,
   HelpCircle,
-  History,
   Info,
   Scale,
   ShieldAlert,
@@ -20,7 +18,6 @@ import {
   Shuffle,
   Sparkles,
   Tag,
-  X,
 } from "lucide-react";
 import type { ExplanationSchema } from "../../types/discovery";
 import type { DeadlineObservation, OpportunityDeadline, RiskExplanation } from "../../types/opportunity";
@@ -127,7 +124,6 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
               >
                 <Sparkles size={14} />
                 <span>Unified Evidence</span>
-                <span className="drawer-tab-badge">Phase 4.7</span>
               </button>
             )}
             {explanation && (
@@ -190,10 +186,12 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                   {deadlineExplanation?.has_extension
                     ? "Extended"
                     : deadlineExplanation?.has_conflict
-                    ? "DISPUTED"
-                    : deadlineExplanation?.overall_urgency_tier ||
-                      deadlineExplanation?.primary_view?.canonical_assessment?.urgency_tier ||
-                      "SCHEDULE"}
+                    ? "Disputed"
+                    : humanizeEnum(
+                        deadlineExplanation?.overall_urgency_tier ||
+                          deadlineExplanation?.primary_view?.canonical_assessment?.urgency_tier ||
+                          "SCHEDULE"
+                      )}
                 </span>
               </button>
             )}
@@ -697,7 +695,7 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
               <section className="drawer-section">
                 <h3 className="section-title">
                   <Scale size={16} />
-                  <span>Deterministic Score Attribution (Phase 2.6C)</span>
+                  <span>Deterministic Score Attribution</span>
                 </h3>
                 <div className="score-breakdown-card">
                   <div className="subtotals-grid">
@@ -888,7 +886,7 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
             </div>
           )}
 
-          {/* TAB 3: DEADLINE INTELLIGENCE & MILESTONES (Phase 2.7F) */}
+          {/* TAB 3: DEADLINE AND MILESTONES */}
           {(activeTab === "deadline" || (!explanation && !riskExplanation)) && deadlineExplanation && (
             <div className="deadline-tab-content">
               {/* Metric Overview Card */}

@@ -627,7 +627,7 @@ function SubmissionManagementPage({ params }: PageProps) {
         </div>
       )}
 
-      {/* ── Phase 4.3 Readiness Summary Banner ── */}
+      {/* ── Readiness summary banner ── */}
       {readiness && activeSubmission && !showCreateForm && (
         <div
           className={`readiness-banner ${readiness.overall_readiness.toLowerCase()}`}

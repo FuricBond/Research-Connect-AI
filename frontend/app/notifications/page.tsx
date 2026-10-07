@@ -231,7 +231,7 @@ function NotificationsPage() {
             <div className="notifications-title-wrap">
               <h1>Notification Center</h1>
               <p className="notifications-tagline">
-                Phase 4.5 Deadline Reminders, Scheduled Alerts & In-App Intelligence
+                Deadline reminders and updates about your work.
               </p>
             </div>
             <div className="notifications-actions-bar">
@@ -356,7 +356,7 @@ function NotificationsPage() {
         ) : error ? (
           <div className="notifications-empty">
             <AlertTriangle size={32} color="var(--rc-danger)" />
-            <h3>Unable to Load Notifications</h3>
+            <h2>Unable to load notifications</h2>
             <p>{error}</p>
             <button
               type="button"
@@ -370,7 +370,7 @@ function NotificationsPage() {
         ) : notifications.length === 0 ? (
           <div className="notifications-empty">
             <BellRing size={36} color="var(--text-muted)" />
-            <h3>No notifications found</h3>
+            <h2>No notifications found</h2>
             <p>
               {activeTab === "unread"
                 ? "You're all caught up! No unread deadline reminders."
@@ -400,7 +400,7 @@ function NotificationsPage() {
 
                   <div className="notification-content">
                     <div className="notification-content-header">
-                      <h3 className="notification-title">{notif.title}</h3>
+                      <h2 className="notification-title">{notif.title}</h2>
                       <span className="notification-time">
                         {formatTimestamp(notif.created_at)}
                       </span>

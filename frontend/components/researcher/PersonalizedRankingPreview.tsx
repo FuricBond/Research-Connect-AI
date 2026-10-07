@@ -295,9 +295,9 @@ export function PersonalizedRankingPreview({
 
                     {/* Title & Metadata */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-semibold text-white truncate">
+                      <h3 className="text-xs font-semibold text-slate-900 truncate">
                         {cand.opportunity.title}
-                      </h4>
+                      </h3>
                       <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-500">
                         <span className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono">
                           {cand.opportunity.opportunity_type}

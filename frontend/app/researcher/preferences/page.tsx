@@ -1,5 +1,6 @@
 "use client";
 
+import { humanizeEnum } from "../../../utils/date";
 import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import {
@@ -781,7 +782,7 @@ function ResearcherPreferencesPage() {
                       color: state === "NEUTRAL" ? "var(--text-muted)" : "var(--rc-text-on-brand)",
                     }}
                   >
-                    {state}
+                    {humanizeEnum(state)}
                   </span>
                 </div>
               );
@@ -855,7 +856,7 @@ function ResearcherPreferencesPage() {
                       color: state === "NEUTRAL" ? "var(--text-muted)" : "var(--rc-text-on-brand)",
                     }}
                   >
-                    {state}
+                    {humanizeEnum(state)}
                   </span>
                 </div>
               );

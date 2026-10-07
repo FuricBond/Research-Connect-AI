@@ -11,11 +11,16 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertCircle, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { RequireAuth } from "../../components/auth/RequireAuth";
 import { useSession } from "../../components/auth/SessionProvider";
 import { DeadlineCountdown } from "../../components/research/DeadlineCountdown";
 import { RiskIndicator } from "../../components/research/RiskIndicator";
+import { StatusBadge } from "../../components/ui/Badge/Badge";
+import { Button } from "../../components/ui/Button/Button";
+import { Card } from "../../components/ui/Card/Card";
+import { PageHeader, SectionHeader } from "../../components/ui/PageHeader/PageHeader";
+import { Alert, EmptyState, SkeletonList } from "../../components/ui/State/State";
 import {
   fetchMyApplicationSummary,
   fetchMyPostingSummary,
@@ -29,8 +34,9 @@ import type { ReadingListResponse } from "../../types/reading_list";
 import type { WorkspaceListResponse } from "../../types/workspace";
 import { humanizeEnum } from "../../utils/date";
 import { riskPresentation } from "../../utils/risk";
+import { workspaceStatusMeta } from "../../utils/status";
 import { upcomingDeadlines, workspaceDeadline } from "../../utils/workspace";
-import "../../styles/home.css";
+import styles from "./home.module.css";
 
 /** Deadlines further out than this are not "needs attention" yet. */
 const ATTENTION_WINDOW_DAYS = 30;
@@ -73,37 +79,44 @@ function HomePage() {
   const [postings] = useLoad<PostingSummaryResponse>(fetchMyPostingSummary, role === "FACULTY");
 
   return (
-    <div className="home-page">
-      <header className="home-header">
-        <h1>Welcome back, {user?.full_name?.trim() || "researcher"}</h1>
-        <p>
-          {role ? `${ROLE_LABELS[role]} account. ` : ""}
-          Here is what needs your attention and where to pick up your work.
-        </p>
-      </header>
+    <div className={styles.page}>
+      <PageHeader
+        display
+        title={<>Welcome back, {user?.full_name?.trim() || "researcher"}</>}
+        description={
+          <>
+            {role ? `${ROLE_LABELS[role]} account. ` : ""}
+            Here is what needs your attention and where to pick up your work.
+          </>
+        }
+      />
 
-      <section className="home-section" aria-labelledby="home-attention">
-        <h2 id="home-attention">Needs attention</h2>
-        <div className="home-panel">
-          <h3 className="home-panel-title">Deadlines in the next {ATTENTION_WINDOW_DAYS} days</h3>
-          <AttentionDeadlines workspace={workspace} onRetry={retryWorkspace} />
+      <section aria-labelledby="home-attention">
+        <SectionHeader id="home-attention" title="Needs attention" />
+        <div className={styles.panels}>
+          <Card>
+            <h3 className={styles.panelTitle}>Deadlines in the next {ATTENTION_WINDOW_DAYS} days</h3>
+            <AttentionDeadlines workspace={workspace} onRetry={retryWorkspace} />
+          </Card>
+          {role === "STUDENT" && <ApplicationStatus applications={applications} />}
+          {role === "FACULTY" && <PostingStatus postings={postings} />}
         </div>
-        {role === "STUDENT" && <ApplicationStatus applications={applications} />}
-        {role === "FACULTY" && <PostingStatus postings={postings} />}
       </section>
 
-      <section className="home-section" aria-labelledby="home-continue">
-        <h2 id="home-continue">Continue your work</h2>
-        <ul className="home-links">
+      <section aria-labelledby="home-continue">
+        <SectionHeader id="home-continue" title="Continue your work" />
+        <ul className={`${styles.links} rc-grid`} style={{ ["--rc-grid-min" as string]: "15rem" }}>
           {destinationsFor(role, workspace, reading).map((link) => (
             <li key={link.href}>
-              <Link href={link.href} className="home-link">
-                <span className="home-link-title">
-                  {link.title}
-                  <ArrowRight size={16} aria-hidden="true" />
-                </span>
-                <span className="home-link-description">{link.description}</span>
-              </Link>
+              <Card variant="interactive" padding="compact" className={styles.card}>
+                <Link href={link.href} className={styles.link}>
+                  <span className={styles.linkTitle}>
+                    {link.title}
+                    <ArrowRight size={16} aria-hidden="true" />
+                  </span>
+                  <span className={styles.linkDescription}>{link.description}</span>
+                </Link>
+              </Card>
             </li>
           ))}
         </ul>
@@ -114,52 +127,59 @@ function HomePage() {
 
 function AttentionDeadlines({ workspace, onRetry }: { workspace: Loadable<WorkspaceListResponse>; onRetry: () => void }) {
   if (workspace.state === "loading" || workspace.state === "idle") {
-    return (
-      <p className="home-muted" role="status">
-        Loading your tracked calls…
-      </p>
-    );
+    return <SkeletonList rows={3} label="Loading your tracked calls" />;
   }
   if (workspace.state === "failed") {
     return (
-      <div className="home-error" role="alert">
-        <AlertCircle size={16} aria-hidden="true" />
-        <span>Your tracked calls could not be loaded.</span>
-        <button type="button" className="home-retry" onClick={onRetry}>
-          Try again
-        </button>
-      </div>
+      <Alert
+        tone="danger"
+        announce
+        action={
+          <Button size="sm" onClick={onRetry}>
+            Try again
+          </Button>
+        }
+      >
+        Your tracked calls could not be loaded.
+      </Alert>
     );
   }
   const upcoming = upcomingDeadlines(workspace.data.items, ATTENTION_WINDOW_DAYS);
   if (upcoming.length === 0) {
     return (
-      <p className="home-muted">
-        No tracked call is due in the next {ATTENTION_WINDOW_DAYS} days.{" "}
-        <Link href="/browse">Browse calls for papers</Link> and save the ones you plan to submit to.
-      </p>
+      <EmptyState
+        bare
+        variant="done"
+        headingLevel={4}
+        title={`No tracked call is due in the next ${ATTENTION_WINDOW_DAYS} days.`}
+        description={
+          <>
+            <Link href="/browse">Browse calls for papers</Link> and save the ones you plan to submit to.
+          </>
+        }
+      />
     );
   }
   return (
-    <ul className="home-deadlines">
+    <ul className="rc-ruled">
       {upcoming.slice(0, ATTENTION_ITEMS_SHOWN).map(({ item }) => {
         const deadline = workspaceDeadline(item.opportunity);
         const risk = riskPresentation(item.opportunity.risk_explanation?.risk_level, {
           isPredatory: item.opportunity.is_predatory_flag,
         });
         return (
-          <li key={item.id} className="home-deadline">
-            <Link href={`/workspace/${item.id}`} className="home-deadline-title">
+          <li key={item.id} className={styles.deadline}>
+            <Link href={`/workspace/${item.id}`} className={styles.deadlineTitle}>
               {item.opportunity.title}
             </Link>
-            <div className="home-deadline-meta">
+            <div className={styles.meta}>
               <DeadlineCountdown
                 deadline={deadline.deadline}
                 daysRemaining={deadline.daysRemaining}
                 status={deadline.status}
                 urgencyTier={deadline.urgencyTier}
               />
-              <span className="home-deadline-status">{humanizeEnum(item.status)}</span>
+              <StatusBadge meta={workspaceStatusMeta(item.status)} />
               {/* Only a concern is worth space here; "not assessed" stays on the workspace card. */}
               {(risk.tone === "high" || risk.tone === "caution") && (
                 <RiskIndicator
@@ -172,7 +192,7 @@ function AttentionDeadlines({ workspace, onRetry }: { workspace: Loadable<Worksp
         );
       })}
       {upcoming.length > ATTENTION_ITEMS_SHOWN && (
-        <li className="home-more">
+        <li className={styles.more}>
           <Link href="/workspace">See all {upcoming.length} upcoming deadlines</Link>
         </li>
       )}
@@ -212,10 +232,10 @@ function ApplicationStatus({ applications }: { applications: Loadable<Applicatio
     );
   }
   return (
-    <div className="home-panel">
-      <h3 className="home-panel-title">Applications</h3>
-      <p className="home-panel-text">{text}</p>
-    </div>
+    <Card>
+      <h3 className={styles.panelTitle}>Applications</h3>
+      <p className={styles.panelText}>{text}</p>
+    </Card>
   );
 }
 
@@ -223,9 +243,9 @@ function PostingStatus({ postings }: { postings: Loadable<PostingSummaryResponse
   if (postings.state !== "ready") return null;
   const { total, total_applications: received, open_accepting_applications: open } = postings.data;
   return (
-    <div className="home-panel">
-      <h3 className="home-panel-title">Your postings</h3>
-      <p className="home-panel-text">
+    <Card>
+      <h3 className={styles.panelTitle}>Your postings</h3>
+      <p className={styles.panelText}>
         {total === 0 ? (
           <>
             You have no research postings yet. <Link href="/postings">Create one on Research Postings</Link>.
@@ -237,7 +257,7 @@ function PostingStatus({ postings }: { postings: Loadable<PostingSummaryResponse
           </>
         )}
       </p>
-    </div>
+    </Card>
   );
 }
 

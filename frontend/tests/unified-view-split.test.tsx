@@ -70,6 +70,9 @@ describe("UnifiedResearchIntelligenceView parts", () => {
     render(<UnifiedResearchIntelligenceView profileId={PROFILE_ID} userId={USER_ID} view="personalization" />);
 
     expect(await screen.findByText("Ada Lovelace")).toBeInTheDocument();
+    // One h1 per page: the researcher page's section header; the profile card is an h2 under it.
+    expect(screen.getByRole("heading", { name: "Ada Lovelace" }).tagName).toBe("H2");
+    expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
     await waitFor(() => expect(requested("/intelligence/unified")).toBe(true));
     expect(requested("/recommendations/unified")).toBe(false);
     expect(screen.queryByRole("heading", { name: /Unified Evidence-Backed Recommendations/ })).not.toBeInTheDocument();

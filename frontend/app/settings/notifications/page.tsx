@@ -263,7 +263,7 @@ function NotificationSettingsPage() {
           <div className="preference-toggle-list">
             <div className="preference-toggle-item">
               <div className="preference-toggle-info">
-                <h4>In-App Notifications</h4>
+                <h3>In-App Notifications</h3>
                 <p>Receive notifications in the ResearchConnect Notification Center and navigation badge.</p>
               </div>
               <label className="switch">
@@ -279,7 +279,7 @@ function NotificationSettingsPage() {
 
             <div className="preference-toggle-item">
               <div className="preference-toggle-info">
-                <h4 id="email-alerts-label">Email Alerts</h4>
+                <h3 id="email-alerts-label">Email Alerts</h3>
                 <p>
                   Email a copy of important notifications, such as deadline reminders,
                   application updates and posting matches.
@@ -313,7 +313,7 @@ function NotificationSettingsPage() {
           <div className="preference-toggle-list">
             <div className="preference-toggle-item">
               <div className="preference-toggle-info">
-                <h4>Upcoming Deadline Reminders</h4>
+                <h3>Upcoming Deadline Reminders</h3>
                 <p>Scheduled advance reminders before canonical submission and milestone deadlines.</p>
               </div>
               <label className="switch">
@@ -329,7 +329,7 @@ function NotificationSettingsPage() {
 
             <div className="preference-toggle-item">
               <div className="preference-toggle-info">
-                <h4>Deadline Extensions</h4>
+                <h3>Deadline Extensions</h3>
                 <p>Notify when an authoritative source announces a deadline extension.</p>
               </div>
               <label className="switch">
@@ -345,7 +345,7 @@ function NotificationSettingsPage() {
 
             <div className="preference-toggle-item">
               <div className="preference-toggle-info">
-                <h4>Deadline Conflicts</h4>
+                <h3>Deadline Conflicts</h3>
                 <p>Alert when conflicting dates are reported by multiple equal-authority sources.</p>
               </div>
               <label className="switch">
@@ -361,7 +361,7 @@ function NotificationSettingsPage() {
 
             <div className="preference-toggle-item">
               <div className="preference-toggle-info">
-                <h4>Calendar Planning Events</h4>
+                <h3>Calendar Planning Events</h3>
                 <p>Reminders for custom milestones and planning sessions created in your Research Calendar.</p>
               </div>
               <label className="switch">
@@ -378,7 +378,7 @@ function NotificationSettingsPage() {
             {isStudent && (
               <div className="preference-toggle-item">
                 <div className="preference-toggle-info">
-                  <h4 id="posting-match-label">Notify me when a new posting matches my interests</h4>
+                  <h3 id="posting-match-label">Notify me when a new posting matches my interests</h3>
                   <p>
                     When faculty publish a new research posting that fits your interests at least
                     this well, you get one in-app alert.
