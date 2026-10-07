@@ -78,3 +78,78 @@
   gap: var(--rc-space-2);
   margin-top: var(--rc-space-2);
 }
+
+.errorState {
+  border-style: solid;
+  border-color: var(--rc-danger-border);
+}
+
+.errorState .stateIcon {
+  color: var(--rc-danger);
+}
+
+.details {
+  margin-top: var(--rc-space-2);
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-muted);
+}
+
+.details summary {
+  cursor: pointer;
+  color: var(--rc-text-secondary);
+}
+
+/* Alert: inline, persistent message in the flow. */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--rc-space-3);
+  padding: var(--rc-space-3) var(--rc-space-4);
+  border: var(--rc-border-width) solid;
+  border-radius: var(--rc-radius-md);
+  min-width: 0;
+}
+
+.alert > svg {
+  flex-shrink: 0;
+  margin-top: 0.15em;
+}
+
+.alertBody {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.alertTitle {
+  display: block;
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.alertText {
+  margin: 0;
+  color: var(--rc-text-secondary);
+}
+
+.alertAction {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.info { border-color: var(--rc-info-border); background: var(--rc-info-subtle); }
+.info > svg { color: var(--rc-info); }
+.success { border-color: var(--rc-success-border); background: var(--rc-success-subtle); }
+.success > svg { color: var(--rc-success); }
+.warning { border-color: var(--rc-warning-border); background: var(--rc-warning-subtle); }
+.warning > svg { color: var(--rc-warning); }
+.danger { border-color: var(--rc-danger-border); background: var(--rc-danger-subtle); }
+.danger > svg { color: var(--rc-danger); }
+
+@media (max-width: 479px) {
+  .alert {
+    flex-wrap: wrap;
+  }
+  .alertAction {
+    margin-left: calc(1rem + var(--rc-space-3));
+  }
+}

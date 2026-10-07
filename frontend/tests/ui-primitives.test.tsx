@@ -9,7 +9,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { Button, IconButton } from "../components/ui/Button/Button";
 import { Checkbox, RadioGroup, Select, Switch, TextArea, TextInput } from "../components/ui/Field/Field";
 import { Dialog, Drawer } from "../components/ui/Dialog/Dialog";
-import { EmptyState, SkeletonList } from "../components/ui/State/State";
+import { Alert, EmptyState, ErrorState, SkeletonList } from "../components/ui/State/State";
 import { PriorityLabel, StatusBadge } from "../components/ui/Badge/Badge";
 import { PageHeader } from "../components/ui/PageHeader/PageHeader";
 import { MatchScore, matchBand } from "../components/research/MatchScore";
@@ -164,6 +164,36 @@ describe("states", () => {
     expect(screen.getByRole("heading", { name: "No saved papers yet" })).toBeInTheDocument();
     expect(screen.getByText("Papers you save appear here.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Search papers" })).toBeInTheDocument();
+  });
+
+  it("explains an error in plain words and retries", () => {
+    const onRetry = vi.fn();
+    render(<ErrorState onRetry={onRetry} details={<code>GET /api/v1/workspace 503</code>} />);
+    expect(screen.getByRole("heading", { name: "This could not be loaded" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(onRetry).toHaveBeenCalledOnce();
+    // Technical detail is behind a disclosure, not on the surface.
+    expect(screen.getByText("Technical details").closest("details")).not.toHaveAttribute("open");
+  });
+
+  it("has distinct permission, not-found and unavailable states", () => {
+    const { rerender } = render(<ErrorState kind="permission" />);
+    expect(screen.getByRole("heading")).toHaveTextContent("You don't have access to this");
+    rerender(<ErrorState kind="not-found" />);
+    expect(screen.getByRole("heading")).toHaveTextContent("This could not be found");
+    rerender(<ErrorState kind="unavailable" />);
+    expect(screen.getByRole("heading")).toHaveTextContent("The source is unavailable");
+  });
+
+  it("announces only errors that follow an action", () => {
+    const { rerender } = render(<Alert tone="info">Saved searches are kept for 30 days.</Alert>);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    rerender(
+      <Alert tone="danger" announce>
+        Your tracked calls could not be loaded.
+      </Alert>
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("Your tracked calls could not be loaded.");
   });
 
   it("marks loading placeholders busy with one spoken status", () => {

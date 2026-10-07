@@ -14,8 +14,9 @@
 
 import React, { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Loader2, ShieldAlert } from "lucide-react";
-import Link from "next/link";
+import { Loader2 } from "lucide-react";
+import { ButtonLink } from "../ui/Button/Button";
+import { ErrorState } from "../ui/State/State";
 import type { PlatformRole } from "../../types/auth";
 import { ROLE_LABELS } from "../../types/auth";
 import { useSession } from "./SessionProvider";
@@ -58,20 +59,21 @@ export function RequireAuth({
 
   if (roles !== undefined && !roles.includes(user.role)) {
     const permitted = roles.map((role) => ROLE_LABELS[role]).join(" or ");
+    // The design system's permission state (DESIGN_SYSTEM.md §10), with the same words as before.
     return (
-      <div className="auth-denied" role="alert">
-        <ShieldAlert size={18} aria-hidden="true" />
-        <div>
-          <p className="auth-denied-title">This page is for {permitted} accounts.</p>
-          <p className="auth-denied-body">
-            You are signed in as {user.full_name} ({ROLE_LABELS[user.role]}). Ask an
-            administrator if you need access.
-          </p>
-          <Link href="/" className="auth-link">
-            Back to discovery
-          </Link>
-        </div>
-      </div>
+      <ErrorState
+        kind="permission"
+        announce
+        headingLevel={1}
+        title={<>This page is for {permitted} accounts.</>}
+        description={
+          <>
+            You are signed in as {user.full_name} ({ROLE_LABELS[user.role]}). Ask an administrator if you
+            need access.
+          </>
+        }
+        actions={<ButtonLink href="/">Back to discovery</ButtonLink>}
+      />
     );
   }
 
