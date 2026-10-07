@@ -86,7 +86,7 @@ export function describeTimeLeft(daysRemaining: number | null | undefined): stri
 
 /**
  * How pressing a deadline is, as a presentation tone. Deadline urgency is about time only; it
- * is styled apart from venue risk (see components/indicators).
+ * is styled apart from venue risk (see components/research).
  *   passed  — the deadline is over
  *   urgent  — two days or less (or the intelligence says CRITICAL / DUE_TODAY)
  *   soon    — a week or less (or URGENT)

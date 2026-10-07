@@ -1,6 +1,6 @@
 "use client";
-import { humanizeEnum } from "../../utils/date";
-import { riskPresentation, type RiskTone } from "../../utils/risk";
+import { DeadlineCountdown } from "../research/DeadlineCountdown";
+import { RiskIndicator } from "../research/RiskIndicator";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -15,7 +15,7 @@ import type {
   RecommendationExplanation,
 } from "../../types/researcher";
 import { RecommendationExplanationModal } from "./RecommendationExplanationModal";
-import { AlertTriangle, HelpCircle, Sparkles } from "lucide-react";
+import { HelpCircle, Sparkles } from "lucide-react";
 
 interface PersonalizedRankingPreviewProps {
   profileId: string;
@@ -359,9 +359,7 @@ export function PersonalizedRankingPreview({
                     </span>
 
                     {(cand.opportunity.risk_level === "HIGH_RISK" || cand.opportunity.is_predatory_flag) && (
-                      <span className="text-rose-400 font-semibold flex items-center gap-1">
-                        <AlertTriangle size={11} /> High Risk Warning
-                      </span>
+                      <RiskIndicator level={cand.opportunity.risk_level} isPredatory={cand.opportunity.is_predatory_flag} />
                     )}
                   </div>
                 </div>
@@ -531,25 +529,24 @@ export function PersonalizedRankingPreview({
                 </div>
               </div>
 
-              {/* Phase 2.6 Risk & Phase 2.7 Deadline Badges */}
+              {/* Venue risk and deadline, in the canonical indicators */}
               <div className="border-t border-slate-800 pt-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[11px]">Venue risk:</span>
+                  <span className="text-slate-500 text-xs">Venue risk:</span>
                   {/* P0.5: an unknown level is "not assessed", never "low risk". */}
-                  <CandidateRiskBadge
+                  <RiskIndicator
                     level={selectedCandidate.opportunity.risk_level}
                     isPredatory={selectedCandidate.opportunity.is_predatory_flag}
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400 text-[11px]">Deadline:</span>
-                  <span className="text-[10px] text-amber-300">
-                    {selectedCandidate.opportunity.deadline_status
-                      ? humanizeEnum(selectedCandidate.opportunity.deadline_status)
-                      : "No deadline listed"}
-                    {selectedCandidate.opportunity.urgency_tier &&
-                      ` (${humanizeEnum(selectedCandidate.opportunity.urgency_tier).toLowerCase()})`}
-                  </span>
+                  <span className="text-slate-500 text-xs">Deadline:</span>
+                  <DeadlineCountdown
+                    deadline={selectedCandidate.opportunity.submission_deadline}
+                    daysRemaining={selectedCandidate.opportunity.days_remaining}
+                    status={selectedCandidate.opportunity.deadline_status}
+                    urgencyTier={selectedCandidate.opportunity.urgency_tier}
+                  />
                 </div>
 
                 {/* Phase 3.6 Interactive Recommendation Feedback Loop */}
@@ -647,25 +644,5 @@ export function PersonalizedRankingPreview({
         organization={explainingCandidate?.opportunity.location || explainingCandidate?.opportunity.delivery_mode}
       />
     </div>
-  );
-}
-
-const RISK_BADGE_CLASSES: Record<RiskTone, string> = {
-  high: "bg-red-950 text-red-300 border border-red-800",
-  caution: "bg-amber-950 text-amber-300 border border-amber-800",
-  low: "bg-emerald-950 text-emerald-300 border border-emerald-800",
-  unknown: "bg-slate-800 text-slate-300 border border-dashed border-slate-600",
-};
-
-/** A venue's risk in words (P0.5): unknown reads "Risk not assessed", never "low risk". */
-function CandidateRiskBadge({ level, isPredatory }: { level?: string | null; isPredatory?: boolean | null }) {
-  const risk = riskPresentation(level, { isPredatory });
-  return (
-    <span
-      className={`px-2 py-0.5 rounded text-[10px] font-semibold ${RISK_BADGE_CLASSES[risk.tone]}`}
-      title={risk.description}
-    >
-      {risk.label}
-    </span>
   );
 }

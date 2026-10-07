@@ -60,6 +60,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { RequireAuth } from "../../../../components/auth/RequireAuth";
+import { DeadlineCountdown } from "../../../../components/research/DeadlineCountdown";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -583,7 +584,7 @@ function SubmissionManagementPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* ── Phase 2.7 Deadline Intelligence Banner ── */}
+      {/* ── Deadline banner ── */}
       {deadlineCtx && deadlineCtx.submission_deadline && (
         <div
           className={`submission-deadline-alert ${
@@ -609,9 +610,11 @@ function SubmissionManagementPage({ params }: PageProps) {
                 })}
               </h4>
               <p>
-                {deadlineCtx.days_remaining !== null && deadlineCtx.days_remaining !== undefined
-                  ? `${Math.round(deadlineCtx.days_remaining)} days remaining until manuscript cutoff.`
-                  : "Deadline date confirmed from official CFPs."}
+                <DeadlineCountdown
+                  deadline={deadlineCtx.submission_deadline}
+                  daysRemaining={deadlineCtx.days_remaining}
+                  urgencyTier={deadlineCtx.urgency_tier}
+                />
                 {deadlineCtx.summary && ` ${deadlineCtx.summary}`}
               </p>
             </div>
@@ -620,21 +623,6 @@ function SubmissionManagementPage({ params }: PageProps) {
           <div className="deadline-badges">
             {deadlineCtx.is_aoe && <span className="badge-aoe">AoE Anywhere on Earth</span>}
             {deadlineCtx.has_extension && <span className="badge-extension">Deadline Extended</span>}
-            {deadlineCtx.urgency_tier && (
-              <span
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 700,
-                  textTransform: "uppercase",
-                  padding: "3px 8px",
-                  borderRadius: "4px",
-                  background: "var(--bg-main)",
-                  border: "1px solid var(--border-color)",
-                }}
-              >
-                {deadlineCtx.urgency_tier}
-              </span>
-            )}
           </div>
         </div>
       )}

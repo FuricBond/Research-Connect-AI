@@ -1164,27 +1164,6 @@ h2 {
   border-left: 4px solid var(--rc-success);
 }
 
-.risk-level-tag {
-  font-weight: 700;
-  font-size: 0.85rem;
-}
-
-.risk-level-tag.high_risk {
-  color: #dc2626;
-}
-
-.risk-level-tag.moderate_risk {
-  color: #d97706;
-}
-
-.risk-level-tag.insufficient_evidence {
-  color: #64748b;
-}
-
-.risk-level-tag.low_risk {
-  color: #16a34a;
-}
-
 .sufficiency-badge {
   display: inline-block;
   font-size: var(--rc-text-label-size);
@@ -1465,7 +1444,7 @@ h2 {
 
 /* Urgency Color Tiers */
 /* P0.5: deadline urgency is about time, not risk. Close deadlines use the orange "time"
-   colour; red and amber belong to venue risk (styles/indicators.css, DESIGN_SYSTEM.md §3.2).
+   colour; red and amber belong to venue risk (components/research, DESIGN_SYSTEM.md §3.2).
    Distant deadlines are neutral, not green. */
 .deadline-badge-wrapper.urgency-critical,
 .deadline-badge-wrapper.urgency-due-today {

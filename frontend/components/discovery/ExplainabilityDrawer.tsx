@@ -26,6 +26,9 @@ import type { ExplanationSchema } from "../../types/discovery";
 import type { DeadlineObservation, OpportunityDeadline, RiskExplanation } from "../../types/opportunity";
 import type { UnifiedOpportunityIntelligence } from "../../types/research_intelligence";
 import { DeadlineTimeline } from "./DeadlineTimeline";
+import { describeTimeLeft, humanizeEnum } from "../../utils/date";
+import { riskPresentation } from "../../utils/risk";
+import { RiskIndicator } from "../research/RiskIndicator";
 
 interface ExplainabilityDrawerProps {
   isOpen: boolean;
@@ -193,7 +196,7 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                 )}
                 <span>Trust & Safety</span>
                 <span className={`drawer-tab-badge ${riskExplanation?.risk_level.toLowerCase()}`}>
-                  {riskExplanation?.risk_level.replace(/_/g, " ")}
+                  {riskPresentation(riskExplanation?.risk_level).label}
                 </span>
               </button>
             )}
@@ -693,8 +696,8 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
               <div className={`drawer-metric-card risk-metric-card ${riskExplanation.risk_level.toLowerCase()}`}>
                 <div className="metric-item">
                   <span className="metric-label">Risk Level</span>
-                  <span className={`metric-value risk-level-tag ${riskExplanation.risk_level.toLowerCase()}`}>
-                    {riskExplanation.risk_level.replace(/_/g, " ")}
+                  <span className="metric-value">
+                    <RiskIndicator level={riskExplanation.risk_level} />
                   </span>
                 </div>
                 <div className="metric-item">
@@ -712,7 +715,7 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                 <div className="metric-item">
                   <span className="metric-label">Evidence Sufficiency</span>
                   <span className={`sufficiency-badge ${riskExplanation.evidence_sufficiency.toLowerCase()}`}>
-                    {riskExplanation.evidence_sufficiency}
+                    {humanizeEnum(riskExplanation.evidence_sufficiency)}
                   </span>
                 </div>
               </div>
@@ -929,13 +932,13 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                 <div className="metric-item">
                   <span className="metric-label">Primary Milestone</span>
                   <span className="metric-value-sm highlight">
-                    {deadlineExplanation.primary_milestone.replace(/_/g, " ")}
+                    {humanizeEnum(deadlineExplanation.primary_milestone)}
                   </span>
                 </div>
                 <div className="metric-item">
                   <span className="metric-label">Temporal Status</span>
                   <span className={`metric-value-sm status-tag ${deadlineExplanation.primary_view?.canonical_assessment?.status.toLowerCase() || "unknown"}`}>
-                    {deadlineExplanation.primary_view?.canonical_assessment?.status.replace(/_/g, " ") || "UNKNOWN"}
+                    {humanizeEnum(deadlineExplanation.primary_view?.canonical_assessment?.status) || "Not known"}
                   </span>
                 </div>
                 <div className="metric-item">
@@ -947,9 +950,10 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                       "unknown"
                     ).toLowerCase()}`}
                   >
-                    {deadlineExplanation.overall_urgency_tier ||
-                      deadlineExplanation.primary_view?.canonical_assessment?.urgency_tier ||
-                      "UNKNOWN"}{" "}
+                    {humanizeEnum(
+                      deadlineExplanation.overall_urgency_tier ||
+                        deadlineExplanation.primary_view?.canonical_assessment?.urgency_tier
+                    ) || "Not known"}{" "}
                     (
                     {(
                       (typeof deadlineExplanation.overall_urgency_score === "number"
@@ -962,13 +966,12 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                 <div className="metric-item">
                   <span className="metric-label">Remaining Time</span>
                   <span className="metric-value-sm">
-                    {deadlineExplanation.primary_view?.canonical_assessment?.days_remaining !== null &&
-                    deadlineExplanation.primary_view?.canonical_assessment?.days_remaining !== undefined
-                      ? `${deadlineExplanation.primary_view.canonical_assessment.days_remaining.toFixed(1)} days`
-                      : deadlineExplanation.primary_view?.canonical_assessment?.hours_remaining !== null &&
-                        deadlineExplanation.primary_view?.canonical_assessment?.hours_remaining !== undefined
-                      ? `${deadlineExplanation.primary_view.canonical_assessment.hours_remaining.toFixed(1)} hours`
-                      : "Elapsed / N/A"}
+                    {describeTimeLeft(
+                      deadlineExplanation.primary_view?.canonical_assessment?.days_remaining ??
+                        (typeof deadlineExplanation.primary_view?.canonical_assessment?.hours_remaining === "number"
+                          ? deadlineExplanation.primary_view.canonical_assessment.hours_remaining / 24
+                          : null)
+                    ) ?? "Not known"}
                   </span>
                 </div>
                 <div className="metric-item">

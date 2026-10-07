@@ -1,5 +1,7 @@
 import { CalendarX, Clock, History } from "lucide-react";
-import { deadlineTone, describeTimeLeft, formatDeadlineDate, isAoeDeadline } from "../../utils/date";
+import { cx } from "../../utils/cx";
+import { deadlineTone, describeTimeLeft, formatDeadlineDate, isAoeDeadline, type DeadlineTone } from "../../utils/date";
+import styles from "./Indicators.module.css";
 
 interface DeadlineCountdownProps {
   /** The deadline as the API gives it (ISO datetime or date). */
@@ -9,15 +11,26 @@ interface DeadlineCountdownProps {
   /** DeadlineTemporalStatus and UrgencyTier from the deadline intelligence, when known. */
   status?: string | null;
   urgencyTier?: string | null;
+  className?: string;
 }
 
 const MS_PER_DAY = 86_400_000;
 
+const TONE_CLASS: Record<DeadlineTone, string> = {
+  open: styles.deadlineOpen,
+  soon: styles.deadlineSoon,
+  urgent: styles.deadlineUrgent,
+  passed: styles.deadlinePassed,
+  unknown: styles.deadlineUnknown,
+};
+
 /**
- * P0.5 — a deadline, said in words: "Due 10 Oct 2026 · 3 days left", "Closed 25 Aug 2026",
- * "No deadline listed". Clock icon and time words; styled apart from venue risk.
+ * The canonical deadline indicator (DESIGN_SYSTEM.md §3.2 "DeadlineBadge"): a clock and words —
+ * "Due 9 Oct 2026 AoE · 3 days left", "Closed 25 Aug 2026", "No deadline listed". Orange only
+ * within 7 days, tinted within 48 hours; never styled like venue risk.
+ * `deadline-countdown deadline-<tone>` stay on the element as stable hooks for tests.
  */
-export function DeadlineCountdown({ deadline, daysRemaining, status, urgencyTier }: DeadlineCountdownProps) {
+export function DeadlineCountdown({ deadline, daysRemaining, status, urgencyTier, className }: DeadlineCountdownProps) {
   let days = daysRemaining ?? null;
   if (days === null && deadline) {
     const time = Date.parse(deadline);
@@ -40,9 +53,9 @@ export function DeadlineCountdown({ deadline, daysRemaining, status, urgencyTier
 
   const Icon = tone === "passed" ? History : tone === "unknown" ? CalendarX : Clock;
   return (
-    <span className={`deadline-countdown deadline-${tone}`}>
+    <span className={cx(styles.indicator, TONE_CLASS[tone], "deadline-countdown", `deadline-${tone}`, className)}>
       <Icon size={14} aria-hidden="true" />
-      <span>{text}</span>
+      <span className={styles.text}>{text}</span>
     </span>
   );
 }

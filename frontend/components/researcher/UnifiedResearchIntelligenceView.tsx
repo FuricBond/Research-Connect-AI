@@ -22,7 +22,6 @@ import {
   Layers,
   RefreshCw,
   Search,
-  ShieldAlert,
   ShieldCheck,
   Sparkles,
   Tag,
@@ -37,6 +36,8 @@ import {
   getUnifiedRecommendations,
   getUnifiedResearchIntelligence,
 } from "../../services/api";
+import { DeadlineCountdown } from "../research/DeadlineCountdown";
+import { RiskIndicator } from "../research/RiskIndicator";
 import { PreferenceMatchBadge } from "../personalization/PreferenceMatchBadge";
 import { PersonalizationScoreBadge } from "../personalization/PersonalizationScoreBadge";
 import { OpportunityInteractionBar } from "../personalization/OpportunityInteractionBar";
@@ -556,50 +557,17 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
 
                       {/* Metadata row: Deadline, Risk, Amount */}
                       <div className="flex items-center gap-4 mt-2.5 text-xs text-gray-500 flex-wrap">
+                        {/* Time left comes from the deadline instant: `days_remaining` here is floored
+                            to whole days, which would read 19 hours as "due within the hour". */}
                         {item.deadline && (
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                            <span>
-                              Deadline: {new Date(item.deadline).toLocaleDateString()}{" "}
-                              {item.days_remaining !== null && item.days_remaining !== undefined && (
-                                <span
-                                  className={
-                                    item.days_remaining < 14
-                                      ? "text-red-600 font-semibold"
-                                      : item.days_remaining < 30
-                                      ? "text-amber-600"
-                                      : "text-gray-500"
-                                  }
-                                >
-                                  ({item.days_remaining}d left)
-                                </span>
-                              )}
-                            </span>
-                          </div>
+                          <DeadlineCountdown
+                            deadline={item.deadline}
+                            status={item.deadline_status}
+                            urgencyTier={item.deadline_urgency}
+                          />
                         )}
 
-                        {item.risk_level && (
-                          <div className="flex items-center gap-1">
-                            {item.risk_level === "HIGH_RISK" ? (
-                              <ShieldAlert className="w-3.5 h-3.5 text-red-500" />
-                            ) : item.risk_level === "MODERATE_RISK" ? (
-                              <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
-                            ) : (
-                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                            )}
-                            <span
-                              className={
-                                item.risk_level === "HIGH_RISK"
-                                  ? "text-red-700 font-semibold"
-                                  : item.risk_level === "MODERATE_RISK"
-                                  ? "text-amber-700"
-                                  : "text-emerald-700"
-                              }
-                            >
-                              Risk: {item.risk_level.replace(/_/g, " ")}
-                            </span>
-                          </div>
-                        )}
+                        {item.risk_level && <RiskIndicator level={item.risk_level} />}
 
                         {item.amount_total && (
                           <div className="font-semibold text-gray-700">

@@ -8,7 +8,10 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { Button, IconButton } from "../components/ui/Button/Button";
 import { Checkbox, RadioGroup, Select, Switch, TextArea, TextInput } from "../components/ui/Field/Field";
+import { PriorityLabel, StatusBadge } from "../components/ui/Badge/Badge";
 import { PageHeader } from "../components/ui/PageHeader/PageHeader";
+import { MatchScore, matchBand } from "../components/research/MatchScore";
+import { applicationStatusMeta, postingStatusMeta, workspaceStatusMeta } from "../utils/status";
 
 describe("Button", () => {
   it("is a native button that defaults to type=button", () => {
@@ -103,5 +106,42 @@ describe("states", () => {
   it("gives a page exactly one h1", () => {
     render(<PageHeader title="Literature search" description="Find papers." />);
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+});
+
+describe("status semantics", () => {
+  it("shows words, never enum values", () => {
+    render(
+      <>
+        <StatusBadge meta={applicationStatusMeta("UNDER_REVIEW")} />
+        <StatusBadge meta={applicationStatusMeta("REJECTED")} />
+        <StatusBadge meta={workspaceStatusMeta("PLANNING")} />
+        <StatusBadge meta={postingStatusMeta("CANCELLED")} />
+        <StatusBadge meta={workspaceStatusMeta("SOMETHING_NEW")} />
+      </>
+    );
+    for (const word of ["Under review", "Not selected", "Planning", "Cancelled", "Something new"]) {
+      expect(screen.getByText(word)).toBeInTheDocument();
+    }
+    expect(document.body.textContent).not.toMatch(/[A-Z]{2,}_[A-Z]+/);
+  });
+
+  it("never colours a rejection as an error", () => {
+    expect(applicationStatusMeta("REJECTED").tone).not.toBe("danger");
+    expect(workspaceStatusMeta("REJECTED").tone).not.toBe("danger");
+  });
+
+  it("states priority as a word, not a colour", () => {
+    render(<PriorityLabel priority="HIGH" />);
+    expect(screen.getByText("High priority")).toBeInTheDocument();
+  });
+
+  it("presents a match as a band word with the exact value in text", () => {
+    render(<MatchScore score={0.62} />);
+    expect(screen.getByText(/Good match/)).toHaveTextContent("Good match · 62%");
+    expect(matchBand(71)).toBe("strong");
+    expect(matchBand(45)).toBe("good");
+    expect(matchBand(30)).toBe("partial");
+    expect(matchBand(10)).toBe("weak");
   });
 });

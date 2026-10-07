@@ -14,8 +14,8 @@ import Link from "next/link";
 import { AlertCircle, ArrowRight } from "lucide-react";
 import { RequireAuth } from "../../components/auth/RequireAuth";
 import { useSession } from "../../components/auth/SessionProvider";
-import { DeadlineCountdown } from "../../components/indicators/DeadlineCountdown";
-import { RiskIndicator } from "../../components/indicators/RiskIndicator";
+import { DeadlineCountdown } from "../../components/research/DeadlineCountdown";
+import { RiskIndicator } from "../../components/research/RiskIndicator";
 import {
   fetchMyApplicationSummary,
   fetchMyPostingSummary,

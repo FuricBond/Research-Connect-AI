@@ -38,8 +38,10 @@ import {
   X,
 } from "lucide-react";
 import { RequireAuth } from "../../components/auth/RequireAuth";
-import { DeadlineCountdown } from "../../components/indicators/DeadlineCountdown";
-import { RiskIndicator } from "../../components/indicators/RiskIndicator";
+import { DeadlineCountdown } from "../../components/research/DeadlineCountdown";
+import { RiskIndicator } from "../../components/research/RiskIndicator";
+import { PriorityLabel, StatusBadge } from "../../components/ui/Badge/Badge";
+import { workspaceStatusMeta } from "../../utils/status";
 import { humanizeEnum } from "../../utils/date";
 import { workspaceDeadline } from "../../utils/workspace";
 
@@ -227,42 +229,6 @@ function WorkspacePage() {
     }
   };
 
-  const getStatusBadgeClass = (status: WorkspaceStatus) => {
-    switch (status) {
-      case "SAVED":
-        return "status-badge-saved";
-      case "CONSIDERING":
-        return "status-badge-considering";
-      case "PLANNING":
-        return "status-badge-planning";
-      case "APPLIED":
-        return "status-badge-applied";
-      case "ACCEPTED":
-        return "status-badge-accepted";
-      case "REJECTED":
-        return "status-badge-rejected";
-      case "ARCHIVED":
-        return "status-badge-archived";
-      default:
-        return "";
-    }
-  };
-
-  const getPriorityBadgeClass = (priority: WorkspacePriority) => {
-    switch (priority) {
-      case "URGENT":
-        return "priority-urgent";
-      case "HIGH":
-        return "priority-high";
-      case "MEDIUM":
-        return "priority-medium";
-      case "LOW":
-        return "priority-low";
-      default:
-        return "";
-    }
-  };
-
   return (
     <div className="workspace-container">
       {/* ── Header ────────────────────────────────────────── */}
@@ -436,17 +402,9 @@ function WorkspacePage() {
                 <div className="workspace-card-top">
                   <div className="workspace-card-title-area">
                     <div className="workspace-card-badges">
-                      <span className={`workspace-status-badge ${getStatusBadgeClass(item.status)}`}>
-                        {humanizeEnum(item.status)}
-                      </span>
-                      <span className={`workspace-priority-badge ${getPriorityBadgeClass(item.priority)}`}>
-                        {humanizeEnum(item.priority)} priority
-                      </span>
-                      {item.archived_at && (
-                        <span className="workspace-status-badge status-badge-archived">
-                          Archived
-                        </span>
-                      )}
+                      <StatusBadge meta={workspaceStatusMeta(item.status)} />
+                      <PriorityLabel priority={item.priority} />
+                      {item.archived_at && item.status !== "ARCHIVED" && <StatusBadge meta={workspaceStatusMeta("ARCHIVED")} />}
                     </div>
 
                     <h2 className="workspace-card-title">

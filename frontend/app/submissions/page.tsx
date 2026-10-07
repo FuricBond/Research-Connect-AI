@@ -8,8 +8,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import "../../styles/workspace.css";
-import { AlertCircle, ArrowRight, Calendar, FileText, Loader2, RefreshCw } from "lucide-react";
+import { AlertCircle, ArrowRight, FileText, Loader2, RefreshCw } from "lucide-react";
 import { RequireAuth } from "../../components/auth/RequireAuth";
+import { DeadlineCountdown } from "../../components/research/DeadlineCountdown";
 import { fetchSubmissions, fetchSubmissionSummary } from "../../services/api";
 import type {
   ResearchSubmission,
@@ -168,12 +169,11 @@ function SubmissionsPage() {
                     <div className="workspace-card-meta">
                       <span>{submission.venue_name || submission.venue || submission.opportunity_title}</span>
                       {deadline?.submission_deadline && (
-                        <span>
-                          <Calendar size={13} /> Deadline {formatDate(deadline.submission_deadline)}
-                          {typeof deadline.days_remaining === "number" && deadline.days_remaining >= 0
-                            ? ` · ${Math.floor(deadline.days_remaining)} days left`
-                            : ""}
-                        </span>
+                        <DeadlineCountdown
+                          deadline={deadline.submission_deadline}
+                          daysRemaining={deadline.days_remaining}
+                          urgencyTier={deadline.urgency_tier}
+                        />
                       )}
                       <span>Updated {formatDate(submission.updated_at)}</span>
                     </div>

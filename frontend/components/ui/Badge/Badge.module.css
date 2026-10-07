@@ -1,0 +1,91 @@
+/* Badge and StatusBadge — DESIGN_SYSTEM.md §8.4. A short word (+ icon); never colour alone. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  max-width: 100%;
+  min-height: 1.375rem;
+  padding: 0 var(--rc-space-2);
+  border: var(--rc-border-width) solid transparent;
+  border-radius: var(--rc-radius-sm);
+  font-size: var(--rc-text-label-size);
+  line-height: var(--rc-text-label-lh);
+  font-weight: var(--rc-weight-semibold);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge svg {
+  flex-shrink: 0;
+}
+
+.neutral {
+  border-color: var(--rc-border-strong);
+  color: var(--rc-text-secondary);
+}
+
+.brand {
+  background: var(--rc-brand-subtle);
+  color: var(--rc-brand-text);
+}
+
+.brandStrong {
+  background: var(--rc-brand);
+  color: var(--rc-text-on-brand);
+}
+
+.info {
+  background: var(--rc-info-subtle);
+  color: var(--rc-info);
+}
+
+.success {
+  background: var(--rc-success-subtle);
+  color: var(--rc-success);
+}
+
+.warning {
+  background: var(--rc-warning-subtle);
+  color: var(--rc-warning);
+}
+
+.danger {
+  background: var(--rc-danger-subtle);
+  color: var(--rc-danger);
+}
+
+.muted {
+  border-color: var(--rc-border);
+  color: var(--rc-text-muted);
+}
+
+/* Priority: a level glyph of four bars plus the word. */
+.priority {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+}
+
+.bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 0.75rem;
+}
+
+.bar {
+  width: 3px;
+  border-radius: var(--rc-radius-xs);
+  background: var(--rc-border-strong);
+}
+
+.bar:nth-child(1) { height: 25%; }
+.bar:nth-child(2) { height: 50%; }
+.bar:nth-child(3) { height: 75%; }
+.bar:nth-child(4) { height: 100%; }
+
+.barOn {
+  background: var(--rc-text-secondary);
+}

@@ -12,6 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { CanonicalDeadlineView, DeadlineType } from "../../types/opportunity";
+import { describeTimeLeft } from "../../utils/date";
 
 interface DeadlineTimelineProps {
   milestoneViews: Record<string, CanonicalDeadlineView>;
@@ -109,14 +110,12 @@ function renderMilestoneItem(
     switch (ass.status) {
       case "UPCOMING":
         statusBadgeClass = `status-${ass.urgency_tier.toLowerCase()}`;
-        statusText = ass.days_remaining !== null && ass.days_remaining !== undefined
-          ? `${Math.round(ass.days_remaining)}d left`
-          : "Upcoming";
+        statusText = describeTimeLeft(ass.days_remaining) ?? "Upcoming";
         statusIcon = <Calendar size={14} />;
         break;
       case "DUE_TODAY":
         statusBadgeClass = "status-due-today";
-        statusText = ass.hours_remaining ? `${Math.round(ass.hours_remaining)}h left` : "Due today";
+        statusText = ass.hours_remaining ? describeTimeLeft(ass.hours_remaining / 24) ?? "Due today" : "Due today";
         statusIcon = <Clock size={14} />;
         break;
       case "EXPIRED":

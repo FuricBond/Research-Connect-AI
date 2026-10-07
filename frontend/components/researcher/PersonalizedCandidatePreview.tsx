@@ -17,11 +17,11 @@ import {
   Layers,
   MapPin,
   RefreshCw,
-  ShieldAlert,
-  ShieldCheck,
   Sparkles,
   Tag,
 } from "lucide-react";
+import { DeadlineCountdown } from "../research/DeadlineCountdown";
+import { RiskIndicator } from "../research/RiskIndicator";
 import type {
   CandidateSourceType,
   PersonalizedCandidateItem,
@@ -115,81 +115,6 @@ export function PersonalizedCandidatePreview({
           icon: <Layers className="w-3 h-3" />,
         };
     }
-  };
-
-  const getUrgencyBadge = (urgencyTier?: string | null, daysRemaining?: number | null) => {
-    if (!urgencyTier || urgencyTier === "UNKNOWN" || urgencyTier === "NONE") {
-      return null;
-    }
-    const daysStr =
-      daysRemaining !== null && daysRemaining !== undefined
-        ? ` (${daysRemaining > 0 ? Math.round(daysRemaining) : 0}d left)`
-        : "";
-
-    switch (urgencyTier) {
-      case "CRITICAL":
-      case "DUE_TODAY":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-950/80 text-red-300 border border-red-800">
-            <AlertTriangle className="w-3 h-3" />
-            {urgencyTier}
-            {daysStr}
-          </span>
-        );
-      case "URGENT":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-950/80 text-amber-300 border border-amber-800">
-            <AlertCircle className="w-3 h-3" />
-            {urgencyTier}
-            {daysStr}
-          </span>
-        );
-      case "APPROACHING":
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-yellow-950/80 text-yellow-300 border border-yellow-800">
-            <Calendar className="w-3 h-3" />
-            {urgencyTier}
-            {daysStr}
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
-            <Calendar className="w-3 h-3" />
-            {urgencyTier}
-            {daysStr}
-          </span>
-        );
-    }
-  };
-
-  const getRiskBadge = (
-    riskLevel?: string | null,
-    isPredatory?: boolean,
-    riskScore?: number | null
-  ) => {
-    if (isPredatory || riskLevel === "HIGH_RISK") {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-red-950/80 text-red-300 border border-red-800">
-          <ShieldAlert className="w-3 h-3 text-red-400" />
-          High Risk {riskScore !== null && riskScore !== undefined ? `(${riskScore.toFixed(2)})` : ""}
-        </span>
-      );
-    }
-    if (riskLevel === "MODERATE_RISK") {
-      return (
-        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-950/80 text-amber-300 border border-amber-800">
-          <AlertCircle className="w-3 h-3 text-amber-400" />
-          Moderate Risk
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-800">
-        <ShieldCheck className="w-3 h-3 text-emerald-400" />
-        Low Risk
-      </span>
-    );
   };
 
   return (
@@ -388,8 +313,13 @@ export function PersonalizedCandidatePreview({
                       <span className="px-2 py-0.5 text-xs rounded bg-slate-800/80 text-slate-400">
                         {opp.delivery_mode}
                       </span>
-                      {getUrgencyBadge(opp.urgency_tier, opp.days_remaining)}
-                      {getRiskBadge(opp.risk_level, opp.is_predatory_flag, opp.risk_score)}
+                      <DeadlineCountdown
+                        deadline={opp.submission_deadline}
+                        daysRemaining={opp.days_remaining}
+                        status={opp.deadline_status}
+                        urgencyTier={opp.urgency_tier}
+                      />
+                      <RiskIndicator level={opp.risk_level} isPredatory={opp.is_predatory_flag} />
                     </div>
                     <h3 className="text-base font-semibold text-white group-hover:text-indigo-300">
                       {opp.title}
@@ -510,7 +440,7 @@ export function PersonalizedCandidatePreview({
 
                     {opp.risk_reasons && opp.risk_reasons.length > 0 && (
                       <div className="pt-1 border-t border-slate-800">
-                        <span className="font-semibold text-slate-300">Venue risk: </span>
+                        <span className="font-semibold text-slate-700">Venue risk: </span>
                         <span className="text-slate-400">
                           {opp.risk_reasons.join("; ")}
                         </span>
