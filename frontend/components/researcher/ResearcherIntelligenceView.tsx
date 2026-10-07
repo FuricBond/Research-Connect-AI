@@ -123,11 +123,11 @@ export function ResearcherIntelligenceView({
         }}
       >
         <Brain size={36} color="var(--text-muted)" style={{ margin: "0 auto 12px auto" }} />
-        <h3 style={{ fontSize: "16px", fontWeight: 700, margin: "0 0 6px 0" }}>
+        <h2 style={{ fontSize: "16px", fontWeight: 700, margin: "0 0 6px 0" }}>
           No Research Intelligence Inferred Yet
-        </h3>
+        </h2>
         <p style={{ fontSize: "13px", color: "var(--text-muted)", margin: "0 0 16px 0", maxWidth: "500px", marginLeft: "auto", marginRight: "auto" }}>
-          Link an ORCID or OpenAlex author identifier above to automatically aggregate topics, publication signals, and expertise from your authored works.
+          Link an ORCID or OpenAlex author identifier in your Profile section to automatically aggregate topics, publication signals, and expertise from your authored works.
         </p>
       </div>
     );
@@ -363,6 +363,7 @@ export function ResearcherIntelligenceView({
       <div
         style={{
           display: "flex",
+          flexWrap: "wrap",
           gap: "8px",
           marginBottom: "16px",
           borderBottom: "1px solid var(--border-color)",

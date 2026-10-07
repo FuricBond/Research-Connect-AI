@@ -114,6 +114,15 @@ describe("indicators", () => {
     expect(container.firstElementChild).toHaveClass("deadline-soon");
   });
 
+  it("labels an Anywhere-on-Earth date, which is a day behind the instant the countdown uses", () => {
+    // How the backend stores a date-only call deadline: 23:59 AoE on 9 Oct is 11:59 UTC on 10 Oct.
+    const { container: aoe } = render(<DeadlineCountdown deadline="2026-10-10T11:59:59Z" daysRemaining={3.3} />);
+    expect(aoe.textContent).toMatch(/^Due (9 Oct 2026|Oct 9, 2026) AoE · 3 days left$/);
+
+    const { container: plain } = render(<DeadlineCountdown deadline="2026-10-10" daysRemaining={3.3} />);
+    expect(plain.textContent).not.toContain("AoE");
+  });
+
   it("says when there is no deadline instead of inventing urgency", () => {
     const { container } = render(<DeadlineCountdown deadline={null} />);
     expect(container.textContent).toBe("No deadline listed");
@@ -226,6 +235,32 @@ describe("workspace cards", () => {
     expect(card.textContent).not.toContain("INSUFFICIENT_EVIDENCE");
     expect(card.querySelector(".risk-unknown")?.textContent).toBe("Risk not assessed");
     expect(card.querySelector(".deadline-countdown")).not.toBeNull();
+  });
+
+  it("never turns a missing risk assessment into low risk", async () => {
+    // risk_score defaults to 0 in the database; without an assessment it is not evidence.
+    const unassessed: WorkspaceItem = {
+      ...item,
+      opportunity: { ...item.opportunity!, risk_explanation: null, risk_score: 0 },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((url: string) => {
+        if (url.endsWith("/api/v1/auth/me")) return Promise.resolve(jsonResponse(makeUser()));
+        if (url.includes("/api/v1/workspace")) return Promise.resolve(jsonResponse({ ...list, items: [unassessed] }));
+        return Promise.resolve(jsonResponse({ detail: `unexpected ${url}` }, 404));
+      })
+    );
+    const { container } = render(
+      <SessionProvider>
+        <WorkspacePageRoute />
+      </SessionProvider>
+    );
+
+    await screen.findByText("IEEE Conference on Machine Learning");
+    const card = container.querySelector(".workspace-card")!;
+    expect(card.querySelector(".risk-indicator")?.textContent).toBe("Risk not assessed");
+    expect(card.textContent).not.toContain("Low risk");
   });
 
   it("names statuses, priorities and transitions in words", async () => {

@@ -21,9 +21,13 @@ test("every signed-in page renders against the live API without contract errors"
 
   const pages: [string, RegExp][] = [
     ["/dashboard", /Welcome back/],
-    // P0: the profile is split into sections; interests are their own section.
+    // P0: the profile is split into sections, each loading only its own panels — so every
+    // section is opened here, as the single page used to load them all.
+    ["/researcher", /Authored Scholarly Works/],
     ["/researcher?section=interests", /Researcher Interest & Expertise Intelligence/],
     ["/researcher?section=recommendations", /Unified Evidence-Backed Recommendations/],
+    ["/researcher?section=personalization", /Personalization Controls & Transparency/],
+    ["/researcher?section=history", /Recommendation Feedback & Behavioral Learning/],
     // Opened directly, the paper-based tools explain themselves instead of dead-ending.
     ["/similar", /Similar Research/],
     ["/opportunities", /Opportunity Matcher/],

@@ -234,7 +234,7 @@ export function RecommendationHistoryView({
           </p>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
           <select
             aria-label="Ranking version"
             value={versionFilter}

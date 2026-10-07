@@ -106,6 +106,8 @@ describe("Similar Research without a selected paper", () => {
     expect(getSelectedWork()?.id).toBe(SAVED_WORK.id);
     expect(await screen.findByText(SAVED_WORK.title)).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Choose a paper to start" })).not.toBeInTheDocument();
+    // The button that picked it is gone: focus moves to the chosen paper, not to the page body.
+    await waitFor(() => expect(screen.getByRole("heading", { level: 2, name: SAVED_WORK.title })).toHaveFocus());
   });
 });
 
@@ -118,6 +120,8 @@ describe("Similar Research with a selected paper", () => {
     expect(await screen.findByRole("heading", { level: 1, name: "Similar Research" })).toBeInTheDocument();
     expect(screen.getByText(SAVED_WORK.title)).toBeInTheDocument();
     await waitFor(() => expect(paths).toContain(`/api/v1/discovery/research/${SAVED_WORK.id}/similar`));
+    // Focus moves only after a choice made on this page, never on arrival.
+    expect(screen.getByRole("heading", { level: 2, name: SAVED_WORK.title })).not.toHaveFocus();
   });
 });
 

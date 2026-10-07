@@ -67,6 +67,9 @@
 
 .profile-section-body {
   display: grid;
+  /* One column that never grows past the page: an implicit `auto` track widens to the widest
+     panel's min-content and made the sections scroll sideways on phones. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 36px;
   padding-bottom: 40px;
   min-width: 0;

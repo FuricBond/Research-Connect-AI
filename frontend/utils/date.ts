@@ -5,6 +5,17 @@
  * timestamps roll backward or forward across calendar days due to local browser timezone offsets.
  */
 
+/** An AoE deadline as the backend stores it: 23:59:59 AoE is 11:59:59 UTC the next day. */
+const AOE_DEADLINE = /^(\d{4})-(\d{2})-(\d{2})T1[12]:(?:59|00)/;
+
+/**
+ * Whether `formatDeadlineDate` shows this deadline as an Anywhere-on-Earth calendar date (the
+ * day before its UTC date), so the date can be labelled "AoE" next to a live countdown.
+ */
+export function isAoeDeadline(iso: string | null | undefined): boolean {
+  return !!iso && AOE_DEADLINE.test(iso);
+}
+
 export function formatDeadlineDate(
   iso: string | null | undefined,
   locale?: string,
@@ -21,7 +32,7 @@ export function formatDeadlineDate(
 
   // Case 1: AoE deadline normalized to 11:59:59 UTC on the subsequent calendar day
   // e.g. "2026-08-23T11:59:59..." represents 23:59:59 AoE on calendar date 2026-08-22
-  const aoeMatch = /^(\d{4})-(\d{2})-(\d{2})T1[12]:(?:59|00)/.exec(iso);
+  const aoeMatch = AOE_DEADLINE.exec(iso);
   if (aoeMatch) {
     const [, y, m, d] = aoeMatch;
     const utcInstant = new Date(Date.UTC(Number(y), Number(m) - 1, Number(d)));

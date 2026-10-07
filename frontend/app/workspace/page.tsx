@@ -427,15 +427,9 @@ function WorkspacePage() {
             const opp = item.opportunity;
             const venueOrOrg = opp?.publisher || opp?.organizer;
             const deadline = workspaceDeadline(opp);
-            const riskLevel =
-              opp?.risk_explanation?.risk_level ||
-              (opp?.risk_score !== null && opp?.risk_score !== undefined
-                ? opp.risk_score > 0.6
-                  ? "HIGH_RISK"
-                  : opp.risk_score > 0.3
-                  ? "MODERATE_RISK"
-                  : "LOW_RISK"
-                : null);
+            // Only an assessment says how risky a venue is. Without one the card says "Risk not
+            // assessed": the stored risk_score defaults to 0, which is not evidence of low risk.
+            const riskLevel = opp?.risk_explanation?.risk_level ?? null;
 
             return (
               <div key={item.id} className="workspace-card">

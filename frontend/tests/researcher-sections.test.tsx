@@ -6,9 +6,11 @@
  * Personalization or History and feedback; every panel is still reachable.
  */
 
+import fs from "node:fs";
+import path from "node:path";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 let search = new URLSearchParams();
 vi.mock("next/navigation", () => ({
@@ -18,7 +20,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 // The panels are tested elsewhere; here they only show which ones a section mounts.
-const { stubModule } = vi.hoisted(() => ({
+const { stubModule, profileStub } = vi.hoisted(() => ({
   stubModule: (exportName: string, label: string) => async () => {
     const { createElement } = await import("react");
     return {
@@ -26,8 +28,21 @@ const { stubModule } = vi.hoisted(() => ({
         createElement("div", { "data-testid": "panel" }, label + (props.view ? `:${props.view}` : "")),
     };
   },
+  // The profile panel can also report a saved edit, as the real one does after a PATCH.
+  profileStub: async () => {
+    const { createElement, Fragment } = await import("react");
+    return {
+      ResearcherProfileView: (props: { profile: unknown; onProfileUpdated?: (profile: unknown) => void }) =>
+        createElement(
+          Fragment,
+          null,
+          createElement("div", { "data-testid": "panel" }, "profile"),
+          createElement("button", { type: "button", onClick: () => props.onProfileUpdated?.(props.profile) }, "Save profile")
+        ),
+    };
+  },
 }));
-vi.mock("../components/researcher/ResearcherProfileView", stubModule("ResearcherProfileView", "profile"));
+vi.mock("../components/researcher/ResearcherProfileView", profileStub);
 vi.mock("../components/researcher/ResearcherIntelligenceView", stubModule("ResearcherIntelligenceView", "intelligence"));
 vi.mock("../components/researcher/ResearcherPreferencesView", stubModule("ResearcherPreferencesView", "preferences"));
 vi.mock("../components/researcher/UnifiedResearchIntelligenceView", stubModule("UnifiedResearchIntelligenceView", "unified"));
@@ -43,13 +58,16 @@ import { clearActiveIdentity, storeSession } from "../services/auth";
 import { PROFILE_ID, USER_ID, jsonResponse, makeTokenResponse, makeUser } from "./factories";
 
 let paths: string[] = [];
+let urls: string[] = [];
 
 beforeEach(() => {
   paths = [];
+  urls = [];
   storeSession(makeTokenResponse());
   vi.stubGlobal(
     "fetch",
     vi.fn((url: string) => {
+      urls.push(url.replace(/^https?:\/\/[^/]+/, ""));
       const path = url.replace(/^https?:\/\/[^/]+/, "").split("?")[0];
       paths.push(path);
       if (path === "/api/v1/auth/me") return Promise.resolve(jsonResponse(makeUser()));
@@ -107,6 +125,18 @@ describe("researcher profile sections", () => {
     expect(await renderSection("history")).toEqual(["feedback", "history"]);
   });
 
+  it("recomputes the research interests right after a profile edit, as before the split", async () => {
+    // The interests (and the recommendations built on them) are inferred from the profile; a
+    // plain read would return the interests persisted before the edit.
+    await renderSection();
+    await waitFor(() => expect(paths).toContain(`/api/v1/researchers/${PROFILE_ID}`));
+    fireEvent.click(screen.getByRole("button", { name: "Save profile" }));
+    await waitFor(() =>
+      expect(urls).toContain(`/api/v1/researchers/${PROFILE_ID}/research-intelligence?refresh=true`)
+    );
+    expect(urls.filter((url) => url.includes("research-intelligence"))).toHaveLength(1);
+  });
+
   it("falls back to the profile for an unknown section", async () => {
     expect(await renderSection("nonsense")).toEqual(["profile"]);
   });
@@ -123,5 +153,16 @@ describe("researcher profile sections", () => {
       "/researcher?section=personalization",
       "/researcher?section=history",
     ]);
+  });
+});
+
+describe("profile section styles", () => {
+  it("keeps a section's single column within the page", () => {
+    // An implicit `auto` grid track grows to the widest panel's min-content: the sections
+    // scrolled sideways by up to 551px on phones until the column was capped.
+    const css = fs.readFileSync(path.join(__dirname, "../styles/profile.css"), "utf8");
+    const start = css.indexOf(".profile-section-body {");
+    expect(start).toBeGreaterThanOrEqual(0);
+    expect(css.slice(start, css.indexOf("}", start))).toMatch(/grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   });
 });

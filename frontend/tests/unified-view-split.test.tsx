@@ -14,6 +14,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+import { ResearcherIntelligenceView } from "../components/researcher/ResearcherIntelligenceView";
 import { UnifiedResearchIntelligenceView } from "../components/researcher/UnifiedResearchIntelligenceView";
 import { clearActiveIdentity, storeSession } from "../services/auth";
 import { PROFILE_ID, USER_ID, jsonResponse, makeTokenResponse } from "./factories";
@@ -82,5 +83,16 @@ describe("UnifiedResearchIntelligenceView parts", () => {
     expect(container.textContent).not.toMatch(/Phase \d/);
     expect(container.textContent).not.toContain("UNKNOWN");
     expect(container.textContent).toContain("4 stated · 0 inferred");
+  });
+});
+
+describe("Research interests section", () => {
+  it("puts its empty state one level under the section's h1, and points to the Profile section", () => {
+    // Alone in its section, the view follows the page's h1; an h3 here skipped a level.
+    render(
+      <ResearcherIntelligenceView intelligence={null} loading={false} error={null} onRefresh={() => undefined} isRefreshing={false} />
+    );
+    expect(screen.getByRole("heading", { name: "No Research Intelligence Inferred Yet" }).tagName).toBe("H2");
+    expect(screen.getByText(/in your Profile section/)).toBeInTheDocument();
   });
 });

@@ -294,9 +294,13 @@ function ResearcherPage() {
   };
 
   const handleProfileUpdated = (updated: ResearcherProfile) => {
-    // Intelligence, preferences and candidates depend on the profile: each section reloads
-    // its data when it is next opened.
+    // An edit changes what the research interests are inferred from, so they are recomputed
+    // now (refresh=true), as before the page was split: the interests and the recommendations
+    // built on them stay current even if the interests section is never opened. Preferences
+    // and candidates reload when their section is next opened.
     requested.current.clear();
+    requested.current.add("intelligence");
+    loadIntelligence(updated.id, true);
     setProfile(updated);
   };
 

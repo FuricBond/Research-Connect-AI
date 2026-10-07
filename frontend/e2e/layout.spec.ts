@@ -10,7 +10,13 @@ import { DEMO, DEMO_PASSWORD, signInThroughTheForm, watch } from "./support";
  * narrow screens. A failure here names the page and width.
  */
 const WIDTHS = [1440, 1280, 1024, 768, 390, 360, 320];
-const PAGES = ["/dashboard", "/", "/workspace", "/reading-list", "/calendar", "/notifications", "/postings", "/researcher", "/similar", "/browse"];
+const PAGES = [
+  "/dashboard", "/", "/workspace", "/reading-list", "/calendar", "/notifications", "/postings", "/similar", "/browse",
+  // Every profile section: each has its own panels, and a section's grid once outgrew the page.
+  "/researcher", "/researcher?section=interests", "/researcher?section=recommendations",
+  "/researcher?section=personalization", "/researcher?section=history", "/researcher/preferences",
+  "/settings/notifications",
+];
 
 /** Every destination a signed-in student has (utils/navigation.ts). */
 const STUDENT_DESTINATIONS = [

@@ -101,8 +101,19 @@ export function SimilarResearchPage() {
   };
 
   // A paper picked on this page (P0.7) is remembered for the session like one picked in search.
+  // The button that picked it disappears, so focus moves to the chosen paper's title.
+  const paperHeading = useRef<HTMLHeadingElement>(null);
+  const focusPaperHeading = useRef(false);
+  useEffect(() => {
+    if (selectedWork && focusPaperHeading.current) {
+      focusPaperHeading.current = false;
+      paperHeading.current?.focus();
+    }
+  }, [selectedWork]);
+
   const chooseWork = (work: ResearchWorkRead) => {
     rememberSelectedWork(work);
+    focusPaperHeading.current = true;
     setSelectedWork(work);
     fetchSimilar(work.id, filters);
   };
@@ -138,7 +149,9 @@ export function SimilarResearchPage() {
           <BookOpen size={14} />
           <span>Source Reference Work</span>
         </div>
-        <h2 className="source-hero-title">{selectedWork.title}</h2>
+        <h2 className="source-hero-title" ref={paperHeading} tabIndex={-1}>
+          {selectedWork.title}
+        </h2>
         {selectedWork.abstract && (
           <p className="source-hero-abstract">{selectedWork.abstract}</p>
         )}

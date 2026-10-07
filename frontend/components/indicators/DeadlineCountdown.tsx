@@ -1,5 +1,5 @@
 import { CalendarX, Clock, History } from "lucide-react";
-import { deadlineTone, describeTimeLeft, formatDeadlineDate } from "../../utils/date";
+import { deadlineTone, describeTimeLeft, formatDeadlineDate, isAoeDeadline } from "../../utils/date";
 
 interface DeadlineCountdownProps {
   /** The deadline as the API gives it (ISO datetime or date). */
@@ -24,7 +24,9 @@ export function DeadlineCountdown({ deadline, daysRemaining, status, urgencyTier
     if (!Number.isNaN(time)) days = (time - Date.now()) / MS_PER_DAY;
   }
   const tone = deadline ? deadlineTone(days, status, urgencyTier) : "unknown";
-  const date = deadline ? formatDeadlineDate(deadline) : null;
+  // An AoE date is a day behind the UTC instant the countdown measures to, so it says "AoE"
+  // (as the call badges say "UTC" or "AoE"): "Due 7 Oct 2026 AoE · 1 day left".
+  const date = deadline ? `${formatDeadlineDate(deadline)}${isAoeDeadline(deadline) ? " AoE" : ""}` : null;
 
   let text: string;
   if (tone === "unknown" || !date) {

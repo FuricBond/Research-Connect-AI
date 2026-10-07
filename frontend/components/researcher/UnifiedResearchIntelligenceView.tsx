@@ -454,7 +454,7 @@ export const UnifiedResearchIntelligenceView: React.FC<UnifiedResearchIntelligen
             </p>
           </div>
 
-          <form onSubmit={handleSearch} className="flex items-center gap-2">
+          <form onSubmit={handleSearch} className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input

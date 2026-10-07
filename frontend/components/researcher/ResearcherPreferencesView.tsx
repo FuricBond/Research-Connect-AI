@@ -376,7 +376,7 @@ export function ResearcherPreferencesView({
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
           {summary && (
             <div
               style={{
@@ -542,7 +542,7 @@ export function ResearcherPreferencesView({
       )}
 
       {/* Grid of Preferences */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(320px, 100%), 1fr))", gap: "24px" }}>
         {/* Opportunity Types */}
         <div
           style={{
@@ -920,7 +920,7 @@ export function ResearcherPreferencesView({
         </div>
 
         {inferredPrefs.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px", marginTop: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(280px, 100%), 1fr))", gap: "12px", marginTop: "16px" }}>
             {inferredPrefs.map((pref) => (
               <div
                 key={pref.id}

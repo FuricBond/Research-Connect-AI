@@ -713,7 +713,7 @@ function ResearcherPreferencesPage() {
       </div>
 
       {/* Grid of Preference Modules */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: "24px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(360px, 100%), 1fr))", gap: "24px" }}>
         
         {/* Module 1: Opportunity Types (3-State) */}
         <div
@@ -926,6 +926,7 @@ function ResearcherPreferencesPage() {
               disabled={isSaving}
               style={{
                 flex: 1,
+                minWidth: 0,
                 padding: "8px 12px",
                 borderRadius: "var(--radius-sm)",
                 border: "1px solid var(--border-color)",
@@ -1007,6 +1008,7 @@ function ResearcherPreferencesPage() {
                 disabled={isSaving}
                 style={{
                   flex: 1,
+                  minWidth: 0,
                   padding: "6px 10px",
                   borderRadius: "var(--radius-sm)",
                   border: "1px solid var(--border-color)",
@@ -1109,6 +1111,7 @@ function ResearcherPreferencesPage() {
               disabled={isSaving}
               style={{
                 flex: 1,
+                minWidth: 0,
                 padding: "8px 12px",
                 borderRadius: "var(--radius-sm)",
                 border: "1px solid var(--border-color)",
@@ -1195,6 +1198,7 @@ function ResearcherPreferencesPage() {
                 onChange={(e) => setMinFunding(e.target.value)}
                 style={{
                   flex: 1,
+                  minWidth: 0,
                   padding: "8px 12px",
                   borderRadius: "var(--radius-sm)",
                   border: "1px solid var(--border-color)",
