@@ -8,10 +8,23 @@ import { beforeAll, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { Button, IconButton } from "../components/ui/Button/Button";
 import { Checkbox, RadioGroup, Select, Switch, TextArea, TextInput } from "../components/ui/Field/Field";
+import { Dialog, Drawer } from "../components/ui/Dialog/Dialog";
 import { PriorityLabel, StatusBadge } from "../components/ui/Badge/Badge";
 import { PageHeader } from "../components/ui/PageHeader/PageHeader";
 import { MatchScore, matchBand } from "../components/research/MatchScore";
 import { applicationStatusMeta, postingStatusMeta, workspaceStatusMeta } from "../utils/status";
+
+// jsdom has <dialog> but not showModal()/close(): give it the browser's behaviour.
+beforeAll(() => {
+  const proto = HTMLDialogElement.prototype as HTMLDialogElement & { showModal?: () => void; close?: () => void };
+  proto.showModal = function showModal(this: HTMLDialogElement) {
+    this.setAttribute("open", "");
+  };
+  proto.close = function close(this: HTMLDialogElement) {
+    this.removeAttribute("open");
+    this.dispatchEvent(new Event("close"));
+  };
+});
 
 describe("Button", () => {
   it("is a native button that defaults to type=button", () => {
@@ -99,6 +112,48 @@ describe("form fields", () => {
     expect(control).toHaveAccessibleDescription("Sent the day before a deadline.");
     fireEvent.click(control);
     expect(control).toHaveAttribute("aria-checked", "true");
+  });
+});
+
+function DialogHarness({ kind }: { kind: "dialog" | "drawer" }) {
+  const [open, setOpen] = useState(false);
+  const Surface = kind === "dialog" ? Dialog : Drawer;
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)}>
+        Open details
+      </button>
+      <Surface open={open} onClose={() => setOpen(false)} title="Why this result?" description="How it was ranked.">
+        <button type="button">Inside</button>
+      </Surface>
+    </>
+  );
+}
+
+describe.each(["dialog", "drawer"] as const)("%s", (kind) => {
+  it("is named by its title, takes focus, closes on Escape and returns focus", () => {
+    render(<DialogHarness kind={kind} />);
+    const trigger = screen.getByRole("button", { name: "Open details" });
+    trigger.focus();
+    fireEvent.click(trigger);
+
+    const surface = screen.getByRole("dialog", { name: "Why this result?" });
+    expect(surface).toHaveAccessibleDescription("How it was ranked.");
+    expect(screen.getByRole("heading", { name: "Why this result?" })).toHaveFocus();
+    expect(document.documentElement.style.overflow).toBe("hidden");
+
+    // Escape fires the dialog's `cancel` event.
+    fireEvent(surface, new Event("cancel", { cancelable: true }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+    expect(document.documentElement.style.overflow).toBe("");
+  });
+
+  it("closes from its named close button", () => {
+    render(<DialogHarness kind={kind} />);
+    fireEvent.click(screen.getByRole("button", { name: "Open details" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import type { RecommendationExplanation } from "../../types/researcher";
 import {
   AlertTriangle,
@@ -10,8 +10,6 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Clock,
-  HelpCircle,
   History,
   Info,
   Shield,
@@ -19,8 +17,9 @@ import {
   Sparkles,
   TrendingDown,
   TrendingUp,
-  X,
 } from "lucide-react";
+import { Button } from "../ui/Button/Button";
+import { Dialog } from "../ui/Dialog/Dialog";
 
 interface RecommendationExplanationModalProps {
   isOpen: boolean;
@@ -41,18 +40,6 @@ export function RecommendationExplanationModal({
 }: RecommendationExplanationModalProps) {
   const [showDiagnosticScores, setShowDiagnosticScores] = useState<boolean>(false);
 
-  // Close on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
 
   const getStrengthBadge = (strength: string) => {
     switch (strength) {
@@ -97,90 +84,24 @@ export function RecommendationExplanationModal({
     explanation?.trust_status?.toLowerCase().includes("risk");
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="explanation-modal-title"
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.6)",
-        backdropFilter: "blur(4px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 9999,
-        padding: "16px",
-      }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      title={opportunityTitle || "Recommended opportunity"}
+      description={
+        <>
+          {explanation?.is_historical ? "Why this was recommended" : "Why this is recommended"}
+          {organization ? ` · ${organization}` : ""}
+        </>
+      }
+      size="lg"
+      footer={
+        <Button variant="secondary" onClick={onClose}>
+          Close
+        </Button>
+      }
     >
-      <div
-        style={{
-          background: "var(--bg-card, #ffffff)",
-          border: "1px solid var(--border-color, #e2e8f0)",
-          borderRadius: "var(--radius-lg, 12px)",
-          width: "100%",
-          maxWidth: "680px",
-          maxHeight: "90vh",
-          display: "flex",
-          flexDirection: "column",
-          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-          overflow: "hidden",
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            padding: "18px 24px",
-            borderBottom: "1px solid var(--border-color, #e2e8f0)",
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            background: "var(--bg-card-header, #f8fafc)",
-          }}
-        >
-          <div style={{ flex: 1, paddingRight: "16px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-              <HelpCircle size={18} color="var(--primary, #2563eb)" />
-              <h3
-                id="explanation-modal-title"
-                style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--text-main, #0f172a)" }}
-              >
-                {explanation?.is_historical ? "Why Was This Recommended?" : "Why This Recommendation?"}
-              </h3>
-            </div>
-            <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-main, #334155)", marginTop: "2px" }}>
-              {opportunityTitle || `Opportunity ${explanation?.opportunity_id.slice(0, 8)}`}
-            </div>
-            {organization && (
-              <div style={{ fontSize: "12px", color: "var(--text-muted, #64748b)" }}>
-                {organization}
-              </div>
-            )}
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Close dialog"
-            style={{
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              padding: "6px",
-              borderRadius: "6px",
-              color: "var(--text-muted, #64748b)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div style={{ padding: "20px 24px", overflowY: "auto", flex: 1 }}>
+        <div>
           {loading ? (
             <div style={{ padding: "40px", textAlign: "center", color: "var(--text-muted)" }}>
               <div style={{ marginBottom: "8px" }}>Loading ranking explanation...</div>
@@ -529,33 +450,6 @@ export function RecommendationExplanationModal({
           )}
         </div>
 
-        {/* Footer */}
-        <div
-          style={{
-            padding: "12px 24px",
-            borderTop: "1px solid var(--border-color, #e2e8f0)",
-            display: "flex",
-            justifyContent: "flex-end",
-            background: "var(--bg-card-header, #f8fafc)",
-          }}
-        >
-          <button
-            onClick={onClose}
-            style={{
-              padding: "7px 16px",
-              fontSize: "13px",
-              fontWeight: 600,
-              borderRadius: "6px",
-              border: "1px solid var(--border-color, #cbd5e1)",
-              background: "var(--bg-card, #ffffff)",
-              color: "var(--text-main, #334155)",
-              cursor: "pointer",
-            }}
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }

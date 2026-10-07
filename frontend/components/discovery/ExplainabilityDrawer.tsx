@@ -26,6 +26,7 @@ import type { ExplanationSchema } from "../../types/discovery";
 import type { DeadlineObservation, OpportunityDeadline, RiskExplanation } from "../../types/opportunity";
 import type { UnifiedOpportunityIntelligence } from "../../types/research_intelligence";
 import { DeadlineTimeline } from "./DeadlineTimeline";
+import { Drawer } from "../ui/Dialog/Dialog";
 import { describeTimeLeft, humanizeEnum } from "../../utils/date";
 import { riskPresentation } from "../../utils/risk";
 import { RiskIndicator } from "../research/RiskIndicator";
@@ -89,19 +90,6 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
     }
   }, [isOpen, initialTab, explanation, riskExplanation, deadlineExplanation, unifiedIntelligence]);
 
-  // Handle ESC key to close drawer
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
   const contributions = Object.values(explanation?.signal_contributions || {});
   const totalContribution = contributions.reduce((sum, c) => sum + c.contribution, 0) || 1.0;
   const sb = explanation?.score_breakdown;
@@ -114,42 +102,18 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
   const hasUnified = Boolean(unifiedIntelligence);
   const isOpp = entityType === "opportunity" || hasRisk || hasDeadline || hasUnified;
 
-  return (
-    <div className="drawer-overlay" onClick={onClose} role="dialog" aria-modal="true">
-      <div
-        className="drawer-content"
-        onClick={(e) => e.stopPropagation()}
-        tabIndex={-1}
-      >
-        {/* Drawer Header */}
-        <div className="drawer-header">
-          <div>
-            <div className="drawer-eyebrow">
-              <Sparkles size={14} />
-              <span>
-                {activeTab === "unified"
-                  ? "Unified Multi-Tier Research Intelligence (Phase 4.7)"
-                  : activeTab === "deadline"
-                  ? "Academic Deadlines & Milestone Intelligence (Phase 2.7F)"
-                  : activeTab === "risk"
-                  ? "Trust & Publication Integrity (Phase 2.6F)"
-                  : "Ranking Explainability & Evidence (Phase 2.5F)"}
-              </span>
-            </div>
-            <h2 className="drawer-title" title={entityTitle}>
-              {entityTitle}
-            </h2>
-          </div>
-          <button
-            type="button"
-            className="drawer-close-btn"
-            onClick={onClose}
-            aria-label="Close explainability drawer"
-          >
-            <X size={20} />
-          </button>
-        </div>
+  // What the open tab explains, in plain words (no internal phase labels).
+  const subtitle =
+    activeTab === "unified"
+      ? "The evidence behind this match"
+      : activeTab === "deadline"
+      ? "Deadlines and milestones"
+      : activeTab === "risk"
+      ? "Venue trust and publication integrity"
+      : "Why this result ranks where it does";
 
+  return (
+    <Drawer open={isOpen} onClose={onClose} title={entityTitle} description={subtitle} size="lg" className="explainability-drawer">
         {/* Tab Navigation (for opportunities with trust/risk/deadline/unified data) */}
         {isOpp && (hasRisk || hasDeadline || hasUnified) && (
           <div className="drawer-tabs-bar" role="tablist">
@@ -224,7 +188,7 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
                   }`}
                 >
                   {deadlineExplanation?.has_extension
-                    ? "EXTENDED"
+                    ? "Extended"
                     : deadlineExplanation?.has_conflict
                     ? "DISPUTED"
                     : deadlineExplanation?.overall_urgency_tier ||
@@ -1193,8 +1157,6 @@ export const ExplainabilityDrawer: React.FC<ExplainabilityDrawerProps> = ({
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </Drawer>
   );
 };
-

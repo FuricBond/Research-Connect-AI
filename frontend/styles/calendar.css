@@ -391,13 +391,6 @@
 
 .event-chip.status-CONFLICT {
   border-left-color: var(--rc-danger) !important;
-  animation: pulse-border 2s infinite;
-}
-
-@keyframes pulse-border {
-  0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); }
-  70% { box-shadow: 0 0 0 4px rgba(220, 38, 38, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
 }
 
 /* ── Agenda View ─────────────────────────────────────────────────────────── */

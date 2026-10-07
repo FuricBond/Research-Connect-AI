@@ -13,6 +13,8 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { Button } from "../ui/Button/Button";
+import { Dialog } from "../ui/Dialog/Dialog";
 import { fetchRecommendationPersonalizationExplanation } from "../../services/api";
 import type {
   PersonalizationFactor,
@@ -76,8 +78,6 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
-
   const getImpactBadge = (impact: PersonalizationImpact) => {
     switch (impact) {
       case "STRONG_PERSONALIZATION":
@@ -125,37 +125,19 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div
-        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 p-6 text-gray-900 dark:text-gray-100"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="why-modal-title"
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between pb-4 border-b border-gray-200 dark:border-gray-800">
-          <div>
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-              <h2 id="why-modal-title" className="text-xl font-bold tracking-tight">
-                Why This Recommendation?
-              </h2>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Transparent, deterministic explanation of how your preferences and signals shaped this result.
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Content Body */}
-        <div className="mt-4 space-y-5">
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      title="Why this recommendation?"
+      description="How your preferences and activity shaped this result."
+      size="lg"
+      footer={
+        <Button variant="secondary" onClick={onClose}>
+          Close
+        </Button>
+      }
+    >
+        <div className="space-y-5">
           {isLoading && (
             <div className="flex flex-col items-center justify-center py-12 text-gray-500">
               <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400 mb-2" />
@@ -168,7 +150,7 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
               <p className="font-semibold flex items-center gap-1.5">
                 <AlertCircle className="w-4 h-4" /> Error loading explanation
               </p>
-              <p className="mt-1">{error}</p>
+              <p className="mt-1">The explanation is not available right now. Try again in a moment.</p>
             </div>
           )}
 
@@ -292,25 +274,18 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
               </div>
 
               {/* Footer Metadata */}
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-800 flex flex-wrap items-center justify-between text-[11px] text-gray-400">
-                <span>Governance State: <strong>{data.governance_state}</strong></span>
-                <span>Personalization Version: <strong>v{data.personalization_state_version}</strong></span>
-                <span>Algorithm: <strong>v{data.algorithm_version}</strong></span>
-              </div>
+              <details className="pt-2 border-t border-gray-200 text-xs text-gray-500">
+                <summary className="cursor-pointer">Technical details</summary>
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+                  <span>Governance state: <strong>{data.governance_state}</strong></span>
+                  <span>Personalization version: <strong>v{data.personalization_state_version}</strong></span>
+                  <span>Algorithm: <strong>v{data.algorithm_version}</strong></span>
+                </div>
+              </details>
             </>
           )}
         </div>
 
-        {/* Action Button */}
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
+    </Dialog>
   );
 };

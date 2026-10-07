@@ -2361,81 +2361,12 @@ h2 {
 
 /* ── Explainability Drawer (Slide-Over) ────────────────────────────────────── */
 
-.drawer-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(2px);
-  z-index: 100;
-  display: flex;
-  justify-content: flex-end;
-  animation: fadeIn 0.2s ease-out;
-}
 
-.drawer-content {
-  width: 100%;
-  max-width: 540px;
-  background: #ffffff;
-  height: 100vh;
-  overflow-y: auto;
-  box-shadow: var(--shadow-drawer);
-  display: flex;
-  flex-direction: column;
-  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
 
-.drawer-header {
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  background: #ffffff;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
 
-.drawer-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: var(--primary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 4px;
-}
 
-.drawer-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 0;
-  line-height: 1.35;
-}
 
-.drawer-close-btn {
-  background: transparent;
-  border: 0;
-  color: var(--text-subtle);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  transition: all 0.15s ease;
-}
 
-.drawer-close-btn:hover {
-  background: var(--bg-muted);
-  color: var(--text-main);
-}
 
 .drawer-body {
   padding: 24px;
@@ -2694,15 +2625,7 @@ h2 {
 
 /* ── Animations ────────────────────────────────────────────────────────────── */
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
 
-@keyframes slideIn {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
 
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -2876,9 +2799,6 @@ h2 {
     justify-content: center;
   }
 
-  .drawer-content {
-    max-width: 100%;
-  }
 
   .strengths-limitations-grid {
     grid-template-columns: 1fr;

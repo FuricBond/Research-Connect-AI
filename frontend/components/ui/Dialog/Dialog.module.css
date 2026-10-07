@@ -1,0 +1,119 @@
+/* Dialog and Drawer — DESIGN_SYSTEM.md §8.3. Native <dialog> in the top layer. */
+.dialog {
+  max-width: min(var(--dialog-width, 30rem), calc(100vw - 2 * var(--rc-space-4)));
+  max-height: calc(100dvh - 2 * var(--rc-space-8));
+  width: 100%;
+  padding: 0;
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-xl);
+  background: var(--rc-surface-raised);
+  color: var(--rc-text);
+  box-shadow: var(--rc-shadow-dialog);
+  overflow: hidden;
+}
+
+.dialog[open] {
+  display: flex;
+  flex-direction: column;
+  animation: dialog-in var(--rc-duration-base) var(--rc-ease-enter);
+}
+
+.dialog::backdrop {
+  background: var(--rc-overlay);
+}
+
+.sm { --dialog-width: 25rem; }
+.md { --dialog-width: 30rem; }
+.lg { --dialog-width: 45rem; }
+
+/* Drawer: a side sheet at the right edge; a full-screen sheet on phones. */
+.drawer {
+  margin: 0 0 0 auto;
+  height: 100dvh;
+  max-height: 100dvh;
+  max-width: min(var(--dialog-width, 30rem), 100vw);
+  border-width: 0 0 0 var(--rc-border-width);
+  border-radius: 0;
+}
+
+.drawer[open] {
+  animation-name: drawer-in;
+}
+
+.drawer.lg {
+  --dialog-width: 40rem;
+}
+
+@media (max-width: 767px) {
+  .drawer {
+    max-width: 100vw;
+    border-width: 0;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--rc-space-3);
+  padding: var(--rc-space-4) var(--rc-space-4) var(--rc-space-3) var(--rc-space-5);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+}
+
+.titles {
+  min-width: 0;
+  padding-top: var(--rc-space-1);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.title:focus {
+  outline: none;
+}
+
+.description {
+  margin: var(--rc-space-1) 0 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-muted);
+}
+
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: var(--rc-space-5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--rc-space-2);
+  padding: var(--rc-space-3) var(--rc-space-5);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+  background: var(--rc-surface);
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--rc-space-1));
+  }
+}
+
+@keyframes drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--rc-space-6));
+  }
+}
