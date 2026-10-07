@@ -32,3 +32,49 @@
 .skeletonRow + .skeletonRow {
   border-top: var(--rc-border-width) solid var(--rc-border);
 }
+
+/* Empty and error states: a short, centred-left block — not a hero. */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--rc-space-2);
+  padding: var(--rc-space-6) var(--rc-space-5);
+  border: var(--rc-border-width) dashed var(--rc-border-strong);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+  min-width: 0;
+}
+
+.bare {
+  padding: var(--rc-space-2) 0;
+  border: 0;
+  background: none;
+}
+
+.stateIcon {
+  color: var(--rc-text-muted);
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.stateText {
+  margin: 0;
+  max-width: var(--rc-measure);
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  color: var(--rc-text-secondary);
+}
+
+.stateActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+  margin-top: var(--rc-space-2);
+}

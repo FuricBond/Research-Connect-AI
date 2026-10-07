@@ -7,6 +7,11 @@ import { useSession } from "../auth/SessionProvider";
 import { fetchReadingList } from "../../services/api";
 import type { ResearchWorkRead } from "../../types/discovery";
 import type { ReadingListWorkSummary } from "../../types/reading_list";
+import { Button, ButtonLink } from "../ui/Button/Button";
+import { Card } from "../ui/Card/Card";
+import { PageHeader } from "../ui/PageHeader/PageHeader";
+import { EmptyState } from "../ui/State/State";
+import styles from "./PaperContextRequired.module.css";
 
 /** How many saved papers to offer; the full list is one link away. */
 const SAVED_PAPERS_SHOWN = 5;
@@ -24,6 +29,7 @@ interface PaperContextRequiredProps {
  * Both tools work from one paper. Instead of a dead end, this says why a paper is needed and
  * offers the two ways to provide one: find it in Literature Search, or (signed in) use a paper
  * already on the reading list. Nothing is ever selected on the person's behalf.
+ * (`paper-context-search` and `paper-context-saved-item` stay as stable hooks for tests.)
  */
 export function PaperContextRequired({ actionLabel, onChoose }: PaperContextRequiredProps) {
   const { status } = useSession();
@@ -40,38 +46,42 @@ export function PaperContextRequired({ actionLabel, onChoose }: PaperContextRequ
   }, [status]);
 
   return (
-    <section className="paper-context-required" aria-labelledby="paper-context-heading">
-      <h2 id="paper-context-heading">Choose a paper to start</h2>
-      <p>
-        This tool works from one paper you pick. Search for a topic in Literature Search, then
-        choose <strong>{actionLabel}</strong> on a result.
-        {saved.length > 0 && " You can also start from a paper on your reading list."}
-      </p>
-      <Link href="/" className="action-btn primary-btn paper-context-search">
-        <Search size={16} aria-hidden="true" />
-        <span>Find a paper in Literature Search</span>
-      </Link>
+    <section className={styles.panel} aria-labelledby="paper-context-heading">
+      <EmptyState
+        headingId="paper-context-heading"
+        headingLevel={2}
+        title="Choose a paper to start"
+        description={
+          <>
+            This tool works from one paper you pick. Search for a topic in Literature Search, then
+            choose <strong>{actionLabel}</strong> on a result.
+            {saved.length > 0 && " You can also start from a paper on your reading list."}
+          </>
+        }
+        actions={
+          <ButtonLink href="/" variant="primary" leadingIcon={<Search size={16} aria-hidden="true" />} className="paper-context-search">
+            Find a paper in Literature Search
+          </ButtonLink>
+        }
+      />
 
       {saved.length > 0 && (
-        <div className="paper-context-saved">
-          <h3>
+        <Card>
+          <h3 className={styles.savedHeading}>
             <BookMarked size={16} aria-hidden="true" />
             From your reading list
           </h3>
-          <ul>
+          <ul className="rc-ruled">
             {saved.map((work) => (
-              <li key={work.id} className="paper-context-saved-item">
-                <div className="paper-context-saved-text">
-                  <span className="paper-context-saved-title">{work.title}</span>
+              <li key={work.id} className={`${styles.item} paper-context-saved-item`}>
+                <div className={styles.itemText}>
+                  <span className={styles.itemTitle}>{work.title}</span>
                   {(work.publication_year || work.venue_name) && (
-                    <span className="paper-context-saved-meta">
-                      {[work.venue_name, work.publication_year].filter(Boolean).join(" · ")}
-                    </span>
+                    <span className={styles.itemMeta}>{[work.venue_name, work.publication_year].filter(Boolean).join(" · ")}</span>
                   )}
                 </div>
-                <button
-                  type="button"
-                  className="action-btn secondary-btn"
+                <Button
+                  size="sm"
                   aria-label={`Use this paper: ${work.title}`}
                   onClick={() =>
                     onChoose({
@@ -85,25 +95,20 @@ export function PaperContextRequired({ actionLabel, onChoose }: PaperContextRequ
                   }
                 >
                   Use this paper
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
-          <Link href="/reading-list" className="paper-context-all-saved">
+          <Link href="/reading-list" className={styles.allSaved}>
             Open your reading list
           </Link>
-        </div>
+        </Card>
       )}
     </section>
   );
 }
 
-/** The one-line purpose shown at the top of a paper-based tool, with or without a paper. */
+/** The page header of a paper-based tool, with or without a paper. */
 export function ToolPageHeader({ title, description }: { title: string; description: string }) {
-  return (
-    <header className="tool-page-header">
-      <h1>{title}</h1>
-      <p>{description}</p>
-    </header>
-  );
+  return <PageHeader title={title} description={description} />;
 }

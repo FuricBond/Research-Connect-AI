@@ -1,0 +1,57 @@
+/* What the paper-based tools show without a paper: an empty state plus saved papers. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-stack-gap);
+  max-width: 50rem;
+}
+
+.savedHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  margin: 0 0 var(--rc-space-1);
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.savedHeading svg {
+  color: var(--rc-text-muted);
+}
+
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rc-space-2) var(--rc-space-4);
+}
+
+.itemText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 20rem;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.itemMeta {
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-muted);
+}
+
+.allSaved {
+  display: inline-block;
+  margin-top: var(--rc-space-3);
+  font-size: var(--rc-text-small-size);
+}

@@ -9,7 +9,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { Button, IconButton } from "../components/ui/Button/Button";
 import { Checkbox, RadioGroup, Select, Switch, TextArea, TextInput } from "../components/ui/Field/Field";
 import { Dialog, Drawer } from "../components/ui/Dialog/Dialog";
-import { SkeletonList } from "../components/ui/State/State";
+import { EmptyState, SkeletonList } from "../components/ui/State/State";
 import { PriorityLabel, StatusBadge } from "../components/ui/Badge/Badge";
 import { PageHeader } from "../components/ui/PageHeader/PageHeader";
 import { MatchScore, matchBand } from "../components/research/MatchScore";
@@ -159,6 +159,13 @@ describe.each(["dialog", "drawer"] as const)("%s", (kind) => {
 });
 
 describe("states", () => {
+  it("says what is empty, why, and what to do", () => {
+    render(<EmptyState title="No saved papers yet" description="Papers you save appear here." actions={<a href="/">Search papers</a>} />);
+    expect(screen.getByRole("heading", { name: "No saved papers yet" })).toBeInTheDocument();
+    expect(screen.getByText("Papers you save appear here.")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Search papers" })).toBeInTheDocument();
+  });
+
   it("marks loading placeholders busy with one spoken status", () => {
     const { container } = render(<SkeletonList rows={3} label="Loading results" />);
     expect(container.firstElementChild).toHaveAttribute("aria-busy", "true");
