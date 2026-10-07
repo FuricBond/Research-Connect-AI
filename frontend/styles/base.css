@@ -132,6 +132,18 @@ b {
 .rc-text-secondary { color: var(--rc-text-secondary); }
 .rc-text-muted { color: var(--rc-text-muted); }
 
+/* Buttons start transparent and borderless (the browser's grey "ButtonFace" turns mid-grey in
+   dark mode); a class or a Tailwind utility adds the look it needs. */
+button {
+  background-color: transparent;
+  border: 0 solid;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 /* ── Tables ───────────────────────────────────────────────────────────────── */
 table {
   border-collapse: collapse;
