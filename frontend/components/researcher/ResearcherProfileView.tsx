@@ -24,6 +24,8 @@ import type {
 } from "../../types/researcher";
 import { ProfileCompletenessBadge } from "./ProfileCompletenessBadge";
 import { updateResearcherProfile } from "../../services/api";
+import { Button } from "../ui/Button/Button";
+import { Select, TextArea, TextInput } from "../ui/Field/Field";
 
 interface ResearcherProfileViewProps {
   profile: ResearcherProfile;
@@ -272,197 +274,56 @@ export function ResearcherProfileView({
 
         {/* View or Edit Mode */}
         {isEditing ? (
-          <form onSubmit={handleSave} style={{ display: "grid", gap: "16px" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>
-                  Full Display Name
-                </label>
-                <input
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "var(--radius-sm)",
-                  }}
-                  required
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>
-                  Academic Career Stage
-                </label>
-                <select
-                  value={academicStatus}
-                  onChange={(e) => setAcademicStatus(e.target.value as AcademicStatus)}
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "var(--radius-sm)",
-                    background: "#ffffff",
-                  }}
-                >
-                  {ACADEMIC_STATUS_OPTIONS.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>
-                  Institution Name
-                </label>
-                <input
-                  type="text"
-                  value={institutionName}
-                  onChange={(e) => setInstitutionName(e.target.value)}
-                  placeholder="e.g. Stanford University"
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "var(--radius-sm)",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>
-                  Department / Laboratory
-                </label>
-                <input
-                  type="text"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  placeholder="e.g. Computer Science"
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "var(--radius-sm)",
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-              <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>
-                  ORCID (e.g. 0000-0002-1825-0097)
-                </label>
-                <input
-                  type="text"
-                  value={orcid}
-                  onChange={(e) => setOrcid(e.target.value)}
-                  placeholder="0000-0002-1825-0097 or URL"
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "var(--radius-sm)",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>
-                  OpenAlex Author ID (e.g. A5048491430)
-                </label>
-                <input
-                  type="text"
-                  value={openalexId}
-                  onChange={(e) => setOpenalexId(e.target.value)}
-                  placeholder="A5048491430 or URL"
-                  style={{
-                    width: "100%",
-                    padding: "8px 12px",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "var(--radius-sm)",
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>
-                Research Bio &amp; Focus
-              </label>
-              <textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                rows={3}
-                placeholder="Brief summary of research areas and goals..."
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "var(--radius-sm)",
-                }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", fontSize: "12px", fontWeight: 600, marginBottom: "4px" }}>
-                Research Keywords (comma separated)
-              </label>
-              <input
-                type="text"
-                value={keywordsText}
-                onChange={(e) => setKeywordsText(e.target.value)}
-                placeholder="e.g. natural language processing, machine learning, information retrieval"
-                style={{
-                  width: "100%",
-                  padding: "8px 12px",
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "var(--radius-sm)",
-                }}
-              />
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "8px" }}>
-              <button
-                type="button"
-                onClick={() => setIsEditing(false)}
-                disabled={isSaving}
-                style={{
-                  padding: "8px 16px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "1px solid var(--border-color)",
-                  background: "#ffffff",
-                  cursor: "pointer",
-                }}
+          <form onSubmit={handleSave} className="rc-stack">
+            <div className="rc-grid" style={{ ["--rc-grid-min" as string]: "16rem" }}>
+              <TextInput label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+              <Select
+                label="Career stage"
+                value={academicStatus}
+                onChange={(e) => setAcademicStatus(e.target.value as AcademicStatus)}
               >
+                {ACADEMIC_STATUS_OPTIONS.map((status) => (
+                  <option key={status} value={status}>
+                    {humanizeEnum(status)}
+                  </option>
+                ))}
+              </Select>
+              <TextInput label="Institution" value={institutionName} onChange={(e) => setInstitutionName(e.target.value)} />
+              <TextInput
+                label="Department or laboratory"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+              />
+              <TextInput
+                label="ORCID iD"
+                hint="For example 0000-0002-1825-0097, or the full ORCID link."
+                value={orcid}
+                onChange={(e) => setOrcid(e.target.value)}
+              />
+              <TextInput
+                label="OpenAlex author ID"
+                hint="For example A5048491430, or the full OpenAlex link."
+                value={openalexId}
+                onChange={(e) => setOpenalexId(e.target.value)}
+              />
+            </div>
+
+            <TextArea label="Research summary" rows={3} value={bio} onChange={(e) => setBio(e.target.value)} />
+
+            <TextInput
+              label="Research keywords"
+              hint="Separate keywords with commas, for example: natural language processing, information retrieval."
+              value={keywordsText}
+              onChange={(e) => setKeywordsText(e.target.value)}
+            />
+
+            <div className="rc-cluster" style={{ justifyContent: "flex-end" }}>
+              <Button variant="secondary" onClick={() => setIsEditing(false)} disabled={isSaving}>
                 Cancel
-              </button>
-
-              <button
-                type="submit"
-                disabled={isSaving}
-                style={{
-                  padding: "8px 18px",
-                  borderRadius: "var(--radius-sm)",
-                  border: "none",
-                  background: "var(--primary)",
-                  color: "#ffffff",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <Save size={16} />
-                {isSaving ? "Saving..." : "Save Changes"}
-              </button>
+              </Button>
+              <Button type="submit" variant="primary" loading={isSaving} leadingIcon={<Save size={16} aria-hidden="true" />}>
+                Save changes
+              </Button>
             </div>
           </form>
         ) : (

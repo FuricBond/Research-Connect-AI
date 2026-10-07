@@ -410,6 +410,12 @@ h2 {
   background: transparent;
 }
 
+/* The search bar draws its own labelled clear button; hide the browser's second one. */
+.search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 .clear-button {
   background: transparent;
   border: 0;
