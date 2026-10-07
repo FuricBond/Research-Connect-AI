@@ -78,18 +78,17 @@
 .app-header {
   background: var(--rc-surface);
   border-bottom: 1px solid var(--border-color);
-  padding: 14px 24px;
+  padding: var(--rc-space-3) var(--rc-space-5);
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: var(--rc-z-header);
 }
 
 .header-inner {
-  max-width: 1160px;
-  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--rc-space-3);
 }
 
 .brand-wrap {
@@ -133,10 +132,11 @@
   display: block;
 }
 
+/* The page frame: content width and the responsive gutter (32 / 24 / 16px) from the tokens. */
 .app-shell {
-  max-width: 1160px;
+  max-width: var(--rc-content-max);
   margin: 0 auto;
-  padding: 24px 20px 60px;
+  padding: var(--rc-space-6) var(--rc-page-padding) var(--rc-space-16);
   width: 100%;
 }
 

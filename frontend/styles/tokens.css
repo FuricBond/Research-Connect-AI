@@ -203,6 +203,40 @@
   --rc-space-10: 2.5rem;  /* 40 */
   --rc-space-12: 3rem;    /* 48 */
   --rc-space-16: 4rem;    /* 64 */
+
+  --rc-page-padding: var(--rc-space-8);        /* page gutter ≥ 1280 */
+  --rc-section-gap: var(--rc-space-8);         /* between page sections */
+  --rc-stack-gap: var(--rc-space-4);           /* between blocks in a section */
+  --rc-card-padding: var(--rc-space-5);
+  --rc-card-padding-compact: var(--rc-space-4);
+  --rc-row-padding-y: var(--rc-space-3);       /* dense list row */
+  --rc-row-padding-x: var(--rc-space-4);
+  --rc-field-gap: var(--rc-space-4);           /* field to field */
+  --rc-label-gap: 0.375rem;                    /* label to field: 6 */
+  --rc-cell-padding-y: var(--rc-space-2);
+  --rc-cell-padding-x: var(--rc-space-3);
+
+  --rc-content-max: 75rem;     /* 1200 */
+  --rc-header-height: 3.5rem;  /* 56 */
+  --rc-control-height: 2.25rem;     /* 36 */
+  --rc-control-height-sm: 2rem;     /* 32 */
+  --rc-control-height-lg: 2.75rem;  /* 44 */
+  --rc-target-min: 1.5rem;          /* 24: WCAG 2.5.8 */
+}
+@media (max-width: 1279px) { :root { --rc-page-padding: var(--rc-space-6); } }
+@media (max-width: 767px) {
+  :root {
+    --rc-page-padding: var(--rc-space-4);
+    --rc-section-gap: var(--rc-space-6);
+    --rc-card-padding: var(--rc-space-4);
+  }
+}
+/* Coarse pointers (touch) get 44px controls and targets. */
+@media (pointer: coarse) {
+  :root {
+    --rc-control-height: 2.75rem;
+    --rc-target-min: 2.75rem;
+  }
 }
 
 /* ── Shape ────────────────────────────────────────────────────────────────── */

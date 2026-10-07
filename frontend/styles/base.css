@@ -145,3 +145,60 @@ th {
   color: var(--rc-text-secondary);
   text-align: left;
 }
+
+/* ── Layout primitives ────────────────────────────────────────────────────── */
+/* Page width with the responsive gutter (32 / 24 / 16 px). */
+.rc-container {
+  width: 100%;
+  max-width: var(--rc-content-max);
+  margin-inline: auto;
+  padding-inline: var(--rc-page-padding);
+}
+
+/* Vertical rhythm: children separated by --rc-gap (default 16px). */
+.rc-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-gap, var(--rc-stack-gap));
+  min-width: 0;
+}
+
+/* Inline group that wraps instead of overflowing. */
+.rc-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-gap, var(--rc-space-2));
+  min-width: 0;
+}
+
+.rc-gap-1 { --rc-gap: var(--rc-space-1); }
+.rc-gap-2 { --rc-gap: var(--rc-space-2); }
+.rc-gap-3 { --rc-gap: var(--rc-space-3); }
+.rc-gap-4 { --rc-gap: var(--rc-space-4); }
+.rc-gap-6 { --rc-gap: var(--rc-space-6); }
+.rc-gap-8 { --rc-gap: var(--rc-space-8); }
+
+/* Page sections: details breathe… */
+.rc-section + .rc-section {
+  margin-top: var(--rc-section-gap);
+}
+
+/* …lists stay compact: a ruled list of rows. */
+.rc-ruled {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rc-ruled > * {
+  padding-block: var(--rc-row-padding-y);
+}
+
+.rc-ruled > * + * {
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.rc-measure {
+  max-width: var(--rc-measure);
+}
