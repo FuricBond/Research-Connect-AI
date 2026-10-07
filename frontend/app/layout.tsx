@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AppHeader } from "../components/AppHeader";
 import { DiscoveryNavbar } from "../components/discovery/DiscoveryNavbar";
 import { SessionProvider } from "../components/auth/SessionProvider";
+import { fontVariables } from "./fonts";
 import "../styles/globals.css";
 // The header's identity control and the route guards render on every page, so their
 // styling is loaded here rather than per page.
@@ -23,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={fontVariables}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
