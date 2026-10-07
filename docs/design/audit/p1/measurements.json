@@ -1,0 +1,3162 @@
+{
+ "note": "Per state: page overflow (px), light/dark islands (large panels opposite to the page theme), axe violations (rule, impact, nodes). before = commit 41d2d8f (P0 final); after = P1 working tree. Viewports 1440x900 and 390x844 (axe and screenshots), 360/320 (overflow).",
+ "before": {
+  "light": [
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 20
+     },
+     {
+      "id": "page-has-heading-one",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 20
+     },
+     {
+      "id": "page-has-heading-one",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "aria-dialog-name",
+      "impact": "serious",
+      "nodes": 1
+     },
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 20
+     }
+    ]
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "aria-dialog-name",
+      "impact": "serious",
+      "nodes": 1
+     },
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 20
+     }
+    ]
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 4
+     }
+    ]
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 4
+     }
+    ]
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 4
+     }
+    ]
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 4
+     }
+    ]
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 3
+     },
+     {
+      "id": "label",
+      "impact": "critical",
+      "nodes": 1
+     },
+     {
+      "id": "select-name",
+      "impact": "critical",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 3
+     },
+     {
+      "id": "label",
+      "impact": "critical",
+      "nodes": 1
+     },
+     {
+      "id": "select-name",
+      "impact": "critical",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 24,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 103
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 24,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 103
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 24,
+    "axe": null
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 24,
+    "axe": null
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 25,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 112
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 25,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 106
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 25,
+    "axe": null
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 25,
+    "axe": null
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 59,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 100
+     }
+    ]
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 58,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 96
+     }
+    ]
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 58,
+    "axe": null
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 58,
+    "axe": null
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 3
+     }
+    ]
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 3
+     }
+    ]
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 17
+     }
+    ]
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 17
+     }
+    ]
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 71
+     }
+    ]
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 71
+     }
+    ]
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 320,
+    "overflow": 17,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 2
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 2
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 6
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 2
+     }
+    ]
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 2
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 2
+     }
+    ]
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 8
+     }
+    ]
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 8
+     }
+    ]
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 1
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 1
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 14
+     }
+    ]
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 12
+     }
+    ]
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   }
+  ],
+  "dark": [
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 20
+     },
+     {
+      "id": "page-has-heading-one",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 20
+     },
+     {
+      "id": "page-has-heading-one",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "aria-dialog-name",
+      "impact": "serious",
+      "nodes": 1
+     },
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 20
+     }
+    ]
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "aria-dialog-name",
+      "impact": "serious",
+      "nodes": 1
+     },
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 20
+     }
+    ]
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 4
+     }
+    ]
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 4
+     }
+    ]
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 4
+     }
+    ]
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 4
+     }
+    ]
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 3
+     },
+     {
+      "id": "label",
+      "impact": "critical",
+      "nodes": 1
+     },
+     {
+      "id": "select-name",
+      "impact": "critical",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 3
+     },
+     {
+      "id": "label",
+      "impact": "critical",
+      "nodes": 1
+     },
+     {
+      "id": "select-name",
+      "impact": "critical",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 24,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 103
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 24,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 103
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 28,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 103
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 29,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 103
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 67,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 128
+     }
+    ]
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 68,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 124
+     }
+    ]
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 3
+     }
+    ]
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 3
+     }
+    ]
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 17
+     }
+    ]
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 17
+     }
+    ]
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 71
+     }
+    ]
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 71
+     }
+    ]
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 2
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 2
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 6
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 2
+     }
+    ]
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 2
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 2
+     }
+    ]
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 8
+     }
+    ]
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 8
+     }
+    ]
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 1
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 1
+     },
+     {
+      "id": "heading-order",
+      "impact": "moderate",
+      "nodes": 1
+     }
+    ]
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 14
+     }
+    ]
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": [
+     {
+      "id": "color-contrast",
+      "impact": "serious",
+      "nodes": 12
+     }
+    ]
+   }
+  ]
+ },
+ "after": {
+  "light": [
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   }
+  ],
+  "dark": [
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "search-results",
+    "role": "public",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "drawer-why-this-rank",
+    "role": "public",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-register",
+    "role": "public",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-loading",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "home-error",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "profile",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "form-profile-edit",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "recommendations",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "dialog-why-recommendation",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "personalization",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "workspace",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "similar",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "opportunities",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "notifications",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "settings",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "calendar",
+    "role": "student",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "faculty-postings",
+    "role": "faculty",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "empty-workspace",
+    "role": "faculty",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 1440,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 390,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": []
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 360,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   },
+   {
+    "state": "admin",
+    "role": "admin",
+    "width": 320,
+    "overflow": 0,
+    "lightIslands": 0,
+    "darkIslands": 0,
+    "axe": null
+   }
+  ]
+ },
+ "styleMetrics": {
+  "before": {
+   "files": 91,
+   "cssLines": 8081,
+   "hexCss": 671,
+   "hexTsx": 463,
+   "fnCss": 80,
+   "fnTsx": 83,
+   "distinctColors": 144,
+   "styleObjects": 900,
+   "fontSizes": 52,
+   "darkClasses": 409,
+   "twPalette": {
+    "purple": 83,
+    "indigo": 170,
+    "slate": 574,
+    "gray": 272,
+    "emerald": 123,
+    "blue": 73,
+    "amber": 92,
+    "red": 34,
+    "rose": 82,
+    "orange": 13,
+    "sky": 5,
+    "teal": 3,
+    "yellow": 3,
+    "cyan": 1,
+    "green": 2
+   },
+   "twArbitrary": 117,
+   "tokensRc": 0
+  },
+  "after": {
+   "files": 112,
+   "cssLines": 9475,
+   "hexCss": 60,
+   "hexTsx": 0,
+   "fnCss": 12,
+   "fnTsx": 0,
+   "distinctColors": 54,
+   "styleObjects": 869,
+   "fontSizes": 42,
+   "darkClasses": 0,
+   "twPalette": {
+    "purple": 59,
+    "indigo": 131,
+    "slate": 405,
+    "gray": 186,
+    "emerald": 83,
+    "blue": 52,
+    "amber": 63,
+    "red": 18,
+    "rose": 56,
+    "orange": 9,
+    "sky": 4,
+    "teal": 3,
+    "cyan": 1,
+    "green": 2
+   },
+   "twArbitrary": 5,
+   "tokensRc": 1940
+  }
+ }
+}
