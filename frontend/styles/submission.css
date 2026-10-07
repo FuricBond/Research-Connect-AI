@@ -141,7 +141,7 @@
   border-color: var(--color-primary);
   background: var(--color-primary);
   color: var(--rc-text-on-brand);
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rc-focus-ring) 25%, transparent);
 }
 
 .stepper-step.completed .stepper-circle {
@@ -369,7 +369,7 @@
 .form-textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rc-focus-ring) 25%, transparent);
 }
 
 .form-textarea {

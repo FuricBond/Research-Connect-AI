@@ -132,6 +132,63 @@ b {
 .rc-text-secondary { color: var(--rc-text-secondary); }
 .rc-text-muted { color: var(--rc-text-muted); }
 
+/* ── Focus ─────────────────────────────────────────────────────────────────── */
+/* One focus treatment everywhere: a 2px ring with a 2px gap, keyboard focus only. */
+:focus-visible {
+  outline: var(--rc-focus-width) solid var(--rc-focus-ring);
+  outline-offset: var(--rc-focus-offset);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Headings and regions that receive focus programmatically (after a choice, on page change). */
+[tabindex="-1"]:focus-visible {
+  outline-offset: 4px;
+  border-radius: var(--rc-radius-xs);
+}
+
+/* The skip link's target receives focus but is not itself a control: no ring around the page. */
+main[tabindex="-1"]:focus {
+  outline: none;
+}
+
+/* The first focusable element on every page. */
+.rc-skip-link {
+  position: absolute;
+  top: var(--rc-space-2);
+  left: var(--rc-space-2);
+  z-index: var(--rc-z-tooltip);
+  padding: var(--rc-space-2) var(--rc-space-4);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface-raised);
+  color: var(--rc-text);
+  font-weight: var(--rc-weight-semibold);
+  text-decoration: none;
+  transform: translateY(calc(-100% - var(--rc-space-4)));
+}
+
+/* The shadow only while shown, so it cannot bleed into the top of the page. */
+.rc-skip-link:focus-visible {
+  transform: none;
+  box-shadow: var(--rc-shadow-popover);
+}
+
+.rc-visually-hidden,
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 /* ── Native form controls ─────────────────────────────────────────────────── */
 /* Bare controls look like the Input primitive; class-styled ones keep their own rules. */
 button,

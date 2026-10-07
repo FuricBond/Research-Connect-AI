@@ -31,13 +31,18 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
       <body>
+        <a className="rc-skip-link" href="#main-content">
+          Skip to main content
+        </a>
         {/* One session for the whole application: the header, the navigation and every
             page read the signed-in account from here. */}
         <SessionProvider>
           <div className="app-shell">
             <AppHeader />
             <DiscoveryNavbar />
-            <main className="main-content">{children}</main>
+            <main id="main-content" className="main-content" tabIndex={-1}>
+              {children}
+            </main>
           </div>
         </SessionProvider>
       </body>
