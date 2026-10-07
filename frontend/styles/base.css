@@ -314,6 +314,27 @@ th {
   min-width: 0;
 }
 
+/* Responsive grid: as many columns of at least --rc-grid-min as fit, one on phones. */
+.rc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--rc-grid-min, 16rem), 100%), 1fr));
+  gap: var(--rc-gap, var(--rc-space-4));
+  min-width: 0;
+}
+
+/* Side by side when there is room for --rc-switch-at, stacked below it — no media query. */
+.rc-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-gap, var(--rc-space-4));
+}
+
+.rc-switcher > * {
+  flex-grow: 1;
+  flex-basis: calc((var(--rc-switch-at, 40rem) - 100%) * 999);
+  min-width: 0;
+}
+
 .rc-gap-1 { --rc-gap: var(--rc-space-1); }
 .rc-gap-2 { --rc-gap: var(--rc-space-2); }
 .rc-gap-3 { --rc-gap: var(--rc-space-3); }
@@ -343,6 +364,13 @@ th {
 
 .rc-measure {
   max-width: var(--rc-measure);
+}
+
+/* A component-level horizontal scroller (wide tables): give it a role, a label and tabindex. */
+.rc-scroll-x {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 
 /* ── Motion ───────────────────────────────────────────────────────────────── */

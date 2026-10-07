@@ -356,3 +356,11 @@
   --rc-z-toast: 600;
   --rc-z-tooltip: 700;
 }
+
+/* ── Breakpoints (CSS variables cannot be used in @media) ─────────────────────
+ *   md  768px   tablets: two-column grids, drawer navigation
+ *   lg  1024px  wider layouts
+ *   xl  1280px  desktop gutters
+ *   2xl 1440px  margins only
+ * Phones are designed for 320–767px.
+ */

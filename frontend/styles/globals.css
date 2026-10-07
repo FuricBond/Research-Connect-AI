@@ -88,6 +88,7 @@
 
 .header-inner {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--rc-space-3);
@@ -654,6 +655,8 @@ h2 {
 
 .results-grid {
   display: grid;
+  /* One column that never outgrows the page (an implicit auto track grows to the widest card). */
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
 
@@ -675,6 +678,7 @@ h2 {
 
 .card-top-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
