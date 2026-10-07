@@ -1,0 +1,219 @@
+/*
+ * ResearchConnect AI — design tokens ("Scholarly Ledger").
+ * Specification and rationale: docs/design/DESIGN_SYSTEM.md (§3 colour, §4 type, §5 space).
+ *
+ * This is the ONLY stylesheet allowed to contain colour literals (tests/design-tokens.test.ts).
+ *
+ * Layers:
+ *   1. primitives (--rc-p-*)   raw values; components never use these directly
+ *   2. semantic   (--rc-*)     what everything uses; redefined for the dark theme
+ *   3. data       (--rc-data-*) research meaning: match, risk, deadline, status
+ *
+ * Themes: the root element carries data-theme="light" | "dark", set before first paint by the
+ * script in app/layout.tsx from the person's choice (light, dark or system). Styles never read
+ * prefers-color-scheme themselves, so the theme is always one deliberate decision.
+ *
+ * Contrast: every text/background pair below meets WCAG 2.2 AA (4.5:1 text, 3:1 control
+ * boundaries and focus indicators); measured ratios are in DESIGN_SYSTEM.md §3.4.
+ */
+
+/* ── 1. Primitives ────────────────────────────────────────────────────────── */
+:root {
+  /* Ink: warm neutrals ("paper" to "ink") */
+  --rc-p-ink-0: #ffffff;
+  --rc-p-ink-25: #f7f6f3;   /* paper */
+  --rc-p-ink-50: #f0eee9;
+  --rc-p-ink-100: #e2ded6;  /* hairline */
+  --rc-p-ink-300: #b9b3a7;
+  --rc-p-ink-400: #8a8478;  /* control boundary, 3.72:1 on white */
+  --rc-p-ink-600: #615d56;  /* muted text, 6.55:1 on white */
+  --rc-p-ink-700: #47443f;
+  --rc-p-ink-900: #1b1a18;  /* ink */
+
+  /* Night: dark-theme neutrals */
+  --rc-p-night-950: #0d0f10;
+  --rc-p-night-900: #111315;
+  --rc-p-night-850: #181b1e;
+  --rc-p-night-800: #1f2327;
+  --rc-p-night-700: #2c3136;
+  --rc-p-night-500: #6b737b;
+  --rc-p-night-300: #a19c93;
+  --rc-p-night-200: #c4bfb6;
+  --rc-p-night-100: #eceae6;
+
+  /* Petrol: the one brand colour */
+  --rc-p-petrol-50: #e7f2f0;
+  --rc-p-petrol-100: #dceeea;
+  --rc-p-petrol-200: #a6dfd8;
+  --rc-p-petrol-300: #7fcfc6;
+  --rc-p-petrol-400: #5fbdb3;
+  --rc-p-petrol-600: #0e6b66;
+  --rc-p-petrol-650: #0b5c57;
+  --rc-p-petrol-700: #0a5450;
+  --rc-p-petrol-800: #084440;
+  --rc-p-petrol-dark-fill: #1f7a72;
+  --rc-p-petrol-dark-subtle: #14302d;
+  --rc-p-petrol-dark-muted: #173733;
+
+  /* Feedback and data hues */
+  --rc-p-blue-700: #1d5a9e;   --rc-p-blue-50: #e8f0fa;   --rc-p-blue-300: #8ab8ec;   --rc-p-blue-dark: #14263a;
+  --rc-p-green-700: #1b6e3f;  --rc-p-green-50: #e6f3ea;  --rc-p-green-300: #7ccb98;  --rc-p-green-dark: #132a1c;
+  --rc-p-amber-700: #8a5300;  --rc-p-amber-50: #fbf1dc;  --rc-p-amber-300: #e8b65c;  --rc-p-amber-dark: #2e2311;
+  --rc-p-red-700: #b42318;    --rc-p-red-800: #8f1c13;   --rc-p-red-50: #fcebe9;    --rc-p-red-300: #f19a90;    --rc-p-red-200: #f5b3ab;    --rc-p-red-dark: #341614;
+  --rc-p-orange-700: #a33f07; --rc-p-orange-50: #fceee3; --rc-p-orange-300: #f2a26b; --rc-p-orange-dark: #33200f;
+}
+
+/* ── 2. Semantic tokens: light theme (default) ────────────────────────────── */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Background and surfaces */
+  --rc-bg: var(--rc-p-ink-25);                       /* the page ("paper") */
+  --rc-surface: var(--rc-p-ink-0);                    /* cards, panels, table body */
+  --rc-surface-hover: #fbfaf8;                        /* an interactive surface under the pointer */
+  --rc-surface-sunken: var(--rc-p-ink-50);            /* wells, table headers, filter rails */
+  --rc-surface-raised: var(--rc-p-ink-0);             /* menus, popovers, dialogs (+ shadow) */
+  --rc-surface-selected: var(--rc-p-petrol-50);       /* selected row, current item */
+  --rc-surface-inverse: var(--rc-p-ink-900);          /* tooltips */
+  --rc-overlay: rgb(27 26 24 / 0.45);                 /* modal scrim */
+
+  /* Borders */
+  --rc-border: var(--rc-p-ink-100);                   /* hairlines, card edges */
+  --rc-border-control: var(--rc-p-ink-400);           /* inputs, checkboxes (≥ 3:1) */
+  --rc-border-strong: var(--rc-p-ink-300);            /* section rules, table header rule */
+
+  /* Text */
+  --rc-text: var(--rc-p-ink-900);
+  --rc-text-secondary: var(--rc-p-ink-700);
+  --rc-text-muted: var(--rc-p-ink-600);               /* the lightest text allowed */
+  --rc-text-inverse: var(--rc-p-ink-0);               /* on --rc-surface-inverse */
+  --rc-text-on-brand: #ffffff;
+  --rc-text-disabled: var(--rc-p-ink-300);            /* disabled controls only (exempt) */
+  --rc-link: var(--rc-p-petrol-650);
+
+  /* Brand */
+  --rc-brand: var(--rc-p-petrol-600);
+  --rc-brand-hover: var(--rc-p-petrol-700);
+  --rc-brand-active: var(--rc-p-petrol-800);
+  --rc-brand-subtle: var(--rc-p-petrol-50);
+  --rc-brand-border: var(--rc-p-petrol-200);
+  --rc-brand-text: var(--rc-p-petrol-650);
+
+  /* Interaction tints: laid over any surface */
+  --rc-hover: rgb(27 26 24 / 0.05);
+  --rc-active: rgb(27 26 24 / 0.09);
+  --rc-selected: var(--rc-surface-selected);
+  --rc-disabled-bg: var(--rc-p-ink-50);
+
+  /* Focus */
+  --rc-focus-ring: var(--rc-p-petrol-600);
+
+  /* Feedback */
+  --rc-info: var(--rc-p-blue-700);         --rc-info-subtle: var(--rc-p-blue-50);
+  --rc-success: var(--rc-p-green-700);     --rc-success-subtle: var(--rc-p-green-50);
+  --rc-warning: var(--rc-p-amber-700);     --rc-warning-subtle: var(--rc-p-amber-50);
+  --rc-danger: var(--rc-p-red-700);        --rc-danger-subtle: var(--rc-p-red-50);
+  --rc-danger-hover: var(--rc-p-red-800);
+  /* A tinted edge for subtle feedback surfaces (alerts, badges). */
+  --rc-info-border: color-mix(in srgb, var(--rc-info) 30%, var(--rc-surface));
+  --rc-success-border: color-mix(in srgb, var(--rc-success) 30%, var(--rc-surface));
+  --rc-warning-border: color-mix(in srgb, var(--rc-warning) 30%, var(--rc-surface));
+  --rc-danger-border: color-mix(in srgb, var(--rc-danger) 30%, var(--rc-surface));
+
+  /* ── 3. Data colours (research meaning) ── */
+  /* Match / relevance / fit: one sequential petrol scale. Low is neutral, never red. */
+  --rc-data-match-strong-bg: var(--rc-p-petrol-600);  --rc-data-match-strong-fg: #ffffff;
+  --rc-data-match-good-bg: var(--rc-p-petrol-100);    --rc-data-match-good-fg: var(--rc-p-petrol-650);
+  --rc-data-match-partial-bg: var(--rc-p-ink-50);     --rc-data-match-partial-fg: var(--rc-p-ink-700);
+  --rc-data-match-weak-bg: transparent;               --rc-data-match-weak-fg: var(--rc-p-ink-600);
+  --rc-data-meter-track: var(--rc-p-ink-100);
+  --rc-data-meter-fill: var(--rc-p-petrol-600);
+
+  /* Risk (venue trust): shield icon + word + colour. Unknown is neutral. */
+  --rc-data-risk-low-fg: var(--rc-p-green-700);       --rc-data-risk-low-bg: var(--rc-p-green-50);
+  --rc-data-risk-caution-fg: var(--rc-p-amber-700);   --rc-data-risk-caution-bg: var(--rc-p-amber-50);
+  --rc-data-risk-high-fg: var(--rc-p-red-700);        --rc-data-risk-high-bg: var(--rc-p-red-50);
+  --rc-data-risk-unknown-fg: var(--rc-p-ink-600);     --rc-data-risk-unknown-border: var(--rc-p-ink-300);
+
+  /* Deadline (time): clock icon + countdown words; orange only when ≤ 7 days. */
+  --rc-data-deadline-fg: var(--rc-p-ink-700);
+  --rc-data-deadline-soon-fg: var(--rc-p-orange-700);
+  --rc-data-deadline-urgent-fg: var(--rc-p-orange-700);
+  --rc-data-deadline-urgent-bg: var(--rc-p-orange-50);
+  --rc-data-deadline-passed-fg: var(--rc-p-ink-600);
+
+  /* Application status */
+  --rc-data-app-submitted: var(--rc-p-ink-700);
+  --rc-data-app-review: var(--rc-p-blue-700);        --rc-data-app-review-bg: var(--rc-p-blue-50);
+  --rc-data-app-shortlisted: var(--rc-p-petrol-650); --rc-data-app-shortlisted-bg: var(--rc-p-petrol-50);
+  --rc-data-app-offered-bg: var(--rc-p-petrol-600);  --rc-data-app-offered-fg: #ffffff;
+  --rc-data-app-accepted: var(--rc-p-green-700);     --rc-data-app-accepted-bg: var(--rc-p-green-50);
+  --rc-data-app-closed: var(--rc-p-ink-600);
+
+  /* Notifications */
+  --rc-data-unread-dot: var(--rc-p-petrol-600);
+  --rc-data-badge-count-bg: var(--rc-p-red-700);
+  --rc-data-badge-count-fg: #ffffff;
+
+  /* Elevation: only things that float have shadows */
+  --rc-shadow-popover: 0 4px 16px rgb(27 26 24 / 0.10), 0 1px 3px rgb(27 26 24 / 0.08);
+  --rc-shadow-dialog: 0 16px 48px rgb(27 26 24 / 0.18), 0 2px 6px rgb(27 26 24 / 0.08);
+  --rc-shadow-sticky: 0 1px 0 var(--rc-border);
+}
+
+/* ── Spacing and layout (4px rhythm) ──────────────────────────────────────── */
+:root {
+  --rc-space-0: 0;
+  --rc-space-1: 0.25rem;  /* 4  */
+  --rc-space-2: 0.5rem;   /* 8  */
+  --rc-space-3: 0.75rem;  /* 12 */
+  --rc-space-4: 1rem;     /* 16 */
+  --rc-space-5: 1.25rem;  /* 20 */
+  --rc-space-6: 1.5rem;   /* 24 */
+  --rc-space-8: 2rem;     /* 32 */
+  --rc-space-10: 2.5rem;  /* 40 */
+  --rc-space-12: 3rem;    /* 48 */
+  --rc-space-16: 4rem;    /* 64 */
+}
+
+/* ── Shape ────────────────────────────────────────────────────────────────── */
+:root {
+  --rc-radius-xs: 2px;
+  --rc-radius-sm: 4px;    /* chips, tags, badges */
+  --rc-radius-md: 6px;    /* buttons, inputs, menus */
+  --rc-radius-lg: 8px;    /* cards, panels */
+  --rc-radius-xl: 12px;   /* dialogs, sheets */
+  --rc-radius-full: 9999px; /* avatars, switches, count badges only */
+  --rc-border-width: 1px;
+  --rc-focus-width: 2px;
+  --rc-focus-offset: 2px;
+}
+
+/* ── Motion ───────────────────────────────────────────────────────────────── */
+:root {
+  --rc-duration-instant: 80ms;   /* hover, press */
+  --rc-duration-fast: 140ms;     /* tooltip, popover, menu */
+  --rc-duration-base: 200ms;     /* drawer, dialog, disclosure */
+  --rc-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --rc-ease-enter: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --rc-ease-exit: cubic-bezier(0.3, 0, 0.8, 0.15);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --rc-duration-instant: 0ms;
+    --rc-duration-fast: 0ms;
+    --rc-duration-base: 0ms;
+  }
+}
+
+/* ── Layering ─────────────────────────────────────────────────────────────── */
+:root {
+  --rc-z-sticky: 100;
+  --rc-z-header: 200;
+  --rc-z-dropdown: 300;
+  --rc-z-drawer: 400;
+  --rc-z-dialog: 500;
+  --rc-z-toast: 600;
+  --rc-z-tooltip: 700;
+}
