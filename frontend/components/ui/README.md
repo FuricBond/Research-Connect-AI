@@ -26,6 +26,7 @@ Specification: [docs/design/DESIGN_SYSTEM.md](../../../docs/design/DESIGN_SYSTEM
 | A call to action that navigates | `ButtonLink` |
 | An icon-only action | `IconButton` (`label` is required) |
 | Text, email, number, date input | `TextInput` (always a visible `label`; `hint`, `error`) |
+| Password | `PasswordInput` (show/hide toggle named by its own text; `revealLabel` when a form has several) |
 | Long text / choice / search | `TextArea`, `Select` (native), `SearchInput` |
 | Yes/no in a form / setting that applies at once | `Checkbox` / `Switch` |
 | One of several | `RadioGroup` (fieldset + legend) |
