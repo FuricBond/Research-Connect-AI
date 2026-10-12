@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode, type RefObject } from "react";
 import { X } from "lucide-react";
 import { cx } from "../../../utils/cx";
 import { IconButton } from "../Button/Button";
@@ -20,6 +20,8 @@ interface OverlayProps {
   className?: string;
   /** Close on a backdrop click (default true). */
   dismissible?: boolean;
+  /** What takes focus on open; the title by default. A search sheet focuses its field. */
+  initialFocusRef?: RefObject<HTMLElement | null>;
 }
 
 /**
@@ -27,7 +29,7 @@ interface OverlayProps {
  * rest of the page inert and puts the surface in the top layer. Focus moves to the title when
  * it opens and back to the element that had it when it closes; page scrolling is locked.
  */
-function ModalSurface({ open, onClose, title, description, children, footer, size = "md", className, dismissible = true, variant }: OverlayProps & { variant: "dialog" | "drawer" }) {
+function ModalSurface({ open, onClose, title, description, children, footer, size = "md", className, dismissible = true, initialFocusRef, side = "end", variant }: OverlayProps & { variant: "dialog" | "drawer"; side?: "start" | "end" }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -53,7 +55,7 @@ function ModalSurface({ open, onClose, title, description, children, footer, siz
       if (typeof dialog.showModal === "function") dialog.showModal();
       else dialog.setAttribute("open", "");
       document.documentElement.style.overflow = "hidden";
-      titleRef.current?.focus();
+      (initialFocusRef?.current ?? titleRef.current)?.focus();
     } else if (!open && dialog.open) {
       if (typeof dialog.close === "function") {
         dialog.close(); // fires `close`, which restores
@@ -62,7 +64,7 @@ function ModalSurface({ open, onClose, title, description, children, footer, siz
         restore.current();
       }
     }
-  }, [open]);
+  }, [open, initialFocusRef]);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -90,7 +92,7 @@ function ModalSurface({ open, onClose, title, description, children, footer, siz
   return (
     <dialog
       ref={ref}
-      className={cx(styles.dialog, variant === "drawer" && styles.drawer, styles[size], className)}
+      className={cx(styles.dialog, variant === "drawer" && styles.drawer, variant === "drawer" && side === "start" && styles.start, styles[size], className)}
       aria-labelledby={titleId}
       aria-describedby={descriptionId}
       onClick={(event) => {
@@ -129,7 +131,10 @@ export function Dialog(props: OverlayProps) {
   return <ModalSurface {...props} variant="dialog" />;
 }
 
-/** A side sheet for secondary detail beside a list; full screen on phones. */
-export function Drawer(props: OverlayProps) {
-  return <ModalSurface {...props} variant="drawer" />;
+/**
+ * A side sheet for secondary detail beside a list; full screen on phones. `side="start"` opens
+ * it from the left (the navigation drawer); the default is the right edge.
+ */
+export function Drawer({ side, ...props }: OverlayProps & { side?: "start" | "end" }) {
+  return <ModalSurface {...props} side={side} variant="drawer" />;
 }

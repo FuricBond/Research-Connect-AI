@@ -40,6 +40,16 @@
   animation-name: drawer-in;
 }
 
+/* From the left edge (the navigation drawer). */
+.drawer.start {
+  margin: 0 auto 0 0;
+  border-width: 0 var(--rc-border-width) 0 0;
+}
+
+.drawer.start[open] {
+  animation-name: drawer-in-start;
+}
+
 .drawer.lg {
   --dialog-width: 40rem;
 }
@@ -115,5 +125,12 @@
   from {
     opacity: 0;
     transform: translateX(var(--rc-space-6));
+  }
+}
+
+@keyframes drawer-in-start {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-1 * var(--rc-space-6)));
   }
 }
