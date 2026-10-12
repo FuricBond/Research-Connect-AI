@@ -28,6 +28,7 @@ import type {
   RegisterPayload,
 } from "../../types/auth";
 import {
+  ApiError,
   getCurrentUser,
   login as loginRequest,
   register as registerRequest,
@@ -107,14 +108,29 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // P4: a check the browser cancels because this page is being left (a reload, a typed
+      // address) never got an answer, so it says nothing about the session: the next page checks
+      // again. Leaving is noticed by `beforeunload`, which comes before the cancelled request's
+      // rejection, and only while the check is in flight. Every answered failure, and every
+      // failure while staying on the page, still clears the session as before (the rest of the
+      // P2 audit's F10 stays deferred).
+      let leaving = false;
+      const onLeave = () => {
+        leaving = true;
+      };
+      window.addEventListener("beforeunload", onLeave);
       try {
         // With no token but a stored user id this still resolves when the backend runs
         // with AUTH_DEV_IDENTITY_ENABLED=true, preserving the existing developer
         // fallback. In production it answers 401 and the session is cleared.
         const verified = await getCurrentUser();
         if (!cancelled) applyUser(verified);
-      } catch {
-        if (!cancelled) clearSession();
+      } catch (error) {
+        if (cancelled) return;
+        if (leaving && !(error instanceof ApiError)) return;
+        clearSession();
+      } finally {
+        window.removeEventListener("beforeunload", onLeave);
       }
     }
 

@@ -121,6 +121,69 @@ describe("restoration", () => {
   });
 });
 
+describe("leaving the page during the session check (P4)", () => {
+  /** A stored session whose /auth/me answer the test controls. */
+  function pendingCheck() {
+    storeSession(makeTokenResponse());
+    let settle: { resolve: (r: Response) => void; reject: (e: unknown) => void } = { resolve: () => undefined, reject: () => undefined };
+    fetchMock.mockImplementation(() => new Promise<Response>((resolve, reject) => (settle = { resolve, reject })));
+    renderProbe();
+    return () => settle;
+  }
+
+  it("keeps the session when the check is cancelled because the page is being left", async () => {
+    const settle = pendingCheck();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    // A reload or a typed address: the browser announces leaving, then cancels the request.
+    await act(async () => {
+      window.dispatchEvent(new Event("beforeunload"));
+      settle().reject(new TypeError("Failed to fetch"));
+    });
+
+    expect(getAccessToken()).toBe("header.payload.signature");
+    expect(screen.getByTestId("status")).toHaveTextContent("loading");
+  });
+
+  it("still signs out when the check fails while staying on the page", async () => {
+    const settle = pendingCheck();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    await act(async () => settle().reject(new TypeError("Failed to fetch")));
+
+    await waitFor(() => expect(screen.getByTestId("status")).toHaveTextContent("unauthenticated"));
+    expect(getAccessToken()).toBeNull();
+  });
+
+  it("still signs out on an answered rejection, even while leaving", async () => {
+    const settle = pendingCheck();
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    await act(async () => {
+      window.dispatchEvent(new Event("beforeunload"));
+      settle().resolve(jsonResponse({ detail: "Access token has been revoked." }, 401));
+    });
+
+    await waitFor(() => expect(screen.getByTestId("status")).toHaveTextContent("unauthenticated"));
+    expect(getAccessToken()).toBeNull();
+  });
+
+  it("stops listening for page leaving once the check has settled", async () => {
+    const added = vi.spyOn(window, "addEventListener");
+    const removed = vi.spyOn(window, "removeEventListener");
+    storeSession(makeTokenResponse());
+    fetchMock.mockResolvedValue(jsonResponse(makeUser()));
+    renderProbe();
+    await waitFor(() => expect(screen.getByTestId("status")).toHaveTextContent("authenticated"));
+
+    const listener = added.mock.calls.find(([type]) => type === "beforeunload")?.[1];
+    expect(listener).toBeDefined();
+    expect(removed).toHaveBeenCalledWith("beforeunload", listener);
+    added.mockRestore();
+    removed.mockRestore();
+  });
+});
+
 describe("sign in and sign out", () => {
   it("stores the session and becomes authenticated", async () => {
     renderProbe();

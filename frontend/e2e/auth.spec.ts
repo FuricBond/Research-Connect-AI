@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { accountMenu, newPassword, primaryNav, signOut, uniqueEmail, watch } from "./support";
+import { API_URL, accountMenu, newPassword, primaryNav, signOut, uniqueEmail, watch } from "./support";
 
 /**
  * Phase 6.6 Step 15 — the browser authentication lifecycle against the production build:
@@ -43,6 +43,22 @@ test("a visitor registers, navigates, signs out and signs back in", async ({ pag
     await primaryNav(page).getByRole("link", { name: "Workspace" }).click();
     await expect(page).toHaveURL(/\/workspace$/);
     await expect(page.getByRole("heading", { name: "Opportunity Workspace" })).toBeVisible();
+  });
+
+  await test.step("leaving a page while its session check is in flight keeps this browser signed in", async () => {
+    // P4: the check is slowed, and the browser leaves the page before it answers (a reload or a
+    // typed address cancels it). A cancelled check is not a failed one: the next page checks again.
+    await page.route(`${API_URL}/api/v1/auth/me`, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      await route.continue();
+    });
+    const checking = page.waitForRequest((request) => request.url() === `${API_URL}/api/v1/auth/me`);
+    await page.goto("/reading-list");
+    await checking;
+    await page.goto("/workspace");
+    await expect(page.getByRole("heading", { name: "Opportunity Workspace" })).toBeVisible();
+    await expect(accountMenu(page)).toBeVisible();
+    await page.unroute(`${API_URL}/api/v1/auth/me`);
   });
 
   await test.step("changing the password in Settings keeps this browser signed in", async () => {
