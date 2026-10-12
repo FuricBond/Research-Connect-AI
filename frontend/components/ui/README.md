@@ -39,6 +39,7 @@ Specification: [docs/design/DESIGN_SYSTEM.md](../../../docs/design/DESIGN_SYSTEM
 | Something failed / not allowed / missing | `ErrorState` (`failed`, `permission`, `not-found`, `invalid`, `unavailable`, `offline`, `unknown`) |
 | Inline message in the flow | `Alert` (`announce` only for errors after an action) |
 | Colour theme control | `ThemeSwitcher` (in the shell's account menu; one per page) |
+| Data from the API | `useApiResource` (`hooks/`): status, data, a safe error and retry; one request per key however many components use it |
 
 Layout without new CSS: `.rc-container`, `.rc-stack`, `.rc-cluster`, `.rc-grid` (set
 `--rc-grid-min`), `.rc-switcher` (set `--rc-switch-at`), `.rc-ruled` (compact ruled list),
