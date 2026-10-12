@@ -6,7 +6,7 @@
  * It answers "what needs my attention" from data the API already provides (tracked calls with
  * a deadline in the next 30 days; application or posting status) and offers the way into each
  * area of the product. At most three requests, made in parallel; each section loads and fails
- * on its own. The unread notification count lives in the navigation and is not fetched again.
+ * on its own. The unread notification count lives in the shell's bell and is not fetched again.
  */
 
 import React, { useEffect, useState } from "react";

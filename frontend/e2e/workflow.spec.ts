@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { API_URL, DEMO, DEMO_PASSWORD, apiLogin, apiRegister, signInThroughTheForm, watch } from "./support";
+import { API_URL, DEMO, DEMO_PASSWORD, accountMenu, apiLogin, apiRegister, primaryNav, signInThroughTheForm, watch } from "./support";
 
 /**
  * Phase 6.6 Step 15 — the main researcher journey through the real UI:
@@ -16,7 +16,7 @@ test("a researcher discovers, saves, applies and is notified of the decision", a
   await signInThroughTheForm(page, researcher.email, researcher.password);
 
   await test.step("browse lists the open calls", async () => {
-    await page.getByRole("link", { name: /^Browse All Calls/ }).first().click();
+    await primaryNav(page).getByRole("link", { name: "Calls for papers" }).click();
     await expect(page.getByRole("heading", { name: "Recommended opportunities" })).toBeVisible();
     await expect(page.locator(".opportunity-card").first()).toBeVisible();
     expect(await page.locator(".opportunity-card").count()).toBeGreaterThanOrEqual(5);
@@ -24,9 +24,9 @@ test("a researcher discovers, saves, applies and is notified of the decision", a
 
   let savedTitle = "";
   await test.step("a personalized recommendation is saved to the workspace", async () => {
-    // P0: the profile is in the "More" menu, and recommendations are a section of it.
-    await page.getByRole("navigation", { name: "Main" }).getByRole("button", { name: "More" }).click();
-    await page.getByRole("link", { name: /^Researcher Profile/ }).first().click();
+    // P2: the profile is in the account menu, and recommendations are a section of it.
+    await accountMenu(page).click();
+    await page.getByRole("link", { name: "Researcher profile" }).click();
     await page.getByRole("navigation", { name: "Profile sections" }).getByRole("link", { name: "Recommendations" }).click();
     await expect(page.getByRole("heading", { name: /Unified Evidence-Backed Recommendations/ })).toBeVisible();
     const save = page.getByRole("button", { name: "Save opportunity" }).first();
@@ -40,12 +40,12 @@ test("a researcher discovers, saves, applies and is notified of the decision", a
     await save.click();
     await expect(page.getByRole("status").filter({ hasText: "Saved to workspace" })).toBeVisible();
 
-    await page.getByRole("link", { name: /^Opportunity Workspace/ }).first().click();
+    await primaryNav(page).getByRole("link", { name: "Workspace" }).click();
     await expect(page.locator(".workspace-card", { hasText: savedTitle })).toBeVisible();
   });
 
   await test.step("the researcher applies to an opening", async () => {
-    await page.getByRole("link", { name: /^Research Postings/ }).first().click();
+    await primaryNav(page).getByRole("link", { name: "Research postings" }).click();
     await page.getByRole("link", { name: POSTING }).first().click();
     await page.getByRole("button", { name: /apply now/i }).click();
     await page.locator("#cover-note").fill("I build retrieval evaluation pipelines and would like to help.");
@@ -73,7 +73,8 @@ test("a researcher discovers, saves, applies and is notified of the decision", a
   await test.step("the researcher sees the new status and the notification, not the note", async () => {
     await page.goto("/postings/applications");
     await expect(page.locator("body")).toContainText(/shortlisted/i);
-    await page.getByRole("link", { name: /^Notifications/ }).first().click();
+    // P2.4: the bell is the one way in; its name carries the unread count.
+    await page.getByRole("banner").getByRole("link", { name: /^Notifications/ }).click();
     await expect(page.getByRole("heading", { name: "Notification Center" })).toBeVisible();
     await expect(page.locator("body")).toContainText(POSTING);
     for (const path of ["/postings/applications", "/notifications"]) {

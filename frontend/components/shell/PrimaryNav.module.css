@@ -1,0 +1,104 @@
+/* The primary navigation: groups by task, 36px rows (44 on touch), the current page marked by
+   a brand bar, weight and a tinted row — never by colour alone. */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-5);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+}
+
+.sectionLabel {
+  margin: 0;
+  padding: 0 var(--rc-space-3);
+  font-size: var(--rc-text-label-size);
+  line-height: var(--rc-text-label-lh);
+  font-weight: var(--rc-weight-semibold);
+  letter-spacing: var(--rc-tracking-label);
+  color: var(--rc-text-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-3);
+  min-height: 2.25rem;
+  padding: var(--rc-space-2) var(--rc-space-3);
+  border-radius: var(--rc-radius-md);
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-medium);
+  text-decoration: none;
+  transition: background-color var(--rc-duration-instant) var(--rc-ease-standard), color var(--rc-duration-instant) var(--rc-ease-standard);
+}
+
+.link:hover {
+  background: var(--rc-surface-sunken);
+  color: var(--rc-text);
+}
+
+.link[aria-current="page"] {
+  background: var(--rc-surface-selected);
+  color: var(--rc-brand-text);
+  font-weight: var(--rc-weight-semibold);
+}
+
+/* The bar says "you are here" without relying on the tint. */
+.link[aria-current="page"]::before {
+  content: "";
+  position: absolute;
+  inset: var(--rc-space-1) auto var(--rc-space-1) 0;
+  width: 3px;
+  border-radius: var(--rc-radius-xs);
+  background: var(--rc-brand);
+}
+
+.icon {
+  flex: none;
+}
+
+/* Long labels wrap inside the row rather than widening the sidebar or the drawer. */
+.label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (pointer: coarse) {
+  .link {
+    min-height: var(--rc-target-min);
+  }
+}
+
+/* While the session is being checked: rows the size of the real ones, no motion. */
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  padding: var(--rc-space-1) var(--rc-space-3);
+}
+
+.placeholderRow {
+  display: block;
+  height: 1.75rem;
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface-sunken);
+}
+
+.placeholderRow:nth-child(2) {
+  margin-top: var(--rc-space-4);
+}

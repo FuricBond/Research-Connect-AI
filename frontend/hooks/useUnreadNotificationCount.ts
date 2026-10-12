@@ -15,7 +15,7 @@ import { fetchNotificationUnreadCount } from "../services/api";
 export const NOTIFICATIONS_CHANGED_EVENT = "notifications:changed";
 export const UNREAD_POLL_MS = 30_000;
 
-/** Tells every listener (the navbar badge, the notifications page) to refresh now. */
+/** Tells every listener (the shell's notification bell, the notifications page) to refresh now. */
 export function notifyNotificationsChanged(): void {
   if (typeof window === "undefined") return;
   window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED_EVENT));

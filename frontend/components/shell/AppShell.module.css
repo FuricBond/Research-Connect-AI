@@ -1,0 +1,48 @@
+/* The application frame: header on top, the navigation sidebar from 1024px, then the page. */
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.body {
+  display: flex;
+  flex: 1 0 auto;
+  align-items: stretch;
+  min-width: 0;
+}
+
+/* Below 1024px the navigation lives in the drawer (NavDrawer), not here. */
+.sidebar {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .sidebar {
+    display: block;
+    flex: 0 0 var(--rc-sidebar-width);
+    position: sticky;
+    top: var(--rc-header-height);
+    align-self: flex-start;
+    height: calc(100dvh - var(--rc-header-height));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--rc-space-5) var(--rc-space-3) var(--rc-space-8);
+    border-right: var(--rc-border-width) solid var(--rc-border);
+    background: var(--rc-bg);
+  }
+}
+
+/* min-width: 0 lets the page column shrink beside the sidebar instead of widening the page. */
+.main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* The page frame: content width and the responsive gutter (32 / 24 / 16px) from the tokens. */
+.page {
+  width: 100%;
+  max-width: var(--rc-content-max);
+  margin: 0 auto;
+  padding: var(--rc-space-6) var(--rc-page-padding) var(--rc-space-16);
+}

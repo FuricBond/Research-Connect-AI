@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { newPassword, uniqueEmail, watch } from "./support";
+import { accountMenu, newPassword, primaryNav, signOut, uniqueEmail, watch } from "./support";
 
 /**
  * Phase 6.6 Step 15 — the browser authentication lifecycle against the production build:
@@ -31,21 +31,20 @@ test("a visitor registers, navigates, signs out and signs back in", async ({ pag
     await page.locator("#register-confirm").fill(password);
     await page.locator("#register-role").selectOption("STUDENT");
     await page.getByRole("button", { name: /create account/i }).click();
-    await expect(page.getByRole("button", { name: /sign out/i })).toBeVisible();
+    await expect(accountMenu(page)).toBeVisible();
     await expect(page.getByText("Browser Researcher").first()).toBeVisible();
     const stored = await page.evaluate(() => Object.keys(window.localStorage).join(","));
     expect(stored).not.toBe("");
   });
 
   await test.step("authenticated navigation reaches protected pages", async () => {
-    await page.getByRole("link", { name: /^Opportunity Workspace/ }).first().click();
+    await primaryNav(page).getByRole("link", { name: "Workspace" }).click();
     await expect(page).toHaveURL(/\/workspace$/);
     await expect(page.getByRole("heading", { name: "Opportunity Workspace" })).toBeVisible();
   });
 
   await test.step("signing out ends the session in this browser", async () => {
-    await page.getByRole("button", { name: /sign out/i }).click();
-    await expect(page.getByRole("link", { name: /sign in/i }).first()).toBeVisible();
+    await signOut(page);
     await page.goto("/workspace");
     await expect(page).toHaveURL(/\/login\?next=%2Fworkspace/);
   });
@@ -59,7 +58,7 @@ test("a visitor registers, navigates, signs out and signs back in", async ({ pag
   });
 
   await test.step("a wrong password is refused with a readable message", async () => {
-    await page.getByRole("button", { name: /sign out/i }).click();
+    await signOut(page);
     await page.goto("/login");
     await page.getByLabel(/email/i).fill(email);
     await page.getByLabel(/password/i).fill(`${password}-wrong`);

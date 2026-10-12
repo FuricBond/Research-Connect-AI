@@ -1,8 +1,9 @@
 /**
  * Phase 5.16 — notifications that keep themselves current, and an honest status header.
  *
- *  - The navbar shows the unread count to a signed-in user and asks again every 30 seconds
- *    while the tab is visible, when the tab comes back, and after notifications change.
+ *  - The shell's notification bell (P2.4: the one way to the notifications) shows the unread
+ *    count to a signed-in user and asks again every 30 seconds while the tab is visible, when
+ *    the tab comes back, and after notifications change — from one place in the whole shell.
  *  - The notifications page reports the channels that actually reach the user and whether
  *    reminders run on a schedule, marks emailed notifications, and offers "Evaluate Now" to
  *    administrators only.
@@ -11,7 +12,7 @@
 
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, renderHook, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, renderHook, screen, waitFor, within } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
@@ -19,7 +20,8 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-import { DiscoveryNavbar } from "../components/discovery/DiscoveryNavbar";
+import { AppShell } from "../components/shell/AppShell";
+import { bellLabel } from "../components/shell/NotificationBell";
 import NotificationsPageRoute from "../app/notifications/page";
 import NotificationSettingsRoute from "../app/settings/notifications/page";
 import { SessionProvider } from "../components/auth/SessionProvider";
@@ -152,44 +154,68 @@ afterEach(() => {
   setVisibility("visible");
 });
 
-describe("navbar unread badge", () => {
-  function renderNavbar() {
+describe("notification bell", () => {
+  function renderShell() {
     return render(
       <SessionProvider>
-        <DiscoveryNavbar />
+        <AppShell>
+          <p>Page</p>
+        </AppShell>
       </SessionProvider>
     );
   }
 
-  it("shows the unread count on the Notifications tab", async () => {
+  it("names the unread count and leads to the notifications", async () => {
     serve("STUDENT", { unread: () => 3 });
-    renderNavbar();
+    renderShell();
 
-    const tab = await screen.findByRole("link", { name: /Notifications\s*3 unread/ });
-    expect(tab).toHaveAttribute("href", "/notifications");
+    const bell = await screen.findByRole("link", { name: "Notifications, 3 unread" });
+    expect(bell).toHaveAttribute("href", "/notifications");
+    // This test's page is /notifications.
+    expect(bell).toHaveAttribute("aria-current", "page");
+    expect(within(bell).getByText("3")).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("shows no badge at zero and caps large counts at 99+", async () => {
+  it("is a plain bell at zero, and caps large counts at 99+", async () => {
     let unread = 0;
     serve("STUDENT", { unread: () => unread });
-    renderNavbar();
+    renderShell();
 
     await waitFor(() => expect(requests("/notifications/unread-count")).toBe(1));
-    expect(screen.queryByText(/unread/)).not.toBeInTheDocument();
+    const bell = await screen.findByRole("link", { name: "Notifications" });
+    expect(bell.textContent).toBe("");
 
     unread = 250;
     act(() => notifyNotificationsChanged());
-    expect(await screen.findByRole("link", { name: /Notifications\s*99\+ unread/ })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Notifications, more than 99 unread" })).toHaveTextContent("99+");
+  });
+
+  it("never invents a count", () => {
+    expect(bellLabel(null)).toBe("Notifications");
+    expect(bellLabel(0)).toBe("Notifications");
+    expect(bellLabel(1)).toBe("Notifications, 1 unread");
+    expect(bellLabel(100)).toBe("Notifications, more than 99 unread");
+  });
+
+  it("asks for the count from one place, however much of the shell is on screen", async () => {
+    serve("STUDENT", { unread: () => 2 });
+    renderShell();
+
+    await screen.findByRole("link", { name: "Notifications, 2 unread" });
+    // Header, sidebar and the (closed) drawer are all mounted: still one request.
+    await settle();
+    expect(requests("/notifications/unread-count")).toBe(1);
+    expect(screen.getAllByRole("link", { name: /^Notifications/ })).toHaveLength(1);
   });
 
   it("asks nothing for a signed-out visitor", async () => {
     serve(null);
-    renderNavbar();
+    renderShell();
 
-    expect(await screen.findByRole("link", { name: /Literature Search/ })).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: "Literature search" })).toBeInTheDocument();
     await settle();
     expect(requests("/notifications/unread-count")).toBe(0);
-    expect(screen.queryByRole("link", { name: /Notifications/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^Notifications/ })).not.toBeInTheDocument();
   });
 });
 
@@ -265,12 +291,12 @@ describe("useUnreadNotificationCount", () => {
 
 describe("notifications page", () => {
   function renderPage() {
-    // As in app/layout.tsx: the navigation belongs to the layout, rendered once beside the
-    // page. (The page used to render a second copy of it; P0.2 removed that duplicate.)
+    // As in app/layout.tsx: the shell (with the bell) is rendered once around the page.
     return render(
       <SessionProvider>
-        <DiscoveryNavbar />
-        <NotificationsPageRoute />
+        <AppShell>
+          <NotificationsPageRoute />
+        </AppShell>
       </SessionProvider>
     );
   }
@@ -307,7 +333,7 @@ describe("notifications page", () => {
     expect(screen.queryByText("In-App, Email")).not.toBeInTheDocument();
   });
 
-  it("updates the navbar badge as soon as a notification is marked read", async () => {
+  it("updates the bell as soon as a notification is marked read", async () => {
     serve("STUDENT", { unread: () => 1, notifications: [makeNotification()] });
     renderPage();
 

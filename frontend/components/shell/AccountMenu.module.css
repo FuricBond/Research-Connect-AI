@@ -1,0 +1,254 @@
+/* The account controls: the signed-in disclosure, or the visitor's links and theme button. */
+.account,
+.visitor {
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+}
+
+/* Reserves the signed-in controls' room while the session is checked. */
+.placeholder {
+  width: calc(var(--rc-control-height) * 2 + var(--rc-space-1));
+  height: var(--rc-control-height);
+}
+
+.disclosure {
+  position: relative;
+}
+
+/* ── Triggers ── */
+.trigger,
+.iconTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  height: var(--rc-control-height);
+  border: 0;
+  border-radius: var(--rc-radius-md);
+  background: transparent;
+  color: var(--rc-text-secondary);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color var(--rc-duration-instant) var(--rc-ease-standard), color var(--rc-duration-instant) var(--rc-ease-standard);
+}
+
+.trigger {
+  max-width: 16rem;
+  padding: 0 var(--rc-space-1);
+}
+
+.iconTrigger {
+  justify-content: center;
+  width: var(--rc-control-height);
+}
+
+.trigger:hover,
+.iconTrigger:hover,
+.trigger[aria-expanded="true"],
+.iconTrigger[aria-expanded="true"] {
+  background: var(--rc-surface-sunken);
+  color: var(--rc-text);
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border: var(--rc-border-width) solid var(--rc-brand-border);
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-brand-subtle);
+  color: var(--rc-brand-text);
+  font-size: var(--rc-text-label-size);
+  font-weight: var(--rc-weight-semibold);
+  letter-spacing: var(--rc-tracking-label);
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex: none;
+  transition: transform var(--rc-duration-fast) var(--rc-ease-standard);
+}
+
+.trigger[aria-expanded="true"] .chevron {
+  transform: rotate(180deg);
+}
+
+/* Below 1024px only the avatar shows (the button's aria-label still carries the name). */
+@media (max-width: 1023px) {
+  .name,
+  .chevron {
+    display: none;
+  }
+}
+
+/* ── Visitor links ── */
+.signIn,
+.register {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  height: var(--rc-control-height);
+  padding: 0 var(--rc-space-3);
+  border-radius: var(--rc-radius-md);
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-semibold);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.signIn {
+  color: var(--rc-brand-text);
+}
+
+.signIn:hover {
+  background: var(--rc-surface-sunken);
+}
+
+.register {
+  border: var(--rc-border-width) solid var(--rc-brand);
+  background: var(--rc-brand);
+  color: var(--rc-text-on-brand);
+}
+
+.register:hover {
+  border-color: var(--rc-brand-hover);
+  background: var(--rc-brand-hover);
+}
+
+/* On a phone, Create account is one tap away on the sign-in page. */
+@media (max-width: 639px) {
+  .register {
+    display: none;
+  }
+
+  .signIn {
+    padding: 0 var(--rc-space-2);
+  }
+}
+
+/* ── Panel ── */
+.panel {
+  position: absolute;
+  top: calc(100% + var(--rc-space-2));
+  right: 0;
+  z-index: var(--rc-z-dropdown);
+  display: flex;
+  flex-direction: column;
+  width: min(18rem, calc(100vw - 2 * var(--rc-space-4)));
+  padding: var(--rc-space-2);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface-raised);
+  box-shadow: var(--rc-shadow-popover);
+  animation: panel-in var(--rc-duration-fast) var(--rc-ease-enter);
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+.identity {
+  padding: var(--rc-space-2) var(--rc-space-3) var(--rc-space-3);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+}
+
+.identityName {
+  margin: 0;
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.identityRole {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-muted);
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: var(--rc-space-2) 0;
+  list-style: none;
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+}
+
+.link,
+.signOut {
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-3);
+  width: 100%;
+  min-height: 2.25rem;
+  padding: var(--rc-space-2) var(--rc-space-3);
+  border: 0;
+  border-radius: var(--rc-radius-sm);
+  background: transparent;
+  color: var(--rc-text-secondary);
+  font: inherit;
+  font-size: var(--rc-text-body-size);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.link:hover,
+.signOut:hover:not(:disabled) {
+  background: var(--rc-surface-sunken);
+  color: var(--rc-text);
+}
+
+.link[aria-current="page"] {
+  background: var(--rc-surface-selected);
+  color: var(--rc-brand-text);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.signOut:disabled {
+  cursor: progress;
+}
+
+@media (pointer: coarse) {
+  .link,
+  .signOut {
+    min-height: var(--rc-target-min);
+  }
+}
+
+.theme {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rc-space-3);
+  padding: var(--rc-space-2) var(--rc-space-3);
+}
+
+.themeLabel {
+  font-size: var(--rc-text-body-size);
+  color: var(--rc-text-secondary);
+}
+
+.footer {
+  padding-top: var(--rc-space-2);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--rc-space-1)));
+  }
+}

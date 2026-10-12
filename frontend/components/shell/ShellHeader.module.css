@@ -1,0 +1,97 @@
+/* One 56px row at every width: [Menu] brand · search · bell, account. */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--rc-z-header);
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  height: var(--rc-header-height);
+  padding: 0 var(--rc-space-3);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+  background: var(--rc-surface);
+}
+
+.start {
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  flex: none;
+  min-width: 0;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  min-width: 0;
+  padding: var(--rc-space-1);
+  border-radius: var(--rc-radius-md);
+  color: var(--rc-text);
+  text-decoration: none;
+}
+
+.mark {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-brand);
+  color: var(--rc-text-on-brand);
+}
+
+.brandName {
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+  white-space: nowrap;
+}
+
+/* The search takes the room that is left; on a phone it is one button at the right. */
+.search {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.end {
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  flex: none;
+}
+
+/* Phones show the brand mark only (it keeps its name for assistive technology). */
+@media (max-width: 479px) {
+  .brandName {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .header {
+    gap: var(--rc-space-4);
+    padding: 0 var(--rc-space-4);
+  }
+
+  .search {
+    justify-content: flex-start;
+  }
+}
+
+/* From 1024px the sidebar holds the navigation; the brand sits above it, so the search lines
+   up with the page column. */
+@media (min-width: 1024px) {
+  /* Element + class: outranks the IconButton's own display, whatever the stylesheet order. */
+  button.menuButton {
+    display: none;
+  }
+
+  .start {
+    width: calc(var(--rc-sidebar-width) - var(--rc-space-4) * 2);
+  }
+}

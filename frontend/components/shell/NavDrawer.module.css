@@ -1,0 +1,6 @@
+/* The navigation drawer: 320px at most, and on a phone it leaves a strip of the page visible
+   so it reads as a panel that a tap outside closes. (Element + class: this outranks the
+   Drawer's own width rules, whatever order the stylesheets load in.) */
+dialog.drawer {
+  max-width: min(20rem, calc(100vw - var(--rc-space-12)));
+}

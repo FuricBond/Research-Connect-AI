@@ -53,10 +53,32 @@ export async function apiRegister(request: APIRequestContext, label: string) {
   return { email, password };
 }
 
+/** The signed-in account's menu button in the header (P2: Sign out lives in it). */
+export function accountMenu(page: Page) {
+  return page.getByRole("banner").getByRole("button", { name: /account menu$/ });
+}
+
+/** The primary navigation (the sidebar from 1024px; below, open it with openNavigation). */
+export function primaryNav(page: Page) {
+  return page.getByRole("navigation", { name: "Primary" });
+}
+
+/** Opens the navigation drawer below 1024px and returns its navigation. */
+export async function openNavigation(page: Page) {
+  await page.getByRole("button", { name: "Menu", exact: true }).click();
+  return page.getByRole("dialog", { name: "Menu" }).getByRole("navigation", { name: "Primary" });
+}
+
 export async function signInThroughTheForm(page: Page, email: string, password: string) {
   await page.goto("/login");
   await page.getByLabel(/email/i).fill(email);
   await page.getByLabel(/password/i).fill(password);
   await page.getByRole("button", { name: /sign in/i }).click();
-  await expect(page.getByRole("button", { name: /sign out/i })).toBeVisible();
+  await expect(accountMenu(page)).toBeVisible();
+}
+
+export async function signOut(page: Page) {
+  await accountMenu(page).click();
+  await page.getByRole("button", { name: /sign out/i }).click();
+  await expect(page.getByRole("link", { name: /sign in/i }).first()).toBeVisible();
 }

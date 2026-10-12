@@ -1,0 +1,32 @@
+/* The header field from 768px; below, a button that opens the search sheet. */
+.inline {
+  display: none;
+  width: 100%;
+  max-width: 30rem;
+}
+
+.field {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .inline {
+    display: block;
+  }
+
+  /* Element + class: outranks the IconButton's own display, whatever the stylesheet order. */
+  button.sheetButton {
+    display: none;
+  }
+}
+
+/* The sheet sits near the top of a phone screen, above the on-screen keyboard. */
+dialog.sheet {
+  margin-block: var(--rc-space-4) auto;
+}
+
+.sheetForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+}

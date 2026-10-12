@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { DEMO, DEMO_PASSWORD, signInThroughTheForm, watch } from "./support";
+import { DEMO, DEMO_PASSWORD, accountMenu, signInThroughTheForm, watch } from "./support";
 
 /**
  * P1 — the design system in the real app: one deliberate colour theme that survives a reload
@@ -14,7 +14,9 @@ test("the theme is chosen once, applied everywhere and kept across reloads", asy
   await signInThroughTheForm(page, DEMO.student, DEMO_PASSWORD);
   await page.goto("/dashboard");
 
+  // P2.5: the theme control is in the account menu.
   const themes = page.getByRole("group", { name: "Colour theme" });
+  await accountMenu(page).click();
   await themes.getByRole("radio", { name: "Dark theme" }).check();
   expect(await theme(page)).toBe("dark");
 
@@ -25,7 +27,9 @@ test("the theme is chosen once, applied everywhere and kept across reloads", asy
   }
   await page.reload();
   expect(await theme(page)).toBe("dark");
+  await accountMenu(page).click();
   await expect(themes.getByRole("radio", { name: "Dark theme" })).toBeChecked();
+  await page.keyboard.press("Escape");
 
   // Dark at phone width still fits the screen.
   await page.setViewportSize({ width: 390, height: 844 });
@@ -35,6 +39,7 @@ test("the theme is chosen once, applied everywhere and kept across reloads", asy
     expect(await overflow(page), `${path} at 390px in dark`).toBeLessThanOrEqual(0);
   }
 
+  await accountMenu(page).click();
   await themes.getByRole("radio", { name: "Light theme" }).check();
   expect(await theme(page)).toBe("light");
   network.expectClean();
@@ -45,6 +50,8 @@ test("an explicit OS preference is followed only while 'match system' is chosen"
   const page = await context.newPage();
   await page.goto("/");
   expect(await theme(page)).toBe("dark");
+  // A visitor finds the theme under "Appearance".
+  await page.getByRole("button", { name: "Appearance" }).click();
   await page.getByRole("group", { name: "Colour theme" }).getByRole("radio", { name: "Light theme" }).check();
   await page.reload();
   expect(await theme(page)).toBe("light");

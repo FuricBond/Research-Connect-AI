@@ -19,7 +19,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import NotificationSettingsRoute from "../app/settings/notifications/page";
-import { AuthMenu } from "../components/auth/AuthMenu";
+import { AccountMenu } from "../components/shell/AccountMenu";
 import { SessionProvider } from "../components/auth/SessionProvider";
 import { getStoredIdentity, storeSession } from "../services/auth";
 import { PROFILE_ID, headersOf, jsonResponse, makeTokenResponse, makeUser } from "./factories";
@@ -45,15 +45,21 @@ describe("sign out", () => {
     });
     return render(
       <SessionProvider>
-        <AuthMenu />
+        <AccountMenu />
       </SessionProvider>
     );
+  }
+
+  // P2.5: Sign out is in the account menu.
+  async function clickSignOut() {
+    fireEvent.click(await screen.findByRole("button", { name: /account menu/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Sign out/ }));
   }
 
   it("revokes the token on the backend, then clears the session", async () => {
     renderMenu(() => Promise.resolve(new Response(null, { status: 204 })));
 
-    fireEvent.click(await screen.findByRole("button", { name: /Sign out/ }));
+    await clickSignOut();
 
     expect(await screen.findByRole("link", { name: /Sign in/ })).toBeInTheDocument();
     const [logoutCall] = calls("/api/v1/auth/logout");
@@ -65,7 +71,7 @@ describe("sign out", () => {
   it("still signs this browser out when the backend cannot be reached", async () => {
     renderMenu(() => Promise.reject(new TypeError("Failed to fetch")));
 
-    fireEvent.click(await screen.findByRole("button", { name: /Sign out/ }));
+    await clickSignOut();
 
     expect(await screen.findByRole("link", { name: /Sign in/ })).toBeInTheDocument();
     expect(calls("/api/v1/auth/logout")).toHaveLength(1);
@@ -75,7 +81,7 @@ describe("sign out", () => {
   it("still signs out when the token was already revoked", async () => {
     renderMenu(() => Promise.resolve(jsonResponse({ detail: "Access token has been revoked." }, 401)));
 
-    fireEvent.click(await screen.findByRole("button", { name: /Sign out/ }));
+    await clickSignOut();
 
     expect(await screen.findByRole("link", { name: /Sign in/ })).toBeInTheDocument();
     expect(getStoredIdentity().token).toBeNull();

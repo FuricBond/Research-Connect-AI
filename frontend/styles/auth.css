@@ -200,47 +200,7 @@
   text-decoration: underline;
 }
 
-/* ── Header identity control ── */
-
-/* The header previously held a single badge; it now also carries the identity control. */
-.header-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.auth-menu {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-/* Reserves the control's width while the stored session is being verified, so the
-   header does not jump when the name arrives. */
-.auth-menu-placeholder {
-  min-width: 132px;
-  min-height: 30px;
-}
-
-.auth-menu-identity {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  line-height: 1.25;
-}
-
-.auth-menu-name {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-main);
-}
-
-.auth-menu-role {
-  font-size: var(--rc-text-label-size);
-  color: var(--text-muted);
-}
+/* ── Small bordered button (administration panels) ── */
 
 .auth-menu-btn {
   display: inline-flex;
@@ -266,17 +226,6 @@
 .auth-menu-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
-}
-
-.auth-menu-btn.primary {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--rc-text-on-brand);
-}
-
-.auth-menu-btn.primary:hover {
-  background: var(--primary-hover);
-  color: var(--rc-text-on-brand);
 }
 
 /* ── Administration table ── */

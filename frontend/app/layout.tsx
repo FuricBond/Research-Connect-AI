@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { AppHeader } from "../components/AppHeader";
-import { DiscoveryNavbar } from "../components/discovery/DiscoveryNavbar";
 import { SessionProvider } from "../components/auth/SessionProvider";
+import { AppShell } from "../components/shell/AppShell";
 import { THEME_INIT_SCRIPT } from "../utils/theme";
 import { fontVariables } from "./fonts";
 // The design system first (tokens, then element defaults), then the legacy page stylesheets,
@@ -9,8 +8,7 @@ import { fontVariables } from "./fonts";
 import "../styles/tokens.css";
 import "../styles/base.css";
 import "../styles/globals.css";
-// The header's identity control and the route guards render on every page, so their
-// styling is loaded here rather than per page.
+// The sign-in, registration and administration pages share these styles.
 import "../styles/auth.css";
 // Utility classes used by the personalization and unified-intelligence panels.
 import "../styles/tailwind.css";
@@ -38,16 +36,11 @@ export default function RootLayout({
         <a className="rc-skip-link" href="#main-content">
           Skip to main content
         </a>
-        {/* One session for the whole application: the header, the navigation and every
-            page read the signed-in account from here. */}
+        {/* One session for the whole application: the shell (header, navigation, account
+            menu) and every page read the signed-in account from here. The shell renders the
+            <main id="main-content"> the skip link targets. */}
         <SessionProvider>
-          <div className="app-shell">
-            <AppHeader />
-            <DiscoveryNavbar />
-            <main id="main-content" className="main-content" tabIndex={-1}>
-              {children}
-            </main>
-          </div>
+          <AppShell>{children}</AppShell>
         </SessionProvider>
       </body>
     </html>
