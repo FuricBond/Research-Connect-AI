@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Browser, type BrowserContextOptions, type Page } from "@playwright/test";
 import { DEMO, DEMO_PASSWORD, accountMenu, openNavigation, primaryNav, signInThroughTheForm, watch } from "./support";
 
 /**
@@ -39,7 +39,7 @@ async function horizontalOverflow(page: Page): Promise<number> {
   return page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 }
 
-test("pages fit the screen and every destination stays reachable", async ({ page }) => {
+test("pages fit the screen and every destination stays reachable", async ({ page, browser }) => {
   test.setTimeout(300_000);
   const network = watch(page);
   await signInThroughTheForm(page, DEMO.student, DEMO_PASSWORD);
@@ -92,4 +92,70 @@ test("pages fit the screen and every destination stays reachable", async ({ page
   }
 
   network.expectClean();
+
+  // Reuses this test's session: the backend allows 10 sign-ins a minute per address, and the
+  // browser suite's are counted.
+  await test.step("the header holds together at 200% text size", async () => {
+    await headerHoldsTogetherAt200(browser, await page.context().storageState());
+  });
 });
+
+/**
+ * P2 audit (WCAG 1.4.4): with text enlarged to 200%, the header's controls do not overlap, stay
+ * on screen and do not widen the page; the essential ones stay reachable — for a visitor and a
+ * signed-in student, in both themes, at 320–1024px. Simulated with a 200% root font size (what a
+ * larger browser text-size setting does to rem-based layouts); this is not a full WCAG
+ * resize-text audit of every page.
+ */
+async function headerHoldsTogetherAt200(browser: Browser, studentState: BrowserContextOptions["storageState"]) {
+  for (const theme of ["light", "dark"] as const) {
+    for (const role of ["visitor", "student"] as const) {
+      for (const width of [320, 360, 390, 768, 1024]) {
+        await test.step(`${role}, ${theme}, ${width}px`, async () => {
+          const context = await browser.newContext({ viewport: { width, height: 844 }, storageState: role === "student" ? studentState : undefined });
+          await context.addInitScript((t) => {
+            try { localStorage.setItem("rc-theme", t); } catch { /* storage blocked: the default theme */ }
+            document.addEventListener("DOMContentLoaded", () => { document.documentElement.style.fontSize = "200%"; });
+          }, theme);
+          const page = await context.newPage();
+          await page.goto(role === "student" ? "/dashboard" : "/browse");
+          await page.waitForLoadState("networkidle");
+          const header = await page.evaluate(() => {
+            const vw = document.documentElement.clientWidth;
+            const el = document.querySelector("body > div header, header")!;
+            const controls = [...el.querySelectorAll<HTMLElement>("a, button, input")]
+              .filter((c) => { const r = c.getBoundingClientRect(); return r.width > 0 && r.height > 0 && !c.closest("[hidden], dialog"); })
+              .map((c) => ({ name: (c.getAttribute("aria-label") || c.textContent || c.getAttribute("placeholder") || "").trim(), r: c.getBoundingClientRect() }));
+            const overlaps: string[] = [];
+            for (let i = 0; i < controls.length; i++) for (let j = i + 1; j < controls.length; j++) {
+              const a = controls[i].r, b = controls[j].r;
+              const inside = (x: DOMRect, y: DOMRect) => x.left <= y.left && x.right >= y.right && x.top <= y.top && x.bottom >= y.bottom;
+              if (inside(a, b) || inside(b, a)) continue; // the clear button inside the field
+              if (a.left < b.right - 1 && b.left < a.right - 1 && a.top < b.bottom - 1 && b.top < a.bottom - 1) overlaps.push(`${controls[i].name} / ${controls[j].name}`);
+            }
+            return {
+              overflow: el.scrollWidth - el.clientWidth,
+              offscreen: controls.filter(({ r }) => r.left < -1 || r.right > vw + 1).map(({ name }) => name),
+              overlaps,
+              names: controls.map(({ name }) => name),
+            };
+          });
+          expect(header.overflow, "the header is wider than the screen").toBeLessThanOrEqual(0);
+          expect(header.offscreen, "header controls off screen").toEqual([]);
+          expect(header.overlaps, "header controls overlap").toEqual([]);
+          const has = (pattern: RegExp) => header.names.some((name) => pattern.test(name));
+          expect(has(/^Search papers$/), "search").toBe(true);
+          if (role === "visitor") {
+            expect(has(/^Sign in$/), "Sign in").toBe(true);
+            expect(has(/^Appearance$/), "Appearance").toBe(true);
+          } else {
+            expect(has(/account menu$/), "account menu").toBe(true);
+            expect(has(/^Notifications/), "notifications").toBe(true);
+          }
+          if (width < 1024) expect(has(/^Menu$/), "Menu").toBe(true);
+          await context.close();
+        });
+      }
+    }
+  }
+}

@@ -21,6 +21,7 @@ vi.mock("next/navigation", () => ({
 
 import { SessionProvider } from "../components/auth/SessionProvider";
 import { AppShell } from "../components/shell/AppShell";
+import { Drawer } from "../components/ui/Dialog/Dialog";
 import { ACCOUNT_ITEMS, NAV_SECTIONS, SHELL_HREFS, currentHref, navigationFor } from "../utils/navigation";
 import { clearActiveIdentity } from "../services/auth";
 import type { PlatformRole } from "../types/auth";
@@ -219,6 +220,47 @@ describe("navigation drawer (below 1024px)", () => {
     expect(menu).toHaveAttribute("aria-expanded", "false");
     expect(drawer).not.toHaveAttribute("open");
     expect(menu).toHaveFocus();
+  });
+
+  it("has no unnamed Tab stop: Close, then the links (P2 audit)", async () => {
+    serveShell("STUDENT");
+    renderShell();
+    await screen.findByRole("link", { name: "Workspace" });
+    fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+    const drawer = screen.getByRole("dialog", { name: "Menu" });
+
+    // Everything in the drawer the Tab key can reach, in document order.
+    const stops = [...drawer.querySelectorAll<HTMLElement>("a[href], button, input, select, textarea, [tabindex]")].filter(
+      (el) => el.tabIndex >= 0 && !el.hasAttribute("disabled")
+    );
+    const names = stops.map((el) => el.getAttribute("aria-label") ?? el.textContent?.trim());
+    expect(names).toEqual([
+      "Close",
+      "Home",
+      "Literature search",
+      "Calls for papers",
+      "Research postings",
+      "Similar research",
+      "Opportunity matcher",
+      "Workspace",
+      "Submissions",
+      "Reading list",
+      "Calendar",
+      "Find a supervisor",
+      "Find peers",
+    ]);
+    // The title receives focus on open but is not a Tab stop.
+    expect(drawer.querySelector("h2")).toHaveAttribute("tabindex", "-1");
+  });
+
+  it("keeps the scrollable body a Tab stop in drawers of plain text (keyboard scrolling)", () => {
+    render(
+      <Drawer open onClose={() => undefined} title="Why this result?">
+        <p>A long explanation with no controls in it.</p>
+      </Drawer>
+    );
+    const body = screen.getByText("A long explanation with no controls in it.").parentElement!;
+    expect(body).toHaveAttribute("tabindex", "0");
   });
 
   it("closes when a link is followed, and when the page changes", async () => {

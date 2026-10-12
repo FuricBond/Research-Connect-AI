@@ -22,6 +22,13 @@ interface OverlayProps {
   dismissible?: boolean;
   /** What takes focus on open; the title by default. A search sheet focuses its field. */
   initialFocusRef?: RefObject<HTMLElement | null>;
+  /**
+   * Whether the scrolling body is itself a Tab stop (default true), so keyboard users can scroll
+   * long text in browsers that do not make scroll areas focusable on their own (Safari). Turn it
+   * off only when the body is made of controls — a list of links, a form — which Tab already
+   * scrolls into view; there the extra stop is unnamed noise.
+   */
+  focusableBody?: boolean;
 }
 
 /**
@@ -29,7 +36,7 @@ interface OverlayProps {
  * rest of the page inert and puts the surface in the top layer. Focus moves to the title when
  * it opens and back to the element that had it when it closes; page scrolling is locked.
  */
-function ModalSurface({ open, onClose, title, description, children, footer, size = "md", className, dismissible = true, initialFocusRef, side = "end", variant }: OverlayProps & { variant: "dialog" | "drawer"; side?: "start" | "end" }) {
+function ModalSurface({ open, onClose, title, description, children, footer, size = "md", className, dismissible = true, initialFocusRef, focusableBody = true, side = "end", variant }: OverlayProps & { variant: "dialog" | "drawer"; side?: "start" | "end" }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const returnFocus = useRef<HTMLElement | null>(null);
@@ -115,8 +122,8 @@ function ModalSurface({ open, onClose, title, description, children, footer, siz
             </div>
             <IconButton label="Close" icon={<X size={18} aria-hidden="true" />} onClick={() => onCloseRef.current()} />
           </div>
-          {/* Focusable so keyboard users can scroll long content (WCAG 2.1.1). */}
-          <div className={styles.body} tabIndex={0}>
+          {/* Focusable so keyboard users can scroll long content (WCAG 2.1.1), unless it is all controls. */}
+          <div className={styles.body} tabIndex={focusableBody ? 0 : undefined}>
             {children}
           </div>
           {footer && <div className={styles.footer}>{footer}</div>}

@@ -12,7 +12,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const FRONTEND = path.resolve(__dirname, "..");
-const read = (file: string) => fs.readFileSync(file, "utf8");
+/** File text with LF line endings, whatever the checkout uses (a Windows checkout has CRLF). */
+const read = (file: string) => fs.readFileSync(file, "utf8").replace(/\r\n?/g, "\n");
 
 function walk(dir: string, test: (file: string) => boolean, out: string[] = []): string[] {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -104,18 +105,29 @@ describe("one visual language", () => {
 
 const TOKENS = read(path.join(FRONTEND, "styles/tokens.css"));
 
-function block(selectorStart: string): Record<string, string> {
-  const start = TOKENS.indexOf(selectorStart);
-  const open = TOKENS.indexOf("{", start);
-  const close = TOKENS.indexOf("}", open);
-  const vars: Record<string, string> = {};
-  for (const m of TOKENS.slice(open + 1, close).matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) vars[m[1]] = m[2].trim();
-  return vars;
+/**
+ * The primitive, light and dark token maps of a tokens.css source. LF and CRLF sources parse the
+ * same; a theme block that cannot be found is an error rather than a silently wrong block.
+ */
+function themesFrom(source: string) {
+  const text = source.replace(/\r\n?/g, "\n");
+  const block = (selectorStart: string): Record<string, string> => {
+    const start = text.indexOf(selectorStart);
+    if (start < 0) throw new Error(`tokens.css has no block starting ${JSON.stringify(selectorStart)}`);
+    const open = text.indexOf("{", start);
+    const close = text.indexOf("}", open);
+    const vars: Record<string, string> = {};
+    for (const m of text.slice(open + 1, close).matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) vars[m[1]] = m[2].trim();
+    return vars;
+  };
+  const primitives = block(":root {");
+  const lightOnly = block(':root,\n:root[data-theme="light"]');
+  const darkOnly = block(':root[data-theme="dark"]');
+  const light = { ...primitives, ...lightOnly };
+  return { light, dark: { ...light, ...darkOnly }, lightOnly, darkOnly };
 }
 
-const primitives = block(":root {");
-const light = { ...primitives, ...block(':root,\n:root[data-theme="light"]') };
-const dark = { ...light, ...block(':root[data-theme="dark"]') };
+const { light, dark, lightOnly: LIGHT_ONLY, darkOnly: DARK_ONLY } = themesFrom(TOKENS);
 
 function resolve(theme: Record<string, string>, name: string, depth = 0): string {
   const value = theme[name];
@@ -184,6 +196,13 @@ const PAIRS: [fg: string, bg: string, min: number][] = [
   ["--rc-brand", "--rc-surface", UI],
 ];
 
+/** The pairs below their minimum ratio in a theme. */
+function contrastFailures(theme: Record<string, string>) {
+  return PAIRS.map(([fg, bg, min]) => ({ fg, bg, min, ratio: Math.round(contrast(theme, fg, bg) * 100) / 100 })).filter(
+    (pair) => pair.ratio < pair.min
+  );
+}
+
 describe("the checks themselves", () => {
   it("find the literals that do exist (in the token file)", () => {
     expect(colours(path.join(FRONTEND, "styles/tokens.css")).length).toBeGreaterThan(40);
@@ -200,10 +219,7 @@ describe("the checks themselves", () => {
 describe("token contrast (WCAG 2.2 AA)", () => {
   for (const [name, theme] of [["light", light], ["dark", dark]] as const) {
     it(`meets 4.5:1 for text and 3:1 for controls in the ${name} theme`, () => {
-      const failures = PAIRS.map(([fg, bg, min]) => ({ fg, bg, min, ratio: Math.round(contrast(theme, fg, bg) * 100) / 100 })).filter(
-        (pair) => pair.ratio < pair.min
-      );
-      expect(failures).toEqual([]);
+      expect(contrastFailures(theme)).toEqual([]);
     });
   }
 
@@ -223,11 +239,45 @@ describe("token contrast (WCAG 2.2 AA)", () => {
       "--rc-danger-border",
       "--rc-shadow-sticky",
     ]);
-    const lightOnly = block(':root,\n:root[data-theme="light"]');
-    const darkOnly = block(':root[data-theme="dark"]');
-    const missing = Object.entries(lightOnly)
-      .filter(([name, value]) => colourish(value) && !sameInBoth.has(name) && !(name in darkOnly))
+    const missing = Object.entries(LIGHT_ONLY)
+      .filter(([name, value]) => colourish(value) && !sameInBoth.has(name) && !(name in DARK_ONLY))
       .map(([name]) => name);
     expect(missing).toEqual([]);
+  });
+});
+
+describe("line endings (P2 audit)", () => {
+  // tokens.css as a Windows checkout has it (core.autocrlf=true writes CRLF).
+  const CRLF = TOKENS.replace(/\n/g, "\r\n");
+
+  it("parses a CRLF token file exactly like the LF one", () => {
+    expect(CRLF).toContain("\r\n");
+    const fromCrlf = themesFrom(CRLF);
+    const fromLf = themesFrom(TOKENS);
+    expect(fromCrlf).toEqual(fromLf);
+    expect(Object.keys(fromCrlf.lightOnly).length).toBeGreaterThan(40);
+    expect(Object.keys(fromCrlf.darkOnly).length).toBeGreaterThan(40);
+  });
+
+  it("gives the same contrast results for both", () => {
+    const fromCrlf = themesFrom(CRLF);
+    for (const theme of ["light", "dark"] as const) {
+      const ratios = (source: ReturnType<typeof themesFrom>) => PAIRS.map(([fg, bg]) => contrast(source[theme], fg, bg));
+      expect(ratios(fromCrlf)).toEqual(ratios({ light, dark, lightOnly: LIGHT_ONLY, darkOnly: DARK_ONLY }));
+      expect(contrastFailures(fromCrlf[theme])).toEqual([]);
+    }
+  });
+
+  it("still catches a real contrast failure in a CRLF file", () => {
+    // Muted text lightened to the hairline colour (about 1.3:1 on white) in the light theme.
+    const broken = CRLF.replace(/(:root,\r\n:root\[data-theme="light"\][\s\S]*?--rc-text-muted:\s*)[^;]+;/, "$1var(--rc-p-ink-100);");
+    expect(broken).not.toEqual(CRLF);
+    const failures = contrastFailures(themesFrom(broken).light);
+    expect(failures.length).toBeGreaterThan(0);
+    expect(failures.every((pair) => pair.fg === "--rc-text-muted")).toBe(true);
+  });
+
+  it("reports a missing theme block instead of reading the wrong one", () => {
+    expect(() => themesFrom(TOKENS.replace(':root[data-theme="dark"]', ":root[data-theme=night]"))).toThrow(/no block starting/);
   });
 });

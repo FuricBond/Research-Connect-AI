@@ -27,7 +27,8 @@ export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => voi
   }, [open, onClose]);
 
   return (
-    <Drawer open={open} onClose={onClose} side="start" title="Menu" size="sm" className={styles.drawer}>
+    // The body is a list of links, which Tab scrolls into view: no extra Tab stop for it.
+    <Drawer open={open} onClose={onClose} side="start" title="Menu" size="sm" focusableBody={false} className={styles.drawer}>
       <PrimaryNav onNavigate={onClose} />
     </Drawer>
   );

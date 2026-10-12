@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, type Ref } from "react";
 import { ArrowRight, Loader2, Search, X } from "lucide-react";
 import type { QueryIntelligenceSchema } from "../../types/discovery";
 
 interface SearchBarProps {
+  /** The query on screen: the latest one submitted here or arrived through the URL. */
   initialQuery?: string;
+  inputRef?: Ref<HTMLInputElement>;
   onSearch: (query: string) => void;
   isLoading?: boolean;
   queryIntelligence?: QueryIntelligenceSchema | null;
@@ -21,6 +23,7 @@ const SUGGESTED_QUERIES = [
 
 export const SearchBar: React.FC<SearchBarProps> = ({
   initialQuery = "",
+  inputRef,
   onSearch,
   isLoading = false,
   queryIntelligence,
@@ -28,6 +31,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 }) => {
   const [inputVal, setInputVal] = useState(initialQuery);
   // A search that arrives from outside (the URL, the header search) shows its query here too.
+  // The page changes `initialQuery` only for a submission from this box (whose text it already
+  // holds) or an outside navigation, so text typed since the last search is not overwritten.
   const [shownQuery, setShownQuery] = useState(initialQuery);
   if (initialQuery !== shownQuery) {
     setShownQuery(initialQuery);
@@ -52,6 +57,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         <div className="search-input-wrapper">
           <Search size={18} className="search-icon" />
           <input
+            ref={inputRef}
             type="search"
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
@@ -74,7 +80,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         <button
           type="submit"
           className="search-submit-btn"
-          disabled={isLoading || !inputVal.trim()}
+          // Not disabled while a search runs: a disabled default button would make Enter do
+          // nothing, silently dropping a newer query (P2 audit). A new search replaces the old.
+          disabled={!inputVal.trim()}
           aria-label="Submit search"
         >
           {isLoading ? (

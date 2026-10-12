@@ -84,8 +84,9 @@
   transform: rotate(180deg);
 }
 
-/* Below 1024px only the avatar shows (the button's aria-label still carries the name). */
-@media (max-width: 1023px) {
+/* In a header narrower than 64rem (1024px at the default text size) only the avatar shows; the
+   button's aria-label still carries the name. */
+@container shell-header (max-width: 63.9375rem) {
   .name,
   .chevron {
     display: none;
@@ -126,8 +127,9 @@
   background: var(--rc-brand-hover);
 }
 
-/* On a phone, Create account is one tap away on the sign-in page. */
-@media (max-width: 639px) {
+/* In a narrow header (below 40rem: 640px at the default text size), Create account is one tap
+   away on the sign-in page. */
+@container shell-header (max-width: 39.9375rem) {
   .register {
     display: none;
   }

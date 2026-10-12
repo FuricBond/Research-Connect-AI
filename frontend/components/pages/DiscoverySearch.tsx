@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { AlertCircle, BookOpen, Loader2, Sparkles } from "lucide-react";
 import { SearchBar } from "../discovery/SearchBar";
 import { SearchFilters } from "../discovery/SearchFilters";
@@ -10,7 +10,7 @@ import { PaginationControls } from "../discovery/PaginationControls";
 import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
 import { searchResearchWorks, lookupReadingList, ApiError } from "../../services/api";
 import { useSession } from "../auth/SessionProvider";
-import { searchHref } from "../../utils/search";
+import { currentUrlQuery, searchHref, takeSearchFocusRequest } from "../../utils/search";
 import { PageHeader } from "../ui/PageHeader/PageHeader";
 import type {
   ExplanationSchema,
@@ -31,12 +31,19 @@ function UrlQuery({ onChange }: { onChange: (query: string | null) => void }) {
 }
 
 /**
- * Literature search. The query lives in the URL (`/?q=…`): submitting a search changes the URL
- * and the URL runs the search, once — so a search can be bookmarked, shared, reloaded and
- * reached from the header's global search. Filters and pagination stay in the page.
+ * Literature search. The query lives in the URL (`/?q=…`), so a search can be bookmarked,
+ * shared, reloaded and reached from the header's global search. Filters and pagination stay in
+ * the page.
+ *
+ * The latest submission always wins (P2 audit): a search typed here runs at once and the address
+ * bar is updated with the browser's own history (Next.js keeps `useSearchParams` in step with
+ * native `pushState` without fetching the page again), so no page navigation is ever pending
+ * behind the person's back. The URL itself starts a search only when it changes from outside
+ * this box — a direct link, back/forward, or the header search — and only for the address the
+ * bar actually shows, so a late notification for an older address can neither search again nor
+ * overwrite what is being typed.
  */
 export function DiscoverySearch() {
-  const router = useRouter();
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Partial<ResearchSearchParams>>({
     limit: 20,
@@ -61,8 +68,11 @@ export function DiscoverySearch() {
   // The latest filters, for a search started by the URL rather than by a filter change.
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
-  // The query the URL currently holds (null: none).
-  const urlQueryRef = useRef<string | null>(null);
+  // The query whose results are shown or loading (null: the landing state).
+  const searchedQueryRef = useRef<string | null>(null);
+  // The query of the request in flight, if any.
+  const loadingQueryRef = useRef<string | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Reading list: which visible works the signed-in user has already saved (work id -> item id).
   const { status: sessionStatus } = useSession();
@@ -100,6 +110,7 @@ export function DiscoverySearch() {
     }
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
+    loadingQueryRef.current = searchQuery;
 
     setIsLoading(true);
     setError(null);
@@ -115,12 +126,14 @@ export function DiscoverySearch() {
         },
         abortController.signal
       );
+      // A newer search replaced this one: its answer must not replace the newer results.
+      if (abortController.signal.aborted) return;
 
       setItems(response.items);
       setTotal(response.total);
       setQueryIntelligence(response.query_intelligence || null);
     } catch (err: unknown) {
-      if (err instanceof Error && err.name === "AbortError") {
+      if (abortController.signal.aborted || (err instanceof Error && err.name === "AbortError")) {
         return;
       }
       if (err instanceof ApiError) {
@@ -131,11 +144,16 @@ export function DiscoverySearch() {
         setError("An unexpected error occurred while searching.");
       }
     } finally {
-      setIsLoading(false);
+      // Only the latest search ends the loading state.
+      if (abortControllerRef.current === abortController) {
+        loadingQueryRef.current = null;
+        setIsLoading(false);
+      }
     }
   };
 
   const searchFromStart = (newQuery: string) => {
+    searchedQueryRef.current = newQuery;
     setQuery(newQuery);
     const updatedFilters = { ...filtersRef.current, offset: 0 };
     setFilters(updatedFilters);
@@ -146,15 +164,23 @@ export function DiscoverySearch() {
   searchFromStartRef.current = searchFromStart;
 
   const handleUrlQuery = useCallback((urlQuery: string | null) => {
-    urlQueryRef.current = urlQuery;
+    // The router applies address changes in a transition; if the bar has already moved on, a
+    // newer notification follows and this one is stale.
+    if (urlQuery !== currentUrlQuery()) return;
     const trimmed = urlQuery?.trim() ?? "";
     if (trimmed) {
-      searchFromStartRef.current(trimmed);
+      // Already shown (this box submitted it): nothing to do, and nothing to overwrite.
+      if (trimmed !== searchedQueryRef.current) searchFromStartRef.current(trimmed);
+      // Arrived from the header search: keyboard focus goes to the box that now holds the query.
+      if (takeSearchFocusRequest(trimmed)) searchInputRef.current?.focus();
       return;
     }
     // No query in the URL (the navigation's "Literature search", or back to the start): the
     // landing state, with nothing still loading.
     abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    loadingQueryRef.current = null;
+    searchedQueryRef.current = null;
     setQuery("");
     setItems([]);
     setTotal(0);
@@ -165,12 +191,11 @@ export function DiscoverySearch() {
   }, []);
 
   const handleQuerySubmit = (newQuery: string) => {
-    if (newQuery === urlQueryRef.current?.trim()) {
-      // Already in the URL: pushing it again would not change anything, so search again here.
-      searchFromStart(newQuery);
-    } else {
-      router.push(searchHref(newQuery));
-    }
+    // The same query is already being fetched (a double press): one request is enough.
+    if (newQuery === loadingQueryRef.current) return;
+    searchFromStart(newQuery);
+    // Record it in the address bar; an unchanged query adds no history entry.
+    if (currentUrlQuery() !== newQuery) window.history.pushState(null, "", searchHref(newQuery));
   };
 
   const handleFilterChange = (updated: Partial<ResearchSearchParams>) => {
@@ -225,6 +250,7 @@ export function DiscoverySearch() {
 
       <SearchBar
         initialQuery={query}
+        inputRef={searchInputRef}
         onSearch={handleQuerySubmit}
         isLoading={isLoading}
         queryIntelligence={queryIntelligence}

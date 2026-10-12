@@ -1,4 +1,5 @@
-/* The header field from 768px; below, a button that opens the search sheet. */
+/* A field when the header has room (48rem: 768px at the default text size); otherwise a
+   button that opens the search sheet. Queried on the header's width, so it follows text size. */
 .inline {
   display: none;
   width: 100%;
@@ -9,7 +10,7 @@
   width: 100%;
 }
 
-@media (min-width: 768px) {
+@container shell-header (min-width: 48rem) {
   .inline {
     display: block;
   }

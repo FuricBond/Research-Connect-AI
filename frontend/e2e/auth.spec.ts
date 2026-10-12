@@ -44,7 +44,13 @@ test("a visitor registers, navigates, signs out and signs back in", async ({ pag
   });
 
   await test.step("signing out ends the session in this browser", async () => {
-    await signOut(page);
+    // By keyboard, from a protected page (P2 audit): focus lands on the Sign in link, not the body.
+    await accountMenu(page).focus();
+    await page.keyboard.press("Enter");
+    await page.getByRole("button", { name: "Sign out" }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/login\?next=%2Fworkspace/);
+    await expect(page.getByRole("banner").getByRole("link", { name: "Sign in" })).toBeFocused();
     await page.goto("/workspace");
     await expect(page).toHaveURL(/\/login\?next=%2Fworkspace/);
   });

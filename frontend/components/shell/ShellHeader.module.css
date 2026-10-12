@@ -1,15 +1,28 @@
-/* One 56px row at every width: [Menu] brand · search · bell, account. */
+/* One 56px row: [Menu] brand · search · bell, account.
+
+   The header is a size container as wide as the viewport (it has no padding of its own, so its
+   width is the viewport's), and what it shows depends on that width in rem: the thresholds below
+   equal the 480 / 640 / 768 / 1024px breakpoints at the default text size. Its controls are
+   sized in rem too, so at 200% text it behaves as it would on a screen half as wide: brand name,
+   Create account and the inline search field give way to their compact forms instead of
+   colliding (P2 audit, WCAG 1.4.4). If even those do not fit, the row wraps rather than
+   overflowing the page. */
 .header {
+  container: shell-header / inline-size;
   position: sticky;
   top: 0;
   z-index: var(--rc-z-header);
-  display: flex;
-  align-items: center;
-  gap: var(--rc-space-2);
-  height: var(--rc-header-height);
-  padding: 0 var(--rc-space-3);
   border-bottom: var(--rc-border-width) solid var(--rc-border);
   background: var(--rc-surface);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-2);
+  min-height: calc(var(--rc-header-height) - var(--rc-border-width));
+  padding: var(--rc-space-1) var(--rc-space-3);
 }
 
 .start {
@@ -50,36 +63,46 @@
   white-space: nowrap;
 }
 
-/* The search takes the room that is left; on a phone it is one button at the right. */
+/* The search takes the room that is left (a zero basis: it never pushes the other groups onto a
+   second row); as a button it sits at the right. */
 .search {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   justify-content: flex-end;
   min-width: 0;
 }
 
+/* On its own row (a wrapped header) it stays at the right; its controls may wrap too. */
 .end {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
   gap: var(--rc-space-1);
   flex: none;
+  max-width: 100%;
+  margin-left: auto;
 }
 
-/* Phones show the brand mark only (it keeps its name for assistive technology). */
-@media (max-width: 479px) {
+/* A narrow header shows the brand mark only (it keeps its name for assistive technology). */
+@container shell-header (max-width: 29.9375rem) {
   .brandName {
     display: none;
   }
 }
 
 @media (min-width: 768px) {
-  .header {
-    gap: var(--rc-space-4);
-    padding: 0 var(--rc-space-4);
+  .row {
+    column-gap: var(--rc-space-4);
+    padding-inline: var(--rc-space-4);
   }
+}
 
+/* As a field it keeps a usable width; the groups wrap before it gets narrower than that. */
+@container shell-header (min-width: 48rem) {
   .search {
     justify-content: flex-start;
+    min-width: 10rem;
   }
 }
 

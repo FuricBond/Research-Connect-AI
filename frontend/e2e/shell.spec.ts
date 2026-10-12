@@ -134,3 +134,150 @@ test("the navigation follows the role: faculty have no supervisor search", async
   await expect(page.getByRole("banner").getByText("Faculty account", { exact: true })).toBeVisible();
   network.expectClean();
 });
+
+/* ── P2 audit remediation ───────────────────────────────────────────────────────────────── */
+
+const SEARCH_API = "**/api/v1/discovery/research/search**";
+
+/** A search answer that names its query, so the test can see whose results are on screen. */
+function answerFor(q: string) {
+  return JSON.stringify({
+    query: q, items: [], total: 0, limit: 20, offset: 0, has_more: false, ranking_mode: "hybrid",
+    query_intelligence: {
+      original_query: q, normalized_query: q, expanded_query: q, was_expanded: true,
+      detected_acronyms: [q.toUpperCase()], detected_terms: [`results for ${q}`], transformations: [],
+    },
+  });
+}
+
+test("the latest search wins whatever order the answers arrive in, and typing is never overwritten", async ({ page }) => {
+  const network = watch(page);
+  const asked: string[] = [];
+  const release = new Map<string, () => void>();
+  await page.route(SEARCH_API, async (route) => {
+    const q = new URL(route.request().url()).searchParams.get("q") ?? "";
+    asked.push(q);
+    await new Promise<void>((resolve) => release.set(q, resolve));
+    // A request the page has already abandoned can no longer be answered; that is fine.
+    await route.fulfill({ status: 200, contentType: "application/json", body: answerFor(q) }).catch(() => undefined);
+  });
+  await page.goto("/");
+  const box = page.getByRole("searchbox", { name: "Search research literature" });
+
+  // Two searches before either answers; the older answer arrives last.
+  await box.fill("alpha");
+  await box.press("Enter");
+  await box.fill("beta");
+  await box.press("Enter");
+  await expect.poll(() => asked).toEqual(["alpha", "beta"]);
+  await expect(page).toHaveURL(/\/\?q=beta$/);
+  release.get("beta")!();
+  await expect(page.getByText("results for beta")).toBeVisible();
+  release.get("alpha")!();
+  await page.waitForTimeout(500);
+  await expect(page.getByText("results for alpha")).toHaveCount(0);
+  await expect(box).toHaveValue("beta");
+
+  // Refining the query while the next search is still loading.
+  await box.fill("gamma");
+  await box.press("Enter");
+  await expect.poll(() => asked.length).toBe(3);
+  await box.fill("refined query");
+  release.get("gamma")!();
+  await expect(page.getByText("results for gamma")).toBeVisible();
+  await expect(box).toHaveValue("refined query");
+  await expect(page).toHaveURL(/\/\?q=gamma$/);
+  expect(asked).toEqual(["alpha", "beta", "gamma"]);
+
+  // Back returns to the earlier query, once.
+  await page.goBack();
+  await expect(page).toHaveURL(/\/\?q=beta$/);
+  await expect(box).toHaveValue("beta");
+  await expect.poll(() => asked).toEqual(["alpha", "beta", "gamma", "beta"]);
+  release.get("beta")!();
+  network.expectClean();
+});
+
+test("three quick searches while page loads are slow end on the last one (the audited case)", async ({ page }) => {
+  const network = watch(page);
+  const searches: string[] = [];
+  page.on("request", (request) => {
+    if (request.url().includes("/api/v1/discovery/research/search")) searches.push(new URL(request.url()).searchParams.get("q") ?? "");
+  });
+  // Every page payload for "/" takes 800 ms, as on a slow connection.
+  await page.route((url) => url.pathname === "/", async (route) => {
+    if (route.request().headers()["rsc"]) await new Promise((resolve) => setTimeout(resolve, 800));
+    await route.continue();
+  });
+  await page.goto("/");
+  const box = page.getByRole("searchbox", { name: "Search research literature" });
+  for (const q of ["alpha", "beta", "gamma"]) {
+    await box.fill(q);
+    await box.press("Enter");
+    await page.waitForTimeout(400);
+  }
+  await expect(page).toHaveURL(/\/\?q=gamma$/);
+  await expect(box).toHaveValue("gamma");
+  await expect.poll(() => searches.at(-1)).toBe("gamma");
+  expect(searches).toEqual(["alpha", "beta", "gamma"]);
+  network.expectClean();
+});
+
+test("after a header search, keyboard focus is in the search page's box", async ({ page }) => {
+  const network = watch(page);
+  const results = page.getByRole("searchbox", { name: "Search research literature" });
+
+  await page.goto("/browse");
+  const field = page.getByRole("search", { name: "Papers" }).getByRole("searchbox", { name: "Search papers" });
+  await field.fill("information retrieval");
+  await field.press("Enter");
+  await expect(page).toHaveURL(/\/\?q=information(%20|\+)retrieval$/);
+  await expect(results).toBeFocused();
+  await expect(results).toHaveValue("information retrieval");
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/browse");
+  await page.getByRole("button", { name: "Search papers", exact: true }).click();
+  await page.keyboard.type("graph neural networks");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/\?q=graph(%20|\+)neural/);
+  await expect(results).toBeFocused();
+  network.expectClean();
+});
+
+// Focus after signing out (P2 audit) is checked in auth.spec.ts's sign-out step: the backend
+// allows 10 sign-ins a minute per address, so the remediation tests add no sign-in of their own.
+
+test("the navigation drawer's Tab order is Close, then the links, in both directions", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/browse");
+  const menu = page.getByRole("button", { name: "Menu", exact: true });
+  await menu.focus();
+  await page.keyboard.press("Enter");
+  const drawer = page.getByRole("dialog", { name: "Menu" });
+  await expect(drawer).toBeVisible();
+  const focused = () => page.evaluate(() => {
+    const el = document.activeElement as HTMLElement | null;
+    if (!el || el === document.body) return "(outside the page)";
+    return el.getAttribute("aria-label") || el.textContent?.trim() || `unnamed <${el.tagName.toLowerCase()}>`;
+  });
+  const expected = ["Close", "Literature search", "Calls for papers", "Research postings", "Similar research", "Opportunity matcher"];
+
+  const forward: string[] = [];
+  for (let i = 0; i < expected.length; i++) {
+    await page.keyboard.press("Tab");
+    forward.push(await focused());
+  }
+  expect(forward).toEqual(expected);
+
+  const backward: string[] = [];
+  for (let i = 0; i < expected.length - 1; i++) {
+    await page.keyboard.press("Shift+Tab");
+    backward.push(await focused());
+  }
+  expect(backward).toEqual([...expected].reverse().slice(1));
+
+  await page.keyboard.press("Escape");
+  await expect(drawer).toBeHidden();
+  await expect(menu).toBeFocused();
+});

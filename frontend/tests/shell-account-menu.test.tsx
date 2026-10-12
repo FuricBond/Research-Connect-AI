@@ -5,7 +5,7 @@
 
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 let pathname = "/dashboard";
 vi.mock("next/navigation", () => ({
@@ -19,6 +19,7 @@ import { AccountMenu, initials } from "../components/shell/AccountMenu";
 import { AppShell } from "../components/shell/AppShell";
 import { clearActiveIdentity } from "../services/auth";
 import { THEME_STORAGE_KEY } from "../utils/theme";
+import { jsonResponse } from "./factories";
 import { serveShell } from "./shell-support";
 
 function renderMenu() {
@@ -161,6 +162,47 @@ describe("signed in", () => {
     await screen.findByRole("button", { name: /account menu/ });
     expect(document.querySelectorAll("fieldset")).toHaveLength(1);
     expect(screen.queryByRole("group", { name: "Colour theme" })).not.toBeInTheDocument(); // closed
+  });
+});
+
+describe("focus after signing out (P2 audit)", () => {
+  async function signOutWith(logout: () => Promise<Response>) {
+    serveShell("STUDENT", { other: (url) => (url.endsWith("/api/v1/auth/logout") ? logout() : undefined) });
+    renderMenu();
+    const trigger = await screen.findByRole("button", { name: /account menu/ });
+    trigger.focus();
+    fireEvent.click(trigger);
+    const signOut = screen.getByRole("button", { name: "Sign out" });
+    signOut.focus();
+    fireEvent.click(signOut);
+    return signOut;
+  }
+
+  it("moves to the Sign in link once the browser is signed out, not to the page body", async () => {
+    let answer: (response: Response) => void = () => undefined;
+    const signOut = await signOutWith(() => new Promise<Response>((resolve) => (answer = resolve)));
+
+    // Not before the result is known: still on the (busy) Sign out button.
+    expect(signOut).toHaveAttribute("aria-busy", "true");
+    expect(screen.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument();
+
+    await act(async () => answer(new Response(null, { status: 204 })));
+    const signIn = await screen.findByRole("link", { name: "Sign in" });
+    await waitFor(() => expect(signIn).toHaveFocus());
+    expect(document.activeElement).not.toBe(document.body);
+  });
+
+  it("does the same when the server cannot be reached (this browser is signed out anyway)", async () => {
+    await signOutWith(() => Promise.reject(new TypeError("Failed to fetch")));
+    const signIn = await screen.findByRole("link", { name: "Sign in" });
+    await waitFor(() => expect(signIn).toHaveFocus());
+  });
+
+  it("does not take focus when a visitor simply arrives", async () => {
+    serveShell(null);
+    renderMenu();
+    const signIn = await screen.findByRole("link", { name: "Sign in" });
+    expect(signIn).not.toHaveFocus();
   });
 });
 

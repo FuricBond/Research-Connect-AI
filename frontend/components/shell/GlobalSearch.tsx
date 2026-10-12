@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import { Button, IconButton } from "../ui/Button/Button";
 import { Dialog } from "../ui/Dialog/Dialog";
 import { SearchInput } from "../ui/Field/Field";
-import { searchHref } from "../../utils/search";
+import { requestSearchFocus, searchHref } from "../../utils/search";
 import styles from "./GlobalSearch.module.css";
 
 /**
@@ -14,9 +14,10 @@ import styles from "./GlobalSearch.module.css";
  * the query in the URL (`/?q=…`), so the search runs once, there, and can be bookmarked,
  * shared and reloaded.
  *
- * From 768px it is a field in the header (Enter submits, Escape clears then leaves, `/`
- * focuses it from anywhere outside a text field). On a phone it is a button that opens a search
- * sheet with the field and a Search button.
+ * When the header has room (768px at the default text size) it is a field (Enter submits,
+ * Escape clears then leaves, `/` focuses it from anywhere outside a text field); otherwise a
+ * button that opens a search sheet with the field and a Search button. After a search, focus
+ * goes to the search page's own box, which then holds the query.
  */
 export function GlobalSearch() {
   const router = useRouter();
@@ -35,6 +36,7 @@ export function GlobalSearch() {
     setQuery("");
     setSheetOpen(false);
     inlineField.current?.blur();
+    requestSearchFocus(trimmed);
     router.push(searchHref(trimmed));
   };
 
@@ -91,7 +93,15 @@ export function GlobalSearch() {
         aria-expanded={sheetOpen}
         onClick={() => setSheetOpen(true)}
       />
-      <Dialog open={sheetOpen} onClose={() => setSheetOpen(false)} title="Search papers" initialFocusRef={sheetField} className={styles.sheet}>
+      <Dialog
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        title="Search papers"
+        initialFocusRef={sheetField}
+        // The sheet holds only a field and a button: no extra Tab stop for its body.
+        focusableBody={false}
+        className={styles.sheet}
+      >
         <form role="search" aria-label="Papers" className={styles.sheetForm} onSubmit={submit}>
           <SearchInput
             ref={sheetField}

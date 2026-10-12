@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useId, useRef, useState, type FocusEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type FocusEvent, type ReactNode } from "react";
 import { ChevronDown, LogIn, LogOut, SunMoon, UserPlus } from "lucide-react";
 import { logout as revokeTokens } from "../../services/api";
 import { ROLE_LABELS } from "../../types/auth";
@@ -34,6 +34,15 @@ export function initials(name: string): string {
 export function AccountMenu() {
   const { status, user, logout } = useSession();
   const [signingOut, setSigningOut] = useState(false);
+  // Set when this browser has just signed out: the Sign in link takes focus as it appears, so
+  // keyboard focus is not lost with the Sign out button (P2 audit).
+  const focusSignIn = useRef(false);
+  const signInRef = useCallback((link: HTMLAnchorElement | null) => {
+    if (link && focusSignIn.current) {
+      focusSignIn.current = false;
+      link.focus();
+    }
+  }, []);
 
   if (status === "loading") {
     return <div key="pending" className={styles.placeholder} aria-hidden="true" />;
@@ -42,7 +51,7 @@ export function AccountMenu() {
   if (status === "unauthenticated" || user === null) {
     return (
       <div key="visitor" className={styles.visitor}>
-        <Link href="/login" className={styles.signIn}>
+        <Link href="/login" className={styles.signIn} ref={signInRef}>
           <LogIn size={16} aria-hidden="true" />
           Sign in
         </Link>
@@ -65,6 +74,8 @@ export function AccountMenu() {
       // Offline or already revoked: this browser is signed out either way.
     } finally {
       setSigningOut(false);
+      // Whether or not the server answered, this browser is now signed out (as before).
+      focusSignIn.current = true;
       logout();
     }
   };
