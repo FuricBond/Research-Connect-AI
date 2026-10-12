@@ -69,6 +69,14 @@
   color: var(--text-main);
 }
 
+/* The value's placeholder during the first load: inline, so the line keeps its height. */
+.workspace-stat-value .workspace-stat-placeholder {
+  display: inline-block;
+  width: 2ch;
+  height: 0.9em;
+  vertical-align: middle;
+}
+
 /* ── Filter Bar & Pipeline Tabs ────────────────────────────────────────────── */
 
 .workspace-controls {

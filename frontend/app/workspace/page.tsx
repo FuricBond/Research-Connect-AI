@@ -41,11 +41,23 @@ import { RequireAuth } from "../../components/auth/RequireAuth";
 import { DeadlineCountdown } from "../../components/research/DeadlineCountdown";
 import { RiskIndicator } from "../../components/research/RiskIndicator";
 import { PriorityLabel, StatusBadge } from "../../components/ui/Badge/Badge";
+import { Skeleton } from "../../components/ui/State/State";
 import { workspaceStatusMeta } from "../../utils/status";
 import { humanizeEnum } from "../../utils/date";
 import { workspaceDeadline } from "../../utils/workspace";
 
 type FilterTab = "ALL" | WorkspaceStatus;
+
+const WORKSPACE_STATS: { label: string; value: (summary: WorkspaceSummaryResponse) => number }[] = [
+  { label: "Active Pipeline", value: (summary) => summary.active_count },
+  {
+    label: "Considering / Planning",
+    value: (summary) => (summary.counts_by_status["CONSIDERING"] || 0) + (summary.counts_by_status["PLANNING"] || 0),
+  },
+  { label: "Applied", value: (summary) => summary.counts_by_status["APPLIED"] || 0 },
+  { label: "Accepted", value: (summary) => summary.counts_by_status["ACCEPTED"] || 0 },
+  { label: "Archived", value: (summary) => summary.archived_count },
+];
 
 const PIPELINE_TABS: { label: string; value: FilterTab }[] = [
   { label: "All Items", value: "ALL" },
@@ -252,35 +264,18 @@ function WorkspacePage() {
         </div>
 
         {/* ── Summary Stats Strip ───────────────────────────── */}
-        {summary && (
-          <div className="workspace-stats-strip">
-            <div className="workspace-stat-card">
-              <span className="workspace-stat-label">Active Pipeline</span>
-              <span className="workspace-stat-value">{summary.active_count}</span>
-            </div>
-            <div className="workspace-stat-card">
-              <span className="workspace-stat-label">Considering / Planning</span>
-              <span className="workspace-stat-value">
-                {(summary.counts_by_status["CONSIDERING"] || 0) +
-                  (summary.counts_by_status["PLANNING"] || 0)}
-              </span>
-            </div>
-            <div className="workspace-stat-card">
-              <span className="workspace-stat-label">Applied</span>
-              <span className="workspace-stat-value">
-                {summary.counts_by_status["APPLIED"] || 0}
-              </span>
-            </div>
-            <div className="workspace-stat-card">
-              <span className="workspace-stat-label">Accepted</span>
-              <span className="workspace-stat-value">
-                {summary.counts_by_status["ACCEPTED"] || 0}
-              </span>
-            </div>
-            <div className="workspace-stat-card">
-              <span className="workspace-stat-label">Archived</span>
-              <span className="workspace-stat-value">{summary.archived_count}</span>
-            </div>
+        {/* Shown with placeholders during the first load, so the filters below do not jump
+            down when the numbers arrive. */}
+        {(summary || loading) && (
+          <div className="workspace-stats-strip" aria-busy={summary ? undefined : true}>
+            {WORKSPACE_STATS.map(({ label, value }) => (
+              <div key={label} className="workspace-stat-card">
+                <span className="workspace-stat-label">{label}</span>
+                <span className="workspace-stat-value">
+                  {summary ? value(summary) : <Skeleton className="workspace-stat-placeholder" />}
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </div>
@@ -321,7 +316,10 @@ function WorkspacePage() {
                 className={`workspace-pipeline-tab ${activeTab === tab.value ? "active" : ""}`}
               >
                 <span>{tab.label}</span>
-                <span className="workspace-tab-count">{count}</span>
+                {/* Not known until the summary loads: a dash, not a misleading 0. */}
+                <span className="workspace-tab-count" aria-hidden={summary ? undefined : true}>
+                  {summary ? count : "–"}
+                </span>
               </button>
             );
           })}

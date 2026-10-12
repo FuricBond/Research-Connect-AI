@@ -1,0 +1,23 @@
+/* The guard's waiting state, sized like a page header over a short list (PageHeader's h1 and
+   description, SkeletonList's rows). */
+.pending {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-6);
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+}
+
+.title {
+  width: min(22rem, 70%);
+  height: calc(var(--rc-text-h1-size) * var(--rc-text-h1-lh));
+}
+
+.description {
+  width: min(36rem, 90%);
+  height: calc(var(--rc-text-body-size) * var(--rc-text-body-lh));
+}

@@ -14,18 +14,26 @@
 
 import React, { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { ButtonLink } from "../ui/Button/Button";
-import { ErrorState } from "../ui/State/State";
+import { ErrorState, Skeleton, SkeletonList } from "../ui/State/State";
 import type { PlatformRole } from "../../types/auth";
 import { ROLE_LABELS } from "../../types/auth";
 import { useSession } from "./SessionProvider";
+import styles from "./RequireAuth.module.css";
 
+/**
+ * While the session is checked (or the redirect to sign-in starts): the shape of a page — a
+ * title, a line of description, a few rows — instead of a spinner in a dashed box, so the page
+ * that follows replaces it rather than jumping in under it. One status message names the wait.
+ */
 function AuthPending({ label }: { label: string }) {
   return (
-    <div className="auth-pending" role="status" aria-live="polite">
-      <Loader2 size={20} className="auth-spinner" aria-hidden="true" />
-      <span>{label}</span>
+    <div className={styles.pending}>
+      <div className={styles.header} aria-hidden="true">
+        <Skeleton className={styles.title} />
+        <Skeleton className={styles.description} />
+      </div>
+      <SkeletonList rows={3} lines={2} label={label} />
     </div>
   );
 }
