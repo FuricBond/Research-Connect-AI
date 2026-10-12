@@ -8,10 +8,18 @@
 import { describe, expect, it } from "vitest";
 import { ApiError } from "../services/api";
 import {
+  describeChangePasswordError,
   describeLoginError,
   describeRegisterError,
   resolveRedirectTarget,
 } from "../components/auth/authMessages";
+import {
+  confirmationProblem,
+  emailProblem,
+  firstInvalid,
+  newPasswordProblem,
+  withoutField,
+} from "../components/auth/formRules";
 
 describe("describeLoginError", () => {
   it("gives one message for both wrong password and unknown email", () => {
@@ -64,6 +72,62 @@ describe("describeRegisterError", () => {
   it("never shows a server-side detail", () => {
     const leak = "IntegrityError: duplicate key value violates unique constraint";
     expect(describeRegisterError(new ApiError(503, leak, leak))).not.toContain("IntegrityError");
+  });
+});
+
+describe("describeChangePasswordError (P3)", () => {
+  it("passes the backend's word on a wrong current password", () => {
+    expect(
+      describeChangePasswordError(new ApiError(400, "Current password is incorrect.", "Current password is incorrect."))
+    ).toBe("Current password is incorrect.");
+  });
+
+  it("never shows a server error's body", () => {
+    const message = describeChangePasswordError(new ApiError(500, "boom", "Traceback (most recent call last)"));
+    expect(message).toBe("We could not change the password right now. Please try again in a moment.");
+  });
+
+  it("explains a refused burst of attempts and an unreachable server", () => {
+    expect(describeChangePasswordError(new ApiError(429, "", ""))).toBe("Too many attempts. Please wait a moment and try again.");
+    expect(describeChangePasswordError(new TypeError("Failed to fetch"))).toMatch(/Could not reach the server/);
+  });
+});
+
+describe("the account forms' own checks (P3)", () => {
+  it("requires an email address that looks like one", () => {
+    expect(emailProblem("   ")).toBe("Enter your email address.");
+    expect(emailProblem("ada@")).toBe("Enter an email address like name@university.edu.");
+    expect(emailProblem(" Ada@University.EDU ")).toBeNull();
+  });
+
+  it("applies the backend's new-password rules (RegisterRequest, ChangePasswordRequest)", () => {
+    expect(newPasswordProblem("")).toBe("Enter a password.");
+    expect(newPasswordProblem("", "Enter a new password.")).toBe("Enter a new password.");
+    expect(newPasswordProblem("seven77")).toBe("Password must be at least 8 characters.");
+    // Characters as Python counts them: four emoji are four characters, not eight UTF-16 units.
+    expect(newPasswordProblem(String.fromCodePoint(0x1f600).repeat(4))).toBe("Password must be at least 8 characters.");
+    expect(newPasswordProblem(" eight-chars")).toBe("Password must not start or end with a space.");
+    expect(newPasswordProblem("eight-chars\t")).toBe("Password must not start or end with a space.");
+    // bcrypt's 72-byte limit: 36 two-byte letters pass, 37 do not.
+    expect(newPasswordProblem("é".repeat(36))).toBeNull();
+    expect(newPasswordProblem("é".repeat(37))).toMatch(/at most 72 bytes/);
+    expect(newPasswordProblem("a-good-password")).toBeNull();
+  });
+
+  it("asks for the password twice, identically", () => {
+    expect(confirmationProblem("a-good-password", "")).toBe("Enter the password again.");
+    expect(confirmationProblem("a-good-password", "a-good-passwore")).toBe("The two passwords do not match.");
+    expect(confirmationProblem("a", "b", "The new passwords do not match.")).toBe("The new passwords do not match.");
+    expect(confirmationProblem("a-good-password", "a-good-password")).toBeNull();
+  });
+
+  it("finds the first field to fix in form order, and forgets a field being corrected", () => {
+    const errors: Partial<Record<"email" | "password", string>> = { password: "x", email: "y" };
+    expect(firstInvalid(["email", "password"] as const, errors)).toBe("email");
+    expect(firstInvalid(["email", "password"] as const, {})).toBeNull();
+    expect(withoutField(errors, "email")).toEqual({ password: "x" });
+    const untouched: Partial<Record<"email" | "password", string>> = { password: "x" };
+    expect(withoutField(untouched, "email")).toBe(untouched);
   });
 });
 

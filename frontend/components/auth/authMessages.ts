@@ -9,6 +9,8 @@ import { ApiError } from "../../services/api";
 
 const GENERIC_SIGN_IN = "Sign-in is unavailable right now. Please try again in a moment.";
 const GENERIC_REGISTER = "We could not create the account right now. Please try again in a moment.";
+const GENERIC_PASSWORD_CHANGE = "We could not change the password right now. Please try again in a moment.";
+const UNREACHABLE = "Could not reach the server. Check that the backend is running and try again.";
 
 /** A 4xx `detail` is written for the caller; a 5xx body may carry internals, so it is not shown. */
 function safeDetail(error: ApiError, fallback: string): string {
@@ -20,7 +22,7 @@ function safeDetail(error: ApiError, fallback: string): string {
 export function describeLoginError(error: unknown): string {
   if (!(error instanceof ApiError)) {
     // A network failure or a backend that is not running never reaches an HTTP status.
-    return "Could not reach the server. Check that the backend is running and try again.";
+    return UNREACHABLE;
   }
   switch (error.status) {
     case 401:
@@ -39,7 +41,7 @@ export function describeLoginError(error: unknown): string {
 
 export function describeRegisterError(error: unknown): string {
   if (!(error instanceof ApiError)) {
-    return "Could not reach the server. Check that the backend is running and try again.";
+    return UNREACHABLE;
   }
   switch (error.status) {
     case 409:
@@ -51,6 +53,22 @@ export function describeRegisterError(error: unknown): string {
       return safeDetail(error, "Too many attempts. Please wait a moment and try again.");
     default:
       return safeDetail(error, GENERIC_REGISTER);
+  }
+}
+
+/** P3: the password change in Settings. 400 is a wrong current password, in the backend's words. */
+export function describeChangePasswordError(error: unknown): string {
+  if (!(error instanceof ApiError)) {
+    return UNREACHABLE;
+  }
+  switch (error.status) {
+    case 400:
+    case 422:
+      return safeDetail(error, "Please check the passwords you entered.");
+    case 429:
+      return safeDetail(error, "Too many attempts. Please wait a moment and try again.");
+    default:
+      return safeDetail(error, GENERIC_PASSWORD_CHANGE);
   }
 }
 
