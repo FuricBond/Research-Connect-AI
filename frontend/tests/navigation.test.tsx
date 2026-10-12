@@ -90,7 +90,9 @@ describe("navigation model", () => {
     expect(currentHref("/postings/applications")).toBe("/postings");
     expect(currentHref("/researcher")).toBe("/researcher");
     expect(currentHref("/researcher/preferences")).toBe("/researcher/preferences");
-    expect(currentHref("/settings/notifications")).toBe("/settings/notifications");
+    // P3: the account menu's Settings stands for the account settings and the pages beneath them.
+    expect(currentHref("/settings")).toBe("/settings");
+    expect(currentHref("/settings/notifications")).toBe("/settings");
     expect(currentHref("/notifications")).toBe("/notifications");
     expect(currentHref("/login")).toBeNull();
     // "/" is the search page only, not every page.

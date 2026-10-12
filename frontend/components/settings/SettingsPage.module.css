@@ -1,0 +1,74 @@
+/* P3 — Settings: sections in a reading-width column. Tokens only. */
+.page {
+  max-width: 48rem;
+}
+
+.section + .section {
+  margin-top: var(--rc-section-gap);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+}
+
+/* Who is signed in: label and value side by side, stacked on narrow screens. */
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  margin: 0;
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: minmax(7rem, 10rem) minmax(0, 1fr);
+  gap: var(--rc-space-1) var(--rc-space-4);
+}
+
+.fact dt {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-body-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text-secondary);
+}
+
+.fact dd {
+  margin: 0;
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  color: var(--rc-text);
+  min-width: 0;
+}
+
+.email {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 479px) {
+  .fact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.note {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-muted);
+}
+
+/* The password change, ruled off from the account's facts. */
+.rule {
+  padding-top: var(--rc-space-5);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.onward {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  min-height: var(--rc-target-min);
+  font-weight: var(--rc-weight-semibold);
+}

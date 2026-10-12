@@ -6,6 +6,9 @@
  *  - The settings page changes the password: mismatched entries never reach the API, a wrong
  *    current password shows the backend's message, and on success this browser keeps working
  *    with the fresh token the backend returns (the old one is revoked).
+ *
+ * P3: the password change moved from the notification settings to Settings → Account
+ * (`/settings`), and explains each field's problem next to it; these tests follow the form.
  */
 
 import React from "react";
@@ -14,11 +17,11 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
-  usePathname: () => "/settings/notifications",
+  usePathname: () => "/settings",
   useSearchParams: () => new URLSearchParams(),
 }));
 
-import NotificationSettingsRoute from "../app/settings/notifications/page";
+import SettingsRoute from "../app/settings/page";
 import { AccountMenu } from "../components/shell/AccountMenu";
 import { SessionProvider } from "../components/auth/SessionProvider";
 import { getStoredIdentity, storeSession } from "../services/auth";
@@ -89,32 +92,15 @@ describe("sign out", () => {
 });
 
 describe("change password", () => {
-  const PREFERENCES = {
-    id: "np000000-0000-4000-8000-000000000001",
-    profile_id: PROFILE_ID,
-    email_enabled: true,
-    in_app_enabled: true,
-    deadline_reminders_enabled: true,
-    extension_notifications_enabled: true,
-    conflict_notifications_enabled: true,
-    calendar_event_reminders_enabled: true,
-    posting_match_alerts_enabled: false,
-    posting_match_min_score: 60,
-    created_at: "2026-10-01T10:00:00+00:00",
-    updated_at: "2026-10-01T10:00:00+00:00",
-  };
-
   function renderSettings(changeResponse: () => Promise<Response>) {
     fetchMock.mockImplementation((url: string) => {
       if (url.endsWith("/api/v1/auth/me")) return Promise.resolve(jsonResponse(makeUser()));
-      if (url.endsWith("/api/v1/notifications/preferences")) return Promise.resolve(jsonResponse(PREFERENCES));
-      if (url.includes("/api/v1/notifications/rules")) return Promise.resolve(jsonResponse({ rules: [], total: 0 }));
       if (url.endsWith("/api/v1/auth/change-password")) return changeResponse();
-      return Promise.resolve(jsonResponse({}, 200));
+      return Promise.resolve(jsonResponse({ detail: `unexpected request ${url}` }, 404));
     });
     return render(
       <SessionProvider>
-        <NotificationSettingsRoute />
+        <SettingsRoute />
       </SessionProvider>
     );
   }
@@ -126,6 +112,16 @@ describe("change password", () => {
     fireEvent.click(screen.getByRole("button", { name: "Change password" }));
   }
 
+  it("is in the account settings, not the notification settings", async () => {
+    renderSettings(() => Promise.resolve(jsonResponse({}, 200)));
+    expect(await screen.findByRole("heading", { level: 1, name: "Settings" })).toBeInTheDocument();
+    expect(screen.getByRole("form", { name: "Change password" })).toBeInTheDocument();
+    // The browser's password manager fills the right fields.
+    expect(screen.getByLabelText("Current password")).toHaveAttribute("autocomplete", "current-password");
+    expect(screen.getByLabelText(/^New password/)).toHaveAttribute("autocomplete", "new-password");
+    expect(screen.getByLabelText("Confirm new password")).toHaveAttribute("autocomplete", "new-password");
+  });
+
   it("keeps this browser signed in with the fresh token", async () => {
     renderSettings(() =>
       Promise.resolve(jsonResponse(makeTokenResponse({ access_token: "fresh.token.after-change" })))
@@ -133,7 +129,8 @@ describe("change password", () => {
 
     await fill("old-password", "a-new-password", "a-new-password");
 
-    expect(await screen.findByRole("status")).toHaveTextContent("Password changed");
+    expect(await screen.findByText(/Password changed/)).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Password changed. Your other sessions have been signed out.");
     const [call] = calls("/api/v1/auth/change-password");
     expect(JSON.parse(String((call[1] as RequestInit).body))).toEqual({
       current_password: "old-password",
@@ -144,12 +141,28 @@ describe("change password", () => {
     expect(screen.getByLabelText("Current password")).toHaveValue("");
   });
 
-  it("refuses mismatched new passwords without calling the API", async () => {
+  it("refuses mismatched new passwords without calling the API, and says so at the field", async () => {
     renderSettings(() => Promise.resolve(jsonResponse({}, 200)));
 
     await fill("old-password", "a-new-password", "a-different-one");
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("The new passwords do not match.");
+    expect(await screen.findByText("The new passwords do not match.")).toBeInTheDocument();
+    const confirm = screen.getByLabelText("Confirm new password");
+    expect(confirm).toHaveAttribute("aria-invalid", "true");
+    expect(confirm).toHaveAccessibleDescription(/The new passwords do not match\./);
+    expect(confirm).toHaveFocus();
+    expect(calls("/api/v1/auth/change-password")).toHaveLength(0);
+  });
+
+  it("applies the registration rules to the new password before calling the API", async () => {
+    renderSettings(() => Promise.resolve(jsonResponse({}, 200)));
+
+    await fill("", "short", "short");
+
+    expect(await screen.findByText("Enter your current password.")).toBeInTheDocument();
+    expect(screen.getByText("Password must be at least 8 characters.")).toBeInTheDocument();
+    // Focus goes to the first field that needs attention.
+    expect(screen.getByLabelText("Current password")).toHaveFocus();
     expect(calls("/api/v1/auth/change-password")).toHaveLength(0);
   });
 
@@ -161,5 +174,19 @@ describe("change password", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent("Current password is incorrect.");
     await waitFor(() => expect(screen.getByRole("button", { name: "Change password" })).toBeEnabled());
     expect(getStoredIdentity().token).toBe("header.payload.signature");
+  });
+
+  it("never shows a server error's body, and says so plainly when the server is unreachable", async () => {
+    renderSettings(() => Promise.resolve(jsonResponse({ detail: "psycopg.errors.InternalError at 0x7f" }, 500)));
+    await fill("old-password", "a-new-password", "a-new-password");
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("We could not change the password right now.");
+    expect(alert).not.toHaveTextContent("psycopg");
+
+    fetchMock.mockImplementation((url: string) =>
+      url.endsWith("/api/v1/auth/change-password") ? Promise.reject(new TypeError("Failed to fetch")) : Promise.resolve(jsonResponse(makeUser()))
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Change password" }));
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Could not reach the server."));
   });
 });

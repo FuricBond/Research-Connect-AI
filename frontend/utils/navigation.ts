@@ -89,11 +89,15 @@ export const NAV_SECTIONS: readonly NavSection[] = [
   },
 ];
 
-/** The account's own pages, in the account menu (signed-in only). */
+/**
+ * The account's own pages, in the account menu (signed-in only). P3: Settings (the account and
+ * its password, with the way to the notification settings beneath it) replaces the direct link
+ * to the notification settings, as the plan's account menu has it.
+ */
 export const ACCOUNT_ITEMS: readonly NavItem[] = [
   { href: "/researcher", label: "Researcher profile", icon: User },
   { href: "/researcher/preferences", label: "Research preferences", icon: SlidersHorizontal },
-  { href: "/settings/notifications", label: "Notification settings", icon: Settings },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 /** The notification bell's destination. */

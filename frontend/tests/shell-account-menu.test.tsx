@@ -61,7 +61,8 @@ describe("signed in", () => {
     fireEvent.click(trigger);
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     expect(panel).toBeVisible();
-    for (const label of ["Researcher profile", "Research preferences", "Notification settings"]) {
+    // P3: Settings (account and password, then the notification settings) as in the plan's menu.
+    for (const label of ["Researcher profile", "Research preferences", "Settings"]) {
       expect(within(panel).getByRole("link", { name: label })).toBeInTheDocument();
     }
     expect(within(panel).getByText("Student researcher account")).toBeInTheDocument();

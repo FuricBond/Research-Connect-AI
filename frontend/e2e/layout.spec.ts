@@ -15,7 +15,7 @@ const PAGES = [
   // Every profile section: each has its own panels, and a section's grid once outgrew the page.
   "/researcher", "/researcher?section=interests", "/researcher?section=recommendations",
   "/researcher?section=personalization", "/researcher?section=history", "/researcher/preferences",
-  "/settings/notifications",
+  "/settings", "/settings/notifications",
 ];
 
 /** Every destination a signed-in student has in the primary navigation (utils/navigation.ts). */
@@ -33,7 +33,8 @@ const STUDENT_DESTINATIONS = [
   "Find a supervisor",
   "Find peers",
 ];
-const ACCOUNT_PAGES = ["Researcher profile", "Research preferences", "Notification settings"];
+// P3: Settings (the account and its password) replaces the direct link to the notification settings.
+const ACCOUNT_PAGES = ["Researcher profile", "Research preferences", "Settings"];
 
 async function horizontalOverflow(page: Page): Promise<number> {
   return page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -159,3 +160,47 @@ async function headerHoldsTogetherAt200(browser: Browser, studentState: BrowserC
     }
   }
 }
+
+/**
+ * P3: the public pages — sign in, registration and not-found — fit every width for a visitor,
+ * in both themes: no sideways scrolling, and no field, button or link of the page off screen.
+ * No account is needed, so the suite's sign-ins (10 a minute per address) are not touched.
+ */
+test("the sign-in, registration and not-found pages fit the screen for a visitor", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const PUBLIC_PAGES = [
+    ["/login", "Sign in"],
+    ["/register", "Create an account"],
+    ["/no-such-page", "Page not found"],
+  ] as const;
+  for (const theme of ["light", "dark"] as const) {
+    const context = await browser.newContext();
+    await context.addInitScript((t) => {
+      try { localStorage.setItem("rc-theme", t); } catch { /* storage blocked: the default theme */ }
+    }, theme);
+    const page = await context.newPage();
+    const network = watch(page);
+    for (const width of WIDTHS) {
+      await page.setViewportSize({ width, height: 844 });
+      for (const [path, heading] of PUBLIC_PAGES) {
+        await test.step(`${theme}, ${width}px, ${path}`, async () => {
+          await page.goto(path);
+          await expect(page.getByRole("heading", { level: 1, name: heading })).toBeVisible();
+          expect(await horizontalOverflow(page), `${path} at ${width}px scrolls sideways`).toBeLessThanOrEqual(0);
+          const offscreen = await page.evaluate(() => {
+            const vw = document.documentElement.clientWidth;
+            return [...document.querySelectorAll<HTMLElement>("main input, main select, main button, main a")]
+              .filter((el) => {
+                const r = el.getBoundingClientRect();
+                return r.width > 0 && (r.left < -1 || r.right > vw + 1);
+              })
+              .map((el) => el.id || el.textContent?.trim() || el.tagName);
+          });
+          expect(offscreen, `controls off screen on ${path} at ${width}px`).toEqual([]);
+        });
+      }
+    }
+    network.expectClean();
+    await context.close();
+  }
+});

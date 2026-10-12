@@ -15,7 +15,6 @@ import {
   Save,
 } from "lucide-react";
 import {
-  changePassword,
   fetchNotificationDeliveryStatus,
   fetchNotificationPreferences,
   updateNotificationPreferences,
@@ -23,7 +22,6 @@ import {
   createReminderRule,
   deleteReminderRule,
 } from "@/services/api";
-import { storeSession } from "@/services/auth";
 import {
   NotificationDeliveryStatus,
   NotificationPreference,
@@ -123,40 +121,6 @@ function NotificationSettingsPage() {
       setPreferences(previous);
     } finally {
       setSaving(false);
-    }
-  };
-
-  // Phase 6.7: changing the password revokes every token, so this browser keeps the new one.
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [changingPassword, setChangingPassword] = useState(false);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [passwordChanged, setPasswordChanged] = useState(false);
-
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPasswordError(null);
-    setPasswordChanged(false);
-    if (newPassword !== confirmPassword) {
-      setPasswordError("The new passwords do not match.");
-      return;
-    }
-    setChangingPassword(true);
-    try {
-      const response = await changePassword({
-        current_password: currentPassword,
-        new_password: newPassword,
-      });
-      storeSession(response);
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setPasswordChanged(true);
-    } catch (err: any) {
-      setPasswordError(err?.detail || err?.message || "Failed to change the password.");
-    } finally {
-      setChangingPassword(false);
     }
   };
 
@@ -515,76 +479,6 @@ function NotificationSettingsPage() {
           </form>
         </div>
 
-        {/* Section: Account security (Phase 6.7) */}
-        <div className="preferences-section">
-          <h2 className="preferences-section-title">Change Password</h2>
-          <p className="preferences-section-desc">
-            Changing your password signs you out on every other device. This browser stays signed in.
-          </p>
-
-          <form
-            onSubmit={handleChangePassword}
-            aria-label="Change password"
-            style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 360 }}
-          >
-            <label htmlFor="current-password" style={{ fontSize: 13, fontWeight: 600 }}>
-              Current password
-            </label>
-            <input
-              id="current-password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              className="notifications-select"
-            />
-            <label htmlFor="new-password" style={{ fontSize: 13, fontWeight: 600 }}>
-              New password (at least 8 characters)
-            </label>
-            <input
-              id="new-password"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="notifications-select"
-            />
-            <label htmlFor="confirm-password" style={{ fontSize: 13, fontWeight: 600 }}>
-              Confirm new password
-            </label>
-            <input
-              id="confirm-password"
-              type="password"
-              autoComplete="new-password"
-              required
-              minLength={8}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="notifications-select"
-            />
-            {passwordError && (
-              <p role="alert" style={{ margin: 0, color: "var(--rc-danger)", fontSize: 13 }}>
-                {passwordError}
-              </p>
-            )}
-            {passwordChanged && (
-              <p role="status" style={{ margin: 0, color: "var(--rc-success)", fontSize: 13 }}>
-                Password changed. Your other sessions have been signed out.
-              </p>
-            )}
-            <button
-              type="submit"
-              className="notifications-btn-primary"
-              disabled={changingPassword}
-              style={{ alignSelf: "flex-start" }}
-            >
-              <span>{changingPassword ? "Changing…" : "Change password"}</span>
-            </button>
-          </form>
-        </div>
       </div>
     </div>
   );

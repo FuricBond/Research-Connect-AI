@@ -35,7 +35,7 @@ const COLOUR = /#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b(?![\w-])|\b(?:rgba?|hsla?)\
 const colours = (file: string) => code(read(file)).match(COLOUR) ?? [];
 
 /** Inline style objects in legacy components: may only go down as pages migrate. */
-const INLINE_STYLE_LIMIT = 869;
+const INLINE_STYLE_LIMIT = 860; // P3: the password form and not-found page moved to the primitives (869 before)
 
 describe("colour lives in the token file", () => {
   it("has no colour literal in any stylesheet but styles/tokens.css", () => {

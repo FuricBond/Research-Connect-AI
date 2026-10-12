@@ -36,6 +36,7 @@ test("every signed-in page renders against the live API without contract errors"
     ["/submissions", /Submissions/],
     ["/calendar", /Research Calendar/],
     ["/notifications", /Notification Center/],
+    ["/settings", /^Settings$/],
     ["/settings/notifications", /Notification & Reminder Preferences/],
     ["/postings", /Research Postings/],
     ["/postings/applications", /My Applications/],
