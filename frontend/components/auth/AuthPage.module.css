@@ -1,0 +1,57 @@
+/* P3 — sign-in and registration: one card, centred, full width on phones. Tokens only. */
+.page {
+  display: flex;
+  justify-content: center;
+  padding-block: var(--rc-space-6) var(--rc-space-12);
+}
+
+.card {
+  width: 100%;
+  max-width: 26rem;
+}
+
+.wide {
+  max-width: 36rem;
+}
+
+/* Phones: the form sits on the page itself, full width (DESIGN_SYSTEM.md §16), so the fields
+   and the title keep their room, with enlarged text too. */
+@media (max-width: 479px) {
+  .page {
+    padding-block: var(--rc-space-2) var(--rc-space-8);
+  }
+
+  .page .card {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+}
+
+/* The page header inside the card: the same title and rule, closer to the form. */
+.card .header {
+  margin-bottom: var(--rc-space-5);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-field-gap);
+}
+
+/* Two fields side by side from about 2 × 14rem, stacked below (container-free: the card's
+   own width decides through auto-fit). */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: var(--rc-field-gap);
+}
+
+.alternative {
+  margin: var(--rc-space-5) 0 0;
+  padding-top: var(--rc-space-4);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}

@@ -1,10 +1,9 @@
 /* Phase 6.2 — Authentication, session and administration styling.
    Follows the same token-with-fallback convention as postings.css and peers.css. */
 
-/* ── Shared session states (route guard) ── */
+/* ── Pending state (administration panels) ── */
 
-.auth-pending,
-.auth-denied {
+.auth-pending {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -14,26 +13,6 @@
   color: var(--color-text-muted);
   font-size: 0.875rem;
   justify-content: center;
-}
-
-.auth-denied {
-  align-items: flex-start;
-  justify-content: flex-start;
-  border-style: solid;
-  border-color: var(--rc-warning-border);
-  background: var(--rc-warning-subtle);
-  color: var(--rc-warning);
-  text-align: left;
-}
-
-.auth-denied-title {
-  margin: 0 0 0.25rem;
-  font-weight: 600;
-}
-
-.auth-denied-body {
-  margin: 0 0 0.5rem;
-  font-size: 0.8125rem;
 }
 
 .auth-spinner {
@@ -52,122 +31,7 @@
   }
 }
 
-/* ── Sign-in and registration ── */
-
-.auth-page {
-  display: flex;
-  justify-content: center;
-  padding: 2.5rem 0 3rem;
-  min-height: 55vh;
-}
-
-.auth-card {
-  width: 100%;
-  max-width: 400px;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: var(--color-surface);
-  box-shadow: var(--shadow-md);
-  padding: 1.75rem;
-}
-
-.auth-card-wide {
-  max-width: 560px;
-}
-
-.auth-card-head h1 {
-  margin: 0 0 0.35rem;
-  font-size: 1.35rem;
-  letter-spacing: -0.01em;
-}
-
-.auth-card-subtitle {
-  margin: 0 0 1.25rem;
-  font-size: 0.8125rem;
-  line-height: 1.5;
-  color: var(--color-text-muted);
-}
-
-.auth-form {
-  display: grid;
-  gap: 0.9rem;
-}
-
-.auth-form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 0.9rem;
-}
-
-.auth-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
-}
-
-.auth-field label {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--color-text);
-  display: flex;
-  align-items: baseline;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-}
-
-.auth-field-hint {
-  font-size: 0.75rem;
-  font-weight: 400;
-  color: var(--color-text-muted);
-}
-
-.auth-field input,
-.auth-field select {
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-family: inherit;
-  background: var(--color-surface);
-  color: inherit;
-}
-
-.auth-field input:focus-visible,
-.auth-field select:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 1px;
-}
-
-.auth-field input:disabled,
-.auth-field select:disabled {
-  background: var(--bg-muted);
-  cursor: not-allowed;
-}
-
-.auth-submit {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  margin-top: 0.25rem;
-  padding: 0.55rem 0.8rem;
-  border: 1px solid var(--primary);
-  border-radius: 6px;
-  background: var(--primary);
-  color: var(--rc-text-on-brand);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.auth-submit:hover:not(:disabled) {
-  background: var(--primary-hover);
-}
-
-.auth-submit:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
+/* ── Error message (administration panels) ── */
 
 .auth-error {
   display: flex;
@@ -181,23 +45,6 @@
   padding: 0.6rem 0.75rem;
   font-size: 0.8125rem;
   line-height: 1.45;
-}
-
-.auth-alt {
-  margin: 1.1rem 0 0;
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  text-align: center;
-}
-
-.auth-link {
-  color: var(--primary);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.auth-link:hover {
-  text-decoration: underline;
 }
 
 /* ── Small bordered button (administration panels) ── */

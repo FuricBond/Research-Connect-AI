@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { AlertCircle, BookOpen, Loader2, Sparkles } from "lucide-react";
+import { AlertCircle, BookOpen, Loader2, Search } from "lucide-react";
 import { SearchBar } from "../discovery/SearchBar";
 import { SearchFilters } from "../discovery/SearchFilters";
 import { ResearchResultCard } from "../discovery/ResearchResultCard";
@@ -10,6 +10,7 @@ import { PaginationControls } from "../discovery/PaginationControls";
 import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
 import { searchResearchWorks, lookupReadingList, ApiError } from "../../services/api";
 import { useSession } from "../auth/SessionProvider";
+import { VisitorIntro } from "../auth/VisitorIntro";
 import { currentUrlQuery, searchHref, takeSearchFocusRequest } from "../../utils/search";
 import { PageHeader } from "../ui/PageHeader/PageHeader";
 import type {
@@ -297,12 +298,13 @@ export function DiscoverySearch() {
         </div>
       )}
 
-      {/* Initial Landing Prompt */}
+      {/* Initial Landing Prompt; a visitor also reads what an account adds (P3). */}
       {!hasSearched && !isLoading && (
         <div className="state-container prompt-state">
-          <Sparkles size={28} className="prompt-icon" />
+          <Search size={28} className="prompt-icon" aria-hidden="true" />
           <h4>Begin your literature search</h4>
           <p>Type a topic, methodology, or academic acronym to discover relevant literature and match venues.</p>
+          {sessionStatus === "unauthenticated" && <VisitorIntro />}
         </div>
       )}
 

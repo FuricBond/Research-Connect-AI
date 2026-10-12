@@ -25,8 +25,9 @@ import styles from "./RequireAuth.module.css";
  * While the session is checked (or the redirect to sign-in starts): the shape of a page — a
  * title, a line of description, a few rows — instead of a spinner in a dashed box, so the page
  * that follows replaces it rather than jumping in under it. One status message names the wait.
+ * The sign-in pages use it too, while a signed-in account is taken on to its page.
  */
-function AuthPending({ label }: { label: string }) {
+export function AuthPending({ label }: { label: string }) {
   return (
     <div className={styles.pending}>
       <div className={styles.header} aria-hidden="true">
@@ -80,7 +81,8 @@ export function RequireAuth({
             need access.
           </>
         }
-        actions={<ButtonLink href="/">Back to discovery</ButtonLink>}
+        // The way home (DESIGN_SYSTEM.md §10): the signed-in home, as the brand link goes.
+        actions={<ButtonLink href="/dashboard">Go to home</ButtonLink>}
       />
     );
   }

@@ -1,38 +1,72 @@
 "use client";
 
 /**
- * Phase 6.2 — Sign-in page.
+ * Phase 6.2 — Sign-in page. P3: rebuilt on the design system's fields, button and alert.
  *
  * Posts to /api/v1/auth/login and stores the signed bearer token the backend returns.
  * No user ID is ever typed here: identity comes from credentials, not from a header.
+ *
+ * The button is never greyed out: a missing entry is explained next to its field when the form
+ * is sent, and focus goes to it. While the request runs the fields are read-only (not disabled,
+ * so keyboard focus stays where it was) and the button shows that it is busy.
  */
 
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertCircle, Loader2, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { useSession } from "../../components/auth/SessionProvider";
+import { AuthForm, AuthPage } from "../../components/auth/AuthPage";
+import { AuthPending } from "../../components/auth/RequireAuth";
 import { describeLoginError, resolveRedirectTarget } from "../../components/auth/authMessages";
+import { firstInvalid, withoutField, type FieldErrors } from "../../components/auth/formRules";
+import { Button } from "../../components/ui/Button/Button";
+import { PasswordInput, TextInput } from "../../components/ui/Field/Field";
+import { Alert, SkeletonList } from "../../components/ui/State/State";
+
+type LoginField = "email" | "password";
+const FIELD_ORDER: readonly LoginField[] = ["email", "password"];
+const TITLE = "Sign in";
+const DESCRIPTION = "Your recommendations, workspace and applications are tied to your account.";
 
 function LoginForm() {
   const { status, login } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const target = resolveRedirectTarget(searchParams.get("next"));
+  const next = searchParams.get("next");
+  const target = resolveRedirectTarget(next);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors<LoginField>>({});
+  const fields = { email: useRef<HTMLInputElement>(null), password: useRef<HTMLInputElement>(null) };
 
   // Somebody already signed in has no business on this page.
   useEffect(() => {
     if (status === "authenticated") router.replace(target);
   }, [status, target, router]);
 
+  if (status === "authenticated") {
+    // Signed in (just now, or already): the form gives way while the page they asked for opens.
+    return <AuthPending label="You're signed in. Opening your page…" />;
+  }
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (submitting) return;
+    const problems: FieldErrors<LoginField> = {};
+    if (email.trim() === "") problems.email = "Enter your email address.";
+    if (password === "") problems.password = "Enter your password.";
+    setFieldErrors(problems);
+    const invalid = firstInvalid(FIELD_ORDER, problems);
+    if (invalid !== null) {
+      setError(null);
+      fields[invalid].current?.focus();
+      return;
+    }
+
     setError(null);
     setSubmitting(true);
     try {
@@ -44,83 +78,80 @@ function LoginForm() {
     }
   };
 
+  const clear = (field: LoginField) => setFieldErrors((current) => withoutField(current, field));
+
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <header className="auth-card-head">
-          <h1>Sign in</h1>
-          <p className="auth-card-subtitle">
-            Your recommendations, workspace and applications are tied to your account.
-          </p>
-        </header>
+    <AuthPage
+      title={TITLE}
+      description={DESCRIPTION}
+      alternative={
+        <>
+          New to ResearchConnect AI?{" "}
+          <Link href={next ? `/register?next=${encodeURIComponent(next)}` : "/register"}>Create an account</Link>
+        </>
+      }
+    >
+      {error !== null && (
+        <Alert tone="danger" announce>
+          {error}
+        </Alert>
+      )}
 
-        {error !== null && (
-          <div className="auth-error" role="alert">
-            <AlertCircle size={15} aria-hidden="true" />
-            <span>{error}</span>
-          </div>
-        )}
+      <AuthForm onSubmit={handleSubmit}>
+        <TextInput
+          ref={fields.email}
+          id="login-email"
+          name="email"
+          type="email"
+          label="Email"
+          autoComplete="email"
+          autoCapitalize="none"
+          spellCheck={false}
+          aria-required="true"
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            clear("email");
+          }}
+          readOnly={submitting}
+          error={fieldErrors.email}
+        />
 
-        <form className="auth-form" onSubmit={handleSubmit} noValidate>
-          <div className="auth-field">
-            <label htmlFor="login-email">Email</label>
-            <input
-              id="login-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={submitting}
-            />
-          </div>
+        <PasswordInput
+          ref={fields.password}
+          id="login-password"
+          name="password"
+          label="Password"
+          autoComplete="current-password"
+          aria-required="true"
+          value={password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            clear("password");
+          }}
+          readOnly={submitting}
+          error={fieldErrors.password}
+        />
 
-          <div className="auth-field">
-            <label htmlFor="login-password">Password</label>
-            <input
-              id="login-password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={submitting}
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="auth-submit"
-            disabled={submitting || email.trim() === "" || password === ""}
-          >
-            {submitting ? (
-              <>
-                <Loader2 size={15} className="auth-spinner" aria-hidden="true" />
-                Signing in…
-              </>
-            ) : (
-              <>
-                <LogIn size={15} aria-hidden="true" />
-                Sign in
-              </>
-            )}
-          </button>
-        </form>
-
-        <p className="auth-alt">
-          No account yet? <Link href="/register" className="auth-link">Create one</Link>
-        </p>
-      </div>
-    </div>
+        <Button type="submit" variant="primary" fullWidth loading={submitting} leadingIcon={<LogIn size={16} aria-hidden="true" />}>
+          Sign in
+        </Button>
+      </AuthForm>
+    </AuthPage>
   );
 }
 
 export default function LoginPage() {
-  // useSearchParams needs a boundary for this route to prerender.
+  // useSearchParams needs a boundary for this route to prerender. Until the form is ready the
+  // card already shows its title, so the form appears beneath it instead of shifting it.
   return (
-    <Suspense fallback={<div className="auth-page" />}>
+    <Suspense
+      fallback={
+        <AuthPage title={TITLE} description={DESCRIPTION}>
+          <SkeletonList rows={2} label="Loading the sign-in form…" />
+        </AuthPage>
+      }
+    >
       <LoginForm />
     </Suspense>
   );
