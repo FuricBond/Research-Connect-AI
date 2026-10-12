@@ -2466,6 +2466,7 @@ export function toUnifiedRecommendationResponse(
         : "Relevance dominance verified: relevance ≥ 85%, personalization ≤ 15%.",
     recommendations: items.map(toRecommendationItem),
     benchmark_stats: null,
+    researcher_context: context,
   };
 }
 

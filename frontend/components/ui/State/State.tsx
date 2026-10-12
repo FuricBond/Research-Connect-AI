@@ -25,12 +25,14 @@ export function SkeletonText({ lines = 2, title = false }: { lines?: number; tit
 
 /**
  * Loading placeholder for a list of rows. The region is busy and one visually hidden status
- * says what is loading, so screen readers hear one message, not a list of shapes.
+ * says what is loading, so screen readers hear one message, not a list of shapes. Where several
+ * load at once (the dashboard's modules), `announce={false}` keeps the label but not the live
+ * region, so the page is not read out once per module.
  */
-export function SkeletonList({ rows = 3, label, lines = 1 }: { rows?: number; label: string; lines?: number }) {
+export function SkeletonList({ rows = 3, label, lines = 1, announce = true }: { rows?: number; label: string; lines?: number; announce?: boolean }) {
   return (
     <div aria-busy="true">
-      <p role="status" className="rc-visually-hidden">
+      <p role={announce ? "status" : undefined} className="rc-visually-hidden">
         {label}
       </p>
       {Array.from({ length: rows }, (_, i) => (

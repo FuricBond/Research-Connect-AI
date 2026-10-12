@@ -65,7 +65,8 @@
 .matchGood { background: var(--rc-data-match-good-bg); color: var(--rc-data-match-good-fg); }
 .matchPartial { background: var(--rc-data-match-partial-bg); color: var(--rc-data-match-partial-fg); }
 .matchWeak { border-color: var(--rc-border-strong); color: var(--rc-data-match-weak-fg); }
+/* The number is set apart by weight, not by fading it: at 85% opacity, white on the dark
+   theme's strong fill fell below 4.5:1 (P4, axe). */
 .matchValue {
   font-weight: var(--rc-weight-regular);
-  opacity: 0.85;
 }

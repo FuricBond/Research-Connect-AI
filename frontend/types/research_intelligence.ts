@@ -139,6 +139,8 @@ export interface UnifiedRecommendationResponse {
   relevance_dominance_guarantee: string;
   recommendations: UnifiedRecommendationItem[];
   benchmark_stats?: Record<string, unknown> | null;
+  /** P4: who the recommendations were computed for (interests, profile completeness), as sent. */
+  researcher_context?: UnifiedResearcherContext;
 }
 
 export interface UnifiedOpportunityIntelligence {
