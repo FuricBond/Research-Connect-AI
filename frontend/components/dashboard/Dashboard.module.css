@@ -1,0 +1,362 @@
+/* P4 — the dashboard: modules in two columns from 1280px, one below. Tokens only. */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rc-section-gap);
+  align-items: start;
+}
+
+@media (min-width: 1280px) {
+  .grid {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-section-gap);
+  min-width: 0;
+}
+
+/* ── Module frame ── */
+.module {
+  min-width: 0;
+}
+
+.moduleHeader {
+  margin-bottom: var(--rc-space-2);
+}
+
+.moduleBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+}
+
+/* Each module reserves the height of a typical answer (measured with the seeded accounts at
+   1440 and 390px), from its first paint: a shorter answer, an empty state or a failure keeps
+   the height, and items are clamped (titles and reasons to two lines), so the modules below do
+   not move as answers arrive. A much longer answer still grows the module. */
+.reserveAttention { min-height: 27rem; }
+.reserveList { min-height: 29rem; }
+.reserveTimeline { min-height: 18.25rem; }
+.reserveCounts { min-height: 9rem; }
+
+@media (max-width: 767px) {
+  .reserveAttention { min-height: 31rem; }
+}
+
+.part {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  min-width: 0;
+}
+
+.part + .part {
+  padding-top: var(--rc-space-4);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.partTitle {
+  margin: 0;
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  color: var(--rc-text-secondary);
+}
+
+.more {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+}
+
+/* ── Item lists (calls, recommendations, postings, papers) ── */
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  padding-block: var(--rc-row-padding-y);
+  min-width: 0;
+}
+
+.item + .item {
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.item:first-child {
+  padding-top: 0;
+}
+
+/* Titles clamp to two lines on the home (the full title stays the link's name). */
+.itemTitle {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+a.itemTitle {
+  text-decoration: none;
+}
+
+a.itemTitle:hover {
+  text-decoration: underline;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-3);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-muted);
+}
+
+.reason {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+/* A reason with its "Why?" beside it, on one row. */
+.reasonRow {
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  min-width: 0;
+}
+
+.reasonRow .reason {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.nextStep {
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+}
+
+.strong {
+  color: var(--rc-text);
+  font-weight: var(--rc-weight-semibold);
+}
+
+/* ── Upcoming: a dot timeline (a ruled list with a dot per date) ── */
+.timeline {
+  container-type: inline-size;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.event {
+  display: grid;
+  grid-template-columns: 4.75rem 0.75rem minmax(0, 1fr);
+  column-gap: var(--rc-space-3);
+  padding-block: var(--rc-space-2);
+}
+
+.date {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-body-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.dot {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+/* The rule joining the dots, and the dot itself (hollow for a milestone, filled for a deadline). */
+.dot::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: calc(var(--rc-space-2) * -1);
+  width: var(--rc-border-width);
+  background: var(--rc-border-strong);
+}
+
+.event:first-child .dot::before {
+  top: 0.6rem;
+}
+
+.event:last-child .dot::before {
+  bottom: calc(100% - 0.6rem);
+}
+
+.dot::after {
+  content: "";
+  position: relative;
+  margin-top: 0.35rem;
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 2px solid var(--rc-brand);
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-brand);
+}
+
+.milestone .dot::after {
+  background: var(--rc-surface);
+}
+
+/* A narrow timeline (a small phone, or enlarged text, as rem follows the text size): the date
+   goes above the title instead of beside it, so nothing runs past the card. */
+@container (max-width: 20rem) {
+  .event {
+    grid-template-columns: 0.75rem minmax(0, 1fr);
+  }
+
+  .dot {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .date {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .eventBody {
+    grid-column: 2;
+    grid-row: 2;
+  }
+}
+
+.eventBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.eventTitle {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+/* ── Reading progress ── */
+.counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--rc-space-3);
+  margin: 0;
+}
+
+.count {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+}
+
+.count dt {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-muted);
+}
+
+.count dd {
+  margin: 0;
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  display: block;
+  width: 100%;
+  height: 0.5rem;
+  border-radius: var(--rc-radius-full);
+  overflow: hidden;
+  background: var(--rc-data-meter-track);
+}
+
+.barToRead {
+  fill: var(--rc-border-strong);
+}
+
+.barReading {
+  fill: var(--rc-data-meter-fill);
+  fill-opacity: 0.55;
+}
+
+.barDone {
+  fill: var(--rc-data-meter-fill);
+}
+
+/* ── Get started ── */
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  gap: var(--rc-space-2);
+  align-items: start;
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  color: var(--rc-text);
+}
+
+.step svg {
+  margin-top: 0.2em;
+  color: var(--rc-text-muted);
+}
+
+.stepDone {
+  color: var(--rc-text-secondary);
+}
+
+.stepDone svg {
+  color: var(--rc-success);
+}
