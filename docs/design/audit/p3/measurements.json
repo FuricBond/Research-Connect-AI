@@ -1,0 +1,406 @@
+{
+ "measured": "2026-10-12, isolated e2e stack (rce2e, production images) from the P3 working tree",
+ "titles": {
+  "/login": "Sign in — ResearchConnect AI",
+  "/register": "Create an account — ResearchConnect AI",
+  "/": "Literature search — ResearchConnect AI",
+  "/no-such-page": "Page not found — ResearchConnect AI",
+  "/settings": "Settings — ResearchConnect AI",
+  "/admin": "ResearchConnect AI — Academic Intelligence & Discovery"
+ },
+ "pages": [
+  {
+   "role": "visitor",
+   "route": "/login",
+   "theme": "light",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Sign in"
+   ],
+   "axe": []
+  },
+  {
+   "role": "visitor",
+   "route": "/register",
+   "theme": "light",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Create an account"
+   ],
+   "axe": []
+  },
+  {
+   "role": "visitor",
+   "route": "/",
+   "theme": "light",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Literature search"
+   ],
+   "axe": [
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "nodes": 1,
+     "targets": [
+      "h4"
+     ]
+    }
+   ]
+  },
+  {
+   "role": "visitor",
+   "route": "/no-such-page",
+   "theme": "light",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Page not found"
+   ],
+   "axe": []
+  },
+  {
+   "role": "student",
+   "route": "/settings",
+   "theme": "light",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Settings"
+   ],
+   "axe": []
+  },
+  {
+   "role": "student",
+   "route": "/admin",
+   "theme": "light",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "This page is for Administrator accounts."
+   ],
+   "axe": []
+  },
+  {
+   "role": "visitor",
+   "route": "/login",
+   "theme": "light",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Sign in"
+   ],
+   "axe": []
+  },
+  {
+   "role": "visitor",
+   "route": "/register",
+   "theme": "light",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Create an account"
+   ],
+   "axe": []
+  },
+  {
+   "role": "visitor",
+   "route": "/",
+   "theme": "light",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Literature search"
+   ],
+   "axe": [
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "nodes": 1,
+     "targets": [
+      "h4"
+     ]
+    }
+   ]
+  },
+  {
+   "role": "visitor",
+   "route": "/no-such-page",
+   "theme": "light",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Page not found"
+   ],
+   "axe": []
+  },
+  {
+   "role": "student",
+   "route": "/settings",
+   "theme": "light",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Settings"
+   ],
+   "axe": []
+  },
+  {
+   "role": "student",
+   "route": "/admin",
+   "theme": "light",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "This page is for Administrator accounts."
+   ],
+   "axe": []
+  },
+  {
+   "role": "visitor",
+   "route": "/login",
+   "theme": "dark",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Sign in"
+   ],
+   "axe": []
+  },
+  {
+   "role": "visitor",
+   "route": "/register",
+   "theme": "dark",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Create an account"
+   ],
+   "axe": []
+  },
+  {
+   "role": "visitor",
+   "route": "/",
+   "theme": "dark",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Literature search"
+   ],
+   "axe": [
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "nodes": 1,
+     "targets": [
+      "h4"
+     ]
+    }
+   ]
+  },
+  {
+   "role": "visitor",
+   "route": "/no-such-page",
+   "theme": "dark",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Page not found"
+   ],
+   "axe": []
+  },
+  {
+   "role": "student",
+   "route": "/settings",
+   "theme": "dark",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Settings"
+   ],
+   "axe": []
+  },
+  {
+   "role": "student",
+   "route": "/admin",
+   "theme": "dark",
+   "width": 1440,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "This page is for Administrator accounts."
+   ],
+   "axe": []
+  },
+  {
+   "role": "visitor",
+   "route": "/login",
+   "theme": "dark",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Sign in"
+   ],
+   "axe": []
+  },
+  {
+   "role": "visitor",
+   "route": "/register",
+   "theme": "dark",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Create an account"
+   ],
+   "axe": []
+  },
+  {
+   "role": "visitor",
+   "route": "/",
+   "theme": "dark",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Literature search"
+   ],
+   "axe": [
+    {
+     "id": "heading-order",
+     "impact": "moderate",
+     "nodes": 1,
+     "targets": [
+      "h4"
+     ]
+    }
+   ]
+  },
+  {
+   "role": "visitor",
+   "route": "/no-such-page",
+   "theme": "dark",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Page not found"
+   ],
+   "axe": []
+  },
+  {
+   "role": "student",
+   "route": "/settings",
+   "theme": "dark",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "Settings"
+   ],
+   "axe": []
+  },
+  {
+   "role": "student",
+   "route": "/admin",
+   "theme": "dark",
+   "width": 360,
+   "docOverflow": 0,
+   "offscreen": [],
+   "h1": [
+    "This page is for Administrator accounts."
+   ],
+   "axe": []
+  }
+ ],
+ "keyboard": {
+  "loginTabOrder": [
+   "input#login-email:Email",
+   "input#login-password:Password",
+   "button:Show password",
+   "button:Sign in",
+   "a:Create an account"
+  ],
+  "toggle": {
+   "name": "Show password",
+   "outline": "solid 2px",
+   "size": [
+    28,
+    28
+   ]
+  },
+  "emptySubmit": {
+   "focus": "input#login-email:Email",
+   "invalid": "true",
+   "message": "Enter your email address."
+  },
+  "wrongPassword": {
+   "alert": "Email or password is incorrect.",
+   "focus": "input#login-password:Password"
+  },
+  "registerEmptySubmit": {
+   "focus": "input#register-name:Full name",
+   "invalid": 4
+  }
+ },
+ "states": {
+  "settingsEmptySubmit": {
+   "focus": "input#current-password:Current password",
+   "invalid": 3,
+   "requests": 0
+  },
+  "settingsWrongCurrent": {
+   "alert": "Current password is incorrect.",
+   "requests": 1,
+   "stillSignedIn": true
+  },
+  "accountMenuLinks": [
+   "Researcher profile -> /researcher",
+   "Research preferences -> /researcher/preferences",
+   "Settings -> /settings"
+  ]
+ },
+ "text200at320": [
+  {
+   "route": "/login",
+   "docOverflow": 0,
+   "offscreen": []
+  },
+  {
+   "route": "/register",
+   "docOverflow": 0,
+   "offscreen": []
+  },
+  {
+   "route": "/settings",
+   "docOverflow": 0,
+   "offscreen": []
+  },
+  {
+   "route": "/no-such-page",
+   "docOverflow": 0,
+   "offscreen": []
+  }
+ ]
+}

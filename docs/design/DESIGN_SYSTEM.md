@@ -328,6 +328,8 @@ Conventions for every component below:
   stays, `aria-busy`, width does not change).
 - Accessibility: native `<button type="button">`; loading keeps the accessible name.
 - Responsive: label never hides below 768 unless the button becomes an IconButton with a name.
+  Never wider than its container: a label that does not fit (a narrow column, 200% text) wraps
+  instead of overflowing (P3).
 - Usage: verb-first labels ("Save paper", "Apply"); one primary per section.
 - Anti-patterns: a primary button on every card in a list; links styled as buttons for
   navigation inside text; disabled buttons with no explanation.
@@ -646,7 +648,7 @@ files):
 | Element defaults, type classes, focus, layout primitives | `frontend/styles/base.css` | `.rc-display/.rc-h1…/.rc-title/.rc-reading/.rc-small/.rc-label/.rc-mono`, `.rc-container/.rc-stack/.rc-cluster/.rc-grid/.rc-switcher/.rc-ruled/.rc-scroll-x`, `.rc-skip-link`, `.rc-visually-hidden`; one `:focus-visible` ring; reduced motion. |
 | Fonts (§4.1) | `frontend/app/fonts.ts`, `frontend/app/fonts/*.woff2`, `OFL.txt` | `next/font/local`; latin preloaded (sans), latin-ext only on demand (`unicode-range`). |
 | Theme | `frontend/utils/theme.ts`, `components/ui/ThemeSwitcher` | Light, dark or system; stored in `localStorage` (`rc-theme`); applied before first paint by an inline script in `app/layout.tsx`. Styles never read `prefers-color-scheme`. Dark ships in P1 (the plan had P11). The control sits in the account menu from P2 (§14). |
-| Primitives (§8) | `frontend/components/ui/<Name>/` | Button/ButtonLink/IconButton, Field/TextInput/TextArea/Select/SearchInput/Checkbox/RadioGroup/Switch, Card, Badge/StatusBadge/PriorityLabel, Dialog/Drawer (native `<dialog>`), Skeleton/SkeletonList, EmptyState, ErrorState, Alert, PageHeader/SectionHeader, ThemeSwitcher. CSS Modules + tokens. Usage: [`components/ui/README.md`](../../frontend/components/ui/README.md). |
+| Primitives (§8) | `frontend/components/ui/<Name>/` | Button/ButtonLink/IconButton, Field/TextInput/PasswordInput (P3)/TextArea/Select/SearchInput/Checkbox/RadioGroup/Switch, Card, Badge/StatusBadge/PriorityLabel, Dialog/Drawer (native `<dialog>`), Skeleton/SkeletonList, EmptyState, ErrorState, Alert, PageHeader/SectionHeader, ThemeSwitcher. CSS Modules + tokens. Usage: [`components/ui/README.md`](../../frontend/components/ui/README.md). |
 | Research indicators (§3.2, §8.5) | `frontend/components/research/` | DeadlineCountdown (DeadlineBadge), RiskIndicator (RiskBadge), MatchScore; `utils/date.ts`, `utils/risk.ts`. Every list that shows a call's deadline or venue risk uses them: home, workspace, recommendations, the candidate and ranking previews, submissions, the submission banner and the explanation drawer (`tests/canonical-indicators.test.tsx`). |
 | Status maps (§8.4) | `frontend/utils/status.ts` | `workspaceStatusMeta`, `applicationStatusMeta`, `postingStatusMeta`, `priorityMeta`. (In `utils/`, not `lib/`: the root `.gitignore` ignores every `lib/` directory.) |
 | Legacy bridge | `frontend/styles/globals.css` `:root`, `frontend/tailwind.config.ts` | Old CSS variables (including the 11 that were never defined) alias the tokens; Tailwind's palette resolves to the tokens (hue names → one brand, info, success, warning, danger; separate text/fill/edge maps), shadows flattened, radii on the scale. |
@@ -679,7 +681,7 @@ files):
   existing polling hook (one request every 30 s while visible, rendered once). Its name carries
   the count ("Notifications, 3 unread"); zero or unknown is a plain bell with no badge.
 - **Account menu.** A disclosure (not an ARIA menu): name and role, Researcher profile,
-  Research preferences, Notification settings, the theme, Sign out. Escape, a click outside or
+  Research preferences, Settings (P3; Notification settings before it), the theme, Sign out. Escape, a click outside or
   tabbing out closes it; Escape returns focus to its button. A visitor gets Sign in, Create
   account (from 640px) and an "Appearance" button for the theme.
 - **Global search.** "Search papers" opens `/?q=…`; the literature search page runs the URL's
@@ -696,3 +698,39 @@ files):
 | Navigation | `PrimaryNav.tsx` (sidebar and drawer), `NavDrawer.tsx`; config `frontend/utils/navigation.ts` |
 | Guard waiting state | `frontend/components/auth/RequireAuth.tsx` (Skeleton + SkeletonList) |
 | Tests | `tests/navigation.test.tsx`, `shell-account-menu.test.tsx`, `global-search.test.tsx`, `session-restore.test.tsx`, `notification-live-updates.test.tsx`; e2e `layout.spec.ts`, `shell.spec.ts` |
+
+## 15. Authentication and public pages (P3)
+
+| Page | What it is |
+|---|---|
+| `/login`, `/register` | One flat `Card` (no shadow) holding the page's `PageHeader` (its one h1), the form and a ruled line linking to the other form, which keeps `?next=`. Below 480px the form sits on the page without the card's border and padding (full-width fields, §16); registration puts two fields side by side when the card is wide enough. |
+| `/settings` | Settings → **Account**: who is signed in (name, email, account type) and **Change password**, moved here from the notification settings; **Notifications** leads to `/settings/notifications`. Notification and appearance settings join this page in P8; the theme stays in the account menu until then. The account menu's "Settings" replaces its direct "Notification settings" link (plan §6). |
+| `/` for a visitor | The search, and under its first-view prompt one line: searching is open to everyone; sign in or create an account to save papers, track calls and get recommendations. It sits below the search box so it never moves it. |
+| Not found | `ErrorState` `not-found` as the page's h1: "Page not found", "Go to search". |
+| Loading (`app/loading.tsx`) | The "structure unknown" state (§10): a small spinner and "Loading…", shown after 300ms. |
+| Guard | Unchanged waiting skeleton (P2); the permission state keeps its words and now leads home ("Go to home" → `/dashboard`). |
+
+**Forms** (sign in, registration, password change):
+
+- Labels always visible; required fields carry `aria-required`, optional ones say "(optional)".
+- The submit button is never greyed out. Sending the form checks each field (the backend's rules,
+  `components/auth/formRules.ts`), shows the problem under the field (`aria-invalid`, linked by
+  `aria-describedby`) and moves focus to the first one. What only the server knows (wrong
+  password, email in use, too many attempts) is an `Alert` with `role="alert"` above the form,
+  in words from `authMessages.ts` (never a 5xx body).
+- While the request runs the button is busy (spinner, same label, `aria-busy`) and the fields are
+  read-only, not disabled, so keyboard focus is never lost.
+- `PasswordInput`: a show/hide toggle inside the field, `aria-pressed`, named by its own
+  visually hidden text ("Show password", "Show new password"…) rather than `aria-label`, so it
+  is never a second label for the field. Autocomplete attributes stay as password managers
+  expect (`email`, `current-password`, `new-password`), and so do the ids the e2e suite uses
+  (`#login-*`, `#register-*`).
+- Each page has its own title ("Sign in — ResearchConnect AI", …).
+
+| Part | Where |
+|---|---|
+| Frame and form layout | `frontend/components/auth/AuthPage.tsx` |
+| Field rules, messages | `components/auth/formRules.ts`, `components/auth/authMessages.ts` |
+| Password change | `components/auth/ChangePasswordForm.tsx`, `components/settings/SettingsPage.tsx` (`app/settings/page.tsx`) |
+| Visitor line | `components/auth/VisitorIntro.tsx` (in the search page's first view) |
+| Tests | `tests/auth-pages.test.tsx`, `auth-revocation.test.tsx`, `auth-messages.test.ts`; e2e `auth.spec.ts` (the password is changed in Settings, then the old one is refused), `layout.spec.ts` (the public pages at 320–1440px for a visitor, both themes), `pages.spec.ts` |
