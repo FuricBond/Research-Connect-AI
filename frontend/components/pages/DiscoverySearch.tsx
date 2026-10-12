@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { Suspense, useCallback, useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AlertCircle, BookOpen, Loader2, Sparkles } from "lucide-react";
 import { SearchBar } from "../discovery/SearchBar";
 import { SearchFilters } from "../discovery/SearchFilters";
@@ -9,6 +10,7 @@ import { PaginationControls } from "../discovery/PaginationControls";
 import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
 import { searchResearchWorks, lookupReadingList, ApiError } from "../../services/api";
 import { useSession } from "../auth/SessionProvider";
+import { searchHref } from "../../utils/search";
 import { PageHeader } from "../ui/PageHeader/PageHeader";
 import type {
   ExplanationSchema,
@@ -17,7 +19,24 @@ import type {
   ResearchSearchResultItem,
 } from "../../types/discovery";
 
+/**
+ * Reports the URL's `q` whenever it changes (on arrival, from the header search, back and
+ * forward). Isolated in its own Suspense boundary: reading search params on the client keeps
+ * the rest of the page prerendered.
+ */
+function UrlQuery({ onChange }: { onChange: (query: string | null) => void }) {
+  const query = useSearchParams().get("q");
+  useEffect(() => onChange(query), [query, onChange]);
+  return null;
+}
+
+/**
+ * Literature search. The query lives in the URL (`/?q=…`): submitting a search changes the URL
+ * and the URL runs the search, once — so a search can be bookmarked, shared, reloaded and
+ * reached from the header's global search. Filters and pagination stay in the page.
+ */
 export function DiscoverySearch() {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Partial<ResearchSearchParams>>({
     limit: 20,
@@ -39,6 +58,11 @@ export function DiscoverySearch() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  // The latest filters, for a search started by the URL rather than by a filter change.
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
+  // The query the URL currently holds (null: none).
+  const urlQueryRef = useRef<string | null>(null);
 
   // Reading list: which visible works the signed-in user has already saved (work id -> item id).
   const { status: sessionStatus } = useSession();
@@ -111,11 +135,42 @@ export function DiscoverySearch() {
     }
   };
 
-  const handleQuerySubmit = (newQuery: string) => {
+  const searchFromStart = (newQuery: string) => {
     setQuery(newQuery);
-    const updatedFilters = { ...filters, offset: 0 };
+    const updatedFilters = { ...filtersRef.current, offset: 0 };
     setFilters(updatedFilters);
     executeSearch(newQuery, updatedFilters);
+  };
+  // executeSearch only uses state setters and refs, so the latest one is always equivalent.
+  const searchFromStartRef = useRef(searchFromStart);
+  searchFromStartRef.current = searchFromStart;
+
+  const handleUrlQuery = useCallback((urlQuery: string | null) => {
+    urlQueryRef.current = urlQuery;
+    const trimmed = urlQuery?.trim() ?? "";
+    if (trimmed) {
+      searchFromStartRef.current(trimmed);
+      return;
+    }
+    // No query in the URL (the navigation's "Literature search", or back to the start): the
+    // landing state, with nothing still loading.
+    abortControllerRef.current?.abort();
+    setQuery("");
+    setItems([]);
+    setTotal(0);
+    setQueryIntelligence(null);
+    setError(null);
+    setIsLoading(false);
+    setHasSearched(false);
+  }, []);
+
+  const handleQuerySubmit = (newQuery: string) => {
+    if (newQuery === urlQueryRef.current?.trim()) {
+      // Already in the URL: pushing it again would not change anything, so search again here.
+      searchFromStart(newQuery);
+    } else {
+      router.push(searchHref(newQuery));
+    }
   };
 
   const handleFilterChange = (updated: Partial<ResearchSearchParams>) => {
@@ -160,6 +215,9 @@ export function DiscoverySearch() {
 
   return (
     <section className="discovery-search-page" aria-label="Research Literature Discovery">
+      <Suspense fallback={null}>
+        <UrlQuery onChange={handleUrlQuery} />
+      </Suspense>
       <PageHeader
         title="Literature search"
         description="Find papers by topic, method or author. Every result shows why it ranks where it does."

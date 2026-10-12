@@ -27,6 +27,12 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = "Search research works by keywords, methods, authors, or topics (e.g., GNN, LLM, Computer Vision)...",
 }) => {
   const [inputVal, setInputVal] = useState(initialQuery);
+  // A search that arrives from outside (the URL, the header search) shows its query here too.
+  const [shownQuery, setShownQuery] = useState(initialQuery);
+  if (initialQuery !== shownQuery) {
+    setShownQuery(initialQuery);
+    setInputVal(initialQuery);
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
