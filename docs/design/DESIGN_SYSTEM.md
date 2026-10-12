@@ -689,7 +689,9 @@ files):
   which has its own search box.
 - **Session restore.** Until `/auth/me` answers, the navigation shows placeholder rows, the
   header reserves the account controls' room, and guarded pages show a page-shaped skeleton
-  with the status "Checking your session…" — never the visitor's navigation or Sign in.
+  with the status "Checking your session…" — never the visitor's navigation or Sign in. A check
+  the browser cancels because the page is being left (a reload, a typed address) is not a
+  failure and signs nobody out (P4); every answered failure still does (audit F10, deferred).
 
 | Part | Where |
 |---|---|
@@ -734,3 +736,46 @@ files):
 | Password change | `components/auth/ChangePasswordForm.tsx`, `components/settings/SettingsPage.tsx` (`app/settings/page.tsx`) |
 | Visitor line | `components/auth/VisitorIntro.tsx` (in the search page's first view) |
 | Tests | `tests/auth-pages.test.tsx`, `auth-revocation.test.tsx`, `auth-messages.test.ts`; e2e `auth.spec.ts` (the password is changed in Settings, then the old one is refused), `layout.spec.ts` (the public pages at 320–1440px for a visitor, both themes), `pages.spec.ts` |
+
+## 16. Dashboard (P4)
+
+`/dashboard` is the signed-in home and the default destination after sign-in (`?next=` still
+wins). It answers, in order, what needs attention, what is new, and what is coming up (plan §8).
+Modules sit in two columns from 1280px (3 : 2) and one below; each is a section with an h2 and
+one flat card that reserves the height of a typical answer from its first paint (titles and
+reasons clamp to two lines), so answers arriving, an empty state or a failure do not move the
+modules below; a narrow timeline (small phone, enlarged text) puts each date above its title.
+Each module loads and fails on its own: a failed module says so in plain words with Try again,
+and the others carry on.
+
+| Role | Modules |
+|---|---|
+| Student | **Needs attention**: tracked calls due within 14 days (status and next step), offers and applications in progress, a nudge while the profile is incomplete, and the three-step **Get started** checklist (add interests, save a call, save a paper) until it is done · **Upcoming (next 30 days)**: a dot timeline of call deadlines (filled) and calendar milestones (hollow) · **Recommended for you**: three calls with match band, one reason and "Why?" (the explanation loads when asked) · **Postings that fit you**: the three open postings that fit best, with the main reason · **Reading progress**: to read, reading, done |
+| Faculty | **Needs your decision**: new and under-review applications of the three busiest open postings (no aggregate endpoint; more are named and linked) · **Your open postings**: applicants, deadline, status · **Upcoming deadlines**: tracked calls and postings closing within 30 days · **Recommended papers**: papers similar to the newest paper of the researcher's (no endpoint recommends papers) |
+| Admin | Platform administration (the admin overview is P10) |
+
+Notifications stay in the bell until P8 gives it a shared list (the plan's latest-three module
+would otherwise only repeat the bell's count).
+
+**Requests.** At most seven of the dashboard's own per page load, all started together; the only
+ones that wait are inside their module (fit scores after the open postings; a faculty member's
+application lists after their postings; related papers after the newest paper). Student: tracked
+calls, application summary, calendar (`/researchers/{id}/calendar`, one request instead of
+calendar id + events), recommendations, open postings, fit scores, reading list = 7. Faculty:
+tracked calls, own postings, up to three application lists, newest paper, related papers ≤ 7.
+The shell's session check and unread count are not counted (every signed-in page makes them).
+
+**Data.** `hooks/useApiResource.ts`: `useApiResource(key, load, { isEmpty })` →
+`{ status: "idle" | "loading" | "success" | "empty" | "error", data, error, retries, retry }`.
+Components using the same key share one request; answers belong to the current key and the
+signed-in account only; nothing is kept once the last component using it unmounts (no cache
+across pages or accounts); a request nobody needs is aborted and a late answer ignored; errors
+are a classification, never the server's text; `retry()` is the only retry. Module loading
+placeholders are busy but not live regions, so the page is not read out once per module.
+
+| Part | Where |
+|---|---|
+| Page | `frontend/app/dashboard/page.tsx` (title in `layout.tsx`), `components/dashboard/Dashboard.tsx` |
+| Requests | `components/dashboard/resources.ts` |
+| Modules | `components/dashboard/{NeedsAttention,Upcoming,RecommendedForYou,PostingsThatFit,ReadingProgress,NeedsDecision,OpenPostings,RecommendedPapers}.tsx`, frame `Module.tsx`, styles `Dashboard.module.css` |
+| Tests | `tests/use-api-resource.test.tsx`, `tests/home-page.test.tsx` (every module's states, request counts per role); e2e `dashboard.spec.ts` (live API: requests per load, reload, phones) |

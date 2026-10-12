@@ -1,0 +1,733 @@
+{
+ "measured": "2026-10-12, isolated e2e stack (rce2e, production images) from the P4 working tree, seeded demo accounts",
+ "cls_method": "PerformanceObserver layout-shift (buffered, no recent input) from navigation start to 0.8 s after the last module settled; 3 runs per combination; 'varied' = every API answer delayed 50-800 ms at random",
+ "cls": [
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "light",
+   "run": 1,
+   "delays": false,
+   "cls": 0.0056,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "light",
+   "run": 2,
+   "delays": false,
+   "cls": 0.0056,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "light",
+   "run": 3,
+   "delays": false,
+   "cls": 0.0056,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "dark",
+   "run": 1,
+   "delays": false,
+   "cls": 0.0056,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "dark",
+   "run": 2,
+   "delays": false,
+   "cls": 0.0056,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "dark",
+   "run": 3,
+   "delays": false,
+   "cls": 0.0056,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "light",
+   "run": 1,
+   "delays": false,
+   "cls": 0.0094,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "light",
+   "run": 2,
+   "delays": false,
+   "cls": 0.0094,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "light",
+   "run": 3,
+   "delays": false,
+   "cls": 0.0094,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "dark",
+   "run": 1,
+   "delays": false,
+   "cls": 0.0079,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "dark",
+   "run": 2,
+   "delays": false,
+   "cls": 0.0094,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "dark",
+   "run": 3,
+   "delays": false,
+   "cls": 0.0094,
+   "requests": 7
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "light",
+   "run": 1,
+   "delays": false,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "light",
+   "run": 2,
+   "delays": false,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "light",
+   "run": 3,
+   "delays": false,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "dark",
+   "run": 1,
+   "delays": false,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "dark",
+   "run": 2,
+   "delays": false,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "dark",
+   "run": 3,
+   "delays": false,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "light",
+   "run": 1,
+   "delays": false,
+   "cls": 0.0006,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "light",
+   "run": 2,
+   "delays": false,
+   "cls": 0.0006,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "light",
+   "run": 3,
+   "delays": false,
+   "cls": 0.0006,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "dark",
+   "run": 1,
+   "delays": false,
+   "cls": 0.0006,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "dark",
+   "run": 2,
+   "delays": false,
+   "cls": 0.0006,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "dark",
+   "run": 3,
+   "delays": false,
+   "cls": 0.0006,
+   "requests": 4
+  },
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "light",
+   "run": 1,
+   "delays": true,
+   "cls": 0.0044,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "light",
+   "run": 2,
+   "delays": true,
+   "cls": 0.0056,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "light",
+   "run": 3,
+   "delays": true,
+   "cls": 0.0056,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "dark",
+   "run": 1,
+   "delays": true,
+   "cls": 0.0056,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "dark",
+   "run": 2,
+   "delays": true,
+   "cls": 0.0056,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 1440,
+   "theme": "dark",
+   "run": 3,
+   "delays": true,
+   "cls": 0.0044,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "light",
+   "run": 1,
+   "delays": true,
+   "cls": 0.0079,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "light",
+   "run": 2,
+   "delays": true,
+   "cls": 0.0094,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "light",
+   "run": 3,
+   "delays": true,
+   "cls": 0.0079,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "dark",
+   "run": 1,
+   "delays": true,
+   "cls": 0.0133,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "dark",
+   "run": 2,
+   "delays": true,
+   "cls": 0.0133,
+   "requests": 7
+  },
+  {
+   "role": "student",
+   "width": 390,
+   "theme": "dark",
+   "run": 3,
+   "delays": true,
+   "cls": 0.0094,
+   "requests": 7
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "light",
+   "run": 1,
+   "delays": true,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "light",
+   "run": 2,
+   "delays": true,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "light",
+   "run": 3,
+   "delays": true,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "dark",
+   "run": 1,
+   "delays": true,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "dark",
+   "run": 2,
+   "delays": true,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 1440,
+   "theme": "dark",
+   "run": 3,
+   "delays": true,
+   "cls": 0.0005,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "light",
+   "run": 1,
+   "delays": true,
+   "cls": 0.0006,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "light",
+   "run": 2,
+   "delays": true,
+   "cls": 0.0006,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "light",
+   "run": 3,
+   "delays": true,
+   "cls": 0.0006,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "dark",
+   "run": 1,
+   "delays": true,
+   "cls": 0.0006,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "dark",
+   "run": 2,
+   "delays": true,
+   "cls": 0.0006,
+   "requests": 4
+  },
+  {
+   "role": "faculty",
+   "width": 390,
+   "theme": "dark",
+   "run": 3,
+   "delays": true,
+   "cls": 0.0006,
+   "requests": 4
+  }
+ ],
+ "requests_per_load": {
+  "student 1440 light": [
+   "GET /api/v1/postings",
+   "GET /api/v1/workspace",
+   "GET /api/v1/postings/applications/mine/summary",
+   "GET /api/v1/researchers/042151ae-7338-4230-ac4e-29dceeb8bf37/calendar",
+   "GET /api/v1/researchers/042151ae-7338-4230-ac4e-29dceeb8bf37/recommendations/unified",
+   "GET /api/v1/reading-list",
+   "POST /api/v1/postings/fit-scores"
+  ],
+  "student 1440 dark": [
+   "GET /api/v1/postings",
+   "GET /api/v1/workspace",
+   "GET /api/v1/postings/applications/mine/summary",
+   "GET /api/v1/researchers/042151ae-7338-4230-ac4e-29dceeb8bf37/calendar",
+   "GET /api/v1/researchers/042151ae-7338-4230-ac4e-29dceeb8bf37/recommendations/unified",
+   "GET /api/v1/reading-list",
+   "POST /api/v1/postings/fit-scores"
+  ],
+  "student 390 light": [
+   "GET /api/v1/postings",
+   "GET /api/v1/workspace",
+   "GET /api/v1/postings/applications/mine/summary",
+   "GET /api/v1/researchers/042151ae-7338-4230-ac4e-29dceeb8bf37/calendar",
+   "GET /api/v1/researchers/042151ae-7338-4230-ac4e-29dceeb8bf37/recommendations/unified",
+   "GET /api/v1/reading-list",
+   "POST /api/v1/postings/fit-scores"
+  ],
+  "student 390 dark": [
+   "GET /api/v1/postings",
+   "GET /api/v1/workspace",
+   "GET /api/v1/postings/applications/mine/summary",
+   "GET /api/v1/researchers/042151ae-7338-4230-ac4e-29dceeb8bf37/calendar",
+   "GET /api/v1/researchers/042151ae-7338-4230-ac4e-29dceeb8bf37/recommendations/unified",
+   "GET /api/v1/reading-list",
+   "POST /api/v1/postings/fit-scores"
+  ],
+  "faculty 1440 light": [
+   "GET /api/v1/researchers/ddb04ab4-22f5-4b9c-817a-950f7d722e7b/works",
+   "GET /api/v1/workspace",
+   "GET /api/v1/postings/mine",
+   "GET /api/v1/postings/dde70ec7-fc7a-44dc-9f66-901114ea1c06/applications"
+  ],
+  "faculty 1440 dark": [
+   "GET /api/v1/researchers/ddb04ab4-22f5-4b9c-817a-950f7d722e7b/works",
+   "GET /api/v1/workspace",
+   "GET /api/v1/postings/mine",
+   "GET /api/v1/postings/dde70ec7-fc7a-44dc-9f66-901114ea1c06/applications"
+  ],
+  "faculty 390 light": [
+   "GET /api/v1/researchers/ddb04ab4-22f5-4b9c-817a-950f7d722e7b/works",
+   "GET /api/v1/workspace",
+   "GET /api/v1/postings/mine",
+   "GET /api/v1/postings/dde70ec7-fc7a-44dc-9f66-901114ea1c06/applications"
+  ],
+  "faculty 390 dark": [
+   "GET /api/v1/researchers/ddb04ab4-22f5-4b9c-817a-950f7d722e7b/works",
+   "GET /api/v1/workspace",
+   "GET /api/v1/postings/mine",
+   "GET /api/v1/postings/dde70ec7-fc7a-44dc-9f66-901114ea1c06/applications"
+  ]
+ },
+ "axe": [
+  {
+   "role": "student",
+   "theme": "light",
+   "width": 1440,
+   "violations": []
+  },
+  {
+   "role": "student",
+   "theme": "light",
+   "width": 768,
+   "violations": []
+  },
+  {
+   "role": "student",
+   "theme": "light",
+   "width": 390,
+   "violations": []
+  },
+  {
+   "role": "student",
+   "theme": "light",
+   "width": 320,
+   "violations": []
+  },
+  {
+   "role": "student",
+   "theme": "dark",
+   "width": 1440,
+   "violations": []
+  },
+  {
+   "role": "student",
+   "theme": "dark",
+   "width": 768,
+   "violations": []
+  },
+  {
+   "role": "student",
+   "theme": "dark",
+   "width": 390,
+   "violations": []
+  },
+  {
+   "role": "student",
+   "theme": "dark",
+   "width": 320,
+   "violations": []
+  },
+  {
+   "role": "faculty",
+   "theme": "light",
+   "width": 1440,
+   "violations": []
+  },
+  {
+   "role": "faculty",
+   "theme": "light",
+   "width": 768,
+   "violations": []
+  },
+  {
+   "role": "faculty",
+   "theme": "light",
+   "width": 390,
+   "violations": []
+  },
+  {
+   "role": "faculty",
+   "theme": "light",
+   "width": 320,
+   "violations": []
+  },
+  {
+   "role": "faculty",
+   "theme": "dark",
+   "width": 1440,
+   "violations": []
+  },
+  {
+   "role": "faculty",
+   "theme": "dark",
+   "width": 768,
+   "violations": []
+  },
+  {
+   "role": "faculty",
+   "theme": "dark",
+   "width": 390,
+   "violations": []
+  },
+  {
+   "role": "faculty",
+   "theme": "dark",
+   "width": 320,
+   "violations": []
+  }
+ ],
+ "overflow": [
+  {
+   "role": "student",
+   "theme": "light",
+   "width": 1440,
+   "overflow": 0
+  },
+  {
+   "role": "student",
+   "theme": "light",
+   "width": 768,
+   "overflow": 0
+  },
+  {
+   "role": "student",
+   "theme": "light",
+   "width": 390,
+   "overflow": 0
+  },
+  {
+   "role": "student",
+   "theme": "light",
+   "width": 320,
+   "overflow": 0
+  },
+  {
+   "role": "student",
+   "theme": "dark",
+   "width": 1440,
+   "overflow": 0
+  },
+  {
+   "role": "student",
+   "theme": "dark",
+   "width": 768,
+   "overflow": 0
+  },
+  {
+   "role": "student",
+   "theme": "dark",
+   "width": 390,
+   "overflow": 0
+  },
+  {
+   "role": "student",
+   "theme": "dark",
+   "width": 320,
+   "overflow": 0
+  },
+  {
+   "role": "faculty",
+   "theme": "light",
+   "width": 1440,
+   "overflow": 0
+  },
+  {
+   "role": "faculty",
+   "theme": "light",
+   "width": 768,
+   "overflow": 0
+  },
+  {
+   "role": "faculty",
+   "theme": "light",
+   "width": 390,
+   "overflow": 0
+  },
+  {
+   "role": "faculty",
+   "theme": "light",
+   "width": 320,
+   "overflow": 0
+  },
+  {
+   "role": "faculty",
+   "theme": "dark",
+   "width": 1440,
+   "overflow": 0
+  },
+  {
+   "role": "faculty",
+   "theme": "dark",
+   "width": 768,
+   "overflow": 0
+  },
+  {
+   "role": "faculty",
+   "theme": "dark",
+   "width": 390,
+   "overflow": 0
+  },
+  {
+   "role": "faculty",
+   "theme": "dark",
+   "width": 320,
+   "overflow": 0
+  }
+ ],
+ "keyboard": {
+  "student": {
+   "stops": 16,
+   "unnamed": 0,
+   "without_focus_ring": [],
+   "modules": [
+    "Needs attention",
+    "Upcoming (next 30 days)",
+    "Recommended for you",
+    "Postings that fit you",
+    "Reading progress"
+   ]
+  },
+  "faculty": {
+   "stops": 8,
+   "unnamed": 0,
+   "without_focus_ring": [],
+   "modules": [
+    "Needs your decision",
+    "Your open postings",
+    "Upcoming deadlines",
+    "Recommended papers"
+   ]
+  }
+ },
+ "text200_at_320": [
+  {
+   "role": "student",
+   "overflow": 0,
+   "offscreen": []
+  },
+  {
+   "role": "faculty",
+   "overflow": 0,
+   "offscreen": []
+  }
+ ]
+}
