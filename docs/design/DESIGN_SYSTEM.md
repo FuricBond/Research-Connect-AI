@@ -645,9 +645,54 @@ files):
 | Tokens (§3, §5, §6) | `frontend/styles/tokens.css` | The only file with colour literals. Light and dark values; `data-theme` on `<html>` selects. Adds `--rc-brand-active`, `--rc-text-inverse`/`--rc-surface-inverse`, `--rc-surface-hover`, interaction tints (`--rc-hover`, `--rc-active`, `--rc-disabled-bg`) and `--rc-*-border` edges to the draft. |
 | Element defaults, type classes, focus, layout primitives | `frontend/styles/base.css` | `.rc-display/.rc-h1…/.rc-title/.rc-reading/.rc-small/.rc-label/.rc-mono`, `.rc-container/.rc-stack/.rc-cluster/.rc-grid/.rc-switcher/.rc-ruled/.rc-scroll-x`, `.rc-skip-link`, `.rc-visually-hidden`; one `:focus-visible` ring; reduced motion. |
 | Fonts (§4.1) | `frontend/app/fonts.ts`, `frontend/app/fonts/*.woff2`, `OFL.txt` | `next/font/local`; latin preloaded (sans), latin-ext only on demand (`unicode-range`). |
-| Theme | `frontend/utils/theme.ts`, `components/ui/ThemeSwitcher` | Light, dark or system; stored in `localStorage` (`rc-theme`); applied before first paint by an inline script in `app/layout.tsx`. Styles never read `prefers-color-scheme`. Dark ships in P1 (the plan had P11). |
+| Theme | `frontend/utils/theme.ts`, `components/ui/ThemeSwitcher` | Light, dark or system; stored in `localStorage` (`rc-theme`); applied before first paint by an inline script in `app/layout.tsx`. Styles never read `prefers-color-scheme`. Dark ships in P1 (the plan had P11). The control sits in the account menu from P2 (§14). |
 | Primitives (§8) | `frontend/components/ui/<Name>/` | Button/ButtonLink/IconButton, Field/TextInput/TextArea/Select/SearchInput/Checkbox/RadioGroup/Switch, Card, Badge/StatusBadge/PriorityLabel, Dialog/Drawer (native `<dialog>`), Skeleton/SkeletonList, EmptyState, ErrorState, Alert, PageHeader/SectionHeader, ThemeSwitcher. CSS Modules + tokens. Usage: [`components/ui/README.md`](../../frontend/components/ui/README.md). |
 | Research indicators (§3.2, §8.5) | `frontend/components/research/` | DeadlineCountdown (DeadlineBadge), RiskIndicator (RiskBadge), MatchScore; `utils/date.ts`, `utils/risk.ts`. Every list that shows a call's deadline or venue risk uses them: home, workspace, recommendations, the candidate and ranking previews, submissions, the submission banner and the explanation drawer (`tests/canonical-indicators.test.tsx`). |
 | Status maps (§8.4) | `frontend/utils/status.ts` | `workspaceStatusMeta`, `applicationStatusMeta`, `postingStatusMeta`, `priorityMeta`. (In `utils/`, not `lib/`: the root `.gitignore` ignores every `lib/` directory.) |
 | Legacy bridge | `frontend/styles/globals.css` `:root`, `frontend/tailwind.config.ts` | Old CSS variables (including the 11 that were never defined) alias the tokens; Tailwind's palette resolves to the tokens (hue names → one brand, info, success, warning, danger; separate text/fill/edge maps), shadows flattened, radii on the scale. |
 | Enforcement (§12) | `frontend/tests/design-tokens.test.ts` | No colour literals outside `tokens.css`; no `dark:` classes, text < 12px, gradients or `prefers-color-scheme` in styles; module CSS uses tokens; inline-style ratchet; token contrast computed for both themes. |
+
+## 14. Application shell (P2)
+
+| Width | Structure |
+|---|---|
+| ≥ 1024 | Header 56px (brand · global search · notification bell · account menu) + navigation sidebar 248px (`--rc-sidebar-width`) + content (max 1200) |
+| 768–1023 | Header with a Menu button, the search field, bell and account; navigation in a drawer |
+| < 768 | Header: Menu · brand mark · search button (opens a search sheet) · bell · account; navigation in a drawer |
+
+- **One navigation, one place to configure it.** `frontend/utils/navigation.ts` lists every
+  destination with its group and roles; the sidebar and the drawer render the same
+  `PrimaryNav` (`nav aria-label="Primary"`), and only one of them is displayed at a time (the
+  sidebar is not displayed below 1024px; the drawer only opens from the Menu button, which is
+  not displayed from 1024px). Groups by task: Home · Discover · My research · People ·
+  Administration. The current page: `aria-current="page"` on the most specific matching link,
+  shown by a brand bar, weight and a tinted row (not colour alone).
+- **Phones: a drawer, not a bottom tab bar.** The plan (§6) proposed a bottom bar with four
+  items and More. With 12 destinations for a student, four would still hide eight behind
+  "More"; a fixed bar costs 56px of a 568px screen on every page and sits over the sticky
+  actions and full-screen sheets pages already use; and it would be a second navigation to keep
+  in step with the drawer. The drawer (P1 `Drawer`, native `<dialog>`) lists every destination
+  in its group, traps focus, closes on Escape, a click outside or following a link, and returns
+  focus to the Menu button. Search, notifications and the account stay one tap away in the
+  header.
+- **Notifications.** `NotificationBell`: the one entry point and the one unread count, from the
+  existing polling hook (one request every 30 s while visible, rendered once). Its name carries
+  the count ("Notifications, 3 unread"); zero or unknown is a plain bell with no badge.
+- **Account menu.** A disclosure (not an ARIA menu): name and role, Researcher profile,
+  Research preferences, Notification settings, the theme, Sign out. Escape, a click outside or
+  tabbing out closes it; Escape returns focus to its button. A visitor gets Sign in, Create
+  account (from 640px) and an "Appearance" button for the theme.
+- **Global search.** "Search papers" opens `/?q=…`; the literature search page runs the URL's
+  query once. `/` focuses the field from 768px; on phones a search sheet. Not shown on `/`,
+  which has its own search box.
+- **Session restore.** Until `/auth/me` answers, the navigation shows placeholder rows, the
+  header reserves the account controls' room, and guarded pages show a page-shaped skeleton
+  with the status "Checking your session…" — never the visitor's navigation or Sign in.
+
+| Part | Where |
+|---|---|
+| Frame | `frontend/components/shell/AppShell.tsx` (in `app/layout.tsx`, inside `SessionProvider`) |
+| Header | `ShellHeader.tsx`, `GlobalSearch.tsx`, `NotificationBell.tsx`, `AccountMenu.tsx` |
+| Navigation | `PrimaryNav.tsx` (sidebar and drawer), `NavDrawer.tsx`; config `frontend/utils/navigation.ts` |
+| Guard waiting state | `frontend/components/auth/RequireAuth.tsx` (Skeleton + SkeletonList) |
+| Tests | `tests/navigation.test.tsx`, `shell-account-menu.test.tsx`, `global-search.test.tsx`, `session-restore.test.tsx`, `notification-live-updates.test.tsx`; e2e `layout.spec.ts`, `shell.spec.ts` |

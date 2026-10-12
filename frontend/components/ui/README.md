@@ -37,12 +37,20 @@ Specification: [docs/design/DESIGN_SYSTEM.md](../../../docs/design/DESIGN_SYSTEM
 | Nothing to show | `EmptyState` (what is empty, why, what next) |
 | Something failed / not allowed / missing | `ErrorState` (`failed`, `permission`, `not-found`, `invalid`, `unavailable`, `offline`, `unknown`) |
 | Inline message in the flow | `Alert` (`announce` only for errors after an action) |
-| Colour theme control | `ThemeSwitcher` (already in the header) |
+| Colour theme control | `ThemeSwitcher` (in the shell's account menu; one per page) |
 
 Layout without new CSS: `.rc-container`, `.rc-stack`, `.rc-cluster`, `.rc-grid` (set
 `--rc-grid-min`), `.rc-switcher` (set `--rc-switch-at`), `.rc-ruled` (compact ruled list),
 `.rc-scroll-x` (a wide table: give it `role="region"`, an `aria-label` and `tabIndex={0}`).
 Gaps: `.rc-gap-1 … .rc-gap-8`.
+
+## The application shell
+
+`components/shell/` (P2) frames every page from `app/layout.tsx`: the header (brand, global
+search, notification bell, account menu), the primary navigation (sidebar from 1024px, drawer
+below) and `<main id="main-content">`. Destinations, groups and roles live in one place,
+`utils/navigation.ts`. Pages render only their own content: no page renders a navigation, a
+second header or a theme control.
 
 ## Legacy code
 

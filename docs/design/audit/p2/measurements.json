@@ -1,0 +1,916 @@
+{
+ "measured": "2026-10-12, local production builds (next build + next start) against the Compose dev backend, design.audit.* accounts",
+ "baseline": "2b4a21c (P1 final, built in a temporary worktree)",
+ "after": "P2 working tree on design/frontend-redesign-p2",
+ "javascript": {
+  "baseline": {
+   "/": {
+    "page": "6.51 kB",
+    "first_load": "135 kB"
+   },
+   "/_not-found": {
+    "page": "132 B",
+    "first_load": "103 kB"
+   },
+   "/admin": {
+    "page": "5.01 kB",
+    "first_load": "122 kB"
+   },
+   "/browse": {
+    "page": "2.75 kB",
+    "first_load": "113 kB"
+   },
+   "/calendar": {
+    "page": "7.68 kB",
+    "first_load": "125 kB"
+   },
+   "/dashboard": {
+    "page": "3.61 kB",
+    "first_load": "127 kB"
+   },
+   "/login": {
+    "page": "3.19 kB",
+    "first_load": "117 kB"
+   },
+   "/notifications": {
+    "page": "7.26 kB",
+    "first_load": "124 kB"
+   },
+   "/opportunities": {
+    "page": "8.17 kB",
+    "first_load": "139 kB"
+   },
+   "/peers": {
+    "page": "3.58 kB",
+    "first_load": "124 kB"
+   },
+   "/postings": {
+    "page": "7.37 kB",
+    "first_load": "121 kB"
+   },
+   "/postings/[id]": {
+    "page": "7.43 kB",
+    "first_load": "121 kB"
+   },
+   "/postings/applications": {
+    "page": "5.44 kB",
+    "first_load": "122 kB"
+   },
+   "/reading-list": {
+    "page": "4.91 kB",
+    "first_load": "122 kB"
+   },
+   "/register": {
+    "page": "4.06 kB",
+    "first_load": "118 kB"
+   },
+   "/researcher": {
+    "page": "52.4 kB",
+    "first_load": "172 kB"
+   },
+   "/researcher/preferences": {
+    "page": "9.2 kB",
+    "first_load": "126 kB"
+   },
+   "/settings/notifications": {
+    "page": "6.09 kB",
+    "first_load": "123 kB"
+   },
+   "/similar": {
+    "page": "4.7 kB",
+    "first_load": "136 kB"
+   },
+   "/submissions": {
+    "page": "5.48 kB",
+    "first_load": "122 kB"
+   },
+   "/supervisors": {
+    "page": "4.03 kB",
+    "first_load": "124 kB"
+   },
+   "/workspace": {
+    "page": "4.76 kB",
+    "first_load": "128 kB"
+   },
+   "/workspace/[id]": {
+    "page": "8.66 kB",
+    "first_load": "126 kB"
+   },
+   "/workspace/[id]/submission": {
+    "page": "13.6 kB",
+    "first_load": "131 kB"
+   },
+   "shared": "103 kB"
+  },
+  "after": {
+   "/": {
+    "page": "6.83 kB",
+    "first_load": "135 kB"
+   },
+   "/_not-found": {
+    "page": "132 B",
+    "first_load": "103 kB"
+   },
+   "/admin": {
+    "page": "5.12 kB",
+    "first_load": "122 kB"
+   },
+   "/browse": {
+    "page": "2.75 kB",
+    "first_load": "113 kB"
+   },
+   "/calendar": {
+    "page": "7.77 kB",
+    "first_load": "125 kB"
+   },
+   "/dashboard": {
+    "page": "3.62 kB",
+    "first_load": "127 kB"
+   },
+   "/login": {
+    "page": "3.19 kB",
+    "first_load": "117 kB"
+   },
+   "/notifications": {
+    "page": "7.32 kB",
+    "first_load": "124 kB"
+   },
+   "/opportunities": {
+    "page": "8.18 kB",
+    "first_load": "139 kB"
+   },
+   "/peers": {
+    "page": "3.58 kB",
+    "first_load": "124 kB"
+   },
+   "/postings": {
+    "page": "7.37 kB",
+    "first_load": "121 kB"
+   },
+   "/postings/[id]": {
+    "page": "7.42 kB",
+    "first_load": "121 kB"
+   },
+   "/postings/applications": {
+    "page": "5.52 kB",
+    "first_load": "122 kB"
+   },
+   "/reading-list": {
+    "page": "4.99 kB",
+    "first_load": "122 kB"
+   },
+   "/register": {
+    "page": "4.05 kB",
+    "first_load": "118 kB"
+   },
+   "/researcher": {
+    "page": "52.8 kB",
+    "first_load": "172 kB"
+   },
+   "/researcher/preferences": {
+    "page": "9.29 kB",
+    "first_load": "126 kB"
+   },
+   "/settings/notifications": {
+    "page": "6.19 kB",
+    "first_load": "123 kB"
+   },
+   "/similar": {
+    "page": "4.71 kB",
+    "first_load": "136 kB"
+   },
+   "/submissions": {
+    "page": "5.56 kB",
+    "first_load": "122 kB"
+   },
+   "/supervisors": {
+    "page": "4.03 kB",
+    "first_load": "124 kB"
+   },
+   "/workspace": {
+    "page": "4.84 kB",
+    "first_load": "128 kB"
+   },
+   "/workspace/[id]": {
+    "page": "8.77 kB",
+    "first_load": "126 kB"
+   },
+   "/workspace/[id]/submission": {
+    "page": "13.6 kB",
+    "first_load": "130 kB"
+   },
+   "shared": "103 kB"
+  }
+ },
+ "css_gzip_kb": {
+  "baseline": {
+   "files": 14,
+   "totalKB": 36.4,
+   "routeMinKB": 17.2,
+   "routeMaxKB": 23.7,
+   "routes": {
+    "/admin": 18.7,
+    "/browse": 21.1,
+    "/calendar": 21,
+    "/dashboard": 22,
+    "/": 22,
+    "/login": 17.2,
+    "/notifications": 20.7,
+    "/opportunities": 22.4,
+    "/peers": 21.1,
+    "/postings/applications": 20.4,
+    "/postings": 18.8,
+    "/reading-list": 21.1,
+    "/register": 17.2,
+    "/researcher/preferences": 18.7,
+    "/researcher": 22.5,
+    "/settings/notifications": 20.7,
+    "/similar": 22.4,
+    "/submissions": 23.7,
+    "/supervisors": 21.1,
+    "/workspace": 23.7
+   }
+  },
+  "after": {
+   "files": 14,
+   "totalKB": 37.3,
+   "routeMinKB": 23.3,
+   "routeMaxKB": 25.6,
+   "routes": {
+    "/admin": 23.3,
+    "/browse": 23.9,
+    "/calendar": 25.5,
+    "/dashboard": 23.3,
+    "/": 23.3,
+    "/login": 23.3,
+    "/notifications": 25.2,
+    "/opportunities": 23.3,
+    "/peers": 25.6,
+    "/postings/applications": 24.9,
+    "/postings": 24.9,
+    "/reading-list": 25.6,
+    "/register": 23.3,
+    "/researcher/preferences": 23.3,
+    "/researcher": 23.7,
+    "/settings/notifications": 25.2,
+    "/similar": 23.3,
+    "/submissions": 25,
+    "/supervisors": 25.6,
+    "/workspace": 25
+   }
+  }
+ },
+ "cold_load": {
+  "note": "fresh browser context with a stored session, two runs each",
+  "baseline": {
+   "/ @1440": {
+    "cls": [
+     0.002,
+     0.002
+    ],
+    "lcp_ms": [
+     68,
+     68
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     2
+    ]
+   },
+   "/ @390": {
+    "cls": [
+     0.004,
+     0.004
+    ],
+    "lcp_ms": [
+     64,
+     60
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     2
+    ]
+   },
+   "/dashboard @1440": {
+    "cls": [
+     0.006,
+     0.041
+    ],
+    "lcp_ms": [
+     116,
+     116
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     5
+    ]
+   },
+   "/dashboard @390": {
+    "cls": [
+     0.007,
+     0.004
+    ],
+    "lcp_ms": [
+     124,
+     104
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     5
+    ]
+   },
+   "/workspace @1440": {
+    "cls": [
+     0.038,
+     0.038
+    ],
+    "lcp_ms": [
+     164,
+     168
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   },
+   "/workspace @390": {
+    "cls": [
+     0.229,
+     0.229
+    ],
+    "lcp_ms": [
+     116,
+     104
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   },
+   "/researcher @1440": {
+    "cls": [
+     0.03,
+     0.03
+    ],
+    "lcp_ms": [
+     132,
+     132
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     3
+    ]
+   },
+   "/researcher @390": {
+    "cls": [
+     0.004,
+     0.004
+    ],
+    "lcp_ms": [
+     136,
+     132
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     3
+    ]
+   },
+   "/browse @1440": {
+    "cls": [
+     0.002,
+     0.002
+    ],
+    "lcp_ms": [
+     52,
+     56
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     3
+    ]
+   },
+   "/browse @390": {
+    "cls": [
+     0.004,
+     0.004
+    ],
+    "lcp_ms": [
+     48,
+     48
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     3
+    ]
+   },
+   "/notifications @1440": {
+    "cls": [
+     0.003,
+     0.003
+    ],
+    "lcp_ms": [
+     156,
+     148
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   },
+   "/notifications @390": {
+    "cls": [
+     0.004,
+     0.004
+    ],
+    "lcp_ms": [
+     104,
+     116
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   },
+   "/calendar @1440": {
+    "cls": [
+     0.003,
+     0.003
+    ],
+    "lcp_ms": [
+     124,
+     116
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   },
+   "/calendar @390": {
+    "cls": [
+     0.027,
+     0.027
+    ],
+    "lcp_ms": [
+     112,
+     112
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   }
+  },
+  "after": {
+   "/ @1440": {
+    "cls": [
+     0.001,
+     0.001
+    ],
+    "lcp_ms": [
+     100,
+     60
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     2
+    ]
+   },
+   "/ @390": {
+    "cls": [
+     0,
+     0
+    ],
+    "lcp_ms": [
+     96,
+     52
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     2
+    ]
+   },
+   "/dashboard @1440": {
+    "cls": [
+     0.006,
+     0.053
+    ],
+    "lcp_ms": [
+     108,
+     104
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     5
+    ]
+   },
+   "/dashboard @390": {
+    "cls": [
+     0.002,
+     0.09
+    ],
+    "lcp_ms": [
+     100,
+     108
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     5
+    ]
+   },
+   "/workspace @1440": {
+    "cls": [
+     0,
+     0
+    ],
+    "lcp_ms": [
+     172,
+     164
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   },
+   "/workspace @390": {
+    "cls": [
+     0,
+     0
+    ],
+    "lcp_ms": [
+     108,
+     104
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   },
+   "/researcher @1440": {
+    "cls": [
+     0.027,
+     0.027
+    ],
+    "lcp_ms": [
+     144,
+     128
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     3
+    ]
+   },
+   "/researcher @390": {
+    "cls": [
+     0,
+     0
+    ],
+    "lcp_ms": [
+     132,
+     120
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     3
+    ]
+   },
+   "/browse @1440": {
+    "cls": [
+     0,
+     0
+    ],
+    "lcp_ms": [
+     52,
+     52
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     3
+    ]
+   },
+   "/browse @390": {
+    "cls": [
+     0,
+     0
+    ],
+    "lcp_ms": [
+     44,
+     40
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     3
+    ]
+   },
+   "/notifications @1440": {
+    "cls": [
+     0.001,
+     0.001
+    ],
+    "lcp_ms": [
+     140,
+     160
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   },
+   "/notifications @390": {
+    "cls": [
+     0,
+     0
+    ],
+    "lcp_ms": [
+     104,
+     108
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   },
+   "/calendar @1440": {
+    "cls": [
+     0.002,
+     0.002
+    ],
+    "lcp_ms": [
+     112,
+     124
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   },
+   "/calendar @390": {
+    "cls": [
+     0.03,
+     0.03
+    ],
+    "lcp_ms": [
+     104,
+     108
+    ],
+    "auth_me": [
+     1
+    ],
+    "unread_count": [
+     1
+    ],
+    "api_requests": [
+     4
+    ]
+   }
+  }
+ },
+ "shell_audit": {
+  "page_loads": 280,
+  "open_states": 56,
+  "roles": [
+   "visitor",
+   "student",
+   "faculty",
+   "admin"
+  ],
+  "themes": [
+   "light",
+   "dark"
+  ],
+  "widths": [
+   1440,
+   1280,
+   1024,
+   768,
+   390,
+   360,
+   320
+  ],
+  "page_overflow": [],
+  "open_state_overflow": [],
+  "visible_primary_navigations_from_1024": [
+   1
+  ],
+  "visible_primary_navigations_below_1024_closed": [
+   0
+  ],
+  "banners": [
+   1
+  ],
+  "mains": [
+   1
+  ],
+  "duplicate_ids": [],
+  "h1_per_page": [
+   1
+  ],
+  "aria_current_per_navigation": [
+   0,
+   1
+  ],
+  "header_height_px": [
+   56
+  ],
+  "auth_me_per_load": [
+   0,
+   1
+  ],
+  "unread_count_per_signed_in_load": [
+   1
+  ],
+  "unread_count_per_visitor_load": [
+   0
+  ],
+  "axe_runs": 72,
+  "axe_violations": {
+   "moderate heading-order": {
+    "count": 16,
+    "where": [
+     "dark student 1440 /postings/applications",
+     "dark student 1440 /reading-list",
+     "dark student 1440 /supervisors",
+     "dark student 390 /postings/applications",
+     "dark student 390 /reading-list",
+     "dark student 390 /supervisors",
+     "dark visitor 1440 /",
+     "dark visitor 390 /",
+     "light student 1440 /postings/applications",
+     "light student 1440 /reading-list",
+     "light student 1440 /supervisors",
+     "light student 390 /postings/applications",
+     "light student 390 /reading-list",
+     "light student 390 /supervisors",
+     "light visitor 1440 /",
+     "light visitor 390 /"
+    ]
+   },
+   "moderate landmark-unique": {
+    "count": 4,
+    "where": [
+     "dark student 1440 /supervisors",
+     "dark student 390 /supervisors",
+     "light student 1440 /supervisors",
+     "light student 390 /supervisors"
+    ]
+   }
+  },
+  "axe_note": "No critical or serious violations. The moderate ones are in page content and are identical on the baseline build (heading-order: the search page's landing h4 and the posting cards' h3; landmark-unique: supervisor cards' sections)."
+ },
+ "workspace_session_restore": {
+  "cls_390": {
+   "baseline": [
+    0.221,
+    0.229
+   ],
+   "after": [
+    0.0,
+    0.0
+   ]
+  },
+  "cls_1440": {
+   "baseline": [
+    0.038,
+    0.038
+   ],
+   "after": [
+    0.0,
+    0.0
+   ]
+  }
+ }
+}
