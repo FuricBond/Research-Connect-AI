@@ -1134,3 +1134,43 @@ the title and date first, is sent once and kept on failure. No emoji, no `alert(
 | Calendar | `app/calendar/{page,layout}.tsx`, `components/calendar/{CalendarPage.tsx,calendarModel.ts,Calendar.module.css}` |
 | Words | `utils/status.ts` (submission, document, task, invitation, readiness, role), `components/workspace/submission/words.ts`, `components/calendar/calendarModel.ts` |
 | Tests | `tests/workspace-status.test.tsx`, `workspace-item.test.tsx`, `workspace-submission.test.tsx`, `calendar-view.test.tsx`, `reading-list-page.test.tsx` (P7 states), `ui-primitives.test.tsx` (Menu, Tabs); updated: `deadline-risk`, `workspace-collaborate-link`, `submissions-page`, `session-restore`, `calendar-events`, `calendar-export`, `design-tokens` (ratchet 120); e2e `auth`, `shell`, `pages`, `layout`, `workflow` |
+
+## 20. Notifications and settings (P8)
+
+**Notifications** (`/notifications`, `components/notifications/`): titled "Notifications". The list
+is grouped by where a notification comes from — the API's `source_type`: Calls for papers
+(`OPPORTUNITY`), Calendar, Workspace, Research postings, System; an unknown source goes under
+"Other updates". Groups come in the order of their newest notification, newest first inside each.
+Each notification: its kind in words (`utils/notifications.ts`; an unknown kind is humanised,
+never shown raw), the title as the link to where it leads (a call's page, the calendar, the
+workspace item — which opens for its members, P7 — or the posting; none when there is nowhere
+valid), the time under the title, "Unread" as a word with a dot and a leading rule, "Also emailed"
+when it was, and "Mark as read". Filters "All" / "Unread" with counts from the API and the kind,
+in the address (`?show=unread&type=…`); "Mark all as read"; administrators get "Check reminders
+now". The list refreshes quietly every 30 seconds while the tab is visible. Delivery internals
+(channel, delivery status) are no longer shown per notification; how notifications reach the
+person is in Settings.
+
+**Bell** (`components/shell/NotificationBell.tsx`): a button named with the unread count
+("Notifications, 3 unread"; the badge is hidden from assistive technology) from the one polling
+hook. It opens a disclosure (`components/shell/Disclosure.tsx`, shared with the account menu)
+hanging from the sticky header, so it fits any width and text size: the latest five, grouped,
+"View all notifications" and "Notification settings". It asks for the latest each time it opens.
+Escape, a click outside or tabbing away close it; Escape returns focus to the bell.
+
+**Settings** (`/settings`): Account (P3, unchanged), **Notifications** and **Appearance**, with
+"On this page" links (`#account`, `#notifications`, `#appearance`); `/settings/notifications`
+redirects to `#notifications`. Notifications: how notifications reach you and the reminder
+schedule (the server's delivery status), the switches the API stores (`Switch`: named, described,
+state in words; each saved on its own, held while saving, rolled back with the reason when
+refused), the posting-match alert and its minimum fit for students, and the reminder schedule
+(add with a checked amount, delete). There is no push option. Appearance: Match the system, Light,
+Dark (`RadioGroup`), applied at once and kept per browser; the account menu's theme switch follows
+through `THEME_CHANGED_EVENT` (`utils/theme.ts`). `styles/notifications.css` is deleted.
+
+| Part | Where |
+|---|---|
+| Notifications | `app/notifications/{page,layout}.tsx`, `components/notifications/*`, `utils/notifications.ts` |
+| Bell | `components/shell/{NotificationBell.tsx,NotificationBell.module.css,Disclosure.tsx}` |
+| Settings | `app/settings/page.tsx`, `app/settings/notifications/page.tsx` (redirect), `components/settings/{SettingsPage,NotificationSettings,AppearanceSettings}.tsx` |
+| Tests | `tests/notifications-p8.test.tsx`, `settings-p8.test.tsx`; updated `notification-types`, `notification-settings-push`, `notification-settings-posting-match`, `notification-live-updates`, `auth-pages`, `auth-revocation`, `design-tokens` (ratchet 105); e2e `pages`, `workflow`, `layout` |
