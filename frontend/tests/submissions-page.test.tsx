@@ -6,7 +6,7 @@
 
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
@@ -90,12 +90,16 @@ describe("submissions page", () => {
 
     renderPage();
 
-    expect(await screen.findByText("Query understanding for low-resource languages")).toBeInTheDocument();
-    // "Draft" is also an option in the status filter; the badge is the one that matters.
-    expect(screen.getAllByText("Draft").some((el) => el.classList.contains("workspace-status-badge"))).toBe(true);
-    expect(screen.getByText("ICIRS 2026")).toBeInTheDocument();
-    expect(screen.getByText(/52 days left/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /open/i })).toHaveAttribute("href", `/workspace/${WORKSPACE_ITEM_ID}/submission`);
+    const title = await screen.findByRole("link", { name: "Query understanding for low-resource languages" });
+    // P7: the submission opens its workspace item's Submission tab.
+    expect(title).toHaveAttribute("href", `/workspace/${WORKSPACE_ITEM_ID}?tab=submission`);
+    // "Draft" is also a status filter chip; the row's badge is the one that matters.
+    const row = within(screen.getByRole("listitem", { name: "Query understanding for low-resource languages" }));
+    expect(row.getByText("Draft")).toBeInTheDocument();
+    expect(row.getByText(/Full paper · ICIRS 2026/)).toBeInTheDocument();
+    expect(row.getByText(/52 days left/)).toBeInTheDocument();
+    expect(row.getByRole("link", { name: "Open" })).toHaveAttribute("href", `/workspace/${WORKSPACE_ITEM_ID}?tab=submission`);
+    expect(screen.getByRole("button", { name: "Draft (1)" })).toHaveAttribute("aria-pressed", "false");
   });
 
   it("explains how to start when there are no submissions", async () => {
