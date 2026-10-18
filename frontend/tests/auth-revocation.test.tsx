@@ -13,7 +13,7 @@
 
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
@@ -130,7 +130,10 @@ describe("change password", () => {
     await fill("old-password", "a-new-password", "a-new-password");
 
     expect(await screen.findByText(/Password changed/)).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("Password changed. Your other sessions have been signed out.");
+    // P8: the settings page has other live regions (notification and appearance changes).
+    expect(within(screen.getByRole("form", { name: "Change password" })).getByRole("status")).toHaveTextContent(
+      "Password changed. Your other sessions have been signed out."
+    );
     const [call] = calls("/api/v1/auth/change-password");
     expect(JSON.parse(String((call[1] as RequestInit).body))).toEqual({
       current_password: "old-password",

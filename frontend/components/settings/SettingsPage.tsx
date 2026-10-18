@@ -1,19 +1,21 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { ROLE_LABELS } from "../../types/auth";
 import { RequireAuth } from "../auth/RequireAuth";
 import { ChangePasswordForm } from "../auth/ChangePasswordForm";
 import { useSession } from "../auth/SessionProvider";
 import { Card } from "../ui/Card/Card";
 import { PageHeader, SectionHeader } from "../ui/PageHeader/PageHeader";
+import { AppearanceSettings } from "./AppearanceSettings";
+import { NotificationSettings } from "./NotificationSettings";
 import styles from "./SettingsPage.module.css";
 
 /**
- * P3 — Settings (`/settings`): the account (who is signed in, and the password change moved here
- * from the notification settings) and the way to the notification settings. The notification
- * and appearance sections join this page in P8; until then the theme stays in the account menu.
+ * Settings (`/settings`): P3's Account (who is signed in, and the password change moved here from
+ * the notification settings); P8's Notifications (what you are told about, how it reaches you and
+ * the reminder schedule, formerly /settings/notifications, which now opens here) and Appearance
+ * (the colour theme). "On this page" links jump to each section (`#account`, `#notifications`,
+ * `#appearance`).
  */
 function Settings() {
   const { user } = useSession();
@@ -22,9 +24,21 @@ function Settings() {
 
   return (
     <div className={styles.page}>
-      <PageHeader title="Settings" description="Your account, and how ResearchConnect AI keeps you informed." />
+      <PageHeader title="Settings" description="Your account, how ResearchConnect AI keeps you informed, and how it looks." />
 
-      <section className={styles.section} aria-labelledby="settings-account">
+      <nav aria-label="On this page" className={styles.toc}>
+        <ul>
+          {SECTIONS.map((section) => (
+            <li key={section.id}>
+              <a href={`#${section.id}`} className={styles.tocLink}>
+                {section.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <section id="account" className={styles.section} aria-labelledby="settings-account">
         <SectionHeader id="settings-account" title="Account" />
         <Card className={styles.card}>
           <dl className={styles.facts}>
@@ -48,20 +62,32 @@ function Settings() {
         </Card>
       </section>
 
-      <section className={styles.section} aria-labelledby="settings-notifications">
+      <section id="notifications" className={styles.section} aria-labelledby="settings-notifications">
         <SectionHeader
           id="settings-notifications"
           title="Notifications"
-          description="Which alerts you get, how they reach you, and when deadline reminders arrive."
+          description="What you are told about, how it reaches you, and when deadline reminders arrive."
         />
-        <Link href="/settings/notifications" className={styles.onward}>
-          Notification settings
-          <ArrowRight size={16} aria-hidden="true" />
-        </Link>
+        <Card className={styles.card}>
+          <NotificationSettings />
+        </Card>
+      </section>
+
+      <section id="appearance" className={styles.section} aria-labelledby="settings-appearance">
+        <SectionHeader id="settings-appearance" title="Appearance" />
+        <Card className={styles.card}>
+          <AppearanceSettings />
+        </Card>
       </section>
     </div>
   );
 }
+
+const SECTIONS = [
+  { id: "account", title: "Account" },
+  { id: "notifications", title: "Notifications" },
+  { id: "appearance", title: "Appearance" },
+];
 
 export function SettingsPage() {
   return (

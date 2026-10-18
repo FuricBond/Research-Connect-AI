@@ -1,0 +1,211 @@
+/* P8 — /notifications: a list grouped by source. Replaces styles/notifications.css. Unread is a
+   word and a dot, never colour alone. Tokens only. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--rc-space-3) var(--rc-space-5);
+  margin-bottom: var(--rc-space-5);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rc-target-min);
+  padding: var(--rc-space-1) var(--rc-space-3);
+  border: var(--rc-border-width) solid var(--rc-border-control);
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-surface);
+  color: var(--rc-text-secondary);
+  font: inherit;
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-medium);
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: var(--rc-surface-hover);
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--rc-brand);
+  background: var(--rc-brand-subtle);
+  color: var(--rc-brand-text);
+}
+
+.kind {
+  min-width: min(16rem, 100%);
+}
+
+.alert {
+  margin-bottom: var(--rc-space-4);
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-6);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  min-width: 0;
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.groupCount {
+  color: var(--rc-text-secondary);
+  font-weight: var(--rc-weight-regular);
+  font-variant-numeric: tabular-nums;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--rc-space-2) var(--rc-space-3);
+  padding: var(--rc-space-3) var(--rc-space-4);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+  min-width: 0;
+}
+
+.item:last-child {
+  border-bottom: 0;
+}
+
+@media (min-width: 640px) {
+  .item {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
+  }
+}
+
+/* An unread notification: a brand rule on the leading edge, plus the word "Unread". */
+.unread {
+  box-shadow: inset 3px 0 0 var(--rc-brand);
+  background: var(--rc-surface-raised);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-surface-sunken);
+  color: var(--rc-text-secondary);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  min-width: 0;
+}
+
+.kind {
+  margin: 0;
+  font-size: var(--rc-text-label-size);
+  line-height: var(--rc-text-label-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text-secondary);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.title a {
+  color: var(--rc-text);
+}
+
+.title a:hover {
+  color: var(--rc-link);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-3);
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.unreadMark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  color: var(--rc-brand-text);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-brand);
+}
+
+.text {
+  margin: 0;
+  max-width: var(--rc-measure);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.rowActions {
+  grid-column: 2;
+}
+
+@media (min-width: 640px) {
+  .rowActions {
+    grid-column: auto;
+  }
+}
+
+.more {
+  display: flex;
+  justify-content: center;
+}

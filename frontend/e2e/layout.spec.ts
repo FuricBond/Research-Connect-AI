@@ -96,7 +96,16 @@ test("pages fit the screen and every destination stays reachable", async ({ page
       await page.keyboard.press("Escape");
       await expect(account).toHaveAttribute("aria-expanded", "false");
       await expect(account).toBeFocused();
-      await expect(page.getByRole("banner").getByRole("link", { name: /^Notifications/ })).toBeVisible();
+      // P8: the bell opens a panel that fits the screen, and Escape hands focus back.
+      const bell = page.getByRole("banner").getByRole("button", { name: /^Notifications/ });
+      await bell.click();
+      await expect(page.getByRole("link", { name: "View all notifications" })).toBeVisible();
+      expect(await horizontalOverflow(page), `the open notification panel at ${width}px scrolls sideways`).toBeLessThanOrEqual(0);
+      const panelBox = await page.getByRole("link", { name: "View all notifications" }).boundingBox();
+      expect(panelBox && panelBox.x >= 0 && panelBox.x + panelBox.width <= width, `the notification panel at ${width}px is on screen`).toBe(true);
+      await page.keyboard.press("Escape");
+      await expect(bell).toHaveAttribute("aria-expanded", "false");
+      await expect(bell).toBeFocused();
     });
   }
 

@@ -33,6 +33,7 @@ import { RequireAuth } from "../components/auth/RequireAuth";
 import { DiscoverySearch } from "../components/pages/DiscoverySearch";
 import { getStoredIdentity } from "../services/auth";
 import { jsonResponse, makeTokenResponse, makeUser } from "./factories";
+import { settingsRoutes } from "./p8-fixtures";
 import { installDialogPolyfill, serveShell } from "./shell-support";
 
 beforeAll(installDialogPolyfill);
@@ -281,9 +282,9 @@ describe("registration", () => {
 });
 
 describe("settings", () => {
-  it("shows who is signed in and leads on to the notification settings", async () => {
+  it("has the account, notification and appearance sections, with a way to each", async () => {
     pathname = "/settings";
-    serveShell("FACULTY");
+    serveShell("FACULTY", { other: settingsRoutes({}) });
     renderWithSession(<SettingsRoute />);
 
     expect(await screen.findByRole("heading", { level: 1, name: "Settings" })).toBeInTheDocument();
@@ -292,8 +293,14 @@ describe("settings", () => {
     expect(within(account).getByText(makeUser().email)).toBeInTheDocument();
     expect(within(account).getByText("Faculty")).toBeInTheDocument();
     expect(within(account).getByRole("form", { name: "Change password" })).toBeInTheDocument();
+    // P8: the notification settings and the theme are sections of this page.
+    const toc = screen.getByRole("navigation", { name: "On this page" });
+    expect(within(toc).getAllByRole("link").map((link) => link.getAttribute("href"))).toEqual(["#account", "#notifications", "#appearance"]);
     const notifications = screen.getByRole("region", { name: "Notifications" });
-    expect(within(notifications).getByRole("link", { name: "Notification settings" })).toHaveAttribute("href", "/settings/notifications");
+    expect(notifications).toHaveAttribute("id", "notifications");
+    expect(await within(notifications).findByRole("switch", { name: "Email alerts" })).toBeInTheDocument();
+    const appearance = screen.getByRole("region", { name: "Appearance" });
+    expect(within(appearance).getByRole("group", { name: "Colour theme" })).toBeInTheDocument();
   });
 
   it("is for signed-in accounts: a visitor is sent to sign in and back", async () => {

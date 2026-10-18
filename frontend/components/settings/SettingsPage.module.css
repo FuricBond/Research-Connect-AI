@@ -1,4 +1,4 @@
-/* P3 — Settings: sections in a reading-width column. Tokens only. */
+/* P3/P8 — Settings: Account, Notifications and Appearance in a reading-width column. Tokens only. */
 .page {
   max-width: 48rem;
 }
@@ -65,10 +65,114 @@
   border-top: var(--rc-border-width) solid var(--rc-border);
 }
 
-.onward {
+/* "On this page": links to the three sections. */
+.toc ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-1) var(--rc-space-4);
+  margin: 0 0 var(--rc-space-6);
+  padding: 0;
+  list-style: none;
+}
+
+.tocLink {
   display: inline-flex;
   align-items: center;
-  gap: var(--rc-space-1);
   min-height: var(--rc-target-min);
   font-weight: var(--rc-weight-semibold);
+}
+
+.section {
+  scroll-margin-top: calc(var(--rc-header-height) + var(--rc-space-4));
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-5);
+  min-width: 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  padding-top: var(--rc-space-5);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.subheading {
+  margin: 0;
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.switchWithOption {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+}
+
+.threshold {
+  max-width: 16rem;
+}
+
+/* Reminder schedule: one row per reminder, then the form to add one. */
+.rules {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-md);
+}
+
+.rules .rule {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0 var(--rc-space-3);
+  padding: var(--rc-space-2) var(--rc-space-3);
+  border-top: 0;
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+}
+
+.rules .rule:last-child {
+  border-bottom: 0;
+}
+
+.ruleMain {
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.ruleMeta {
+  grid-column: 1;
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.rules .rule > button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.ruleForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rc-space-3);
+}
+
+.amount {
+  width: 7rem;
+}
+
+.formEnd {
+  display: flex;
+  align-items: flex-end;
 }

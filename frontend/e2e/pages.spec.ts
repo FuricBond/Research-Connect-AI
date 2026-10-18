@@ -37,9 +37,10 @@ test("every signed-in page renders against the live API without contract errors"
     ["/submissions", /^Submissions$/],
     ["/reading-list", /^Reading list$/],
     ["/calendar", /^Calendar$/],
-    ["/notifications", /Notification Center/],
+    // P8: renamed; the notification settings are a section of Settings (the old address opens it).
+    ["/notifications", /^Notifications$/],
     ["/settings", /^Settings$/],
-    ["/settings/notifications", /Notification & Reminder Preferences/],
+    ["/settings/notifications", /^Settings$/],
     ["/postings", /Research postings/],
     ["/postings/applications", /My Applications/],
     ["/peers", /Find peers/],

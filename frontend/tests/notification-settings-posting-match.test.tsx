@@ -4,6 +4,7 @@
  * A student turns the alert on with a switch and picks the minimum fit (40, 60 or 80). Each
  * change is one PATCH to /notifications/preferences; the threshold is disabled while the alert
  * is off. Other roles never get posting alerts, so they do not see the switch.
+ * P8: on the Settings page's Notifications section, as a labelled switch (role "switch").
  */
 
 import React from "react";
@@ -12,11 +13,11 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
-  usePathname: () => "/settings/notifications",
+  usePathname: () => "/settings",
   useSearchParams: () => new URLSearchParams(),
 }));
 
-import NotificationSettingsRoute from "../app/settings/notifications/page";
+import NotificationSettingsRoute from "../app/settings/page";
 import { SessionProvider } from "../components/auth/SessionProvider";
 import { storeSession } from "../services/auth";
 import type { PlatformRole } from "../types/auth";
@@ -79,7 +80,7 @@ describe("posting match alert settings", () => {
     serve("STUDENT");
     renderPage();
 
-    const toggle = await screen.findByRole("checkbox", {
+    const toggle = await screen.findByRole("switch", {
       name: "Notify me when a new posting matches my interests",
     });
     const threshold = screen.getByRole("combobox", { name: "Minimum fit for posting alerts" });
@@ -101,9 +102,9 @@ describe("posting match alert settings", () => {
     serve("FACULTY");
     renderPage();
 
-    expect(await screen.findByText("In-App Notifications")).toBeInTheDocument();
+    expect(await screen.findByRole("switch", { name: "In-app notifications" })).toBeInTheDocument();
     expect(
-      screen.queryByRole("checkbox", { name: "Notify me when a new posting matches my interests" })
+      screen.queryByRole("switch", { name: "Notify me when a new posting matches my interests" })
     ).not.toBeInTheDocument();
   });
 });

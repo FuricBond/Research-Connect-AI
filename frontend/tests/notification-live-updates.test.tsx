@@ -4,10 +4,12 @@
  *  - The shell's notification bell (P2.4: the one way to the notifications) shows the unread
  *    count to a signed-in user and asks again every 30 seconds while the tab is visible, when
  *    the tab comes back, and after notifications change — from one place in the whole shell.
- *  - The notifications page reports the channels that actually reach the user and whether
- *    reminders run on a schedule, marks emailed notifications, and offers "Evaluate Now" to
+ *    P8: the bell is a button opening the latest five, grouped, with "View all".
+ *  - The notifications page marks emailed notifications and offers the reminder check to
  *    administrators only.
- *  - The settings page says so when this server does not email notifications.
+ *  - Settings → Notifications (P8: the delivery state moved there from the list) reports the
+ *    channels that actually reach the user and whether reminders run on a schedule, and says so
+ *    when this server does not email notifications.
  */
 
 import React from "react";
@@ -23,7 +25,7 @@ vi.mock("next/navigation", () => ({
 import { AppShell } from "../components/shell/AppShell";
 import { bellLabel } from "../components/shell/NotificationBell";
 import NotificationsPageRoute from "../app/notifications/page";
-import NotificationSettingsRoute from "../app/settings/notifications/page";
+import NotificationSettingsRoute from "../app/settings/page";
 import { SessionProvider } from "../components/auth/SessionProvider";
 import {
   UNREAD_POLL_MS,
@@ -165,15 +167,28 @@ describe("notification bell", () => {
     );
   }
 
-  it("names the unread count and leads to the notifications", async () => {
-    serve("STUDENT", { unread: () => 3 });
+  it("names the unread count and opens the latest notifications, closing back to the bell", async () => {
+    serve("STUDENT", { unread: () => 3, notifications: [makeNotification()] });
     renderShell();
 
-    const bell = await screen.findByRole("link", { name: "Notifications, 3 unread" });
-    expect(bell).toHaveAttribute("href", "/notifications");
-    // This test's page is /notifications.
-    expect(bell).toHaveAttribute("aria-current", "page");
+    const bell = await screen.findByRole("button", { name: "Notifications, 3 unread" });
     expect(within(bell).getByText("3")).toHaveAttribute("aria-hidden", "true");
+    expect(bell).toHaveAttribute("aria-expanded", "false");
+    // Nothing but the count is asked for until the bell is opened.
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/v1/notifications?"))).toBe(false);
+
+    fireEvent.click(bell);
+    expect(bell).toHaveAttribute("aria-expanded", "true");
+    const panel = document.getElementById(bell.getAttribute("aria-controls") as string) as HTMLElement;
+    expect(await within(panel).findByText("New posting matches your interests")).toBeInTheDocument();
+    expect(within(panel).getByRole("heading", { name: "Research postings" })).toBeInTheDocument();
+    expect(within(panel).getByText("Unread")).toBeInTheDocument();
+    expect(within(panel).getByRole("link", { name: "View all notifications" })).toHaveAttribute("href", "/notifications");
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes("/api/v1/notifications?limit=5"))).toHaveLength(1);
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(bell).toHaveAttribute("aria-expanded", "false");
+    expect(bell).toHaveFocus();
   });
 
   it("is a plain bell at zero, and caps large counts at 99+", async () => {
@@ -182,12 +197,12 @@ describe("notification bell", () => {
     renderShell();
 
     await waitFor(() => expect(requests("/notifications/unread-count")).toBe(1));
-    const bell = await screen.findByRole("link", { name: "Notifications" });
+    const bell = await screen.findByRole("button", { name: "Notifications" });
     expect(bell.textContent).toBe("");
 
     unread = 250;
     act(() => notifyNotificationsChanged());
-    expect(await screen.findByRole("link", { name: "Notifications, more than 99 unread" })).toHaveTextContent("99+");
+    expect(await screen.findByRole("button", { name: "Notifications, more than 99 unread" })).toHaveTextContent("99+");
   });
 
   it("never invents a count", () => {
@@ -201,11 +216,11 @@ describe("notification bell", () => {
     serve("STUDENT", { unread: () => 2 });
     renderShell();
 
-    await screen.findByRole("link", { name: "Notifications, 2 unread" });
+    await screen.findByRole("button", { name: "Notifications, 2 unread" });
     // Header, sidebar and the (closed) drawer are all mounted: still one request.
     await settle();
     expect(requests("/notifications/unread-count")).toBe(1);
-    expect(screen.getAllByRole("link", { name: /^Notifications/ })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /^Notifications/ })).toHaveLength(1);
   });
 
   it("asks nothing for a signed-out visitor", async () => {
@@ -215,7 +230,7 @@ describe("notification bell", () => {
     expect(await screen.findByRole("link", { name: "Literature search" })).toBeInTheDocument();
     await settle();
     expect(requests("/notifications/unread-count")).toBe(0);
-    expect(screen.queryByRole("link", { name: /^Notifications/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /^Notifications/ })).not.toBeInTheDocument();
   });
 });
 
@@ -301,43 +316,33 @@ describe("notifications page", () => {
     );
   }
 
-  it("reports email and scheduled reminders when the server delivers them", async () => {
+  it("marks emailed notifications, and offers the reminder check to administrators only", async () => {
     serve("STUDENT", {
       status: EMAIL_ON,
       notifications: [makeNotification({ email_status: "SENT", email_sent_at: "2026-10-04T12:01:00+00:00" })],
     });
     renderPage();
 
-    expect(await screen.findByText("In-App, Email")).toBeInTheDocument();
-    expect(screen.getByText("Every 5 min")).toBeInTheDocument();
-    expect(await screen.findByText("Emailed")).toBeInTheDocument();
-    // Only administrators can run the reminder pass.
-    expect(screen.queryByRole("button", { name: /Evaluate Now/ })).not.toBeInTheDocument();
+    expect(await screen.findByText("Also emailed")).toBeInTheDocument();
+    // P8: delivery details (channel, status) are not repeated on each notification.
+    expect(screen.queryByText("IN_APP")).not.toBeInTheDocument();
+    expect(screen.queryByText("DELIVERED")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Check reminders now/ })).not.toBeInTheDocument();
   });
 
-  it("reports in-app only when the server does not email, and offers Evaluate Now to admins", async () => {
+  it("offers administrators the reminder check", async () => {
     serve("ADMIN", { status: IN_APP_ONLY, notifications: [makeNotification()] });
     renderPage();
 
-    expect(await screen.findByText("In-App")).toBeInTheDocument();
-    expect(screen.getByText("Manual only")).toBeInTheDocument();
-    expect(await screen.findByRole("button", { name: /Evaluate Now/ })).toBeInTheDocument();
-    expect(screen.queryByText("Emailed")).not.toBeInTheDocument();
-  });
-
-  it("does not count email as a channel when the user switched it off", async () => {
-    serve("STUDENT", { status: { ...EMAIL_ON, email_enabled: false } });
-    renderPage();
-
-    expect(await screen.findByText("In-App")).toBeInTheDocument();
-    expect(screen.queryByText("In-App, Email")).not.toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Check reminders now/ })).toBeInTheDocument();
+    expect(screen.queryByText("Also emailed")).not.toBeInTheDocument();
   });
 
   it("updates the bell as soon as a notification is marked read", async () => {
     serve("STUDENT", { unread: () => 1, notifications: [makeNotification()] });
     renderPage();
 
-    const markRead = await screen.findByTitle("Mark as Read");
+    const markRead = await screen.findByRole("button", { name: "Mark as read" });
     await waitFor(() => expect(requests("/notifications/unread-count")).toBeGreaterThanOrEqual(1));
     const before = requests("/notifications/unread-count");
 
@@ -370,19 +375,37 @@ describe("notification settings", () => {
     );
   }
 
-  it("says when this server does not email notifications", async () => {
+  it("reports email and scheduled reminders when the server delivers them", async () => {
+    serve("STUDENT", { status: EMAIL_ON });
+    renderSettings();
+
+    expect(await screen.findByText("In the app and by email")).toBeInTheDocument();
+    expect(screen.getByText("Checked every 5 minutes")).toBeInTheDocument();
+  });
+
+  it("reports in-app only when the server does not email, and says so", async () => {
     serve("STUDENT", { status: IN_APP_ONLY });
     renderSettings();
 
     expect(await screen.findByRole("note")).toHaveTextContent("Email isn't set up on this server yet");
-    expect(screen.getByRole("checkbox", { name: "Email Alerts" })).toBeChecked();
+    expect(screen.getByText("Notifications reach you").nextElementSibling).toHaveTextContent(/^In the app$/);
+    expect(screen.getByText("Checked only when an administrator runs the check")).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: "Email alerts" })).toBeChecked();
+  });
+
+  it("does not count email as a channel when the user switched it off", async () => {
+    serve("STUDENT", { status: { ...EMAIL_ON, email_enabled: false } });
+    renderSettings();
+
+    expect((await screen.findByText("Notifications reach you")).nextElementSibling).toHaveTextContent(/^In the app$/);
+    expect(screen.queryByText("In the app and by email")).not.toBeInTheDocument();
   });
 
   it("shows no note when email is delivered", async () => {
     serve("STUDENT", { status: EMAIL_ON });
     renderSettings();
 
-    expect(await screen.findByRole("checkbox", { name: "Email Alerts" })).toBeInTheDocument();
+    expect(await screen.findByRole("switch", { name: "Email alerts" })).toBeInTheDocument();
     await waitFor(() => expect(requests("/notifications/delivery-status")).toBe(1));
     expect(screen.queryByText(/Email isn't set up/)).not.toBeInTheDocument();
   });

@@ -2,7 +2,8 @@
  * Fix 4/9 — the frontend notification types match what the backend sends and accepts.
  *
  *  - The eight workspace collaboration types are notification types, each with its own icon,
- *    an accessible label, and (for a WORKSPACE source) a link to that workspace.
+ *    its kind in words, and (for a WORKSPACE source) a link to that workspace item. P8: the kind
+ *    is visible text above the title (the icon is decorative) and the title is the link.
  *  - "WEEKS" is not an offset unit: the backend's check allows only DAYS, HOURS and MINUTES.
  */
 
@@ -22,7 +23,7 @@ import { storeSession } from "../services/auth";
 import type { NotificationItem, NotificationType, OffsetUnit } from "../types/notification";
 import { PROFILE_ID, jsonResponse, makeTokenResponse, makeUser } from "./factories";
 
-const WORKSPACE_ID = "ws000000-0000-4000-8000-000000000001";
+const WORKSPACE_ID = "a1b2c3d4-0000-4000-8000-000000000001";
 
 const COLLABORATION: [NotificationType, string][] = [
   ["WORKSPACE_INVITATION", "Workspace invitation"],
@@ -104,18 +105,19 @@ describe("notification types", () => {
       </SessionProvider>
     );
 
-    const icons = await Promise.all(COLLABORATION.map(([, label]) => screen.findByRole("img", { name: label })));
+    await screen.findByText("WORKSPACE_INVITATION title");
+    const shapes: string[] = [];
+    for (const [type, label] of COLLABORATION) {
+      const card = screen.getByRole("listitem", { name: `${type} title` });
+      // The kind in words, the title linking to the workspace item.
+      expect(within(card).getByText(label)).toBeInTheDocument();
+      expect(within(card).getByRole("link", { name: `${type} title` })).toHaveAttribute("href", `/workspace/${WORKSPACE_ID}`);
+      shapes.push(card.querySelector("svg")?.getAttribute("class") ?? "");
+    }
     // Every type has a distinct icon, never the generic bell.
-    const shapes = icons.map((icon) => icon.querySelector("svg")?.getAttribute("class") ?? "");
     expect(new Set(shapes).size).toBe(COLLABORATION.length);
     expect(shapes.some((shape) => shape.includes("lucide-bell"))).toBe(false);
-
-    for (const [type] of COLLABORATION) {
-      const card = screen.getByText(`${type} title`).closest(".notification-card") as HTMLElement;
-      expect(within(card).getByRole("link", { name: "Open workspace" })).toHaveAttribute(
-        "href",
-        `/workspace/${WORKSPACE_ID}`
-      );
-    }
+    // All of them come from the workspace: one group.
+    expect(screen.getByRole("heading", { level: 2, name: `Workspace (${COLLABORATION.length})` })).toBeInTheDocument();
   });
 });

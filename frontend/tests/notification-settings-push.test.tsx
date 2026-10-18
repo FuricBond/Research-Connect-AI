@@ -2,6 +2,9 @@
  * Fix 2/9 — the "Push" reminder channel was fake: reminders were marked delivered and nothing
  * was sent. The settings page no longer offers it, and a rule saved before the change is
  * labelled "Push (not available yet)" instead of looking like a working channel.
+ *
+ * P8: the notification settings are a section of /settings; /settings/notifications redirects
+ * there. The protections are the same.
  */
 
 import React from "react";
@@ -10,11 +13,11 @@ import { render, screen, within } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
-  usePathname: () => "/settings/notifications",
+  usePathname: () => "/settings",
   useSearchParams: () => new URLSearchParams(),
 }));
 
-import NotificationSettingsRoute from "../app/settings/notifications/page";
+import NotificationSettingsRoute from "../app/settings/page";
 import { SessionProvider } from "../components/auth/SessionProvider";
 import { storeSession } from "../services/auth";
 import type { NotificationPreference, ReminderRule } from "../types/notification";
@@ -66,17 +69,17 @@ beforeEach(() => {
 });
 
 describe("reminder channels", () => {
-  it("offers only In-App and Email for a new schedule", async () => {
+  it("offers only in-app and email for a new reminder", async () => {
     render(
       <SessionProvider>
         <NotificationSettingsRoute />
       </SessionProvider>
     );
 
-    const form = (await screen.findByRole("button", { name: /Add Schedule/ })).closest("form") as HTMLElement;
-    const channelSelect = within(form).getByDisplayValue("In-App");
+    const form = (await screen.findByRole("button", { name: /Add reminder/ })).closest("form") as HTMLElement;
+    const channelSelect = within(form).getByRole("combobox", { name: "Channel" });
     const options = within(channelSelect).getAllByRole("option").map((option) => option.textContent);
-    expect(options).toEqual(["In-App", "Email"]);
+    expect(options).toEqual(["In the app", "By email"]);
   });
 
   it("labels a rule saved with Push as not available", async () => {
@@ -86,8 +89,23 @@ describe("reminder channels", () => {
       </SessionProvider>
     );
 
-    expect(await screen.findByText("Push (not available yet)")).toBeInTheDocument();
-    expect(screen.getByText("IN_APP")).toBeInTheDocument();
-    expect(screen.queryByText(/^PUSH$/)).not.toBeInTheDocument();
+    expect(await screen.findByText(/Push \(not available yet\)/)).toBeInTheDocument();
+    expect(screen.getByText(/^In the app ·/)).toBeInTheDocument();
+    expect(screen.queryByText(/\bPUSH\b/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\bIN_APP\b/)).not.toBeInTheDocument();
+  });
+
+  it("offers no push switch anywhere in the notification settings", async () => {
+    render(
+      <SessionProvider>
+        <NotificationSettingsRoute />
+      </SessionProvider>
+    );
+
+    const section = await screen.findByRole("region", { name: "Notifications" });
+    await within(section).findByRole("switch", { name: "Email alerts" });
+    expect(within(section).queryByRole("switch", { name: /push/i })).not.toBeInTheDocument();
+    expect(within(section).queryByRole("checkbox", { name: /push/i })).not.toBeInTheDocument();
+    expect(within(section).queryByRole("option", { name: /push/i })).not.toBeInTheDocument();
   });
 });

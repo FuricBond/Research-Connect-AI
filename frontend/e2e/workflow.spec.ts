@@ -84,9 +84,15 @@ test("a researcher discovers, saves, applies and is notified of the decision", a
   await test.step("the researcher sees the new status and the notification, not the note", async () => {
     await page.goto("/postings/applications");
     await expect(page.locator("body")).toContainText(/shortlisted/i);
-    // P2.4: the bell is the one way in; its name carries the unread count.
-    await page.getByRole("banner").getByRole("link", { name: /^Notifications/ }).click();
-    await expect(page.getByRole("heading", { name: "Notification Center" })).toBeVisible();
+    // P2.4: the bell is the one way in; its name carries the unread count. P8: it opens the latest
+    // notifications, grouped, with "View all".
+    const bell = page.getByRole("banner").getByRole("button", { name: /^Notifications, \d+ unread/ });
+    await bell.click();
+    await expect(page.getByRole("banner").getByRole("link", { name: /^Application shortlisted/ }).first()).toBeVisible();
+    await page.getByRole("link", { name: "View all notifications" }).click();
+    await expect(page).toHaveURL(/\/notifications$/);
+    await expect(page.getByRole("heading", { level: 1, name: "Notifications" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: /^Research postings/ })).toBeVisible();
     await expect(page.locator("body")).toContainText(POSTING);
     for (const path of ["/postings/applications", "/notifications"]) {
       await page.goto(path);

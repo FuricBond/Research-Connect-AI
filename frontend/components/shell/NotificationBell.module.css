@@ -1,5 +1,5 @@
-/* The bell: an icon link the size of an IconButton, with the count as a small pill. The count
-   is part of the link's name, so the pill carries no hidden text (P0.1's overflow cause). */
+/* The bell: an icon button the size of an IconButton, with the count as a small pill. The count
+   is part of the button's name, so the pill carries no hidden text (P0.1's overflow cause). */
 .bell {
   position: relative;
   display: inline-flex;
@@ -8,9 +8,13 @@
   flex: none;
   width: var(--rc-control-height);
   height: var(--rc-control-height);
+  padding: 0;
+  border: 0;
   border-radius: var(--rc-radius-md);
+  background: transparent;
   color: var(--rc-text-secondary);
-  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
   transition: background-color var(--rc-duration-instant) var(--rc-ease-standard), color var(--rc-duration-instant) var(--rc-ease-standard);
 }
 
@@ -19,7 +23,7 @@
   color: var(--rc-text);
 }
 
-.bell[aria-current="page"] {
+.bell[aria-expanded="true"] {
   background: var(--rc-surface-selected);
   color: var(--rc-brand-text);
 }
@@ -39,4 +43,162 @@
   font-weight: var(--rc-weight-semibold);
   font-variant-numeric: tabular-nums;
   text-align: center;
+}
+
+/* The wrapper is not positioned, so the panel hangs from the (sticky) header and always fits the
+   screen, whatever is to the right of the bell. */
+.anchor {
+  position: static;
+  display: inline-flex;
+}
+
+.panel {
+  position: absolute;
+  top: 100%;
+  right: var(--rc-page-padding);
+  z-index: var(--rc-z-dropdown);
+  width: min(24rem, calc(100% - 2 * var(--rc-page-padding)));
+  max-height: min(36rem, calc(100dvh - var(--rc-header-height) - var(--rc-space-6)));
+  overflow-y: auto;
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface-raised);
+  box-shadow: var(--rc-shadow-popover);
+  overscroll-behavior: contain;
+}
+
+.panel[hidden] {
+  display: none;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--rc-space-1) var(--rc-space-3);
+  padding: var(--rc-space-3) var(--rc-space-4);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.summary {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+}
+
+.state {
+  margin: 0;
+  padding: var(--rc-space-4);
+  color: var(--rc-text-secondary);
+}
+
+.stateText {
+  margin: 0 0 var(--rc-space-2);
+}
+
+.retry {
+  min-height: var(--rc-target-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--rc-link);
+  font: inherit;
+  font-weight: var(--rc-weight-semibold);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.group + .group {
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.groupTitle {
+  margin: 0;
+  padding: var(--rc-space-3) var(--rc-space-4) var(--rc-space-1);
+  font-size: var(--rc-text-label-size);
+  line-height: var(--rc-text-label-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text-secondary);
+}
+
+.list {
+  margin: 0;
+  padding: 0 0 var(--rc-space-2);
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--rc-space-2) var(--rc-space-4);
+}
+
+.unread {
+  box-shadow: inset 3px 0 0 var(--rc-brand);
+}
+
+.title {
+  color: var(--rc-text);
+  font-weight: var(--rc-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+a.title:hover {
+  color: var(--rc-link);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-1) var(--rc-space-3);
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.unreadMark {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  color: var(--rc-brand-text);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-brand);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--rc-space-1) var(--rc-space-4);
+  padding: var(--rc-space-2) var(--rc-space-4);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.footerLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rc-target-min);
+  color: var(--rc-link);
+  font-weight: var(--rc-weight-semibold);
 }
