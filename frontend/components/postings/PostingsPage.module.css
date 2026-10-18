@@ -1,0 +1,65 @@
+/* P6 — the student side of /postings: search and filters above, the postings below. The
+   authoring form and "My postings" keep styles/postings.css until P9. Tokens only. */
+/* The legacy page container already spaces its children; the header's own margin would double it. */
+.header.header {
+  margin-bottom: 0;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  padding: var(--rc-card-padding);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.searchRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rc-space-3);
+}
+
+.searchRow > :first-child {
+  flex: 1 1 16rem;
+}
+
+.filterRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--rc-space-4);
+  align-items: end;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  min-width: 0;
+}
+
+.resultsTitle {
+  margin: 0;
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.count {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

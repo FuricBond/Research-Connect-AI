@@ -21,13 +21,13 @@ test("every signed-in page renders against the live API without contract errors"
 
   const pages: [string, RegExp][] = [
     ["/dashboard", /Welcome back/],
-    // P0: the profile is split into sections, each loading only its own panels — so every
-    // section is opened here, as the single page used to load them all.
-    ["/researcher", /Authored Scholarly Works/],
-    ["/researcher?section=interests", /Researcher Interest & Expertise Intelligence/],
-    ["/researcher?section=recommendations", /Unified Evidence-Backed Recommendations/],
-    ["/researcher?section=personalization", /Personalization Controls & Transparency/],
-    ["/researcher?section=history", /Recommendation Feedback & Behavioral Learning/],
+    // P6: the profile is a summary, publications and research topics; the recommendations and
+    // every diagnostic the profile's sections held are on /recommendations (each technical part
+    // is opened below). An old section's address opens where its content went.
+    ["/researcher", /Research topics/],
+    ["/researcher?section=recommendations", /What shapes your recommendations/],
+    ["/recommendations", /What shapes your recommendations/],
+    ["/supervisors", /Suggested supervisors/],
     // Opened directly, the paper-based tools explain themselves instead of dead-ending (P5 names).
     ["/similar", /Similar papers/],
     ["/opportunities", /Find venues/],
@@ -38,9 +38,9 @@ test("every signed-in page renders against the live API without contract errors"
     ["/notifications", /Notification Center/],
     ["/settings", /^Settings$/],
     ["/settings/notifications", /Notification & Reminder Preferences/],
-    ["/postings", /Research Postings/],
+    ["/postings", /Research postings/],
     ["/postings/applications", /My Applications/],
-    ["/peers", /Peer & Co-Author Discovery/],
+    ["/peers", /Find peers/],
     // P5: the list's own heading went; the page's h1 names it.
     ["/browse", /Calls for papers/],
   ];
@@ -54,7 +54,34 @@ test("every signed-in page renders against the live API without contract errors"
 
   await test.step("peer matches are explained", async () => {
     await page.goto("/peers");
-    await expect(page.getByRole("button", { name: "How this was scored" }).first()).toBeVisible();
+    const scored = page.locator("summary", { hasText: "How this was scored" }).first();
+    await expect(scored).toBeVisible();
+    await scored.click();
+    await expect(page.getByRole("table").first()).toBeVisible();
+  });
+
+  await test.step("every technical part of the recommendations loads against the live API", async () => {
+    await page.goto("/recommendations");
+    const technical = page.getByRole("region", { name: "Technical details" });
+    await expect(technical).toBeVisible();
+    const parts = technical.locator("details");
+    const count = await parts.count();
+    expect(count).toBe(13);
+    for (let i = 0; i < count; i++) {
+      await parts.nth(i).locator("summary").click();
+      await page.waitForLoadState("networkidle");
+    }
+    await expect(technical.getByText("This part could not be shown")).toHaveCount(0);
+  });
+
+  await test.step("a recommendation is explained in the Evidence panel", async () => {
+    await page.goto("/recommendations");
+    await page.getByRole("button", { name: /^Why this match\?/ }).first().click();
+    const panel = page.getByRole("dialog", { name: "Why this match?" });
+    await expect(panel.getByRole("heading", { name: "How well it matches you" })).toBeVisible();
+    await page.waitForLoadState("networkidle");
+    await page.keyboard.press("Escape");
+    await expect(panel).toBeHidden();
   });
 
   await test.step("literature search -> similar papers -> matching venues -> a call's page", async () => {

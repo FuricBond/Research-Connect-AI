@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { API_URL, DEMO, DEMO_PASSWORD, accountMenu, apiLogin, apiRegister, primaryNav, signInThroughTheForm, watch } from "./support";
+import { API_URL, DEMO, DEMO_PASSWORD, apiLogin, apiRegister, primaryNav, signInThroughTheForm, watch } from "./support";
 
 /**
  * Phase 6.6 Step 15 — the main researcher journey through the real UI:
@@ -25,21 +25,20 @@ test("a researcher discovers, saves, applies and is notified of the decision", a
 
   let savedTitle = "";
   await test.step("a personalized recommendation is saved to the workspace", async () => {
-    // P2: the profile is in the account menu, and recommendations are a section of it.
-    await accountMenu(page).click();
-    await page.getByRole("link", { name: "Researcher profile" }).click();
-    await page.getByRole("navigation", { name: "Profile sections" }).getByRole("link", { name: "Recommendations" }).click();
-    await expect(page.getByRole("heading", { name: /Unified Evidence-Backed Recommendations/ })).toBeVisible();
-    const save = page.getByRole("button", { name: "Save opportunity" }).first();
-    await expect(save).toBeVisible();
-    savedTitle = await save.evaluate((button) => {
-      let node: HTMLElement | null = button as HTMLElement;
-      while (node && !node.querySelector("h3")) node = node.parentElement;
-      return node?.querySelector("h3")?.textContent?.trim() ?? "";
-    });
+    // P6: recommendations have their own page, first under "For you".
+    await primaryNav(page).getByRole("link", { name: "Recommendations" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Recommendations" })).toBeVisible();
+    const card = page.locator(".opportunity-card").first();
+    await expect(card).toBeVisible({ timeout: 60_000 });
+    savedTitle = (await card.locator("h3").first().textContent())?.trim() ?? "";
     expect(savedTitle).not.toBe("");
-    await save.click();
-    await expect(page.getByRole("status").filter({ hasText: "Saved to workspace" })).toBeVisible();
+    await card.getByRole("button", { name: "Save to workspace" }).click();
+    await expect(card.getByRole("button", { name: "Saved to workspace" })).toBeVisible();
+    // Feedback on the same recommendation is recorded, and can be undone.
+    await card.getByRole("button", { name: "Helpful" }).click();
+    await expect(card.getByRole("button", { name: "Helpful" })).toHaveAttribute("aria-pressed", "true");
+    await card.getByRole("button", { name: "Undo" }).click();
+    await expect(card.getByText("Feedback removed.")).toBeVisible();
 
     await primaryNav(page).getByRole("link", { name: "Workspace" }).click();
     await expect(page.locator(".workspace-card", { hasText: savedTitle })).toBeVisible();

@@ -3,7 +3,9 @@
  *
  * A student sees ranked faculty from `GET /api/v1/researchers/{id}/supervisor-matches`, with
  * matching papers. An empty result shows the server's guidance and explains that faculty opt in
- * on Find Peers. Any other role sees a notice and the endpoint is never called.
+ * on Find peers. Any other role sees a notice and the endpoint is never called (the backend also
+ * answers 403). P6: the shared researcher card; the caveat that applies to every result is said
+ * once above the list.
  */
 
 import React from "react";
@@ -108,11 +110,17 @@ describe("supervisors page", () => {
     renderPage();
 
     expect(await screen.findByRole("heading", { name: "Dr. Grace Hopper" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Neural ranking models" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Neural ranking models (opens in new tab)" })).toHaveAttribute(
       "href",
       "https://doi.org/10.1000/ranking"
     );
-    expect(screen.getByText(/1 of 4 discoverable faculty members matched/)).toBeInTheDocument();
+    expect(screen.getByText(/1 of 4 discoverable faculty matched/)).toBeInTheDocument();
+    // The fit in the API's own tier words, with its exact value and strongest reason.
+    const card = screen.getByRole("article", { name: "Dr. Grace Hopper" });
+    expect(card).toHaveTextContent("Moderate match · 55%");
+    expect(card).toHaveTextContent("You share research topics: ranking.");
+    // The scoring caveat is said once, above the list, not in the card.
+    expect(card).not.toHaveTextContent(/fixed weights/);
     expect(supervisorRequests()[0]).toContain("limit=25");
   });
 
@@ -130,8 +138,8 @@ describe("supervisors page", () => {
 
     renderPage();
 
-    expect(await screen.findByText("No faculty members are currently discoverable.")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Find Peers" })).toHaveAttribute("href", "/peers");
+    expect(await screen.findByText(/No faculty members are currently discoverable\./)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Find peers" })).toHaveAttribute("href", "/peers");
     expect(screen.getByText(/choose to be discoverable/)).toBeInTheDocument();
   });
 
@@ -148,8 +156,8 @@ describe("supervisors page", () => {
 
     renderPage();
 
-    expect(await screen.findByText(/Find a Supervisor is for student accounts/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Find Peers" })).toHaveAttribute("href", "/peers");
+    expect(await screen.findByRole("heading", { name: /Find a supervisor is for student accounts/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Find peers" })).toHaveAttribute("href", "/peers");
     expect(supervisorRequests()).toEqual([]);
   });
 });

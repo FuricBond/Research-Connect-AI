@@ -21,7 +21,7 @@ test("the theme is chosen once, applied everywhere and kept across reloads", asy
   expect(await theme(page)).toBe("dark");
 
   // Applied before first paint on the next load, on every page.
-  for (const path of ["/dashboard", "/workspace", "/researcher?section=personalization"]) {
+  for (const path of ["/dashboard", "/workspace", "/recommendations"]) {
     await page.goto(path);
     expect(await theme(page), path).toBe("dark");
   }
@@ -33,7 +33,7 @@ test("the theme is chosen once, applied everywhere and kept across reloads", asy
 
   // Dark at phone width still fits the screen.
   await page.setViewportSize({ width: 390, height: 844 });
-  for (const path of ["/dashboard", "/workspace", "/researcher?section=personalization"]) {
+  for (const path of ["/dashboard", "/workspace", "/recommendations", "/researcher"]) {
     await page.goto(path);
     await page.waitForLoadState("networkidle");
     expect(await overflow(page), `${path} at 390px in dark`).toBeLessThanOrEqual(0);

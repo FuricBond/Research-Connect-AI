@@ -1,7 +1,8 @@
 /**
  * Phase 5.15 — a student's fit on research postings.
  *
- *  - PostingCard shows "82% fit · Strong" and the top reason only when a fit is given.
+ *  - PostingCard shows "Strong fit · 82%" (the API's band first, P6 FitScore) and the top reason
+ *    only when a scored fit is given.
  *  - The postings list makes one batch call for a student in Discover mode, none for other
  *    roles, and still lists the postings when that call fails.
  *  - The posting page shows "Your fit" with the missing skills to a student who is not the
@@ -10,7 +11,7 @@
 
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 
 const params = { id: "po000000-0000-4000-8000-000000000001" };
 
@@ -136,17 +137,17 @@ describe("PostingCard fit", () => {
   it("shows the score, band and top reason when a fit is given", () => {
     render(<PostingCard posting={makePosting()} fit={makeFit()} />);
 
-    const badge = screen.getByLabelText("Your fit");
-    expect(badge).toHaveTextContent("82% fit · Strong");
-    expect(badge).toHaveTextContent("Shares your research topics: Information Retrieval");
+    const card = screen.getByRole("article", { name: makePosting().title });
+    expect(card).toHaveTextContent("Strong fit · 82%");
+    expect(within(card).getByText("Shares your research topics: Information Retrieval")).toBeInTheDocument();
   });
 
   it("shows nothing without a fit or without a score", () => {
     const { rerender } = render(<PostingCard posting={makePosting()} />);
-    expect(screen.queryByLabelText("Your fit")).not.toBeInTheDocument();
+    expect(screen.getByRole("article")).not.toHaveTextContent(/fit ·|Fit not scored/);
 
     rerender(<PostingCard posting={makePosting()} fit={makeFit({ score: null, band: null })} />);
-    expect(screen.queryByLabelText("Your fit")).not.toBeInTheDocument();
+    expect(screen.getByRole("article")).not.toHaveTextContent(/fit ·|Fit not scored/);
   });
 });
 
@@ -163,7 +164,8 @@ describe("postings list", () => {
     serve("STUDENT");
     renderList();
 
-    expect(await screen.findByLabelText("Your fit")).toHaveTextContent("82% fit · Strong");
+    expect(await screen.findByText("Shares your research topics: Information Retrieval")).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: makePosting().title })).toHaveTextContent("Strong fit · 82%");
     const calls = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/fit-scores"));
     expect(calls).toHaveLength(1);
     expect(JSON.parse(String((calls[0][1] as RequestInit).body))).toEqual({ posting_ids: [params.id] });
@@ -175,7 +177,7 @@ describe("postings list", () => {
 
     expect(await screen.findByRole("link", { name: makePosting().title })).toBeInTheDocument();
     expect(requested("/fit-scores")).toEqual([]);
-    expect(screen.queryByLabelText("Your fit")).not.toBeInTheDocument();
+    expect(screen.getByRole("article", { name: makePosting().title })).not.toHaveTextContent(/fit ·/);
   });
 
   it("still lists the postings when the fit call fails", async () => {
@@ -184,7 +186,7 @@ describe("postings list", () => {
 
     expect(await screen.findByRole("link", { name: makePosting().title })).toBeInTheDocument();
     await waitFor(() => expect(requested("/fit-scores")).toHaveLength(1));
-    expect(screen.queryByLabelText("Your fit")).not.toBeInTheDocument();
+    expect(screen.getByRole("article", { name: makePosting().title })).not.toHaveTextContent(/fit ·/);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 });

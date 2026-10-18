@@ -1,0 +1,65 @@
+/* P6 — a research posting in a list (DESIGN_SYSTEM.md §9 PostingCard). Tokens only. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  min-width: 0;
+  padding: var(--rc-card-padding);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.titleLink {
+  color: var(--rc-text);
+  text-decoration: none;
+}
+
+.titleLink:hover {
+  color: var(--rc-link);
+  text-decoration: underline;
+}
+
+.facts {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.summary {
+  display: -webkit-box;
+  margin: 0;
+  max-width: var(--rc-measure);
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+}

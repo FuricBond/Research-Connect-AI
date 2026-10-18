@@ -1,0 +1,251 @@
+/* P6 — Find a supervisor and Find peers: one researcher card, filters above, caveats once.
+   Tokens only. */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-6);
+  min-width: 0;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rc-space-3) var(--rc-space-6);
+  padding: var(--rc-card-padding);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  min-width: 0;
+}
+
+.resultsTitle {
+  margin: 0;
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.note {
+  margin: 0;
+  max-width: var(--rc-measure);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The researcher card (DESIGN_SYSTEM.md §9 ResearcherCard). */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  min-width: 0;
+  padding: var(--rc-card-padding);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--rc-space-3);
+  min-width: 0;
+}
+
+.avatar {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-brand-subtle);
+  color: var(--rc-brand-text);
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.who {
+  display: flex;
+  flex: 1 1 10rem;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  min-width: 0;
+}
+
+/* A long availability ("Actively seeking collaborators") wraps rather than widen the card. */
+.badges .availability {
+  max-width: 100%;
+  white-space: normal;
+  text-align: start;
+}
+
+.name {
+  margin: 0;
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.facts {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2);
+}
+
+.text {
+  margin: 0;
+  max-width: var(--rc-measure);
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  min-width: 0;
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.plainList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  margin: 0;
+  padding-left: var(--rc-space-5);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.link {
+  color: var(--rc-link);
+  font-weight: var(--rc-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.more {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-muted);
+}
+
+.scored > summary {
+  min-height: var(--rc-target-min);
+  color: var(--rc-link);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-target-min);
+  font-weight: var(--rc-weight-medium);
+  cursor: pointer;
+}
+
+.scoredBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  padding-bottom: var(--rc-space-2);
+}
+
+/* Discoverability (Find peers): the consent first, then what others may see. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  padding: var(--rc-card-padding);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  margin-bottom: var(--rc-space-1);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: var(--rc-space-4);
+}
+
+.notice {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.notice:empty {
+  display: none;
+}

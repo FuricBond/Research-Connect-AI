@@ -3,8 +3,13 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import "../../styles/postings.css";
-import { AlertCircle, Loader2, Plus, RefreshCw, Search, X } from "lucide-react";
+import { AlertCircle, Loader2, Plus, X } from "lucide-react";
 import { PostingCard } from "../../components/postings/PostingCard";
+import discover from "../../components/postings/PostingsPage.module.css";
+import { Button } from "../../components/ui/Button/Button";
+import { Checkbox, SearchInput, Select } from "../../components/ui/Field/Field";
+import { PageHeader } from "../../components/ui/PageHeader/PageHeader";
+import { Alert, EmptyState, ErrorState, SkeletonList } from "../../components/ui/State/State";
 import type {
   CommitmentType,
   CompensationType,
@@ -83,10 +88,12 @@ export default function PostingsPage() {
   const [summary, setSummary] = useState<PostingSummaryResponse | null>(null);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  // Discovery filters
+  // Discovery filters. P6: the search applies when submitted, not on every keystroke.
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<PostingType | "">("");
   const [workModeFilter, setWorkModeFilter] = useState<PostingWorkMode | "">("");
@@ -115,7 +122,7 @@ export default function PostingsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setLoadFailed(false);
     try {
       if (mode === "MINE") {
         const [listed, summarized] = await Promise.all([
@@ -139,7 +146,7 @@ export default function PostingsPage() {
         setSummary(null);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load research postings");
+      setLoadFailed(true);
       setPostings([]);
       setTotal(0);
     } finally {
@@ -174,12 +181,12 @@ export default function PostingsPage() {
 
   const handleTransition = async (posting: ResearchPosting, target: PostingStatus) => {
     setBusyId(posting.id);
-    setError(null);
+    setActionError(null);
     try {
       await transitionPosting(posting.id, target);
       await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update posting status");
+    } catch {
+      setActionError(`"${posting.title}" could not be updated. Try again.`);
     } finally {
       setBusyId(null);
     }
@@ -187,12 +194,12 @@ export default function PostingsPage() {
 
   const handleDelete = async (posting: ResearchPosting) => {
     setBusyId(posting.id);
-    setError(null);
+    setActionError(null);
     try {
       await deletePosting(posting.id);
       await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete draft posting");
+    } catch {
+      setActionError(`The draft "${posting.title}" could not be deleted. Try again.`);
     } finally {
       setBusyId(null);
     }
@@ -234,26 +241,22 @@ export default function PostingsPage() {
 
   return (
     <div className="postings-page">
-      <header className="postings-header">
-        <div className="postings-title-group">
-          <h1>Research Postings</h1>
-          <p className="postings-subtitle">
-            Research openings posted directly by faculty on this platform: projects, available
-            thesis topics, collaborations and lab rotations. Unlike ingested calls for papers,
-            each posting has a named academic owner who is accountable for it.
-          </p>
-        </div>
-        {canAuthor && (
-          <button
-            type="button"
-            className="posting-btn primary"
-            onClick={() => setShowForm((open) => !open)}
-          >
-            {showForm ? <X size={14} aria-hidden="true" /> : <Plus size={14} aria-hidden="true" />}
-            {showForm ? "Cancel" : "New posting"}
-          </button>
-        )}
-      </header>
+      <PageHeader
+        className={discover.header}
+        title="Research postings"
+        description="Projects, thesis topics, collaborations and positions posted by faculty on this platform, each with a named academic who is accountable for it."
+        actions={
+          canAuthor && (
+            <Button
+              variant={showForm ? "secondary" : "primary"}
+              leadingIcon={showForm ? <X size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
+              onClick={() => setShowForm((open) => !open)}
+            >
+              {showForm ? "Cancel" : "New posting"}
+            </Button>
+          )
+        }
+      />
 
       <nav className="postings-mode-tabs" aria-label="Posting views">
         <button
@@ -608,91 +611,90 @@ export default function PostingsPage() {
       )}
 
       {mode === "DISCOVER" && (
-        <div className="postings-filters">
-          <div className="postings-search">
-            <Search size={14} className="postings-search-icon" aria-hidden="true" />
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search postings"
-              aria-label="Search postings"
+        <form
+          className={discover.filters}
+          role="search"
+          aria-label="Research postings"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setSearch(searchInput);
+          }}
+        >
+          <div className={discover.searchRow}>
+            <SearchInput
+              label="Search postings"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              onClear={() => {
+                setSearchInput("");
+                setSearch("");
+              }}
             />
+            <Button type="submit">Search</Button>
           </div>
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value as PostingType | "")}
-            aria-label="Filter by category"
-          >
-            <option value="">All categories</option>
-            {POSTING_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {POSTING_TYPE_LABELS[t]}
-              </option>
-            ))}
-          </select>
-          <select
-            value={workModeFilter}
-            onChange={(e) => setWorkModeFilter(e.target.value as PostingWorkMode | "")}
-            aria-label="Filter by work mode"
-          >
-            <option value="">Any work mode</option>
-            {WORK_MODES.map((m) => (
-              <option key={m} value={m}>
-                {WORK_MODE_LABELS[m]}
-              </option>
-            ))}
-          </select>
-          <label className="postings-checkbox">
-            <input
-              type="checkbox"
-              checked={acceptingOnly}
-              onChange={(e) => setAcceptingOnly(e.target.checked)}
-            />
-            Accepting applications
-          </label>
-          <button type="button" className="posting-btn" onClick={load} disabled={loading}>
-            <RefreshCw size={13} aria-hidden="true" />
-            Refresh
-          </button>
-        </div>
+          <div className={discover.filterRow}>
+            <Select label="Category" value={typeFilter} onChange={(event) => setTypeFilter(event.target.value as PostingType | "")}>
+              <option value="">All categories</option>
+              {POSTING_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {POSTING_TYPE_LABELS[t]}
+                </option>
+              ))}
+            </Select>
+            <Select label="Work mode" value={workModeFilter} onChange={(event) => setWorkModeFilter(event.target.value as PostingWorkMode | "")}>
+              <option value="">Any work mode</option>
+              {WORK_MODES.map((m) => (
+                <option key={m} value={m}>
+                  {WORK_MODE_LABELS[m]}
+                </option>
+              ))}
+            </Select>
+            <Checkbox label="Accepting applications" checked={acceptingOnly} onChange={(event) => setAcceptingOnly(event.target.checked)} />
+          </div>
+        </form>
       )}
 
-      {error && (
-        <div className="postings-error" role="alert">
-          <AlertCircle size={15} aria-hidden="true" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="postings-loading">Loading research postings…</div>
-      ) : postings.length === 0 ? (
-        <div className="postings-empty">
-          {mode === "MINE"
-            ? "You have not authored any postings yet."
-            : "No open research postings match these filters."}
-        </div>
-      ) : (
-        <>
-          <p className="postings-subtitle">
-            {total} posting{total === 1 ? "" : "s"}
-          </p>
-          <div className="postings-list">
-            {postings.map((posting) => (
-              <PostingCard
-                key={posting.id}
-                posting={posting}
-                showOwnerControls={mode === "MINE"}
-                onTransition={handleTransition}
-                onDelete={handleDelete}
-                busy={busyId === posting.id}
-                fit={mode === "DISCOVER" ? fits[posting.id] ?? null : null}
-              />
-            ))}
-          </div>
-        </>
-      )}
+      <section className={discover.results} aria-labelledby="postings-results-heading" aria-busy={loading || undefined}>
+        <h2 id="postings-results-heading" className={discover.resultsTitle}>
+          {mode === "MINE" ? "Your postings" : "Open postings"}
+        </h2>
+        {actionError && (
+          <Alert tone="danger" announce>
+            {actionError}
+          </Alert>
+        )}
+        {loading ? (
+          <SkeletonList rows={3} lines={3} label="Loading research postings" />
+        ) : loadFailed ? (
+          <ErrorState title="Research postings could not be loaded" onRetry={load} />
+        ) : postings.length === 0 ? (
+          <EmptyState
+            variant={mode === "DISCOVER" && (search || typeFilter || workModeFilter || acceptingOnly) ? "no-results" : "first-use"}
+            title={mode === "MINE" ? "You have not written any postings yet." : "No open research postings match these filters."}
+            description={mode === "MINE" ? undefined : "Try another category or work mode, or clear the search."}
+          />
+        ) : (
+          <>
+            <p className={discover.count} role="status">
+              {total} posting{total === 1 ? "" : "s"}
+            </p>
+            <ul className={discover.list}>
+              {postings.map((posting) => (
+                <li key={posting.id}>
+                  <PostingCard
+                    posting={posting}
+                    showOwnerControls={mode === "MINE"}
+                    onTransition={handleTransition}
+                    onDelete={handleDelete}
+                    busy={busyId === posting.id}
+                    fit={mode === "DISCOVER" ? (fits[posting.id] ?? null) : null}
+                  />
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+      </section>
     </div>
   );
 }
