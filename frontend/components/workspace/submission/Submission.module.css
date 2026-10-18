@@ -1,0 +1,393 @@
+/* P7 — the Submission tab of a workspace item. Replaces styles/submission.css (the old
+   /workspace/[id]/submission page). One column of sections; nothing wider than the page. Tokens only. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-8);
+  min-width: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  min-width: 0;
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--rc-space-2) var(--rc-space-4);
+}
+
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.subTitle {
+  margin: 0;
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.listTitle {
+  margin: var(--rc-space-2) 0 var(--rc-space-1);
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.text {
+  margin: 0;
+  max-width: var(--rc-measure);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.prose {
+  margin: 0;
+  max-width: var(--rc-measure);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-3);
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.notice {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+}
+
+.notice:empty {
+  display: none;
+}
+
+/* Lifecycle steps: a row that wraps on phones; the state is in words for screen readers. */
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  padding: var(--rc-space-1) var(--rc-space-3) var(--rc-space-1) var(--rc-space-1);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-surface);
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-small-size);
+}
+
+.stepMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: var(--rc-border-width) solid var(--rc-border-strong);
+  border-radius: var(--rc-radius-full);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--rc-text-label-size);
+}
+
+.done .stepMark {
+  border-color: var(--rc-brand);
+  background: var(--rc-brand);
+  color: var(--rc-text-on-brand);
+}
+
+.current {
+  border-color: var(--rc-brand);
+  background: var(--rc-brand-subtle);
+  color: var(--rc-brand-text);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.current .stepMark {
+  border-color: var(--rc-brand);
+  border-width: 2px;
+}
+
+.upcoming {
+  border-style: dashed;
+}
+
+.stepLabel {
+  white-space: nowrap;
+}
+
+.readiness,
+.moves {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  padding: var(--rc-space-4);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+  min-width: 0;
+}
+
+.issues {
+  margin: 0;
+  padding-left: var(--rc-space-5);
+  max-width: var(--rc-measure);
+  overflow-wrap: anywhere;
+}
+
+.issues li + li {
+  margin-top: var(--rc-space-1);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  max-width: 48rem;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rc-space-4);
+}
+
+@media (min-width: 560px) {
+  .formRow {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.external {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  align-self: flex-start;
+  min-height: var(--rc-target-min);
+  color: var(--rc-link);
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rc-space-2) var(--rc-space-5);
+  margin: 0;
+}
+
+@media (min-width: 560px) {
+  .facts {
+    grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  }
+}
+
+.facts dt {
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+}
+
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Documents */
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--rc-space-3);
+  padding: var(--rc-space-3) var(--rc-space-4);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+  min-width: 0;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.rowMain {
+  display: flex;
+  flex: 1 1 18rem;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  min-width: 0;
+}
+
+.rowTitle {
+  margin: 0;
+  font-size: var(--rc-text-body-size);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2);
+}
+
+.moreTrigger {
+  justify-content: center;
+  min-width: var(--rc-target-min);
+  padding: var(--rc-space-1);
+  border-color: transparent;
+  background: transparent;
+}
+
+.code {
+  font-family: var(--rc-font-mono);
+  font-size: var(--rc-text-mono-size);
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+/* Several submissions for one call */
+.attempts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.attempt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--rc-space-1);
+  width: 100%;
+  min-height: var(--rc-target-min);
+  padding: var(--rc-space-3) var(--rc-space-4);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface);
+  color: var(--rc-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.attempt:hover {
+  background: var(--rc-surface-hover);
+}
+
+.attempt[aria-pressed="true"] {
+  border-color: var(--rc-brand);
+  box-shadow: inset 3px 0 0 var(--rc-brand);
+}
+
+.attemptTitle {
+  font-weight: var(--rc-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+/* Versions and history */
+.versions,
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.version,
+.event {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  padding-left: var(--rc-space-3);
+  border-left: 2px solid var(--rc-border-strong);
+  min-width: 0;
+}
+
+.versionNumber,
+.eventTitle {
+  margin: 0;
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.time {
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.history {
+  border-top: var(--rc-border-width) solid var(--rc-border);
+  padding-top: var(--rc-space-3);
+}
+
+.historySummary {
+  min-height: var(--rc-target-min);
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-target-min);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  cursor: pointer;
+}
+
+.historyBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  padding-top: var(--rc-space-3);
+}

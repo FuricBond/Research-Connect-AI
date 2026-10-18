@@ -1,5 +1,5 @@
 import { expect, test, type Browser, type BrowserContextOptions, type Page } from "@playwright/test";
-import { DEMO, DEMO_PASSWORD, accountMenu, openNavigation, primaryNav, signInThroughTheForm, watch } from "./support";
+import { API_URL, DEMO, DEMO_PASSWORD, accountMenu, apiLogin, openNavigation, primaryNav, signInThroughTheForm, watch } from "./support";
 
 /**
  * P0.1 / P0.2 / P0.6, carried into the P2 shell — no page scrolls sideways and no destination
@@ -11,7 +11,7 @@ import { DEMO, DEMO_PASSWORD, accountMenu, openNavigation, primaryNav, signInThr
  */
 const WIDTHS = [1440, 1280, 1024, 768, 390, 360, 320];
 const PAGES = [
-  "/dashboard", "/", "/workspace", "/reading-list", "/calendar", "/notifications", "/postings", "/similar", "/opportunities", "/browse",
+  "/dashboard", "/", "/workspace", "/submissions", "/reading-list", "/calendar", "/notifications", "/postings", "/similar", "/opportunities", "/browse",
   // P6: the profile, the recommendations page (its old sections' home) and the people pages.
   "/researcher", "/recommendations", "/researcher/preferences", "/supervisors", "/peers",
   "/settings", "/settings/notifications",
@@ -38,8 +38,18 @@ async function horizontalOverflow(page: Page): Promise<number> {
   return page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 }
 
-test("pages fit the screen and every destination stays reachable", async ({ page, browser }) => {
+test("pages fit the screen and every destination stays reachable", async ({ page, browser, request }) => {
   test.setTimeout(300_000);
+  // P7: a workspace item's page, on its Overview and Submission tabs, is checked too. The demo
+  // student tracks one call for it (saving is idempotent; other specs may run first or not).
+  const student = await apiLogin(request, DEMO.student, DEMO_PASSWORD);
+  const listed = await (await request.get(`${API_URL}/api/opportunities?page_size=100`)).json();
+  const call = listed.items.find((o: { title: string }) => o.title === "Symposium on Human-Computer Interaction and Accessibility");
+  const saved = await request.post(`${API_URL}/api/v1/workspace`, { headers: { Authorization: `Bearer ${student.access_token}` }, data: { opportunity_id: call.id } });
+  expect([200, 201]).toContain(saved.status());
+  const item = `/workspace/${(await saved.json()).id}`;
+  const pages = [...PAGES, item, `${item}?tab=submission`];
+
   const network = watch(page);
   await signInThroughTheForm(page, DEMO.student, DEMO_PASSWORD);
 
@@ -47,7 +57,7 @@ test("pages fit the screen and every destination stays reachable", async ({ page
     await test.step(`${width}px`, async () => {
       await page.setViewportSize({ width, height: width >= 1024 ? 900 : 844 });
 
-      for (const path of PAGES) {
+      for (const path of pages) {
         await page.goto(path);
         await page.waitForLoadState("networkidle");
         expect(await horizontalOverflow(page), `${path} at ${width}px scrolls sideways`).toBeLessThanOrEqual(0);

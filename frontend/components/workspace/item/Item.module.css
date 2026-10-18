@@ -1,0 +1,288 @@
+/* P7 — workspace item (/workspace/[id], plan §13): header, then tabs. Replaces
+   styles/collaboration.css. Rows stack on phones; nothing is wider than the page. Tokens only. */
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+}
+
+.headerControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2) var(--rc-space-4);
+}
+
+.signals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2) var(--rc-space-5);
+  margin: calc(var(--rc-space-3) * -1) 0 var(--rc-space-5);
+}
+
+.role {
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+}
+
+.alertActions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+}
+
+.tabs {
+  margin-top: var(--rc-space-4);
+}
+
+/* A tab's content: sections one after another. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-6);
+  min-width: 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rc-space-2) var(--rc-space-4);
+}
+
+.text {
+  margin: 0;
+  max-width: var(--rc-measure);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.prose {
+  margin: 0;
+  max-width: var(--rc-measure);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.overviewGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rc-space-6);
+}
+
+@media (min-width: 1024px) {
+  .overviewGrid {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+}
+
+.nextStep {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  padding: var(--rc-space-4);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2) var(--rc-space-4);
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  padding: 0 var(--rc-space-2);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-sm);
+  background: var(--rc-surface-sunken);
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-small-size);
+  overflow-wrap: anywhere;
+}
+
+/* Lists of tasks, members, invitations and activity: one bordered surface, rows divided. */
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--rc-space-3);
+  padding: var(--rc-space-3) var(--rc-space-4);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+  min-width: 0;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.rowMain {
+  display: flex;
+  flex: 1 1 16rem;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  min-width: 0;
+}
+
+.rowTitle {
+  margin: 0;
+  font-size: var(--rc-text-body-size);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.done {
+  color: var(--rc-text-secondary);
+  text-decoration: line-through;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-1) var(--rc-space-3);
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--rc-target-min);
+  min-height: var(--rc-target-min);
+  margin: calc(var(--rc-space-2) * -1) 0;
+}
+
+.check input {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  accent-color: var(--rc-brand);
+  cursor: pointer;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rc-space-3) var(--rc-space-4);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rc-space-4);
+}
+
+@media (min-width: 560px) {
+  .formRow {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+}
+
+.code {
+  font-family: var(--rc-font-mono);
+  font-size: var(--rc-text-mono-size);
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+/* Activity feed */
+.feedItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  padding: var(--rc-space-3) var(--rc-space-4);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+  min-width: 0;
+}
+
+.feedItem:last-child {
+  border-bottom: 0;
+}
+
+.feedLine {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.actor {
+  font-weight: var(--rc-weight-semibold);
+}
+
+.comment {
+  margin: var(--rc-space-1) 0 0;
+  padding: var(--rc-space-2) var(--rc-space-3);
+  border-left: 2px solid var(--rc-border-strong);
+  background: var(--rc-surface-sunken);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.time {
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-muted);
+  font-variant-numeric: tabular-nums;
+}
