@@ -14,7 +14,7 @@ export function matchBand(percent: number): MatchBand {
   return "weak";
 }
 
-const NOUN = { match: "match", fit: "fit", relevance: "relevance" } as const;
+const NOUN = { match: "match", fit: "fit", relevance: "relevance", similarity: "similarity" } as const;
 const BAND_WORD: Record<MatchBand, string> = { strong: "Strong", good: "Good", partial: "Partial", weak: "Weak" };
 const BAND_CLASS: Record<MatchBand, string> = {
   strong: styles.matchStrong,

@@ -10,7 +10,10 @@ export interface WorkspaceDeadline {
   urgencyTier: string | null;
 }
 
-export function workspaceDeadline(opportunity: WorkspaceOpportunitySummary | null | undefined): WorkspaceDeadline {
+/** What a deadline is read from: a tracked call, or (P5) any call the API returns. */
+export type DeadlineSource = Pick<WorkspaceOpportunitySummary, "submission_deadline" | "deadline_intelligence">;
+
+export function workspaceDeadline(opportunity: DeadlineSource | null | undefined): WorkspaceDeadline {
   const intelligence = opportunity?.deadline_intelligence;
   const view = intelligence?.primary_view;
   return {

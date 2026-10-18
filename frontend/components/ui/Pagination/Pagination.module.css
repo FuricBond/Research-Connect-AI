@@ -1,0 +1,55 @@
+/* Pagination — DESIGN_SYSTEM.md §8.3. Tokens only. */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rc-space-3) var(--rc-space-4);
+  padding-top: var(--rc-space-4);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+  min-width: 0;
+}
+
+.summary {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2);
+}
+
+.position {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.size {
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+}
+
+.sizeLabel {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.select {
+  min-height: var(--rc-control-height-sm);
+  padding: 0 var(--rc-space-2);
+  border: var(--rc-border-width) solid var(--rc-border-control);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface);
+  color: var(--rc-text);
+  font-size: var(--rc-text-small-size);
+}

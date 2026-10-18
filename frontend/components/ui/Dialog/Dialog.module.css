@@ -94,6 +94,8 @@
   font-size: var(--rc-text-small-size);
   line-height: var(--rc-text-small-lh);
   color: var(--rc-text-muted);
+  /* P5: the Evidence panel's description is a paper's title, which can be one long word. */
+  overflow-wrap: anywhere;
 }
 
 .body {

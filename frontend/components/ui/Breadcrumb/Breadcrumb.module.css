@@ -1,0 +1,74 @@
+/* Breadcrumb — DESIGN_SYSTEM.md §8.3. Tokens only. */
+.nav {
+  min-width: 0;
+  margin-bottom: var(--rc-space-3);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.link,
+.back {
+  color: var(--rc-link);
+  text-decoration: none;
+}
+
+.link:hover,
+.back:hover {
+  text-decoration: underline;
+}
+
+/* The paper's title names the context; a long one is cut to one line (the full title is on the page). */
+.context {
+  display: inline-block;
+  max-width: 28ch;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--rc-text-secondary);
+}
+
+.current {
+  color: var(--rc-text);
+  font-weight: var(--rc-weight-medium);
+}
+
+.separator {
+  flex-shrink: 0;
+  color: var(--rc-text-muted);
+}
+
+.back {
+  display: none;
+  align-items: center;
+  gap: var(--rc-space-1);
+  min-height: var(--rc-target-min);
+}
+
+@media (max-width: 639px) {
+  .list {
+    display: none;
+  }
+
+  .back {
+    display: inline-flex;
+  }
+}
