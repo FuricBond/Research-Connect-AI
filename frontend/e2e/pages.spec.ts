@@ -32,9 +32,11 @@ test("every signed-in page renders against the live API without contract errors"
     ["/similar", /Similar papers/],
     ["/opportunities", /Find venues/],
     ["/researcher/preferences", /Researcher Preferences Foundation/],
-    ["/workspace", /Opportunity Workspace/],
-    ["/submissions", /Submissions/],
-    ["/calendar", /Research Calendar/],
+    // P7: the research workflow pages are named as the navigation names them.
+    ["/workspace", /^Workspace$/],
+    ["/submissions", /^Submissions$/],
+    ["/reading-list", /^Reading list$/],
+    ["/calendar", /^Calendar$/],
     ["/notifications", /Notification Center/],
     ["/settings", /^Settings$/],
     ["/settings/notifications", /Notification & Reminder Preferences/],
@@ -110,15 +112,30 @@ test("every signed-in page renders against the live API without contract errors"
     await expect(page.getByRole("button", { name: "Saved to workspace" })).toBeVisible();
   });
 
-  await test.step("workspace collaboration and submission pages", async () => {
+  await test.step("a workspace item's tabs: collaboration and the submission workflow", async () => {
+    // P7: the item page has tabs (in the address); the submission workflow is one of them.
     await page.goto("/workspace");
-    await page.locator(".workspace-card", { hasText: "Symposium on Human-Computer Interaction" })
-      .getByRole("link", { name: /Collaborate/ }).click();
-    await expect(page.getByRole("link", { name: /Submission Workflow/ })).toBeVisible();
-    await page.getByRole("button", { name: /^Tasks/ }).click();
-    await expect(page.getByRole("button", { name: /Create Task/ })).toBeVisible();
-    await page.getByRole("link", { name: /Submission Workflow/ }).click();
-    await expect(page.getByText(/New Submission Attempt|Create New Research Submission Draft/).first()).toBeVisible();
+    const row = page.locator(".workspace-card", { hasText: "Symposium on Human-Computer Interaction" });
+    await row.getByRole("button", { name: /^More actions for/ }).click();
+    await row.getByRole("menuitem", { name: "Collaborate" }).click();
+    await expect(page).toHaveURL(/\/workspace\/[0-9a-f-]{36}\?tab=members$/);
+    await expect(page.getByRole("tab", { name: "Members" })).toHaveAttribute("aria-selected", "true");
+    await page.getByRole("tab", { name: "Tasks" }).click();
+    await expect(page).toHaveURL(/\?tab=tasks$/);
+    await expect(page.getByRole("button", { name: "New task" })).toBeVisible();
+    await page.getByRole("tab", { name: "Submission" }).click();
+    await expect(page).toHaveURL(/\?tab=submission$/);
+    await expect(page.getByRole("heading", { name: "Draft a submission" }).or(page.getByRole("list", { name: "Submission progress" })).first()).toBeVisible();
+    // Back and forward follow the tabs.
+    await page.goBack();
+    await expect(page.getByRole("tab", { name: "Tasks" })).toHaveAttribute("aria-selected", "true");
+    await page.goForward();
+    await expect(page.getByRole("tab", { name: "Submission" })).toHaveAttribute("aria-selected", "true");
+    // The old submission page's address opens the tab.
+    const item = new URL(page.url()).pathname;
+    await page.goto(`${item}/submission`);
+    await expect(page).toHaveURL(new RegExp(`${item}\\?tab=submission$`));
+    await expect(page.getByRole("tab", { name: "Submission" })).toHaveAttribute("aria-selected", "true");
   });
 
   network.expectClean();

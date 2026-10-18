@@ -124,14 +124,16 @@ describe("calendar page export button", () => {
     serve(() => new Promise<Response>((resolve) => (answer = resolve)));
     renderPage();
 
-    const button = await screen.findByRole("button", { name: /Export Calendar \(\.ics\)/ });
-    expect(screen.queryByRole("link", { name: /Export Calendar/ })).not.toBeInTheDocument();
+    const button = await screen.findByRole("button", { name: /Export calendar \(\.ics\)/i });
+    expect(screen.queryByRole("link", { name: /Export calendar/i })).not.toBeInTheDocument();
+    // P7: the button is there from the start, enabled once the calendar is known.
+    await waitFor(() => expect(button).toBeEnabled());
 
     fireEvent.click(button);
     expect(await screen.findByRole("button", { name: /Exporting/ })).toBeDisabled();
 
     answer(new Response(ICS, { status: 200 }));
-    expect(await screen.findByRole("button", { name: /Export Calendar \(\.ics\)/ })).toBeEnabled();
+    expect(await screen.findByRole("button", { name: /Export calendar \(\.ics\)/i })).toBeEnabled();
     expect(clicked).toEqual([{ href: "blob:research-calendar", download: "research-calendar.ics" }]);
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
@@ -140,10 +142,12 @@ describe("calendar page export button", () => {
     serve(() => Promise.resolve(jsonResponse({ detail: "Forbidden: Calendar belongs to another user." }, 403)));
     renderPage();
 
-    fireEvent.click(await screen.findByRole("button", { name: /Export Calendar \(\.ics\)/ }));
+    const button = await screen.findByRole("button", { name: /Export calendar \(\.ics\)/i });
+    await waitFor(() => expect(button).toBeEnabled());
+    fireEvent.click(button);
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Forbidden: Calendar belongs to another user.");
-    await waitFor(() => expect(screen.getByRole("button", { name: /Export Calendar \(\.ics\)/ })).toBeEnabled());
+    await waitFor(() => expect(screen.getByRole("button", { name: /Export calendar \(\.ics\)/i })).toBeEnabled());
     expect(createObjectURL).not.toHaveBeenCalled();
   });
 });

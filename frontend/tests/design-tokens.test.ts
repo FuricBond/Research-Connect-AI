@@ -35,7 +35,7 @@ const COLOUR = /#[0-9a-fA-F]{3}(?:[0-9a-fA-F]{3})?\b(?![\w-])|\b(?:rgba?|hsla?)\
 const colours = (file: string) => code(read(file)).match(COLOUR) ?? [];
 
 /** Inline style objects in legacy components: may only go down as pages migrate. */
-const INLINE_STYLE_LIMIT = 825; // P6: the old profile page's inline styles went with it (P4: 859; P3: 860; 869 before)
+const INLINE_STYLE_LIMIT = 120; // P7: workspace, submission, calendar pages moved to modules (298 at P6's commit, whose limit had slack: 825; P4: 859; P3: 860; 869 before)
 
 describe("colour lives in the token file", () => {
   it("has no colour literal in any stylesheet but styles/tokens.css", () => {

@@ -90,10 +90,13 @@ function renderCalendar() {
   );
 }
 
-/** The value shown under the "Total Events" label. */
+/**
+ * The number of events the page counted. P7 replaced the stat cards ("Total Events") with filter
+ * chips that carry their counts, so the total is the one on "All" ("All (1)").
+ */
 async function totalEventsShown(): Promise<string> {
-  const label = await screen.findByText("Total Events");
-  return label.parentElement?.querySelector(".calendar-stat-value")?.textContent ?? "";
+  const all = await screen.findByRole("button", { name: /^All \(\d+\)$/ });
+  return all.textContent?.match(/\((\d+)\)/)?.[1] ?? "";
 }
 
 describe("calendar events list", () => {
