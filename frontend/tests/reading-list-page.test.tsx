@@ -60,6 +60,8 @@ const originalRevokeObjectURL = URL.revokeObjectURL;
 
 beforeEach(() => {
   storeSession(makeTokenResponse());
+  // P7: the status filter and page are in the address; each test starts on the plain list.
+  window.history.replaceState(null, "", "/reading-list");
   fetchMock = vi.fn((url: string, init?: RequestInit) => {
     const method = init?.method ?? "GET";
     if (url.endsWith("/api/v1/auth/me")) return Promise.resolve(jsonResponse(makeUser()));
@@ -174,6 +176,10 @@ describe("reading list page", () => {
     await screen.findByRole("heading", { name: "Paper 1" });
 
     fireEvent.click(screen.getByRole("button", { name: "Remove Paper 1" }));
+    // P7: removal asks first, naming the paper (its notes go with it).
+    expect(requests("DELETE")).toHaveLength(0);
+    const dialog = within(await screen.findByRole("dialog", { name: 'Remove "Paper 1" from your reading list?' }));
+    fireEvent.click(dialog.getByRole("button", { name: "Remove" }));
 
     await waitFor(() => expect(requests("DELETE")).toHaveLength(1));
     expect(requests("DELETE")[0]).toContain(`/api/v1/reading-list/${ITEMS[0].id}`);
@@ -196,5 +202,77 @@ describe("reading list page", () => {
     await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(2));
     const allExport = requests("GET").filter((url) => url.includes("/export.bib"))[1];
     expect(new URL(allExport).search).toBe("");
+  });
+});
+
+describe("reading list states (P7)", () => {
+  function serveList(answer: (url: URL, init?: RequestInit) => Promise<Response> | undefined) {
+    const base = fetchMock.getMockImplementation()!;
+    fetchMock.mockImplementation((url: string, init?: RequestInit) => answer(new URL(url), init) ?? base(url, init));
+  }
+
+  it("rolls a status change back when the server refuses it", async () => {
+    serveList((url, init) => (init?.method === "PATCH" ? Promise.resolve(jsonResponse({ detail: "boom" }, 500)) : undefined));
+    renderPage();
+    await screen.findByRole("heading", { name: "Paper 1" });
+
+    const status = within(card("Paper 1")).getByLabelText("Status");
+    fireEvent.change(status, { target: { value: "DONE" } });
+    // Shown at once…
+    expect(status).toHaveValue("DONE");
+    // …and put back when the server refuses, with the reason in words.
+    expect(await screen.findByRole("alert")).toHaveTextContent("The status of Paper 1 could not be changed; it is still to read.");
+    expect(within(card("Paper 1")).getByLabelText("Status")).toHaveValue("TO_READ");
+  });
+
+  it("offers a retry when the list cannot be loaded", async () => {
+    let fail = true;
+    serveList((url) => (url.pathname === "/api/v1/reading-list" && fail ? Promise.resolve(jsonResponse({ detail: "down" }, 503)) : undefined));
+    renderPage();
+    expect(await screen.findByRole("heading", { name: "Your reading list could not be loaded" })).toBeInTheDocument();
+    fail = false;
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(await screen.findByRole("heading", { name: "Paper 1" })).toBeInTheDocument();
+  });
+
+  it("explains an empty list and an empty filter differently", async () => {
+    serveList((url) => (url.pathname === "/api/v1/reading-list" ? Promise.resolve(jsonResponse({ ...listResponse([]), counts_by_status: { TO_READ: 0, READING: 0, DONE: 0 } })) : undefined));
+    renderPage();
+    expect(await screen.findByRole("heading", { name: "Your reading list is empty." })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Literature Search" })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("button", { name: "Export all (.bib)" })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Done (0)" }));
+    expect(await screen.findByRole("heading", { name: "No papers marked done." })).toBeInTheDocument();
+    expect(window.location.search).toBe("?status=DONE");
+    fireEvent.click(screen.getByRole("button", { name: "Show all papers" }));
+    expect(window.location.search).toBe("");
+  });
+
+  it("pages through a long list, with the page in the address", async () => {
+    const many = Array.from({ length: 50 }, (_, index) => ({ ...makeItem(1, "TO_READ"), id: `rl000000-0000-4000-8000-${String(index).padStart(12, "0")}`, work: { ...makeItem(1, "TO_READ").work, title: `Paper ${index + 1}` } }));
+    serveList((url) =>
+      url.pathname === "/api/v1/reading-list"
+        ? Promise.resolve(jsonResponse({ items: url.searchParams.get("offset") === "50" ? [ITEMS[1]] : many, total_count: 51, limit: 50, offset: Number(url.searchParams.get("offset") ?? 0), counts_by_status: { TO_READ: 50, READING: 1, DONE: 0 } }))
+        : undefined
+    );
+    renderPage();
+    await screen.findByRole("heading", { name: "Paper 50" });
+    fireEvent.click(screen.getByRole("button", { name: /Next page/ }));
+    await waitFor(() => expect(requests("GET").some((url) => url.includes("offset=50"))).toBe(true));
+    expect(window.location.search).toBe("?page=2");
+    expect(await screen.findByRole("heading", { name: "Paper 2" })).toBeInTheDocument();
+  });
+
+  it("asks before removing and keeps the paper when removal fails", async () => {
+    serveList((url, init) => (init?.method === "DELETE" ? Promise.resolve(jsonResponse({ detail: "boom" }, 500)) : undefined));
+    renderPage();
+    await screen.findByRole("heading", { name: "Paper 1" });
+    fireEvent.click(screen.getByRole("button", { name: "Remove Paper 1" }));
+    const dialog = within(await screen.findByRole("dialog", { name: 'Remove "Paper 1" from your reading list?' }));
+    expect(dialog.getByText("Your notes on it are deleted too. You can save the paper again from Literature Search.")).toBeInTheDocument();
+    fireEvent.click(dialog.getByRole("button", { name: "Remove" }));
+    expect(await dialog.findByRole("alert")).toHaveTextContent("The paper could not be removed. Try again.");
+    expect(screen.getByRole("heading", { name: "Paper 1" })).toBeInTheDocument();
   });
 });
