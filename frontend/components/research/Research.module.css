@@ -1,0 +1,119 @@
+/* Shared research pieces — CitationMetadata, ScoreMeter, topic tags (DESIGN_SYSTEM.md §8.5, §9). Tokens only. */
+
+/* ── CitationMetadata ── */
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-3);
+  margin: 0;
+  min-width: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.fact {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  min-width: 0;
+}
+
+.openAccess {
+  color: var(--rc-success);
+  font-weight: var(--rc-weight-medium);
+}
+
+.doi {
+  font-family: var(--rc-font-mono);
+  font-size: var(--rc-text-mono-size);
+  color: var(--rc-link);
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.doi:hover {
+  text-decoration: underline;
+}
+
+/* ── ScoreMeter ── */
+.meter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  min-width: 0;
+}
+
+.meterText {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--rc-space-1) var(--rc-space-3);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+}
+
+.meterName {
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.meterValue {
+  color: var(--rc-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.meterBar {
+  display: block;
+  width: 100%;
+  height: 0.375rem;
+}
+
+.meterTrack {
+  fill: var(--rc-data-meter-track);
+}
+
+.meterFill {
+  fill: var(--rc-data-meter-fill);
+}
+
+.meterAbout {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-muted);
+}
+
+/* ── Topic tags (ResearchTopicTag): not interactive ── */
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  max-width: 100%;
+  min-height: 1.5rem;
+  padding: 0 var(--rc-space-2);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-surface-sunken);
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-label-size);
+  line-height: var(--rc-text-label-lh);
+  overflow-wrap: anywhere;
+}
+
+.tagShared {
+  border-color: var(--rc-brand-border);
+  background: var(--rc-brand-subtle);
+  color: var(--rc-brand-text);
+}

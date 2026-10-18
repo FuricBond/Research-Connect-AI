@@ -4,12 +4,18 @@ import { useEffect, useState } from "react";
 import { Bookmark, BookmarkCheck } from "lucide-react";
 import { addToReadingList } from "../../services/api";
 import { useSession } from "../auth/SessionProvider";
+import { Button, type ButtonSize, type ButtonVariant } from "../ui/Button/Button";
 
 interface SaveToReadingListButtonProps {
   workId: string;
   /** Whether the work is already on the list, as far as the page knows. */
   isSaved?: boolean;
   onSaved?: (workId: string, itemId: string) => void;
+  /** Secondary in lists; the paper panel makes it its primary action (P5). */
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  /** Id of the paper's title, so the button is announced with the paper it saves. */
+  describedBy?: string;
 }
 
 /**
@@ -17,13 +23,13 @@ interface SaveToReadingListButtonProps {
  *
  * Rendered only for a signed-in user: the list is personal, so there is nothing to save to
  * without an account. Saving is idempotent on the server, and it records no personalization
- * signal.
+ * signal. P5: drawn with the Button primitive; the names and behaviour are unchanged.
  */
-export function SaveToReadingListButton({ workId, isSaved = false, onSaved }: SaveToReadingListButtonProps) {
+export function SaveToReadingListButton({ workId, isSaved = false, onSaved, variant = "secondary", size = "sm", describedBy }: SaveToReadingListButtonProps) {
   const { status } = useSession();
   const [saved, setSaved] = useState(isSaved);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
 
   // The saved state can arrive after the first render, once the page has looked it up.
   useEffect(() => {
@@ -35,13 +41,14 @@ export function SaveToReadingListButton({ workId, isSaved = false, onSaved }: Sa
   const save = async () => {
     if (saved || saving) return;
     setSaving(true);
-    setError(null);
+    setFailed(false);
     try {
       const item = await addToReadingList(workId);
       setSaved(true);
       onSaved?.(workId, item.id);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not save to your reading list");
+    } catch {
+      // The server's text never reaches the screen.
+      setFailed(true);
     } finally {
       setSaving(false);
     }
@@ -49,21 +56,22 @@ export function SaveToReadingListButton({ workId, isSaved = false, onSaved }: Sa
 
   return (
     <>
-      <button
-        type="button"
-        className="action-btn secondary-btn"
+      <Button
+        variant={saved ? "secondary" : variant}
+        size={size}
         onClick={save}
-        disabled={saving}
+        loading={saving}
         aria-pressed={saved}
         aria-label={saved ? "Saved to reading list" : "Save to reading list"}
+        aria-describedby={describedBy}
         title={saved ? "On your reading list" : "Save to your reading list"}
+        leadingIcon={saved ? <BookmarkCheck size={16} aria-hidden="true" /> : <Bookmark size={16} aria-hidden="true" />}
       >
-        {saved ? <BookmarkCheck size={15} /> : <Bookmark size={15} />}
-        <span>{saved ? "Saved" : "Save"}</span>
-      </button>
-      {error && (
-        <span className="meta-item" role="alert">
-          {error}
+        {saved ? "Saved" : "Save"}
+      </Button>
+      {failed && (
+        <span className="rc-small rc-text-secondary" role="alert">
+          Could not save to your reading list. Try again.
         </span>
       )}
     </>

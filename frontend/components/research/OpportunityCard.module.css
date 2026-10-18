@@ -1,0 +1,155 @@
+/* OpportunityCard (a call for papers) — DESIGN_SYSTEM.md §9. Tokens only. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  min-width: 0;
+  padding: var(--rc-card-padding);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+/* Type on the left, risk in the trust slot on the right; they wrap rather than squeeze. */
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rc-space-2);
+}
+
+.kind {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+}
+
+.rank {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-medium);
+  color: var(--rc-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.riskButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rc-target-min);
+  padding: 0;
+  border: 0;
+  border-radius: var(--rc-radius-sm);
+  background: none;
+  cursor: pointer;
+}
+
+.title {
+  margin: 0;
+  min-width: 0;
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.titleLink {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  color: var(--rc-text);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.titleLink:hover {
+  color: var(--rc-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+.facts,
+.indexing {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.deadline,
+.evidence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-3);
+  min-width: 0;
+}
+
+.reasons {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.link {
+  min-height: var(--rc-target-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--rc-link);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-medium);
+  text-align: left;
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  max-width: var(--rc-measure);
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2) var(--rc-space-4);
+  padding-top: var(--rc-space-2);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.actions:empty {
+  display: none;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  min-height: var(--rc-target-min);
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-medium);
+  text-decoration: none;
+}
+
+.action:hover {
+  color: var(--rc-link);
+  text-decoration: underline;
+}

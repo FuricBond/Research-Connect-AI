@@ -1,0 +1,167 @@
+/* PaperCard — DESIGN_SYSTEM.md §9. Tokens only. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  min-width: 0;
+  padding: var(--rc-card-padding);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.heading {
+  display: flex;
+  align-items: baseline;
+  gap: var(--rc-space-2);
+  margin: 0;
+  min-width: 0;
+}
+
+.rank {
+  flex-shrink: 0;
+  font-family: var(--rc-font-sans);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-medium);
+  color: var(--rc-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The title is the way into the paper panel: serif, three lines at most, a link's colour on hover. */
+.title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.title:hover {
+  color: var(--rc-link);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+.where {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.abstractBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--rc-space-1);
+}
+
+.abstract,
+.abstractClamped {
+  margin: 0;
+  max-width: var(--rc-measure);
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.abstractClamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.noAbstract {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-muted);
+}
+
+.toggle,
+.why {
+  min-height: var(--rc-target-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--rc-link);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-medium);
+  text-align: left;
+  cursor: pointer;
+}
+
+.toggle:hover,
+.why:hover {
+  text-decoration: underline;
+}
+
+.topics {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.topicsLabel {
+  font-weight: var(--rc-weight-semibold);
+}
+
+.evidence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-3);
+  min-width: 0;
+}
+
+.reasons {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2) var(--rc-space-4);
+  padding-top: var(--rc-space-2);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+/* Quiet actions: text with an icon (ghost), never a filled button per card. */
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  min-height: var(--rc-target-min);
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-medium);
+  text-decoration: none;
+}
+
+.action:hover {
+  color: var(--rc-link);
+  text-decoration: underline;
+}
