@@ -92,3 +92,6 @@ frontend/playwright-report/
 
 #Claude Outputs
 Claude outputs
+
+#Design audit
+docs\design\audit
