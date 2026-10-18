@@ -1,0 +1,394 @@
+/* P6 — Recommendations (/recommendations): the list beside "What shapes your recommendations"
+   from 1024px, one column below. Tokens only. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rc-space-8);
+  align-items: start;
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .layout {
+    grid-template-columns: minmax(0, 2fr) minmax(18rem, 1fr);
+  }
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-8);
+  min-width: 0;
+}
+
+.loading {
+  position: relative;
+}
+
+/* Laid out (so the font loads) but clipped to nothing. */
+.fontPrimer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  font-family: var(--rc-font-serif);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.status {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+/* One "Because you follow …" group. */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.sectionTitle em {
+  font-family: var(--rc-font-serif);
+  font-style: italic;
+  font-weight: var(--rc-weight-semibold);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The card's reason strip and feedback. */
+.reason {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.why {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rc-target-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--rc-link);
+  font: inherit;
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-medium);
+  cursor: pointer;
+}
+
+.why:hover {
+  text-decoration: underline;
+}
+
+.why:focus-visible {
+  outline: var(--rc-focus-width) solid var(--rc-focus-ring);
+  outline-offset: var(--rc-focus-offset);
+  border-radius: var(--rc-radius-sm);
+}
+
+.feedback {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-2);
+}
+
+.feedbackMessage {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.feedbackMessage:empty {
+  display: none;
+}
+
+/* "What shapes your recommendations". */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-6);
+  min-width: 0;
+  padding: var(--rc-card-padding);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+@media (min-width: 1024px) {
+  .panel {
+    position: sticky;
+    top: var(--rc-space-6);
+  }
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  min-width: 0;
+}
+
+.group + .group {
+  padding-top: var(--rc-space-5);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.groupTitle {
+  margin: 0;
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.muted {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-muted);
+}
+
+.preferences {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.preference {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rc-space-2);
+  min-height: var(--rc-target-min);
+  min-width: 0;
+}
+
+.preferenceText {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--rc-space-1);
+  min-width: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.preferenceCategory {
+  color: var(--rc-text-muted);
+}
+
+.preferenceStrength {
+  color: var(--rc-text-secondary);
+}
+
+.preferenceWhy {
+  flex-basis: 100%;
+  color: var(--rc-text-muted);
+}
+
+.inlineLink {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rc-target-min);
+  color: var(--rc-link);
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-medium);
+}
+
+.notice {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.notice:empty {
+  display: none;
+}
+
+.plainList {
+  margin: 0;
+  padding-left: var(--rc-space-5);
+  color: var(--rc-text-secondary);
+}
+
+/* "Technical details": closed until asked for; its parts load only when each is opened. */
+.technical {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  padding-top: var(--rc-space-5);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.part > summary {
+  min-height: var(--rc-target-min);
+  color: var(--rc-link);
+  font-weight: var(--rc-weight-medium);
+  line-height: var(--rc-target-min);
+  cursor: pointer;
+}
+
+.technicalIntro {
+  margin: 0 0 var(--rc-space-3);
+  max-width: var(--rc-measure);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.parts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+}
+
+.part {
+  padding: var(--rc-space-2) var(--rc-space-4);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface);
+}
+
+.part > summary {
+  font-size: var(--rc-text-small-size);
+}
+
+/* The part's heading sits inside its summary, so the disclosure marker stays beside it. */
+.partTitle {
+  display: inline;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.partBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  padding: var(--rc-space-2) 0 var(--rc-space-3);
+  min-width: 0;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rc-space-3) var(--rc-space-5);
+}
+
+.controls > * {
+  flex: 0 1 auto;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: var(--rc-space-3);
+  margin: 0;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  padding: var(--rc-space-3);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-bg);
+}
+
+.metric dt {
+  font-size: var(--rc-text-label-size);
+  line-height: var(--rc-text-label-lh);
+  color: var(--rc-text-muted);
+}
+
+.metric dd {
+  margin: 0;
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.records {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.record {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  padding: var(--rc-space-3) 0;
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+  min-width: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.record:last-child {
+  border-bottom: 0;
+}
+
+.recordHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-2);
+  color: var(--rc-text);
+}
+
+.recordTitle {
+  font-weight: var(--rc-weight-semibold);
+}
+
+.numbers {
+  color: var(--rc-text-muted);
+  font-variant-numeric: tabular-nums;
+}

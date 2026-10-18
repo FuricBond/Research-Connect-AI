@@ -78,8 +78,9 @@ describe("navigation model", () => {
   });
 
   it("groups destinations by task, in a fixed order", () => {
-    expect(navigationFor("STUDENT").map((section) => section.label)).toEqual([undefined, "Discover", "My research", "People"]);
-    expect(navigationFor("ADMIN").map((section) => section.label)).toEqual([undefined, "Discover", "My research", "People", "Administration"]);
+    // P6: "People" became "For you", with the recommendations first (plan §6).
+    expect(navigationFor("STUDENT").map((section) => section.label)).toEqual([undefined, "Discover", "My research", "For you"]);
+    expect(navigationFor("ADMIN").map((section) => section.label)).toEqual([undefined, "Discover", "My research", "For you", "Administration"]);
     expect(navigationFor(null).map((section) => section.label)).toEqual(["Discover"]);
   });
 
@@ -158,7 +159,8 @@ describe("primary navigation", () => {
       expect(within(research).getByRole("link", { name: label })).toBeInTheDocument();
     }
     expect(within(nav).getByRole("list", { name: "Discover" })).toBeInTheDocument();
-    expect(within(nav).getByRole("list", { name: "People" })).toBeInTheDocument();
+    const forYou = within(nav).getByRole("list", { name: "For you" });
+    expect(within(forYou).getAllByRole("link").map((link) => link.textContent?.trim())).toEqual(["Recommendations", "Find a supervisor", "Find peers"]);
   });
 
   it("gives an administrator the administration page and no supervisor search", async () => {
@@ -256,6 +258,7 @@ describe("navigation drawer (below 1024px)", () => {
       "Submissions",
       "Reading list",
       "Calendar",
+      "Recommendations",
       "Find a supervisor",
       "Find peers",
     ]);

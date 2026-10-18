@@ -14,6 +14,7 @@ import {
   Briefcase,
   CalendarDays,
   ClipboardList,
+  Compass,
   FileText,
   GraduationCap,
   House,
@@ -26,7 +27,7 @@ import {
 } from "lucide-react";
 import type { PlatformRole } from "../types/auth";
 
-export type NavGroup = "start" | "discover" | "research" | "people" | "admin";
+export type NavGroup = "start" | "discover" | "research" | "foryou" | "admin";
 
 export interface NavItem {
   href: string;
@@ -45,7 +46,10 @@ export interface NavSection {
   items: readonly NavItem[];
 }
 
-/** The primary navigation, in display order: grouped by what a person is doing. */
+/**
+ * The primary navigation, in display order: grouped by what a person is doing. P6: "People"
+ * became "For you" — the recommendations first, then supervisors and peers.
+ */
 export const NAV_SECTIONS: readonly NavSection[] = [
   {
     group: "start",
@@ -73,9 +77,10 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     ],
   },
   {
-    group: "people",
-    label: "People",
+    group: "foryou",
+    label: "For you",
     items: [
+      { href: "/recommendations", label: "Recommendations", icon: Compass },
       { href: "/supervisors", label: "Find a supervisor", icon: GraduationCap, roles: ["STUDENT"] },
       { href: "/peers", label: "Find peers", icon: Users },
     ],
