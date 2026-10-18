@@ -897,3 +897,116 @@ limit); saving is idempotent, so a call beyond them that reads "Save" is saved w
 | Calls | `components/OpportunityList.tsx`, `utils/callsState.ts`, `app/calls/[id]/`, `components/calls/CallDetail.tsx` |
 | Primitives | `components/ui/Breadcrumb`, `components/ui/Pagination`; `hooks/useAddressSearch.ts` (state in the query string, the address bar as the truth) |
 | Tests | `tests/search-state.test.ts`, `search-page.test.tsx`, `paper-tools.test.tsx`, `calls-pages.test.tsx`, `research-components.test.tsx`, `use-api-resource.test.tsx` (public scope); P2's `global-search.test.tsx` and P0's `paper-context.test.tsx` kept; e2e `discovery.spec.ts` (visitor) and the renamed steps in `pages`, `shell`, `layout`, `workflow` |
+
+## 18. Personalization and profile (P6)
+
+The recommendations page, what shapes it, one explanation for every recommendation, the profile,
+and the people pages (plan §12). Everything shown is the API's: its ranking, its reasons, its
+scores and its words for a band or tier. Where it has nothing to say the page says so; a score the
+API could not compute is "Not available" or "Fit not scored", never zero.
+
+**Navigation.** The "People" group is now **For you**: Recommendations, Find a supervisor
+(students), Find peers. Hiding a link is a convenience; the backend authorises every request
+(supervisor matching answers any other role 403, and the page explains itself to them without
+asking).
+
+**Recommendations** (`/recommendations`, `components/recommendations/`): the Phase 3.5 ranking (the
+one the dashboard's three come from; viewing it keeps a snapshot for the history, as before), 25
+calls, grouped by the interest each matched — "Because you follow *Graph neural networks*" (a topic
+preference), "Because of your work on *…*" (expertise in the publications), "Because your profile
+mentions *…*" (a keyword), and "More calls for you" last. An item joins the group of its matched
+topic that most items share; groups keep the ranking and every card its overall rank. Each
+**RecommendationCard** is the shared OpportunityCard with a reason strip: the match band, the
+API's main reason and "Why this match?" (named with its call), then Save and **Helpful / Not
+relevant** — recommendation feedback (Phase 3.6) with the item's rank, pressed state, a polite
+confirmation and Undo (the feedback is deleted). Save from this page is also a "saved"
+interaction, so learned signals see it, and adds the call to the workspace.
+
+**What shapes your recommendations** (beside the list from 1024px, sticky): what you stated (each
+removable, "Edit your research preferences" for the rest), what was inferred **from your saved
+calls** with its strength in words (Strong, Moderate, Light) and the API's reason ("3 of 5 saved
+opportunities were conferences (60%)"); three switches that apply at once — Personalize my
+recommendations, Use what I have done here, Keep learning from new activity — and **Reset what was
+learned**, behind a dialog that lists what is cleared and what is kept (stated preferences, the
+profile and publications, the account, the workspace and the record of past activity), with an
+optional reason kept in the control history. A change re-ranks the list; while the preferences
+reload, the last list stays so the panel does not jump.
+
+**One explanation UI.** "Why this match?" opens the P5 Evidence panel (`RecommendationEvidence.tsx`
+inside `EvidencePanel.tsx`): how well it matches (band, rank, how far preferences moved it, the
+main reason, the relevance and preference meters — the latter "Not available" while
+personalization is paused — matched topics and preferences, reasons by origin: publications,
+preferences, feedback, counted against), how your preferences and activity shaped it (Phase 5.9,
+asked for when the panel opens), and Technical details (scores, confidence, ranking version, the
+score breakdown; evidence tiers and the preference assessment asked for when opened). A
+recommendation from the history opens the same panel with the explanation kept then, in the past
+tense, and asks nothing live. The dashboard's "Why?" uses it too. WhyThisRecommendationModal and
+RecommendationExplanationModal are no longer used.
+
+**Technical details** (below the list; nothing removed, plan P0-4): thirteen parts, each closed
+until opened and loaded — code and data — only then, each behind its own error boundary: the
+ranking with and without personalization (this page's comparison needs no request; a ranking with
+parts switched off is made on request and kept in the history, as before), your research context
+and its signals, the personalization summary, your preferences in detail (from the page's own
+copy), the calls considered before ranking, signals learned from your activity, calibration,
+quality of personalization, health and drift with the audit trail, your feedback (each
+removable), the recommendation history (offline quality, by ranking version, every list kept with
+"Why?"), changes to your settings, and how the order is protected. Recalculate and Evaluate again
+are kept.
+
+**Profile** (`/researcher`, `components/profile/`): the name as h1 with career stage · institution
+· department and Edit profile; **Profile** (completeness with what is still missing in words, the
+ORCID and OpenAlex links, the research summary, keywords; the same fields to edit); **Research
+topics** — *You stated* (topic preferences and profile keywords) beside *From your publications*
+(Phase 3.2: classification, works, years, strength, confidence and recency, "Why this topic?" with
+the supporting works), "Work out again", and the topics suggested from the publications to follow
+in one step (nothing is added unasked); **Publications** (five, then Show all; title, year,
+position, citations, DOI), asked for only once the profile is linked to a scholarly record; and
+**Research preferences** (stated, from saved calls, complete; what is not stated yet; any
+contradictions; links to the editor and to what shapes your recommendations). An edit works the
+topics out again at once, as before. Creating a profile sends only what was entered. The P0.4
+section links still work: `?section=recommendations`, `personalization` and `history` open
+`/recommendations`; `interests` opens `/researcher#topics`.
+
+**Find a supervisor, Find peers** (`components/people/`): filters above, then the results under an
+h2; the caveat that applies to every result (how scores are made, "ranked on research topics
+only") is said **once above the list**, not in every card. The **ResearcherCard**: initials, name
+(h3), career stage · institution · department, availability, **FitScore** in the API's tier words
+with its value ("Strong match · 62%") and the strongest reason, the second reason, up to three
+shared topics, the supervisor's two papers closest to your interests and open postings, the
+person's note, what they will collaborate on, their email if they chose to share it, and "How this
+was scored" (confidence, the signal table, the other reasons, topics, papers). Anything a person
+chose not to share is left out, never "unknown". Find peers starts with **Your discoverability**:
+the opt-in switch with the date of the last change, availability, what others may see,
+collaboration types and an optional note (saved with its own button).
+
+**Research postings, student side** (`/postings` Discover; authoring and "My postings" are P9):
+search (applied when submitted), category, work mode and "Accepting applications"; the results
+under an h2 with one polite count. **PostingCard**: category, status and deadline in the header
+row; the serif title; author · institution · place · mode · positions; for a student a FitScore
+with the API's band first ("Strong fit · 82%") and its strongest reason, a partial or low fit
+saying what would raise it with a link to the preferences; a two-line summary and skill tags. The
+author's lifecycle buttons follow the server's allowed transitions; failures are in plain words.
+
+**FitScore** (`components/research/FitScore.tsx`): the band (postings) or tier (supervisors,
+peers) word first, the exact value second, the strongest reason; Partial, Low and Exploratory read
+as an action; no score is "Fit not scored".
+
+**Requests.** Per page load, without the shell's session check and unread count:
+
+| Page | Requests |
+|---|---|
+| Recommendations | 4, together: the ranking, the preference record, the personalization settings, the tracked calls; "Why this match?" +1 (+2 for its technical details); each technical part its own, when opened |
+| Profile | 4: the profile, then its publications (once linked), the topics in them and the preference record (3 when not linked) |
+| Find a supervisor | 1 per filter set (none for other roles) |
+| Find peers | 2: your discoverability and the matches (+1 per filter set) |
+| Research postings | 1 per search or filter (+ for a student, 1 batch of fits) |
+
+| Part | Where |
+|---|---|
+| Recommendations | `app/recommendations/`, `components/recommendations/{RecommendationsPage,RecommendationCard,TransparencyPanel,PreferenceSummary,PersonalizationSwitches,ResetPersonalization,TechnicalDetails}.tsx`, `grouping.ts`, `resources.ts`, `technical/*` |
+| Explanation | `components/research/{RecommendationEvidence,EvidencePanel}.tsx`; words in `utils/personalization.ts` |
+| Profile | `app/researcher/`, `components/profile/*` |
+| People | `app/supervisors/`, `app/peers/`, `components/people/*`, `components/research/FitScore.tsx` |
+| Postings | `components/postings/{PostingCard.tsx,PostingCard.module.css,PostingsPage.module.css}`, `app/postings/page.tsx` (Discover) |
+| Tests | `tests/recommendations-page.test.tsx`, `researcher-profile.test.tsx`, `researcher-sections.test.tsx` (the old sections' addresses), `people-cards.test.tsx`, `fit-score.test.tsx`, `canonical-indicators.test.tsx` (on the new components), `supervisors-page.test.tsx`, `posting-fit.test.tsx`, `navigation.test.tsx`; e2e `pages`, `workflow`, `layout`, `design-system` updated |

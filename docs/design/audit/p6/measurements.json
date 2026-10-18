@@ -1,0 +1,813 @@
+{
+  "measured_at": "2026-10-18T06:46:29.360Z",
+  "requests": {
+    "/researcher": [
+      "GET /api/v1/researchers/{id}",
+      "GET /api/v1/researchers/{id}/research-intelligence",
+      "GET /api/v1/researchers/{id}/preference-intelligence"
+    ],
+    "/recommendations": [
+      "GET /api/v1/researchers/{id}/personalized-recommendations",
+      "GET /api/v1/researchers/{id}/preference-intelligence",
+      "GET /api/v1/researchers/{id}/personalization/settings",
+      "GET /api/v1/workspace"
+    ],
+    "/supervisors": [
+      "GET /api/v1/researchers/{id}/supervisor-matches"
+    ],
+    "/peers": [
+      "GET /api/v1/researchers/{id}/discovery-settings",
+      "GET /api/v1/researchers/{id}/peers"
+    ],
+    "/postings": [
+      "GET /api/v1/postings",
+      "POST /api/v1/postings/fit-scores"
+    ],
+    "Why this match? (opened)": [
+      "GET /api/v1/researchers/{id}/recommendations/{id}/personalization"
+    ],
+    "Why this match? > Technical details": [
+      "GET /api/v1/researchers/{id}/recommendations/unified/{id}/intelligence",
+      "GET /api/v1/researchers/{id}/opportunities/{id}/personalization"
+    ],
+    "Technical part: Ranking with and without personalization": [],
+    "Technical part: Your research context": [
+      "GET /api/v1/researchers/{id}/intelligence/unified"
+    ],
+    "Technical part: Personalization summary": [
+      "GET /api/v1/researchers/{id}/personalization-summary"
+    ],
+    "Technical part: Your preferences in detail": [],
+    "Technical part: Calls considered before ranking": [
+      "GET /api/v1/researchers/{id}/personalized-candidates"
+    ],
+    "Technical part: Signals learned from your activity": [
+      "GET /api/v1/researchers/{id}/adaptive-signals",
+      "GET /api/v1/researchers/{id}/adaptive-signals/explanation"
+    ],
+    "Technical part: Calibration from your feedback": [
+      "GET /api/v1/researchers/{id}/personalization/calibration"
+    ],
+    "Technical part: Quality of personalization": [
+      "GET /api/v1/researchers/{id}/personalization/quality"
+    ],
+    "Technical part: Health and drift": [
+      "GET /api/v1/researchers/{id}/personalization/health",
+      "GET /api/v1/researchers/{id}/personalization/drift",
+      "GET /api/v1/researchers/{id}/personalization/governance"
+    ],
+    "Technical part: Your feedback": [
+      "GET /api/v1/researchers/{id}/feedback/summary",
+      "GET /api/v1/researchers/{id}/feedback"
+    ],
+    "Technical part: Recommendation history": [
+      "GET /api/v1/researchers/{id}/recommendation-evaluation",
+      "GET /api/v1/researchers/{id}/recommendation-history"
+    ],
+    "Technical part: Changes to your settings": [
+      "GET /api/v1/researchers/{id}/personalization/control-history"
+    ],
+    "Technical part: How the order is protected": [],
+    "/supervisors (faculty)": []
+  },
+  "height": {
+    "/researcher": {
+      "px": 1308,
+      "screens_at_900": 1.45
+    },
+    "/recommendations": {
+      "px": 3698,
+      "screens_at_900": 4.11
+    }
+  },
+  "cls": {
+    "/researcher 1440": [
+      0.0011,
+      0.0023,
+      0.0034
+    ],
+    "/researcher 390": [
+      0.0063,
+      0.0079,
+      0.0094
+    ],
+    "/recommendations 1440": [
+      0.0033,
+      0.0038,
+      0.0042
+    ],
+    "/recommendations 390": [
+      0.0006,
+      0.0007,
+      0.0007
+    ]
+  },
+  "axe": [
+    {
+      "label": "light 1440 /recommendations",
+      "violations": []
+    },
+    {
+      "label": "light 1440 /researcher",
+      "violations": []
+    },
+    {
+      "label": "light 1440 /supervisors",
+      "violations": []
+    },
+    {
+      "label": "light 1440 /peers",
+      "violations": []
+    },
+    {
+      "label": "light 1440 /postings",
+      "violations": []
+    },
+    {
+      "label": "light 1440 /recommendations Evidence panel",
+      "violations": []
+    },
+    {
+      "label": "light 1440 /recommendations technical details open",
+      "violations": []
+    },
+    {
+      "label": "light 1440 reset dialog",
+      "violations": []
+    },
+    {
+      "label": "light 1440 /researcher editing",
+      "violations": []
+    },
+    {
+      "label": "light 768 /recommendations",
+      "violations": []
+    },
+    {
+      "label": "light 768 /researcher",
+      "violations": []
+    },
+    {
+      "label": "light 768 /supervisors",
+      "violations": []
+    },
+    {
+      "label": "light 768 /peers",
+      "violations": []
+    },
+    {
+      "label": "light 768 /postings",
+      "violations": []
+    },
+    {
+      "label": "light 768 /recommendations Evidence panel",
+      "violations": []
+    },
+    {
+      "label": "light 768 /recommendations technical details open",
+      "violations": []
+    },
+    {
+      "label": "light 768 reset dialog",
+      "violations": []
+    },
+    {
+      "label": "light 768 /researcher editing",
+      "violations": []
+    },
+    {
+      "label": "light 390 /recommendations",
+      "violations": []
+    },
+    {
+      "label": "light 390 /researcher",
+      "violations": []
+    },
+    {
+      "label": "light 390 /supervisors",
+      "violations": []
+    },
+    {
+      "label": "light 390 /peers",
+      "violations": []
+    },
+    {
+      "label": "light 390 /postings",
+      "violations": []
+    },
+    {
+      "label": "light 390 /recommendations Evidence panel",
+      "violations": []
+    },
+    {
+      "label": "light 390 /recommendations technical details open",
+      "violations": []
+    },
+    {
+      "label": "light 390 reset dialog",
+      "violations": []
+    },
+    {
+      "label": "light 390 /researcher editing",
+      "violations": []
+    },
+    {
+      "label": "light 320 /recommendations",
+      "violations": []
+    },
+    {
+      "label": "light 320 /researcher",
+      "violations": []
+    },
+    {
+      "label": "light 320 /supervisors",
+      "violations": []
+    },
+    {
+      "label": "light 320 /peers",
+      "violations": []
+    },
+    {
+      "label": "light 320 /postings",
+      "violations": []
+    },
+    {
+      "label": "light 320 /recommendations Evidence panel",
+      "violations": []
+    },
+    {
+      "label": "light 320 /recommendations technical details open",
+      "violations": []
+    },
+    {
+      "label": "light 320 reset dialog",
+      "violations": []
+    },
+    {
+      "label": "light 320 /researcher editing",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 /recommendations",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 /researcher",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 /supervisors",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 /peers",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 /postings",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 /recommendations Evidence panel",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 /recommendations technical details open",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 reset dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 /researcher editing",
+      "violations": []
+    },
+    {
+      "label": "dark 768 /recommendations",
+      "violations": []
+    },
+    {
+      "label": "dark 768 /researcher",
+      "violations": []
+    },
+    {
+      "label": "dark 768 /supervisors",
+      "violations": []
+    },
+    {
+      "label": "dark 768 /peers",
+      "violations": []
+    },
+    {
+      "label": "dark 768 /postings",
+      "violations": []
+    },
+    {
+      "label": "dark 768 /recommendations Evidence panel",
+      "violations": []
+    },
+    {
+      "label": "dark 768 /recommendations technical details open",
+      "violations": []
+    },
+    {
+      "label": "dark 768 reset dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 768 /researcher editing",
+      "violations": []
+    },
+    {
+      "label": "dark 390 /recommendations",
+      "violations": []
+    },
+    {
+      "label": "dark 390 /researcher",
+      "violations": []
+    },
+    {
+      "label": "dark 390 /supervisors",
+      "violations": []
+    },
+    {
+      "label": "dark 390 /peers",
+      "violations": []
+    },
+    {
+      "label": "dark 390 /postings",
+      "violations": []
+    },
+    {
+      "label": "dark 390 /recommendations Evidence panel",
+      "violations": []
+    },
+    {
+      "label": "dark 390 /recommendations technical details open",
+      "violations": []
+    },
+    {
+      "label": "dark 390 reset dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 390 /researcher editing",
+      "violations": []
+    },
+    {
+      "label": "dark 320 /recommendations",
+      "violations": []
+    },
+    {
+      "label": "dark 320 /researcher",
+      "violations": []
+    },
+    {
+      "label": "dark 320 /supervisors",
+      "violations": []
+    },
+    {
+      "label": "dark 320 /peers",
+      "violations": []
+    },
+    {
+      "label": "dark 320 /postings",
+      "violations": []
+    },
+    {
+      "label": "dark 320 /recommendations Evidence panel",
+      "violations": []
+    },
+    {
+      "label": "dark 320 /recommendations technical details open",
+      "violations": []
+    },
+    {
+      "label": "dark 320 reset dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 320 /researcher editing",
+      "violations": []
+    },
+    {
+      "label": "faculty light 1440 /supervisors",
+      "violations": []
+    },
+    {
+      "label": "light 1440 /postings (after posting titles became h3)",
+      "violations": []
+    }
+  ],
+  "overflow": [
+    {
+      "label": "light 1440 /recommendations",
+      "px": 0
+    },
+    {
+      "label": "light 1440 /researcher",
+      "px": 0
+    },
+    {
+      "label": "light 1440 /supervisors",
+      "px": 0
+    },
+    {
+      "label": "light 1440 /peers",
+      "px": 0
+    },
+    {
+      "label": "light 1440 /postings",
+      "px": 0
+    },
+    {
+      "label": "light 1440 Evidence panel",
+      "px": 0
+    },
+    {
+      "label": "light 1440 technical details open",
+      "px": 0
+    },
+    {
+      "label": "light 1440 /researcher editing",
+      "px": 0
+    },
+    {
+      "label": "light 768 /recommendations",
+      "px": 0
+    },
+    {
+      "label": "light 768 /researcher",
+      "px": 0
+    },
+    {
+      "label": "light 768 /supervisors",
+      "px": 0
+    },
+    {
+      "label": "light 768 /peers",
+      "px": 0
+    },
+    {
+      "label": "light 768 /postings",
+      "px": 0
+    },
+    {
+      "label": "light 768 Evidence panel",
+      "px": 0
+    },
+    {
+      "label": "light 768 technical details open",
+      "px": 0
+    },
+    {
+      "label": "light 768 /researcher editing",
+      "px": 0
+    },
+    {
+      "label": "light 390 /recommendations",
+      "px": 0
+    },
+    {
+      "label": "light 390 /researcher",
+      "px": 0
+    },
+    {
+      "label": "light 390 /supervisors",
+      "px": 0
+    },
+    {
+      "label": "light 390 /peers",
+      "px": 0
+    },
+    {
+      "label": "light 390 /postings",
+      "px": 0
+    },
+    {
+      "label": "light 390 Evidence panel",
+      "px": 0
+    },
+    {
+      "label": "light 390 technical details open",
+      "px": 0
+    },
+    {
+      "label": "light 390 /researcher editing",
+      "px": 0
+    },
+    {
+      "label": "light 320 /recommendations",
+      "px": 0
+    },
+    {
+      "label": "light 320 /researcher",
+      "px": 0
+    },
+    {
+      "label": "light 320 /supervisors",
+      "px": 0
+    },
+    {
+      "label": "light 320 /peers",
+      "px": 0
+    },
+    {
+      "label": "light 320 /postings",
+      "px": 0
+    },
+    {
+      "label": "light 320 Evidence panel",
+      "px": 0
+    },
+    {
+      "label": "light 320 technical details open",
+      "px": 0
+    },
+    {
+      "label": "light 320 /researcher editing",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 /recommendations",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 /researcher",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 /supervisors",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 /peers",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 /postings",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 Evidence panel",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 technical details open",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 /researcher editing",
+      "px": 0
+    },
+    {
+      "label": "dark 768 /recommendations",
+      "px": 0
+    },
+    {
+      "label": "dark 768 /researcher",
+      "px": 0
+    },
+    {
+      "label": "dark 768 /supervisors",
+      "px": 0
+    },
+    {
+      "label": "dark 768 /peers",
+      "px": 0
+    },
+    {
+      "label": "dark 768 /postings",
+      "px": 0
+    },
+    {
+      "label": "dark 768 Evidence panel",
+      "px": 0
+    },
+    {
+      "label": "dark 768 technical details open",
+      "px": 0
+    },
+    {
+      "label": "dark 768 /researcher editing",
+      "px": 0
+    },
+    {
+      "label": "dark 390 /recommendations",
+      "px": 0
+    },
+    {
+      "label": "dark 390 /researcher",
+      "px": 0
+    },
+    {
+      "label": "dark 390 /supervisors",
+      "px": 0
+    },
+    {
+      "label": "dark 390 /peers",
+      "px": 0
+    },
+    {
+      "label": "dark 390 /postings",
+      "px": 0
+    },
+    {
+      "label": "dark 390 Evidence panel",
+      "px": 0
+    },
+    {
+      "label": "dark 390 technical details open",
+      "px": 0
+    },
+    {
+      "label": "dark 390 /researcher editing",
+      "px": 0
+    },
+    {
+      "label": "dark 320 /recommendations",
+      "px": 0
+    },
+    {
+      "label": "dark 320 /researcher",
+      "px": 0
+    },
+    {
+      "label": "dark 320 /supervisors",
+      "px": 0
+    },
+    {
+      "label": "dark 320 /peers",
+      "px": 0
+    },
+    {
+      "label": "dark 320 /postings",
+      "px": 0
+    },
+    {
+      "label": "dark 320 Evidence panel",
+      "px": 0
+    },
+    {
+      "label": "dark 320 technical details open",
+      "px": 0
+    },
+    {
+      "label": "dark 320 /researcher editing",
+      "px": 0
+    }
+  ],
+  "text200": [
+    {
+      "route": "/recommendations",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    },
+    {
+      "route": "/researcher",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    },
+    {
+      "route": "/supervisors",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    },
+    {
+      "route": "/peers",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    },
+    {
+      "route": "/postings",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    }
+  ],
+  "keyboard": {
+    "/recommendations (first 60 stops after the title)": {
+      "stops": 60,
+      "unnamed": 0,
+      "without_ring": [],
+      "sample": [
+        "a: Symposium on Human-Computer Interaction and Access",
+        "button: Why this match? Symposium on Human-Computer Intera",
+        "button: Saved to workspace",
+        "button: Helpful",
+        "button: Not relevant",
+        "a: Conference on Applied Machine Learning",
+        "button: Why this match? Conference on Applied Machine Lear",
+        "button: Save to workspace",
+        "button: Helpful",
+        "button: Not relevant",
+        "a: Conference on Natural Language Understanding",
+        "button: Why this match? Conference on Natural Language Und",
+        "button: Save to workspace",
+        "button: Helpful",
+        "button: Not relevant",
+        "a: International Conference on Information Retrieval ",
+        "button: Why this match? International Conference on Inform",
+        "button: Save to workspace",
+        "button: Helpful",
+        "button: Not relevant",
+        "a: Journal of Information Retrieval Research",
+        "button: Why this match? Journal of Information Retrieval R",
+        "button: Save to workspace",
+        "button: Helpful",
+        "button: Not relevant"
+      ]
+    }
+  },
+  "headings": {
+    "/recommendations": [
+      "H1 Recommendations",
+      "H2 Because of your work on Accessibility",
+      "H3 Symposium on Human-Computer Interaction and Accessibility",
+      "H2 More calls for you",
+      "H3 Conference on Applied Machine Learning",
+      "H3 Conference on Natural Language Understanding",
+      "H3 International Conference on Information Retrieval Systems",
+      "H3 Journal of Information Retrieval Research",
+      "H3 Transactions on Applied Machine Intelligence",
+      "H3 Workshop on Neural Retrieval Methods",
+      "H3 Workshop on Research Data Management",
+      "H3 World Congress on Emerging Interdisciplinary Innovation",
+      "H3 Global Open Journal of Multidisciplinary Advances",
+      "H2 Technical details",
+      "H3 Ranking with and without personalization",
+      "H3 Your research context",
+      "H3 Personalization summary",
+      "H3 Your preferences in detail",
+      "H3 Calls considered before ranking",
+      "H3 Signals learned from your activity",
+      "H3 Calibration from your feedback",
+      "H3 Quality of personalization",
+      "H3 Health and drift",
+      "H3 Your feedback",
+      "H3 Recommendation history",
+      "H3 Changes to your settings",
+      "H3 How the order is protected",
+      "H2 What shapes your recommendations",
+      "H3 What you told us",
+      "H3 From your saved calls",
+      "H3 Your controls",
+      "H3 Start over"
+    ],
+    "/researcher": [
+      "H1 Priya Raghavan",
+      "H2 Profile",
+      "H3 Scholarly identifiers",
+      "H3 Research summary",
+      "H3 Keywords",
+      "H2 Research topics",
+      "H3 You stated",
+      "H3 From your publications",
+      "H2 Publications",
+      "H2 Research preferences"
+    ],
+    "/supervisors": [
+      "H1 Find a supervisor",
+      "H2 Suggested supervisors",
+      "H3 Dr. Amara Okafor"
+    ],
+    "/peers": [
+      "H1 Find peers",
+      "H2 Your discoverability",
+      "H2 Suggested peers",
+      "H3 Dr. Amara Okafor"
+    ],
+    "/postings": [
+      "H1 Research postings",
+      "H2 Open postings",
+      "H3 Research assistantship in retrieval evaluation",
+      "H3 Research assistantship in retrieval benchmarking",
+      "H3 Doctoral project on neural retrieval evaluation"
+    ]
+  },
+  "notes": [],
+  "researcher_linked": {
+    "method": "demo faculty, its profile answered as linked to a scholarly record by request interception (test only; no demo account is linked), light, 1440x900",
+    "requests_including_shell": [
+      "GET /api/v1/auth/me",
+      "GET /api/v1/notifications/unread-count",
+      "GET /api/v1/researchers/{id}",
+      "GET /api/v1/researchers/{id}/works",
+      "GET /api/v1/researchers/{id}/research-intelligence",
+      "GET /api/v1/researchers/{id}/preference-intelligence"
+    ],
+    "total": 6,
+    "height_px": 1217,
+    "screens_at_900": 1.35
+  },
+  "researcher_faculty_unlinked": {
+    "requests_including_shell": 5,
+    "height_px": 1190,
+    "screens_at_900": 1.32
+  }
+}
