@@ -779,3 +779,121 @@ placeholders are busy but not live regions, so the page is not read out once per
 | Requests | `components/dashboard/resources.ts` |
 | Modules | `components/dashboard/{NeedsAttention,Upcoming,RecommendedForYou,PostingsThatFit,ReadingProgress,NeedsDecision,OpenPostings,RecommendedPapers}.tsx`, frame `Module.tsx`, styles `Dashboard.module.css` |
 | Tests | `tests/use-api-resource.test.tsx`, `tests/home-page.test.tsx` (every module's states, request counts per role); e2e `dashboard.spec.ts` (live API: requests per load, reload, phones) |
+
+## 17. Search and discovery (P5)
+
+The literature search, the Evidence and paper panels, similar papers, venue matching, the calls
+for papers and a call's own page (plan §9–11). Everything shown comes from the API's answers;
+where the API has no data (authors, a paper by id, a sort for search) the page says less rather
+than inventing it.
+
+**The search lives in the address** (`utils/searchState.ts`). Defaults are left out, so the plainest
+search is still `/?q=…`, as the header search and older links make it.
+
+| Parameter | Meaning | Values (anything else is ignored, never sent) |
+|---|---|---|
+| `q` | the query | any text, trimmed; none or blank is the start page |
+| `type` | publication type | `article`, `preprint`, `book-chapter`, `dataset` |
+| `year` | publication years | `2020`, `2018-2024`, `2018-` (from), `-2024` (until) |
+| `oa` | open access only | `1` |
+| `cites` | at least this many citations | a whole number above 0 |
+| `mode` | ranking mode (advanced) | `research_similarity`, `research_opportunity` (`general` is the default) |
+| `sort` | order of the page | `newest`, `cited` (relevance is the default) |
+| `page`, `per` | page from 1, papers per page | above 1; `10` or `50` (20 is the default) |
+
+- A change made on the page (a query, a filter, a page, the sort) is recorded at once with the
+  browser's own history (`pushState`) and searched at once; the URL starts a search only when it
+  changes from outside the page (a link, back/forward, the header search) and only for the address
+  the bar shows (the P2 race rules, unchanged). A newer search aborts the older one; an older
+  answer is never shown. A new query keeps the filters, sort and page size, from page 1; a filter
+  change goes back to page 1.
+- The search API has no sort: **Newest** and **Most cited** reorder the page in hand, ask nothing,
+  and say so ("Reorders the papers on this page; pages follow relevance").
+- Year and citation filters apply on Enter or on leaving the field, so typing "2018" is one search.
+- States: the start page (with the visitor line, P3); a skeleton while loading, with one status
+  ("Searching papers…", "Still searching…" after 3 s, then "45 results"); "No papers matched your
+  search" with Clear filters when filters are set; a failure in plain words with Try again
+  (`role="alert"`, never the server's text); a page past the last one offers the first.
+
+**Layout.** Query bar; from 1280px a filter rail beside the results, below it a Filters button that
+opens the same filters in a sheet. The results header is an h2 with the count (focus moves there
+on a new page) and the sort. **PaperCard** (`components/research/PaperCard.tsx`): rank and serif
+title — the title opens the paper panel — venue · year (the venue only when the explanation names
+it), CitationMetadata (type, citations, open access, `doi:` link), a two-line abstract with "Show
+full abstract", the evidence line (band, the backend's two primary factors as words, "Why this
+result?" named with its paper) and quiet actions: Save, Find similar, Find venues. No primary
+button on a card.
+
+**Evidence panel** (`EvidencePanel.tsx`, a Drawer named by its question with the paper or call as
+its description): a sentence from the backend's primary factors ("Ranked #1 mainly for similar
+meaning and shared topics"), a ScoreMeter for every signal that counted (human names and the
+backend's own word: "Meaning — 76 out of 100, very strong"), shared topics, the backend's evidence
+and limits, the paper facts, and "Technical details" with the exact decomposition (subtotals,
+adjustments, reconciliation, the signal table, the ranking mode), unchanged, for examiners. For a
+call it adds **Venue risk** (RiskDetails: level, summary, reasons, signs of trust, warning signs,
+missing information — never a warning — and limits; scores behind Technical details) and
+**Deadlines**. The risk badge and "All dates" open it at that heading. One panel serves search,
+similar papers and venue matching; these pages no longer use the old explainability drawer.
+
+**Paper panel** (`PaperPanel.tsx`, Drawer 640px, full screen below 768): the full title as its
+name, venue · year · type, shared topics, the abstract in reading type, why it is here, the
+citation facts, the actions — **Save to reading list** (the panel's primary action), Export
+citation (BibTeX of the saved item, through the reading list's export; until saved it says so),
+Find similar, Find venues, Open publisher page — and the first five similar papers, asked for
+only when the panel opens. There are no authors: the search response does not include them.
+Both panels load with their first opening (`lazyPanels.ts`) and unmount when closed, which hands
+focus back to the title or button that opened them.
+
+**Similar papers and Find venues** (`/similar?paper=<id>`, `/opportunities?paper=<id>`) are actions
+on a paper and left the navigation (plan §7); the navigation marks "Literature search" while on
+them, and "Calls for papers" on a call's page. The paper's id is in the address, so reload, back
+and forward keep their own paper; its details come from this tab's memory of chosen papers
+(`hooks/useSelectedWork.ts`), because the API cannot look a paper up (plan Q4). A shared link this
+tab never saw still lists results from the id and says what it cannot show; an id that is not a
+UUID is not sent. A breadcrumb leads back to the search the paper came from ("Search › paper ›
+Similar papers"; "‹ Search" on phones). Venue matching keeps its API filters (type, attendance,
+highest fee, location, stated fee, upcoming). **"Upcoming deadlines only" starts off on both
+calls pages** (the P5 decision on plan Q10): nothing is hidden unasked, a past deadline reads
+"Closed 25 Aug 2026", and the hint says the filter also leaves out calls with no listed deadline.
+
+**Calls for papers** (`/browse`, `components/OpportunityList.tsx`, `utils/callsState.ts`):
+`/browse?q=…&type=CONFERENCE&mode=ONLINE&upcoming=1&sort=deadline&page=2` — the API's own filters,
+20 a page, all in the address. Each **OpportunityCard** has the type and the venue risk in its
+header row (risk in the trust slot), the serif title linking to the call's page, organiser ·
+location · attendance, the deadline in words, its indexes and a two-line summary, and quiet
+actions (Save to workspace, signed in; Source). The API already leaves out calls marked expired,
+archived or draft.
+
+**A call's page** (`/calls/[id]`, `components/calls/CallDetail.tsx`): the type, the title (also the
+document title) and organiser · location · attendance; the deadline and the risk, apart; the
+workspace status when tracked, with a link to it; About; **Dates** in academic order (abstract →
+paper → notification → camera-ready → registration → event), each in its own time zone ("20 Oct
+2026, 23:59 AoE"), the main deadline marked, an extension or a disagreement between sources said
+in words, the source named; **Venue risk** with its evidence; and a Facts column from 1024px.
+Actions: Save to workspace (primary), Add dates to calendar (the existing projection), Source,
+Submission site; a visitor gets "Sign in to save" with `?next=` back here. An id that is not a
+UUID, or one the API does not know, is "Call for papers not found" (h1); any other failure can be
+retried; a risk explanation that fails leaves the rest of the page with its own Try again.
+
+**Requests.** `useApiResource` gained `scope: "public"` for data that is the same for everyone
+(calls, papers): it loads for visitors too and from the first render; account data still waits for
+the session. Per page load, without the shell's session check and unread count:
+
+| Page | Requests |
+|---|---|
+| Search | 1 per search (+ signed in, 1 reading-list lookup); sorting 0; the paper panel +1 (5 similar papers) |
+| Similar papers, Find venues | 1 per paper, filter set and page (+ signed in: the reading-list lookup, or the tracked calls) |
+| Calls for papers | 1 per state of the list (+ signed in, 1 tracked-calls lookup, shared with the cards) |
+| A call | 2, together: the call (with its deadline intelligence) and its risk explanation (+ signed in, the tracked-calls lookup) |
+
+The tracked-calls lookup reads the 100 most recently updated workspace items (the API's page
+limit); saving is idempotent, so a call beyond them that reads "Save" is saved without harm.
+
+| Part | Where |
+|---|---|
+| Search page | `components/pages/DiscoverySearch.tsx`, `components/discovery/{SearchBar,SearchFilters}.tsx`, `Search.module.css`, `utils/searchState.ts` |
+| Research objects | `components/research/{PaperCard,OpportunityCard,CitationMetadata,ScoreMeter,TopicTags,RiskDetails,DeadlineMilestones,EvidencePanel,PaperPanel,SaveCallButton}.tsx`, `paper.ts`, `trackedCalls.ts`, `lazyPanels.ts`; words in `utils/research.ts` |
+| Paper tools | `components/pages/{SimilarResearch,OpportunityMatches}.tsx`, `components/discovery/{paperContext.ts,SourcePaper.tsx,PaperContextRequired.tsx}` |
+| Calls | `components/OpportunityList.tsx`, `utils/callsState.ts`, `app/calls/[id]/`, `components/calls/CallDetail.tsx` |
+| Primitives | `components/ui/Breadcrumb`, `components/ui/Pagination`; `hooks/useAddressSearch.ts` (state in the query string, the address bar as the truth) |
+| Tests | `tests/search-state.test.ts`, `search-page.test.tsx`, `paper-tools.test.tsx`, `calls-pages.test.tsx`, `research-components.test.tsx`, `use-api-resource.test.tsx` (public scope); P2's `global-search.test.tsx` and P0's `paper-context.test.tsx` kept; e2e `discovery.spec.ts` (visitor) and the renamed steps in `pages`, `shell`, `layout`, `workflow` |

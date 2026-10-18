@@ -39,7 +39,11 @@ Specification: [docs/design/DESIGN_SYSTEM.md](../../../docs/design/DESIGN_SYSTEM
 | Something failed / not allowed / missing | `ErrorState` (`failed`, `permission`, `not-found`, `invalid`, `unavailable`, `offline`, `unknown`) |
 | Inline message in the flow | `Alert` (`announce` only for errors after an action) |
 | Colour theme control | `ThemeSwitcher` (in the shell's account menu; one per page) |
-| Data from the API | `useApiResource` (`hooks/`): status, data, a safe error and retry; one request per key however many components use it |
+| Data from the API | `useApiResource` (`hooks/`): status, data, a safe error and retry; one request per key however many components use it; `scope: "public"` for data that is the same for everyone (calls, papers), which loads for visitors too (P5) |
+| Where a detail page sits | `Breadcrumb` (`nav aria-label="Breadcrumb"`; only "‹ parent" below 640px) |
+| A long list in pages | `Pagination` ("Showing 21–40 of 312", Previous page / Next page, optional page size) |
+| State kept in the query string | `useAddressSearch` (`hooks/`): the address bar is the truth; `go(href)` records with `pushState` |
+| A paper, a call | `PaperCard`, `OpportunityCard`, `CitationMetadata`, `TopicTags` (`components/research/`); their explanation in `EvidencePanel`, the paper in `PaperPanel` (load them through `lazyPanels.ts`) |
 
 Layout without new CSS: `.rc-container`, `.rc-stack`, `.rc-cluster`, `.rc-grid` (set
 `--rc-grid-min`), `.rc-switcher` (set `--rc-switch-at`), `.rc-ruled` (compact ruled list),

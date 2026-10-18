@@ -1,0 +1,656 @@
+{
+ "measured": "2026-10-17, isolated e2e stack (rce2e, production images) from the final P5 working tree on main; seeded demo accounts and the literature corpus the API suite seeds",
+ "method": {
+  "axe": "axe-core (frontend/node_modules) on the whole document, after the page or panel settled; dialogs scanned after their 200 ms opening animation",
+  "cls": "PerformanceObserver layout-shift (buffered, no recent input) from navigation start until settled; 3 runs per combination, visitor, light; 'varied' = every API answer delayed 50-800 ms at random",
+  "zoom": "root font size 200% at 320px; overflow = scrollWidth - clientWidth; offscreen = links, buttons and fields outside the viewport",
+  "keyboard": "Tab from the page title (signed-in student, 1440px); name = aria-label, aria-labelledby, label or text; ring = outline >= 2px",
+  "requests": "API requests per page load, without /auth/me and /notifications/unread-count"
+ },
+ "axe": {
+  "runs": 160,
+  "violations": [],
+  "pages": [
+   "browse",
+   "call",
+   "call-not-found",
+   "search",
+   "search-evidence",
+   "search-filters",
+   "search-paper",
+   "search-start",
+   "similar",
+   "venues",
+   "venues-risk"
+  ]
+ },
+ "overflow": {
+  "runs": 160,
+  "nonzero": []
+ },
+ "zoom_200_percent_320": [
+  {
+   "name": "search",
+   "overflow": 0,
+   "offscreen": []
+  },
+  {
+   "name": "search-evidence",
+   "overflow": 0,
+   "offscreen": []
+  },
+  {
+   "name": "search-paper",
+   "overflow": 0,
+   "offscreen": []
+  },
+  {
+   "name": "similar",
+   "overflow": 0,
+   "offscreen": []
+  },
+  {
+   "name": "venues",
+   "overflow": 0,
+   "offscreen": []
+  },
+  {
+   "name": "venues-risk",
+   "overflow": 0,
+   "offscreen": []
+  },
+  {
+   "name": "browse",
+   "overflow": 0,
+   "offscreen": []
+  },
+  {
+   "name": "call",
+   "overflow": 0,
+   "offscreen": []
+  }
+ ],
+ "keyboard": {
+  "search": {
+   "stops": 41,
+   "unnamed": 0,
+   "no_visible_ring": [],
+   "first_stops": [
+    "Search research literature",
+    "Clear search",
+    "Submit search",
+    "Publication type",
+    "From year",
+    "To year",
+    "At least this many citations",
+    "Open access only",
+    "Advanced",
+    "Sort",
+    "Learning to rank for information retrieval with neural model",
+    "Why this result? Learning to rank for information retrieval ",
+    "Save to reading list",
+    "Find similar",
+    "Find venues",
+    "Reproducible retrieval evaluation with shared test collectio",
+    "Why this result? Reproducible retrieval evaluation with shar",
+    "Save to reading list"
+   ]
+  },
+  "call": {
+   "stops": 3,
+   "unnamed": 0,
+   "no_visible_ring": [],
+   "first_stops": [
+    "Save to workspace",
+    "Add dates to calendar",
+    "Technical details"
+   ]
+  }
+ },
+ "cls_after": [
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": false,
+   "run": 1,
+   "cls": 0.0009
+  },
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": false,
+   "run": 2,
+   "cls": 0.0009
+  },
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": false,
+   "run": 3,
+   "cls": 0.0009
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": false,
+   "run": 1,
+   "cls": 0.0006
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": false,
+   "run": 2,
+   "cls": 0.0006
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": false,
+   "run": 3,
+   "cls": 0.0006
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": false,
+   "run": 1,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": false,
+   "run": 2,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": false,
+   "run": 3,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": false,
+   "run": 1,
+   "cls": 0.0007
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": false,
+   "run": 2,
+   "cls": 0.0007
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": false,
+   "run": 3,
+   "cls": 0.0007
+  },
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": true,
+   "run": 1,
+   "cls": 0.0009
+  },
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": true,
+   "run": 2,
+   "cls": 0.0009
+  },
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": true,
+   "run": 3,
+   "cls": 0.0009
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": true,
+   "run": 1,
+   "cls": 0.0006
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": true,
+   "run": 2,
+   "cls": 0.0006
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": true,
+   "run": 3,
+   "cls": 0.0006
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": true,
+   "run": 1,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": true,
+   "run": 2,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": true,
+   "run": 3,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": true,
+   "run": 1,
+   "cls": 0.0007
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": true,
+   "run": 2,
+   "cls": 0.0007
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": true,
+   "run": 3,
+   "cls": 0.0007
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": false,
+   "run": 1,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": false,
+   "run": 2,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": false,
+   "run": 3,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": false,
+   "run": 1,
+   "cls": 0.0007
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": false,
+   "run": 2,
+   "cls": 0.0007
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": false,
+   "run": 3,
+   "cls": 0.0007
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": true,
+   "run": 1,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": true,
+   "run": 2,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": true,
+   "run": 3,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": true,
+   "run": 1,
+   "cls": 0.0007
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": true,
+   "run": 2,
+   "cls": 0.0007
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": true,
+   "run": 3,
+   "cls": 0.0007
+  }
+ ],
+ "cls_before_fixes": [
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": false,
+   "run": 1,
+   "cls": 0.0708
+  },
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": false,
+   "run": 2,
+   "cls": 0.0708
+  },
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": false,
+   "run": 3,
+   "cls": 0.0708
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": false,
+   "run": 1,
+   "cls": 0.1147
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": false,
+   "run": 2,
+   "cls": 0.1147
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": false,
+   "run": 3,
+   "cls": 0.1147
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": false,
+   "run": 1,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": false,
+   "run": 2,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": false,
+   "run": 3,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": false,
+   "run": 1,
+   "cls": 0.0007
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": false,
+   "run": 2,
+   "cls": 0.0007
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": false,
+   "run": 3,
+   "cls": 0.0007
+  },
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": true,
+   "run": 1,
+   "cls": 0.0708
+  },
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": true,
+   "run": 2,
+   "cls": 0.0708
+  },
+  {
+   "name": "search",
+   "width": 1440,
+   "delays": true,
+   "run": 3,
+   "cls": 0.0708
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": true,
+   "run": 1,
+   "cls": 0.1147
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": true,
+   "run": 2,
+   "cls": 0.1129
+  },
+  {
+   "name": "search",
+   "width": 390,
+   "delays": true,
+   "run": 3,
+   "cls": 0.1147
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": true,
+   "run": 1,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": true,
+   "run": 2,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 1440,
+   "delays": true,
+   "run": 3,
+   "cls": 0.0009
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": true,
+   "run": 1,
+   "cls": 0.0007
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": true,
+   "run": 2,
+   "cls": 0.0007
+  },
+  {
+   "name": "browse",
+   "width": 390,
+   "delays": true,
+   "run": 3,
+   "cls": 0.0007
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": false,
+   "run": 1,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": false,
+   "run": 2,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": false,
+   "run": 3,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": false,
+   "run": 1,
+   "cls": 0.0226
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": false,
+   "run": 2,
+   "cls": 0.0226
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": false,
+   "run": 3,
+   "cls": 0.0226
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": true,
+   "run": 1,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": true,
+   "run": 2,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 1440,
+   "delays": true,
+   "run": 3,
+   "cls": 0.0009
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": true,
+   "run": 1,
+   "cls": 0.0226
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": true,
+   "run": 2,
+   "cls": 0.0226
+  },
+  {
+   "name": "call",
+   "width": 390,
+   "delays": true,
+   "run": 3,
+   "cls": 0.0226
+  }
+ ],
+ "fixed_on_the_way": [
+  "search first paint: prerendered start page replaced by results moved the layout 104px (1440) / 179px (390); now a pending first state",
+  "call page: title face loaded only with the title; a long title re-wrapped on font swap (35px at 390); the skeleton now carries hidden serif text",
+  "call page risk evidence: h4 under h2 (axe heading-order, moderate); h3 there now"
+ ],
+ "axe_before_fixes": [
+  "heading-order (moderate) on call"
+ ],
+ "requests_per_load": {
+  "visitor search": [
+   "GET /api/v1/discovery/research/search"
+  ],
+  "visitor browse": [
+   "GET /api/opportunities"
+  ],
+  "visitor call": [
+   "GET /api/opportunities/{id}",
+   "GET /api/opportunities/{id}/risk-explanation"
+  ],
+  "student call": [
+   "GET /api/opportunities/{id}",
+   "GET /api/opportunities/{id}/risk-explanation",
+   "GET /api/v1/workspace"
+  ],
+  "student search": [
+   "GET /api/v1/discovery/research/search",
+   "GET /api/v1/reading-list/lookup"
+  ],
+  "student browse": [
+   "GET /api/opportunities",
+   "GET /api/v1/workspace"
+  ],
+  "paper panel opened": [
+   "GET /api/v1/discovery/research/{id}/similar"
+  ],
+  "sort changed": []
+ },
+ "page_errors": []
+}
