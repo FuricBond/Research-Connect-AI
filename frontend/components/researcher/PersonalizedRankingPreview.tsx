@@ -81,7 +81,7 @@ export function PersonalizedRankingPreview({
         {
           opportunity_id: opportunityId,
           feedback_type: type,
-          source: "RECOMMENDATION_FEED",
+          source: "RECOMMENDATION",
           rank_position: rankPosition,
         },
         userId

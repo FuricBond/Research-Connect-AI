@@ -694,13 +694,19 @@ export interface PersonalizationControlHistoryResponse {
   total: number;
 }
 
+/**
+ * One factor of a Phase 5.9 explanation: the backend sends free-form records whose keys depend on
+ * the kind (category/value, dimension/signal_value/contribution, …); every one has a summary.
+ */
 export interface PersonalizationFactor {
-  source: "EXPLICIT_PREFERENCE" | "ADAPTIVE_SIGNAL" | "CALIBRATION" | "CONTEXTUAL_QUALITY" | "GOVERNANCE_STATE";
   summary: string;
-  polarity: "POSITIVE" | "NEGATIVE" | "NEUTRAL";
-  evidence_basis: string;
+  [detail: string]: unknown;
 }
 
+/**
+ * "Why was this personalized?" (Phase 5.9). P6 corrected it to the API's contract
+ * (app/schemas/personalization_transparency.py, RecommendationPersonalizationExplanationResponse).
+ */
 export interface RecommendationPersonalizationExplanation {
   recommendation_id: string;
   opportunity_id: string;
@@ -709,13 +715,18 @@ export interface RecommendationPersonalizationExplanation {
   base_relevance_score: number;
   personalization_score: number;
   final_score: number;
-  factors: PersonalizationFactor[];
-  summary_points: string[];
-  explanation_text: string;
+  explicit_preference_factors: PersonalizationFactor[];
+  adaptive_signal_factors: PersonalizationFactor[];
+  calibration_factors: PersonalizationFactor[];
+  contextual_factors: PersonalizationFactor[];
   governance_state: string;
-  personalization_state_version: number;
+  governance_multiplier: number;
+  governance_notes?: string | null;
+  deterministic_explanation: string;
+  contributing_factors_summary: string[];
   algorithm_version: string;
-  timestamp: string;
+  evaluated_at: string;
+  personalization_state_version: number;
 }
 
 export interface PersonalizationResetResponse {

@@ -126,8 +126,7 @@ export function RecommendationExplanationModal({
                 >
                   <History size={15} color="var(--rc-text-muted)" />
                   <div>
-                    <strong>Historical Snapshot:</strong> Explaining point-in-time recommendation from{" "}
-                    {new Date(explanation.generated_at).toLocaleDateString()} (Ranking v{explanation.ranking_version}).
+                    <strong>Historical Snapshot:</strong> Explaining a point-in-time recommendation (Ranking v{explanation.ranking_version}).
                     Immutable record — not recomputed with current preferences.
                   </div>
                 </div>
@@ -329,13 +328,13 @@ export function RecommendationExplanationModal({
                 )}
 
                 {/* Negative Demotion Signals */}
-                {explanation.negative_reasons.length > 0 && (
+                {(explanation.negative_signals ?? []).length > 0 && (
                   <div style={{ borderLeft: "3px solid var(--rc-danger)", paddingLeft: "12px" }}>
                     <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--rc-danger)", display: "flex", alignItems: "center", gap: "6px" }}>
                       <TrendingDown size={14} /> Signals Lowering Ranking
                     </div>
                     <ul style={{ margin: "4px 0 0 0", paddingLeft: "16px", fontSize: "12px", color: "var(--rc-text-secondary)" }}>
-                      {explanation.negative_reasons.map((r, idx) => (
+                      {explanation.negative_signals.map((r, idx) => (
                         <li key={idx}>{r}</li>
                       ))}
                     </ul>
@@ -435,8 +434,7 @@ export function RecommendationExplanationModal({
                         lineHeight: "1.4",
                       }}
                     >
-                      Confidence: <strong>{explanation.confidence}</strong> (
-                      {(explanation.confidence_score * 100).toFixed(0)}%). Your preferences can only adjust
+                      Confidence: <strong>{Math.round(explanation.confidence * 100)}%</strong>. Your preferences can only adjust
                       the ranking within fixed limits.
                     </div>
                   </div>

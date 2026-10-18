@@ -112,15 +112,11 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
     }
   };
 
-  const getFactorIcon = (factor: PersonalizationFactor) => {
-    if (factor.polarity === "POSITIVE") {
-      return <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />;
-    }
-    if (factor.polarity === "NEGATIVE") {
-      return <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />;
-    }
-    return <MinusCircle className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />;
-  };
+  // P6: the API sends the factors in four lists, each with a summary (no polarity), and a summary checklist.
+  const getFactorIcon = (_factor: PersonalizationFactor) => <MinusCircle className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />;
+  const factors: PersonalizationFactor[] = data
+    ? [...(data.explicit_preference_factors ?? []), ...(data.adaptive_signal_factors ?? []), ...(data.calibration_factors ?? []), ...(data.contextual_factors ?? [])]
+    : [];
 
   return (
     <Dialog
@@ -223,9 +219,9 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
                   <Sparkles className="w-4 h-4 text-indigo-500" />
                   Contributing Personalization Factors
                 </h4>
-                {data.factors && data.factors.length > 0 ? (
+                {factors.length > 0 ? (
                   <div className="space-y-2">
-                    {data.factors.map((f, idx) => (
+                    {factors.map((f, idx) => (
                       <div
                         key={idx}
                         className="flex items-start gap-2.5 p-3 rounded-lg border border-gray-200 bg-white"
@@ -233,7 +229,6 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
                         {getFactorIcon(f)}
                         <div className="text-xs space-y-0.5">
                           <p className="font-medium text-gray-900">{f.summary}</p>
-                          <p className="text-gray-500">{f.evidence_basis}</p>
                         </div>
                       </div>
                     ))}
@@ -246,13 +241,13 @@ export const WhyThisRecommendationModal: React.FC<WhyThisRecommendationModalProp
               </div>
 
               {/* Summary Points */}
-              {data.summary_points && data.summary_points.length > 0 && (
+              {data.contributing_factors_summary && data.contributing_factors_summary.length > 0 && (
                 <div className="p-3.5 bg-gray-50 rounded-lg border border-gray-200 space-y-1.5">
                   <div className="text-xs font-semibold text-gray-700 tracking-wide">
                     Summary Notes
                   </div>
                   <ul className="text-xs text-gray-600 space-y-1 list-disc list-inside">
-                    {data.summary_points.map((pt, idx) => (
+                    {data.contributing_factors_summary.map((pt, idx) => (
                       <li key={idx}>{pt}</li>
                     ))}
                   </ul>

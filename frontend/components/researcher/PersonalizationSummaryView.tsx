@@ -588,7 +588,7 @@ export function PersonalizationSummaryView({
 }
 
 function SignalBadge({ item }: { item: LearnedSignalItem }) {
-  const isPositive = item.direction === "POSITIVE";
+  const isPositive = item.strength !== "Negative";
   const badgeBg = isPositive ? "var(--rc-success-subtle)" : "var(--rc-danger-subtle)";
   const badgeBorder = isPositive ? "var(--rc-success-border)" : "var(--rc-danger-border)";
   const badgeColor = isPositive ? "var(--rc-success)" : "var(--rc-danger)";
@@ -607,10 +607,10 @@ function SignalBadge({ item }: { item: LearnedSignalItem }) {
         alignItems: "center",
         gap: "4px",
       }}
-      title={`Confidence: ${(item.confidence * 100).toFixed(0)}%, Events: ${item.supporting_event_count}`}
+      title={`Confidence: ${(item.confidence * 100).toFixed(0)}%`}
     >
       {isPositive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
-      <span>{item.display_label}</span>
+      <span>{item.value}</span>
       <span style={{ fontSize: "var(--rc-text-label-size)" }}>({item.strength})</span>
     </span>
   );

@@ -116,6 +116,8 @@ export function deadlineTone(
 /** "CAMERA_READY" -> "Camera ready": enum values shown to people in sentence case. */
 export function humanizeEnum(value: string | null | undefined): string {
   if (!value) return "";
+  // P6: an API field typed as a word can arrive as a number; say it rather than throw.
+  if (typeof value !== "string") return String(value);
   const words = value.replace(/[_-]+/g, " ").trim().toLowerCase();
   return words.charAt(0).toUpperCase() + words.slice(1);
 }

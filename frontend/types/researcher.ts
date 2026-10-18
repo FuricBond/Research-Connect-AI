@@ -478,12 +478,8 @@ export type FeedbackType =
   | "NOT_INTERESTED"
   | "APPLY";
 
-export type FeedbackSource =
-  | "RECOMMENDATION_FEED"
-  | "SEARCH_RESULT"
-  | "OPPORTUNITY_DETAIL"
-  | "SAVED_LIST"
-  | "MANUAL_ACTION";
+/** The backend's FeedbackSource (app/schemas/researcher_feedback.py); P6 corrected it to the API's values. */
+export type FeedbackSource = "RECOMMENDATION" | "DISCOVERY" | "DIRECT" | "SEARCH";
 
 export interface FeedbackCreatePayload {
   opportunity_id: string;
@@ -647,30 +643,30 @@ export interface RecommendationEvaluationResponse {
 
 // ── Phase 3.8 — Personalization Explainability Types ─────────────────────────
 
+// P6: the Phase 3.8 types below follow app/schemas/recommendation_explanation.py, which is the
+// contract; they had drifted from it (the live explanation crashed the page that read them).
 export type ExplanationReasonCategory =
   | "EXPLICIT_PREFERENCE"
-  | "RESEARCH_EXPERTISE"
-  | "RESEARCH_INTEREST"
-  | "BEHAVIORAL_FEEDBACK"
-  | "PROFILE_KEYWORD"
+  | "EXPERTISE_MATCH"
+  | "BEHAVIORAL_SIGNAL"
+  | "PROFILE_MATCH"
   | "DOMAIN_RELEVANCE"
   | "DEADLINE_URGENCY"
-  | "TRUST_AND_SAFETY";
+  | "TRUST_SAFETY"
+  | "NEGATIVE_SIGNAL";
 
-export type SignalImpact = "POSITIVE" | "NEGATIVE" | "NEUTRAL";
+export type SignalImpact = "POSITIVE" | "NEGATIVE" | "NEUTRAL" | "WARNING";
 
 export interface ExplanationFactor {
   category: ExplanationReasonCategory;
-  summary: string;
-  detail?: string | null;
+  title: string;
+  description: string;
   impact: SignalImpact;
-  weight_or_score?: number | null;
-  is_primary: boolean;
+  weight_contribution: number;
 }
 
 export interface RecommendationExplanation {
   opportunity_id: string;
-  researcher_id: string;
   rank: number;
   final_score: number;
   base_relevance_score: number;
@@ -681,26 +677,24 @@ export interface RecommendationExplanation {
   behavioral_reasons: string[];
   preference_reasons: string[];
   expertise_reasons: string[];
-  negative_reasons: string[];
+  negative_signals: string[];
   factors: ExplanationFactor[];
   risk_summary?: string | null;
-  trust_status?: string | null;
   deadline_summary?: string | null;
-  confidence: string;
-  confidence_score: number;
+  /** 0–1: how much support and agreement the explanation rests on. */
+  confidence: number;
+  trust_status: string;
   is_historical: boolean;
   ranking_version: string;
-  generated_at: string;
 }
 
+/** A learned preference in the personalization summary (LearnedSignalItemSchema). */
 export interface LearnedSignalItem {
-  category: string;
-  display_label: string;
+  dimension: string;
+  value: string;
+  /** "Strong", "Moderate", "Weak" or "Negative". */
   strength: string;
-  direction: string;
-  normalized_score: number;
   confidence: number;
-  supporting_event_count: number;
 }
 
 export interface PersonalizationSummaryResponse {
