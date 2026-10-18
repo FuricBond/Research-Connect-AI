@@ -1,0 +1,2678 @@
+{
+  "measured_at": "2026-10-18T12:43:17.617Z",
+  "requests": {
+    "/workspace": [
+      "GET /api/v1/workspace",
+      "GET /api/v1/workspace/summary"
+    ],
+    "/workspace/{id} (Overview)": [
+      "GET /api/v1/workspace/{id}"
+    ],
+    "/submissions": [
+      "GET /api/v1/submissions",
+      "GET /api/v1/submissions/summary"
+    ],
+    "/reading-list": [
+      "GET /api/v1/reading-list"
+    ],
+    "/calendar": [
+      "GET /api/v1/calendar/default",
+      "GET /api/v1/calendar/{id}/events"
+    ],
+    "/workspace/{id}: open Tasks": [
+      "GET /api/v1/workspaces/{id}/members",
+      "GET /api/v1/workspaces/{id}/tasks"
+    ],
+    "/workspace/{id}: open Submission": [
+      "GET /api/v1/workspace/{id}/submissions",
+      "GET /api/v1/submissions/{id}/readiness",
+      "GET /api/v1/submissions/{id}/documents"
+    ],
+    "/workspace/{id}: open Members": [
+      "GET /api/v1/workspaces/{id}/invitations"
+    ],
+    "/workspace/{id}: open Activity": [
+      "GET /api/v1/workspaces/{id}/activity"
+    ],
+    "/workspace/{id}: open Tasks again": [],
+    "/workspace/{id}: open Overview": [],
+    "/workspace: a status chip": [
+      "GET /api/v1/workspace"
+    ],
+    "/calendar: next month, agenda": []
+  },
+  "cls": {
+    "/workspace 1440": [
+      0.0005,
+      0.0005,
+      0.0005
+    ],
+    "/workspace 390": [
+      0.0001,
+      0.0001,
+      0.0001
+    ],
+    "/workspace/{id} 1440": [
+      0.0005,
+      0.0005,
+      0.0005
+    ],
+    "/workspace/{id} 390": [
+      0.0001,
+      0.0001,
+      0.0001
+    ],
+    "/workspace/{id}?tab=submission 1440": [
+      0.0005,
+      0.0005,
+      0.0005
+    ],
+    "/workspace/{id}?tab=submission 390": [
+      0.0001,
+      0.0001,
+      0.0001
+    ],
+    "/submissions 1440": [
+      0.0005,
+      0.0005,
+      0.0005
+    ],
+    "/submissions 390": [
+      0.0001,
+      0.0001,
+      0.0001
+    ],
+    "/calendar 1440": [
+      0.0005,
+      0.0005,
+      0.0005
+    ],
+    "/calendar 390": [
+      0.0001,
+      0.0001,
+      0.0001
+    ],
+    "/reading-list 1440": [
+      0.0005,
+      0.0005,
+      0.0005
+    ],
+    "/reading-list 390": [
+      0.0001,
+      0.0001,
+      0.0001
+    ]
+  },
+  "axe": [
+    {
+      "label": "light 1440 workspace",
+      "violations": []
+    },
+    {
+      "label": "light 1440 item",
+      "violations": []
+    },
+    {
+      "label": "light 1440 item-tasks",
+      "violations": []
+    },
+    {
+      "label": "light 1440 item-submission",
+      "violations": []
+    },
+    {
+      "label": "light 1440 item-members",
+      "violations": []
+    },
+    {
+      "label": "light 1440 item-activity",
+      "violations": []
+    },
+    {
+      "label": "light 1440 submissions",
+      "violations": []
+    },
+    {
+      "label": "light 1440 reading-list",
+      "violations": []
+    },
+    {
+      "label": "light 1440 calendar",
+      "violations": []
+    },
+    {
+      "label": "light 1440 calendar-month",
+      "violations": []
+    },
+    {
+      "label": "light 1440 calendar-agenda",
+      "violations": []
+    },
+    {
+      "label": "light 1440 calendar-month-deadline",
+      "violations": []
+    },
+    {
+      "label": "light 1440 workspace status menu open",
+      "violations": []
+    },
+    {
+      "label": "light 1440 workspace remove dialog",
+      "violations": []
+    },
+    {
+      "label": "light 1440 workspace notes open",
+      "violations": []
+    },
+    {
+      "label": "light 1440 item new task dialog",
+      "violations": []
+    },
+    {
+      "label": "light 1440 item invite dialog",
+      "violations": []
+    },
+    {
+      "label": "light 1440 item submission history open",
+      "violations": []
+    },
+    {
+      "label": "light 1440 calendar event dialog",
+      "violations": []
+    },
+    {
+      "label": "light 1440 calendar add milestone dialog",
+      "violations": []
+    },
+    {
+      "label": "light 1440 reading list remove dialog",
+      "violations": []
+    },
+    {
+      "label": "light 768 workspace",
+      "violations": []
+    },
+    {
+      "label": "light 768 item",
+      "violations": []
+    },
+    {
+      "label": "light 768 item-tasks",
+      "violations": []
+    },
+    {
+      "label": "light 768 item-submission",
+      "violations": []
+    },
+    {
+      "label": "light 768 item-members",
+      "violations": []
+    },
+    {
+      "label": "light 768 item-activity",
+      "violations": []
+    },
+    {
+      "label": "light 768 submissions",
+      "violations": []
+    },
+    {
+      "label": "light 768 reading-list",
+      "violations": []
+    },
+    {
+      "label": "light 768 calendar",
+      "violations": []
+    },
+    {
+      "label": "light 768 calendar-month",
+      "violations": []
+    },
+    {
+      "label": "light 768 calendar-agenda",
+      "violations": []
+    },
+    {
+      "label": "light 768 calendar-month-deadline",
+      "violations": []
+    },
+    {
+      "label": "light 768 workspace status menu open",
+      "violations": []
+    },
+    {
+      "label": "light 768 workspace remove dialog",
+      "violations": []
+    },
+    {
+      "label": "light 768 workspace notes open",
+      "violations": []
+    },
+    {
+      "label": "light 768 item new task dialog",
+      "violations": []
+    },
+    {
+      "label": "light 768 item invite dialog",
+      "violations": []
+    },
+    {
+      "label": "light 768 item submission history open",
+      "violations": []
+    },
+    {
+      "label": "light 768 calendar event dialog",
+      "violations": []
+    },
+    {
+      "label": "light 768 calendar add milestone dialog",
+      "violations": []
+    },
+    {
+      "label": "light 768 reading list remove dialog",
+      "violations": []
+    },
+    {
+      "label": "light 390 workspace",
+      "violations": []
+    },
+    {
+      "label": "light 390 item",
+      "violations": []
+    },
+    {
+      "label": "light 390 item-tasks",
+      "violations": []
+    },
+    {
+      "label": "light 390 item-submission",
+      "violations": []
+    },
+    {
+      "label": "light 390 item-members",
+      "violations": []
+    },
+    {
+      "label": "light 390 item-activity",
+      "violations": []
+    },
+    {
+      "label": "light 390 submissions",
+      "violations": []
+    },
+    {
+      "label": "light 390 reading-list",
+      "violations": []
+    },
+    {
+      "label": "light 390 calendar",
+      "violations": []
+    },
+    {
+      "label": "light 390 calendar-month",
+      "violations": []
+    },
+    {
+      "label": "light 390 calendar-agenda",
+      "violations": []
+    },
+    {
+      "label": "light 390 calendar-month-deadline",
+      "violations": []
+    },
+    {
+      "label": "light 390 workspace status menu open",
+      "violations": []
+    },
+    {
+      "label": "light 390 workspace remove dialog",
+      "violations": []
+    },
+    {
+      "label": "light 390 workspace notes open",
+      "violations": []
+    },
+    {
+      "label": "light 390 item new task dialog",
+      "violations": []
+    },
+    {
+      "label": "light 390 item invite dialog",
+      "violations": []
+    },
+    {
+      "label": "light 390 item submission history open",
+      "violations": []
+    },
+    {
+      "label": "light 390 calendar event dialog",
+      "violations": []
+    },
+    {
+      "label": "light 390 calendar add milestone dialog",
+      "violations": []
+    },
+    {
+      "label": "light 390 reading list remove dialog",
+      "violations": []
+    },
+    {
+      "label": "light 360 workspace",
+      "violations": []
+    },
+    {
+      "label": "light 360 item",
+      "violations": []
+    },
+    {
+      "label": "light 360 item-tasks",
+      "violations": []
+    },
+    {
+      "label": "light 360 item-submission",
+      "violations": []
+    },
+    {
+      "label": "light 360 item-members",
+      "violations": []
+    },
+    {
+      "label": "light 360 item-activity",
+      "violations": []
+    },
+    {
+      "label": "light 360 submissions",
+      "violations": []
+    },
+    {
+      "label": "light 360 reading-list",
+      "violations": []
+    },
+    {
+      "label": "light 360 calendar",
+      "violations": []
+    },
+    {
+      "label": "light 360 calendar-month",
+      "violations": []
+    },
+    {
+      "label": "light 360 calendar-agenda",
+      "violations": []
+    },
+    {
+      "label": "light 360 calendar-month-deadline",
+      "violations": []
+    },
+    {
+      "label": "light 360 workspace status menu open",
+      "violations": []
+    },
+    {
+      "label": "light 360 workspace remove dialog",
+      "violations": []
+    },
+    {
+      "label": "light 360 workspace notes open",
+      "violations": []
+    },
+    {
+      "label": "light 360 item new task dialog",
+      "violations": []
+    },
+    {
+      "label": "light 360 item invite dialog",
+      "violations": []
+    },
+    {
+      "label": "light 360 item submission history open",
+      "violations": []
+    },
+    {
+      "label": "light 360 calendar event dialog",
+      "violations": []
+    },
+    {
+      "label": "light 360 calendar add milestone dialog",
+      "violations": []
+    },
+    {
+      "label": "light 360 reading list remove dialog",
+      "violations": []
+    },
+    {
+      "label": "light 320 workspace",
+      "violations": []
+    },
+    {
+      "label": "light 320 item",
+      "violations": []
+    },
+    {
+      "label": "light 320 item-tasks",
+      "violations": []
+    },
+    {
+      "label": "light 320 item-submission",
+      "violations": []
+    },
+    {
+      "label": "light 320 item-members",
+      "violations": []
+    },
+    {
+      "label": "light 320 item-activity",
+      "violations": []
+    },
+    {
+      "label": "light 320 submissions",
+      "violations": []
+    },
+    {
+      "label": "light 320 reading-list",
+      "violations": []
+    },
+    {
+      "label": "light 320 calendar",
+      "violations": []
+    },
+    {
+      "label": "light 320 calendar-month",
+      "violations": []
+    },
+    {
+      "label": "light 320 calendar-agenda",
+      "violations": []
+    },
+    {
+      "label": "light 320 calendar-month-deadline",
+      "violations": []
+    },
+    {
+      "label": "light 320 workspace status menu open",
+      "violations": []
+    },
+    {
+      "label": "light 320 workspace remove dialog",
+      "violations": []
+    },
+    {
+      "label": "light 320 workspace notes open",
+      "violations": []
+    },
+    {
+      "label": "light 320 item new task dialog",
+      "violations": []
+    },
+    {
+      "label": "light 320 item invite dialog",
+      "violations": []
+    },
+    {
+      "label": "light 320 item submission history open",
+      "violations": []
+    },
+    {
+      "label": "light 320 calendar event dialog",
+      "violations": []
+    },
+    {
+      "label": "light 320 calendar add milestone dialog",
+      "violations": []
+    },
+    {
+      "label": "light 320 reading list remove dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 workspace",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 item",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 item-tasks",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 item-submission",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 item-members",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 item-activity",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 submissions",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 reading-list",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 calendar",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 calendar-month",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 calendar-agenda",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 calendar-month-deadline",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 workspace status menu open",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 workspace remove dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 workspace notes open",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 item new task dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 item invite dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 item submission history open",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 calendar event dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 calendar add milestone dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 1440 reading list remove dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 768 workspace",
+      "violations": []
+    },
+    {
+      "label": "dark 768 item",
+      "violations": []
+    },
+    {
+      "label": "dark 768 item-tasks",
+      "violations": []
+    },
+    {
+      "label": "dark 768 item-submission",
+      "violations": []
+    },
+    {
+      "label": "dark 768 item-members",
+      "violations": []
+    },
+    {
+      "label": "dark 768 item-activity",
+      "violations": []
+    },
+    {
+      "label": "dark 768 submissions",
+      "violations": []
+    },
+    {
+      "label": "dark 768 reading-list",
+      "violations": []
+    },
+    {
+      "label": "dark 768 calendar",
+      "violations": []
+    },
+    {
+      "label": "dark 768 calendar-month",
+      "violations": []
+    },
+    {
+      "label": "dark 768 calendar-agenda",
+      "violations": []
+    },
+    {
+      "label": "dark 768 calendar-month-deadline",
+      "violations": []
+    },
+    {
+      "label": "dark 768 workspace status menu open",
+      "violations": []
+    },
+    {
+      "label": "dark 768 workspace remove dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 768 workspace notes open",
+      "violations": []
+    },
+    {
+      "label": "dark 768 item new task dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 768 item invite dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 768 item submission history open",
+      "violations": []
+    },
+    {
+      "label": "dark 768 calendar event dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 768 calendar add milestone dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 768 reading list remove dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 390 workspace",
+      "violations": []
+    },
+    {
+      "label": "dark 390 item",
+      "violations": []
+    },
+    {
+      "label": "dark 390 item-tasks",
+      "violations": []
+    },
+    {
+      "label": "dark 390 item-submission",
+      "violations": []
+    },
+    {
+      "label": "dark 390 item-members",
+      "violations": []
+    },
+    {
+      "label": "dark 390 item-activity",
+      "violations": []
+    },
+    {
+      "label": "dark 390 submissions",
+      "violations": []
+    },
+    {
+      "label": "dark 390 reading-list",
+      "violations": []
+    },
+    {
+      "label": "dark 390 calendar",
+      "violations": []
+    },
+    {
+      "label": "dark 390 calendar-month",
+      "violations": []
+    },
+    {
+      "label": "dark 390 calendar-agenda",
+      "violations": []
+    },
+    {
+      "label": "dark 390 calendar-month-deadline",
+      "violations": []
+    },
+    {
+      "label": "dark 390 workspace status menu open",
+      "violations": []
+    },
+    {
+      "label": "dark 390 workspace remove dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 390 workspace notes open",
+      "violations": []
+    },
+    {
+      "label": "dark 390 item new task dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 390 item invite dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 390 item submission history open",
+      "violations": []
+    },
+    {
+      "label": "dark 390 calendar event dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 390 calendar add milestone dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 390 reading list remove dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 360 workspace",
+      "violations": []
+    },
+    {
+      "label": "dark 360 item",
+      "violations": []
+    },
+    {
+      "label": "dark 360 item-tasks",
+      "violations": []
+    },
+    {
+      "label": "dark 360 item-submission",
+      "violations": []
+    },
+    {
+      "label": "dark 360 item-members",
+      "violations": []
+    },
+    {
+      "label": "dark 360 item-activity",
+      "violations": []
+    },
+    {
+      "label": "dark 360 submissions",
+      "violations": []
+    },
+    {
+      "label": "dark 360 reading-list",
+      "violations": []
+    },
+    {
+      "label": "dark 360 calendar",
+      "violations": []
+    },
+    {
+      "label": "dark 360 calendar-month",
+      "violations": []
+    },
+    {
+      "label": "dark 360 calendar-agenda",
+      "violations": []
+    },
+    {
+      "label": "dark 360 calendar-month-deadline",
+      "violations": []
+    },
+    {
+      "label": "dark 360 workspace status menu open",
+      "violations": []
+    },
+    {
+      "label": "dark 360 workspace remove dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 360 workspace notes open",
+      "violations": []
+    },
+    {
+      "label": "dark 360 item new task dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 360 item invite dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 360 item submission history open",
+      "violations": []
+    },
+    {
+      "label": "dark 360 calendar event dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 360 calendar add milestone dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 360 reading list remove dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 320 workspace",
+      "violations": []
+    },
+    {
+      "label": "dark 320 item",
+      "violations": []
+    },
+    {
+      "label": "dark 320 item-tasks",
+      "violations": []
+    },
+    {
+      "label": "dark 320 item-submission",
+      "violations": []
+    },
+    {
+      "label": "dark 320 item-members",
+      "violations": []
+    },
+    {
+      "label": "dark 320 item-activity",
+      "violations": []
+    },
+    {
+      "label": "dark 320 submissions",
+      "violations": []
+    },
+    {
+      "label": "dark 320 reading-list",
+      "violations": []
+    },
+    {
+      "label": "dark 320 calendar",
+      "violations": []
+    },
+    {
+      "label": "dark 320 calendar-month",
+      "violations": []
+    },
+    {
+      "label": "dark 320 calendar-agenda",
+      "violations": []
+    },
+    {
+      "label": "dark 320 calendar-month-deadline",
+      "violations": []
+    },
+    {
+      "label": "dark 320 workspace status menu open",
+      "violations": []
+    },
+    {
+      "label": "dark 320 workspace remove dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 320 workspace notes open",
+      "violations": []
+    },
+    {
+      "label": "dark 320 item new task dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 320 item invite dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 320 item submission history open",
+      "violations": []
+    },
+    {
+      "label": "dark 320 calendar event dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 320 calendar add milestone dialog",
+      "violations": []
+    },
+    {
+      "label": "dark 320 reading list remove dialog",
+      "violations": []
+    }
+  ],
+  "overflow": [
+    {
+      "label": "light 1440 workspace",
+      "px": 0
+    },
+    {
+      "label": "light 1440 item",
+      "px": 0
+    },
+    {
+      "label": "light 1440 item-tasks",
+      "px": 0
+    },
+    {
+      "label": "light 1440 item-submission",
+      "px": 0
+    },
+    {
+      "label": "light 1440 item-members",
+      "px": 0
+    },
+    {
+      "label": "light 1440 item-activity",
+      "px": 0
+    },
+    {
+      "label": "light 1440 submissions",
+      "px": 0
+    },
+    {
+      "label": "light 1440 reading-list",
+      "px": 0
+    },
+    {
+      "label": "light 1440 calendar",
+      "px": 0
+    },
+    {
+      "label": "light 1440 calendar-month",
+      "px": 0
+    },
+    {
+      "label": "light 1440 calendar-agenda",
+      "px": 0
+    },
+    {
+      "label": "light 1440 calendar-month-deadline",
+      "px": 0
+    },
+    {
+      "label": "light 1440 workspace status menu open",
+      "px": 0
+    },
+    {
+      "label": "light 1440 workspace remove dialog",
+      "px": 0
+    },
+    {
+      "label": "light 1440 workspace notes open",
+      "px": 0
+    },
+    {
+      "label": "light 1440 item new task dialog",
+      "px": 0
+    },
+    {
+      "label": "light 1440 item invite dialog",
+      "px": 0
+    },
+    {
+      "label": "light 1440 item submission history open",
+      "px": 0
+    },
+    {
+      "label": "light 1440 calendar event dialog",
+      "px": 0
+    },
+    {
+      "label": "light 1440 calendar add milestone dialog",
+      "px": 0
+    },
+    {
+      "label": "light 1440 reading list remove dialog",
+      "px": 0
+    },
+    {
+      "label": "light 768 workspace",
+      "px": 0
+    },
+    {
+      "label": "light 768 item",
+      "px": 0
+    },
+    {
+      "label": "light 768 item-tasks",
+      "px": 0
+    },
+    {
+      "label": "light 768 item-submission",
+      "px": 0
+    },
+    {
+      "label": "light 768 item-members",
+      "px": 0
+    },
+    {
+      "label": "light 768 item-activity",
+      "px": 0
+    },
+    {
+      "label": "light 768 submissions",
+      "px": 0
+    },
+    {
+      "label": "light 768 reading-list",
+      "px": 0
+    },
+    {
+      "label": "light 768 calendar",
+      "px": 0
+    },
+    {
+      "label": "light 768 calendar-month",
+      "px": 0
+    },
+    {
+      "label": "light 768 calendar-agenda",
+      "px": 0
+    },
+    {
+      "label": "light 768 calendar-month-deadline",
+      "px": 0
+    },
+    {
+      "label": "light 768 workspace status menu open",
+      "px": 0
+    },
+    {
+      "label": "light 768 workspace remove dialog",
+      "px": 0
+    },
+    {
+      "label": "light 768 workspace notes open",
+      "px": 0
+    },
+    {
+      "label": "light 768 item new task dialog",
+      "px": 0
+    },
+    {
+      "label": "light 768 item invite dialog",
+      "px": 0
+    },
+    {
+      "label": "light 768 item submission history open",
+      "px": 0
+    },
+    {
+      "label": "light 768 calendar event dialog",
+      "px": 0
+    },
+    {
+      "label": "light 768 calendar add milestone dialog",
+      "px": 0
+    },
+    {
+      "label": "light 768 reading list remove dialog",
+      "px": 0
+    },
+    {
+      "label": "light 390 workspace",
+      "px": 0
+    },
+    {
+      "label": "light 390 item",
+      "px": 0
+    },
+    {
+      "label": "light 390 item-tasks",
+      "px": 0
+    },
+    {
+      "label": "light 390 item-submission",
+      "px": 0
+    },
+    {
+      "label": "light 390 item-members",
+      "px": 0
+    },
+    {
+      "label": "light 390 item-activity",
+      "px": 0
+    },
+    {
+      "label": "light 390 submissions",
+      "px": 0
+    },
+    {
+      "label": "light 390 reading-list",
+      "px": 0
+    },
+    {
+      "label": "light 390 calendar",
+      "px": 0
+    },
+    {
+      "label": "light 390 calendar-month",
+      "px": 0
+    },
+    {
+      "label": "light 390 calendar-agenda",
+      "px": 0
+    },
+    {
+      "label": "light 390 calendar-month-deadline",
+      "px": 0
+    },
+    {
+      "label": "light 390 workspace status menu open",
+      "px": 0
+    },
+    {
+      "label": "light 390 workspace remove dialog",
+      "px": 0
+    },
+    {
+      "label": "light 390 workspace notes open",
+      "px": 0
+    },
+    {
+      "label": "light 390 item new task dialog",
+      "px": 0
+    },
+    {
+      "label": "light 390 item invite dialog",
+      "px": 0
+    },
+    {
+      "label": "light 390 item submission history open",
+      "px": 0
+    },
+    {
+      "label": "light 390 calendar event dialog",
+      "px": 0
+    },
+    {
+      "label": "light 390 calendar add milestone dialog",
+      "px": 0
+    },
+    {
+      "label": "light 390 reading list remove dialog",
+      "px": 0
+    },
+    {
+      "label": "light 360 workspace",
+      "px": 0
+    },
+    {
+      "label": "light 360 item",
+      "px": 0
+    },
+    {
+      "label": "light 360 item-tasks",
+      "px": 0
+    },
+    {
+      "label": "light 360 item-submission",
+      "px": 0
+    },
+    {
+      "label": "light 360 item-members",
+      "px": 0
+    },
+    {
+      "label": "light 360 item-activity",
+      "px": 0
+    },
+    {
+      "label": "light 360 submissions",
+      "px": 0
+    },
+    {
+      "label": "light 360 reading-list",
+      "px": 0
+    },
+    {
+      "label": "light 360 calendar",
+      "px": 0
+    },
+    {
+      "label": "light 360 calendar-month",
+      "px": 0
+    },
+    {
+      "label": "light 360 calendar-agenda",
+      "px": 0
+    },
+    {
+      "label": "light 360 calendar-month-deadline",
+      "px": 0
+    },
+    {
+      "label": "light 360 workspace status menu open",
+      "px": 0
+    },
+    {
+      "label": "light 360 workspace remove dialog",
+      "px": 0
+    },
+    {
+      "label": "light 360 workspace notes open",
+      "px": 0
+    },
+    {
+      "label": "light 360 item new task dialog",
+      "px": 0
+    },
+    {
+      "label": "light 360 item invite dialog",
+      "px": 0
+    },
+    {
+      "label": "light 360 item submission history open",
+      "px": 0
+    },
+    {
+      "label": "light 360 calendar event dialog",
+      "px": 0
+    },
+    {
+      "label": "light 360 calendar add milestone dialog",
+      "px": 0
+    },
+    {
+      "label": "light 360 reading list remove dialog",
+      "px": 0
+    },
+    {
+      "label": "light 320 workspace",
+      "px": 0
+    },
+    {
+      "label": "light 320 item",
+      "px": 0
+    },
+    {
+      "label": "light 320 item-tasks",
+      "px": 0
+    },
+    {
+      "label": "light 320 item-submission",
+      "px": 0
+    },
+    {
+      "label": "light 320 item-members",
+      "px": 0
+    },
+    {
+      "label": "light 320 item-activity",
+      "px": 0
+    },
+    {
+      "label": "light 320 submissions",
+      "px": 0
+    },
+    {
+      "label": "light 320 reading-list",
+      "px": 0
+    },
+    {
+      "label": "light 320 calendar",
+      "px": 0
+    },
+    {
+      "label": "light 320 calendar-month",
+      "px": 0
+    },
+    {
+      "label": "light 320 calendar-agenda",
+      "px": 0
+    },
+    {
+      "label": "light 320 calendar-month-deadline",
+      "px": 0
+    },
+    {
+      "label": "light 320 workspace status menu open",
+      "px": 0
+    },
+    {
+      "label": "light 320 workspace remove dialog",
+      "px": 0
+    },
+    {
+      "label": "light 320 workspace notes open",
+      "px": 0
+    },
+    {
+      "label": "light 320 item new task dialog",
+      "px": 0
+    },
+    {
+      "label": "light 320 item invite dialog",
+      "px": 0
+    },
+    {
+      "label": "light 320 item submission history open",
+      "px": 0
+    },
+    {
+      "label": "light 320 calendar event dialog",
+      "px": 0
+    },
+    {
+      "label": "light 320 calendar add milestone dialog",
+      "px": 0
+    },
+    {
+      "label": "light 320 reading list remove dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 workspace",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 item",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 item-tasks",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 item-submission",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 item-members",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 item-activity",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 submissions",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 reading-list",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 calendar",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 calendar-month",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 calendar-agenda",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 calendar-month-deadline",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 workspace status menu open",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 workspace remove dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 workspace notes open",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 item new task dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 item invite dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 item submission history open",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 calendar event dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 calendar add milestone dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 1440 reading list remove dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 768 workspace",
+      "px": 0
+    },
+    {
+      "label": "dark 768 item",
+      "px": 0
+    },
+    {
+      "label": "dark 768 item-tasks",
+      "px": 0
+    },
+    {
+      "label": "dark 768 item-submission",
+      "px": 0
+    },
+    {
+      "label": "dark 768 item-members",
+      "px": 0
+    },
+    {
+      "label": "dark 768 item-activity",
+      "px": 0
+    },
+    {
+      "label": "dark 768 submissions",
+      "px": 0
+    },
+    {
+      "label": "dark 768 reading-list",
+      "px": 0
+    },
+    {
+      "label": "dark 768 calendar",
+      "px": 0
+    },
+    {
+      "label": "dark 768 calendar-month",
+      "px": 0
+    },
+    {
+      "label": "dark 768 calendar-agenda",
+      "px": 0
+    },
+    {
+      "label": "dark 768 calendar-month-deadline",
+      "px": 0
+    },
+    {
+      "label": "dark 768 workspace status menu open",
+      "px": 0
+    },
+    {
+      "label": "dark 768 workspace remove dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 768 workspace notes open",
+      "px": 0
+    },
+    {
+      "label": "dark 768 item new task dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 768 item invite dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 768 item submission history open",
+      "px": 0
+    },
+    {
+      "label": "dark 768 calendar event dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 768 calendar add milestone dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 768 reading list remove dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 390 workspace",
+      "px": 0
+    },
+    {
+      "label": "dark 390 item",
+      "px": 0
+    },
+    {
+      "label": "dark 390 item-tasks",
+      "px": 0
+    },
+    {
+      "label": "dark 390 item-submission",
+      "px": 0
+    },
+    {
+      "label": "dark 390 item-members",
+      "px": 0
+    },
+    {
+      "label": "dark 390 item-activity",
+      "px": 0
+    },
+    {
+      "label": "dark 390 submissions",
+      "px": 0
+    },
+    {
+      "label": "dark 390 reading-list",
+      "px": 0
+    },
+    {
+      "label": "dark 390 calendar",
+      "px": 0
+    },
+    {
+      "label": "dark 390 calendar-month",
+      "px": 0
+    },
+    {
+      "label": "dark 390 calendar-agenda",
+      "px": 0
+    },
+    {
+      "label": "dark 390 calendar-month-deadline",
+      "px": 0
+    },
+    {
+      "label": "dark 390 workspace status menu open",
+      "px": 0
+    },
+    {
+      "label": "dark 390 workspace remove dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 390 workspace notes open",
+      "px": 0
+    },
+    {
+      "label": "dark 390 item new task dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 390 item invite dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 390 item submission history open",
+      "px": 0
+    },
+    {
+      "label": "dark 390 calendar event dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 390 calendar add milestone dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 390 reading list remove dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 360 workspace",
+      "px": 0
+    },
+    {
+      "label": "dark 360 item",
+      "px": 0
+    },
+    {
+      "label": "dark 360 item-tasks",
+      "px": 0
+    },
+    {
+      "label": "dark 360 item-submission",
+      "px": 0
+    },
+    {
+      "label": "dark 360 item-members",
+      "px": 0
+    },
+    {
+      "label": "dark 360 item-activity",
+      "px": 0
+    },
+    {
+      "label": "dark 360 submissions",
+      "px": 0
+    },
+    {
+      "label": "dark 360 reading-list",
+      "px": 0
+    },
+    {
+      "label": "dark 360 calendar",
+      "px": 0
+    },
+    {
+      "label": "dark 360 calendar-month",
+      "px": 0
+    },
+    {
+      "label": "dark 360 calendar-agenda",
+      "px": 0
+    },
+    {
+      "label": "dark 360 calendar-month-deadline",
+      "px": 0
+    },
+    {
+      "label": "dark 360 workspace status menu open",
+      "px": 0
+    },
+    {
+      "label": "dark 360 workspace remove dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 360 workspace notes open",
+      "px": 0
+    },
+    {
+      "label": "dark 360 item new task dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 360 item invite dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 360 item submission history open",
+      "px": 0
+    },
+    {
+      "label": "dark 360 calendar event dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 360 calendar add milestone dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 360 reading list remove dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 320 workspace",
+      "px": 0
+    },
+    {
+      "label": "dark 320 item",
+      "px": 0
+    },
+    {
+      "label": "dark 320 item-tasks",
+      "px": 0
+    },
+    {
+      "label": "dark 320 item-submission",
+      "px": 0
+    },
+    {
+      "label": "dark 320 item-members",
+      "px": 0
+    },
+    {
+      "label": "dark 320 item-activity",
+      "px": 0
+    },
+    {
+      "label": "dark 320 submissions",
+      "px": 0
+    },
+    {
+      "label": "dark 320 reading-list",
+      "px": 0
+    },
+    {
+      "label": "dark 320 calendar",
+      "px": 0
+    },
+    {
+      "label": "dark 320 calendar-month",
+      "px": 0
+    },
+    {
+      "label": "dark 320 calendar-agenda",
+      "px": 0
+    },
+    {
+      "label": "dark 320 calendar-month-deadline",
+      "px": 0
+    },
+    {
+      "label": "dark 320 workspace status menu open",
+      "px": 0
+    },
+    {
+      "label": "dark 320 workspace remove dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 320 workspace notes open",
+      "px": 0
+    },
+    {
+      "label": "dark 320 item new task dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 320 item invite dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 320 item submission history open",
+      "px": 0
+    },
+    {
+      "label": "dark 320 calendar event dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 320 calendar add milestone dialog",
+      "px": 0
+    },
+    {
+      "label": "dark 320 reading list remove dialog",
+      "px": 0
+    }
+  ],
+  "text200": [
+    {
+      "route": "workspace",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    },
+    {
+      "route": "item",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    },
+    {
+      "route": "item-submission",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    },
+    {
+      "route": "item-tasks",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    },
+    {
+      "route": "submissions",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    },
+    {
+      "route": "reading-list",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    },
+    {
+      "route": "calendar",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    },
+    {
+      "route": "calendar-month",
+      "overflow": 0,
+      "offscreen": [],
+      "root": "32px"
+    }
+  ],
+  "keyboard": {
+    "/workspace (first 50 stops after the title)": {
+      "stops": 49,
+      "unnamed": 0,
+      "without_ring": [],
+      "sample": [
+        "a: Calls",
+        "a: Submissions",
+        "button: All (1)",
+        "button: Saved (1)",
+        "button: Considering (0)",
+        "button: Planning (0)",
+        "button: Applied (0)",
+        "button: Accepted (0)",
+        "button: Not accepted (0)",
+        "button: Archived (0)",
+        "input: Search titles and notes",
+        "button: Search",
+        "select: Sort by",
+        "a: Symposium on Human-Computer Interaction and Access",
+        "button: Status: Saved. Change status",
+        "a: Draft submission",
+        "button: More actions for Symposium on Human-Computer Inter",
+        "summary: Notes, tags and priority for Symposium on Human-Co",
+        "a: Skip to main content",
+        "a: ResearchConnect AI home",
+        "input: Search papers",
+        "a: Notifications",
+        "button: Priya Raghavan, account menu",
+        "a: Home",
+        "a: Literature search"
+      ]
+    },
+    "/workspace/{id} (first 50 stops after the title)": {
+      "stops": 48,
+      "unnamed": 0,
+      "without_ring": [],
+      "sample": [
+        "a: Workspace",
+        "button: Status: Saved. Change status",
+        "button[tab]: Overview",
+        "div[tabpanel]: Overview",
+        "a: Open the call for papers",
+        "textarea: Notes for Symposium on Human-Computer Interaction ",
+        "input: Add a tag to Symposium on Human-Computer Interacti",
+        "select: Priority for Symposium on Human-Computer Interacti",
+        "button: Draft submission",
+        "a: Skip to main content",
+        "a: ResearchConnect AI home",
+        "input: Search papers",
+        "a: Notifications",
+        "button: Priya Raghavan, account menu",
+        "a: Home",
+        "a: Literature search",
+        "a: Calls for papers",
+        "a: Research postings",
+        "a: Workspace",
+        "a: Submissions",
+        "a: Reading list",
+        "a: Calendar",
+        "a: Recommendations",
+        "a: Find a supervisor",
+        "a: Find peers"
+      ]
+    },
+    "/calendar (month) (first 50 stops after the title)": {
+      "stops": 48,
+      "unnamed": 0,
+      "without_ring": [],
+      "sample": [
+        "button: Export calendar (.ics)",
+        "button: Add milestone",
+        "button: All (8)",
+        "button: Submissions (1)",
+        "button: Notifications (1)",
+        "button: Camera-ready (1)",
+        "button: Conference dates (2)",
+        "button: Your milestones (3)",
+        "button: Previous month",
+        "button: Next month",
+        "button: Agenda",
+        "button: Month",
+        "button: Sunday, 18 October 2026, today: 3 events",
+        "a: Skip to main content",
+        "a: ResearchConnect AI home",
+        "input: Search papers",
+        "a: Notifications",
+        "button: Priya Raghavan, account menu",
+        "a: Home",
+        "a: Literature search",
+        "a: Calls for papers",
+        "a: Research postings",
+        "a: Workspace",
+        "a: Submissions",
+        "a: Reading list"
+      ]
+    }
+  },
+  "headings": {
+    "workspace": [
+      "H1 Workspace",
+      "H2 All calls",
+      "H3 Symposium on Human-Computer Interaction and Accessibility"
+    ],
+    "item": [
+      "H1 Symposium on Human-Computer Interaction and Accessibility",
+      "H2 Dates",
+      "H2 Notes, tags and priority",
+      "H2 Next step"
+    ],
+    "item-tasks": [
+      "H1 Symposium on Human-Computer Interaction and Accessibility",
+      "H2 Tasks",
+      "H3 No tasks yet."
+    ],
+    "item-submission": [
+      "H1 Symposium on Human-Computer Interaction and Accessibility",
+      "H2 Accessible retrieval interfaces for screen-reader users",
+      "H3 Readiness",
+      "H3 Change status",
+      "H2 Details",
+      "H2 Documents",
+      "H3 Manuscript (8 pages)",
+      "H2 Delete this submission"
+    ],
+    "item-members": [
+      "H1 Symposium on Human-Computer Interaction and Accessibility",
+      "H2 Members",
+      "H3 Priya Raghavan (you)",
+      "H2 Invitations"
+    ],
+    "item-activity": [
+      "H1 Symposium on Human-Computer Interaction and Accessibility",
+      "H2 Post a note",
+      "H2 Activity",
+      "H3 Nothing has happened here yet."
+    ],
+    "submissions": [
+      "H1 Submissions",
+      "H2 All submissions",
+      "H3 Accessible retrieval interfaces for screen-reader users"
+    ],
+    "reading-list": [
+      "H1 Reading list",
+      "H2 All papers",
+      "H3 Accessible interfaces for screen reader users",
+      "H3 Research data management practices in computational science",
+      "H3 Reproducible retrieval evaluation with shared test collectio",
+      "H3 Learning to rank for information retrieval with neural model"
+    ],
+    "calendar": [
+      "H1 Calendar",
+      "H2 October 2026"
+    ],
+    "calendar-month": [
+      "H1 Calendar",
+      "H2 October 2026"
+    ],
+    "calendar-agenda": [
+      "H1 Calendar",
+      "H2 October 2026",
+      "H3 Sunday, 18 October 2026 · Today"
+    ],
+    "calendar-month-deadline": [
+      "H1 Calendar",
+      "H2 January 2027"
+    ]
+  },
+  "notes": [
+    "seeded on the e2e stack: the tracked call's dates (its page's Add dates to calendar) and one milestone today"
+  ],
+  "item": "/workspace/{id}",
+  "filled": {
+    "axe": [
+      {
+        "label": "light 1440 item-submission-filled",
+        "violations": []
+      },
+      {
+        "label": "light 1440 reading-list-filled",
+        "violations": []
+      },
+      {
+        "label": "light 1440 submissions-filled",
+        "violations": []
+      },
+      {
+        "label": "light 1440 submission record version dialog",
+        "violations": []
+      },
+      {
+        "label": "light 1440 submission version history dialog",
+        "violations": []
+      },
+      {
+        "label": "light 1440 submission history open",
+        "violations": []
+      },
+      {
+        "label": "light 1440 submission delete dialog",
+        "violations": []
+      },
+      {
+        "label": "light 1440 reading list remove dialog",
+        "violations": []
+      },
+      {
+        "label": "light 768 item-submission-filled",
+        "violations": []
+      },
+      {
+        "label": "light 768 reading-list-filled",
+        "violations": []
+      },
+      {
+        "label": "light 768 submissions-filled",
+        "violations": []
+      },
+      {
+        "label": "light 768 submission record version dialog",
+        "violations": []
+      },
+      {
+        "label": "light 768 submission version history dialog",
+        "violations": []
+      },
+      {
+        "label": "light 768 submission history open",
+        "violations": []
+      },
+      {
+        "label": "light 768 submission delete dialog",
+        "violations": []
+      },
+      {
+        "label": "light 768 reading list remove dialog",
+        "violations": []
+      },
+      {
+        "label": "light 390 item-submission-filled",
+        "violations": []
+      },
+      {
+        "label": "light 390 reading-list-filled",
+        "violations": []
+      },
+      {
+        "label": "light 390 submissions-filled",
+        "violations": []
+      },
+      {
+        "label": "light 390 submission record version dialog",
+        "violations": []
+      },
+      {
+        "label": "light 390 submission version history dialog",
+        "violations": []
+      },
+      {
+        "label": "light 390 submission history open",
+        "violations": []
+      },
+      {
+        "label": "light 390 submission delete dialog",
+        "violations": []
+      },
+      {
+        "label": "light 390 reading list remove dialog",
+        "violations": []
+      },
+      {
+        "label": "light 360 item-submission-filled",
+        "violations": []
+      },
+      {
+        "label": "light 360 reading-list-filled",
+        "violations": []
+      },
+      {
+        "label": "light 360 submissions-filled",
+        "violations": []
+      },
+      {
+        "label": "light 360 submission record version dialog",
+        "violations": []
+      },
+      {
+        "label": "light 360 submission version history dialog",
+        "violations": []
+      },
+      {
+        "label": "light 360 submission history open",
+        "violations": []
+      },
+      {
+        "label": "light 360 submission delete dialog",
+        "violations": []
+      },
+      {
+        "label": "light 360 reading list remove dialog",
+        "violations": []
+      },
+      {
+        "label": "light 320 item-submission-filled",
+        "violations": []
+      },
+      {
+        "label": "light 320 reading-list-filled",
+        "violations": []
+      },
+      {
+        "label": "light 320 submissions-filled",
+        "violations": []
+      },
+      {
+        "label": "light 320 submission record version dialog",
+        "violations": []
+      },
+      {
+        "label": "light 320 submission version history dialog",
+        "violations": []
+      },
+      {
+        "label": "light 320 submission history open",
+        "violations": []
+      },
+      {
+        "label": "light 320 submission delete dialog",
+        "violations": []
+      },
+      {
+        "label": "light 320 reading list remove dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 1440 item-submission-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 1440 reading-list-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 1440 submissions-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 1440 submission record version dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 1440 submission version history dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 1440 submission history open",
+        "violations": []
+      },
+      {
+        "label": "dark 1440 submission delete dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 1440 reading list remove dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 768 item-submission-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 768 reading-list-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 768 submissions-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 768 submission record version dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 768 submission version history dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 768 submission history open",
+        "violations": []
+      },
+      {
+        "label": "dark 768 submission delete dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 768 reading list remove dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 390 item-submission-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 390 reading-list-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 390 submissions-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 390 submission record version dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 390 submission version history dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 390 submission history open",
+        "violations": []
+      },
+      {
+        "label": "dark 390 submission delete dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 390 reading list remove dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 360 item-submission-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 360 reading-list-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 360 submissions-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 360 submission record version dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 360 submission version history dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 360 submission history open",
+        "violations": []
+      },
+      {
+        "label": "dark 360 submission delete dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 360 reading list remove dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 320 item-submission-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 320 reading-list-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 320 submissions-filled",
+        "violations": []
+      },
+      {
+        "label": "dark 320 submission record version dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 320 submission version history dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 320 submission history open",
+        "violations": []
+      },
+      {
+        "label": "dark 320 submission delete dialog",
+        "violations": []
+      },
+      {
+        "label": "dark 320 reading list remove dialog",
+        "violations": []
+      }
+    ],
+    "overflow": [
+      {
+        "label": "light 1440 item-submission-filled",
+        "px": 0
+      },
+      {
+        "label": "light 1440 reading-list-filled",
+        "px": 0
+      },
+      {
+        "label": "light 1440 submissions-filled",
+        "px": 0
+      },
+      {
+        "label": "light 1440 submission record version dialog",
+        "px": 0
+      },
+      {
+        "label": "light 1440 submission version history dialog",
+        "px": 0
+      },
+      {
+        "label": "light 1440 submission history open",
+        "px": 0
+      },
+      {
+        "label": "light 1440 submission delete dialog",
+        "px": 0
+      },
+      {
+        "label": "light 1440 reading list remove dialog",
+        "px": 0
+      },
+      {
+        "label": "light 768 item-submission-filled",
+        "px": 0
+      },
+      {
+        "label": "light 768 reading-list-filled",
+        "px": 0
+      },
+      {
+        "label": "light 768 submissions-filled",
+        "px": 0
+      },
+      {
+        "label": "light 768 submission record version dialog",
+        "px": 0
+      },
+      {
+        "label": "light 768 submission version history dialog",
+        "px": 0
+      },
+      {
+        "label": "light 768 submission history open",
+        "px": 0
+      },
+      {
+        "label": "light 768 submission delete dialog",
+        "px": 0
+      },
+      {
+        "label": "light 768 reading list remove dialog",
+        "px": 0
+      },
+      {
+        "label": "light 390 item-submission-filled",
+        "px": 0
+      },
+      {
+        "label": "light 390 reading-list-filled",
+        "px": 0
+      },
+      {
+        "label": "light 390 submissions-filled",
+        "px": 0
+      },
+      {
+        "label": "light 390 submission record version dialog",
+        "px": 0
+      },
+      {
+        "label": "light 390 submission version history dialog",
+        "px": 0
+      },
+      {
+        "label": "light 390 submission history open",
+        "px": 0
+      },
+      {
+        "label": "light 390 submission delete dialog",
+        "px": 0
+      },
+      {
+        "label": "light 390 reading list remove dialog",
+        "px": 0
+      },
+      {
+        "label": "light 360 item-submission-filled",
+        "px": 0
+      },
+      {
+        "label": "light 360 reading-list-filled",
+        "px": 0
+      },
+      {
+        "label": "light 360 submissions-filled",
+        "px": 0
+      },
+      {
+        "label": "light 360 submission record version dialog",
+        "px": 0
+      },
+      {
+        "label": "light 360 submission version history dialog",
+        "px": 0
+      },
+      {
+        "label": "light 360 submission history open",
+        "px": 0
+      },
+      {
+        "label": "light 360 submission delete dialog",
+        "px": 0
+      },
+      {
+        "label": "light 360 reading list remove dialog",
+        "px": 0
+      },
+      {
+        "label": "light 320 item-submission-filled",
+        "px": 0
+      },
+      {
+        "label": "light 320 reading-list-filled",
+        "px": 0
+      },
+      {
+        "label": "light 320 submissions-filled",
+        "px": 0
+      },
+      {
+        "label": "light 320 submission record version dialog",
+        "px": 0
+      },
+      {
+        "label": "light 320 submission version history dialog",
+        "px": 0
+      },
+      {
+        "label": "light 320 submission history open",
+        "px": 0
+      },
+      {
+        "label": "light 320 submission delete dialog",
+        "px": 0
+      },
+      {
+        "label": "light 320 reading list remove dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 1440 item-submission-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 1440 reading-list-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 1440 submissions-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 1440 submission record version dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 1440 submission version history dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 1440 submission history open",
+        "px": 0
+      },
+      {
+        "label": "dark 1440 submission delete dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 1440 reading list remove dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 768 item-submission-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 768 reading-list-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 768 submissions-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 768 submission record version dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 768 submission version history dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 768 submission history open",
+        "px": 0
+      },
+      {
+        "label": "dark 768 submission delete dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 768 reading list remove dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 390 item-submission-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 390 reading-list-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 390 submissions-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 390 submission record version dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 390 submission version history dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 390 submission history open",
+        "px": 0
+      },
+      {
+        "label": "dark 390 submission delete dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 390 reading list remove dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 360 item-submission-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 360 reading-list-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 360 submissions-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 360 submission record version dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 360 submission version history dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 360 submission history open",
+        "px": 0
+      },
+      {
+        "label": "dark 360 submission delete dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 360 reading list remove dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 320 item-submission-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 320 reading-list-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 320 submissions-filled",
+        "px": 0
+      },
+      {
+        "label": "dark 320 submission record version dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 320 submission version history dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 320 submission history open",
+        "px": 0
+      },
+      {
+        "label": "dark 320 submission delete dialog",
+        "px": 0
+      },
+      {
+        "label": "dark 320 reading list remove dialog",
+        "px": 0
+      }
+    ],
+    "text200": [
+      {
+        "route": "item-submission-filled",
+        "overflow": 0,
+        "offscreen": []
+      },
+      {
+        "route": "reading-list-filled",
+        "overflow": 0,
+        "offscreen": []
+      },
+      {
+        "route": "submissions-filled",
+        "overflow": 0,
+        "offscreen": []
+      }
+    ],
+    "notes": [
+      "seeded on the e2e stack: two papers saved from Literature Search"
+    ]
+  }
+}

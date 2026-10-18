@@ -1010,3 +1010,127 @@ as an action; no score is "Fit not scored".
 | People | `app/supervisors/`, `app/peers/`, `components/people/*`, `components/research/FitScore.tsx` |
 | Postings | `components/postings/{PostingCard.tsx,PostingCard.module.css,PostingsPage.module.css}`, `app/postings/page.tsx` (Discover) |
 | Tests | `tests/recommendations-page.test.tsx`, `researcher-profile.test.tsx`, `researcher-sections.test.tsx` (the old sections' addresses), `people-cards.test.tsx`, `fit-score.test.tsx`, `canonical-indicators.test.tsx` (on the new components), `supervisors-page.test.tsx`, `posting-fit.test.tsx`, `navigation.test.tsx`; e2e `pages`, `workflow`, `layout`, `design-system` updated |
+
+## 19. Research workflow (P7)
+
+The workspace, a tracked call's page with its tabs, the submission workflow, the submissions list,
+the reading list and the calendar (plan §13, §16, §19). Pages are named as the navigation names
+them: **Workspace**, **Submissions**, **Reading list**, **Calendar**. Everything moved from page
+CSS (`styles/{workspace,collaboration,submission,calendar,peers}.css`, deleted) to CSS Modules on
+the tokens; no page here has an inline style left.
+
+**Workspace** (`/workspace`, `components/workspace/`): list first, no stat cards. Status filter
+chips carry their counts as text ("Planning (3)", read as part of the name); while unknown there
+is no number, never 0, but a hidden, unannounced placeholder keeps each chip's width so nothing
+rewraps when the counts come (`ChipCount`; same on Submissions and the reading list). Then search (titles and
+notes) and sort (deadline first, priority, recently updated) — all in the address
+(`?status=PLANNING&sort=priority&q=retrieval`). **Calls | Submissions** above are links with
+`aria-current` (two pages), not tabs. Each row: the serif title (it opens the item), type ·
+publisher · place · mode, the deadline in words and the venue risk, then the **status menu**,
+priority as a word with its glyph, the next step ("Draft submission →", "Open submission →",
+which open the Submission tab) and **More actions** (Open, Collaborate, Archive or Restore,
+Remove from workspace). Notes, tags and priority sit behind one disclosure. Rows stack on phones.
+
+**Status menu** (`StatusMenu.tsx`, the `Menu` primitive): one button ("Status: Planning. Change
+status") offering only the moves the server lists for that item (`allowed_transitions`, from the
+backend's state machine), in workflow order, as "Move to applied". No moves: a plain badge. The
+change shows at once ("Saving…", nothing else to choose), is replaced by the server's answer (with
+its new allowed moves) and the counts reload; a refusal restores the last confirmed status, says
+so in an alert with **Try again**, and is announced. Each item numbers its requests: an answer to
+an older one never overwrites a newer state (`useWorkspaceList`, `useWorkspaceItem`). Removal is a
+danger dialog naming the call and what goes with it (notes, tags, tasks, submissions and their
+documents; collaborators lose access) and suggests archiving.
+
+**Workspace item** (`/workspace/[id]`, `components/workspace/item/`): Breadcrumb (Workspace ›
+title), the call's title as h1 with its facts, the status menu and priority; the deadline and risk
+under it; "Shared with you · Editor" for a collaborator. Tabs **Overview, Tasks, Submission,
+Members, Activity** (`Tabs`, ARIA tabs; they wrap onto a second line on narrow screens or with
+large text rather than scroll, so none is out of view) with the tab in the address (`?tab=tasks`; Overview is
+left out; the old `?tab=invitations` opens Members), so links, back and forward open a tab. A tab
+asks for its data the first time it opens and stays mounted (hidden), so returning to it asks
+nothing; its code loads then too (`lazyTabs.tsx`). The item is read by id (`GET
+/workspace/{id}`), so a shared item opens for its members. What can be changed follows the role
+(`workflow.ts`, mirroring WorkspaceAuthorizationService): viewers read; contributors add tasks,
+documents and notes; editors also change the status, the item's notes and the submission; the
+owner manages members and invitations. The server still decides; its refusals are said in words.
+
+- **Overview**: the call's dates (`DeadlineMilestones`, with time zones and extensions), a link to
+  the call's page, notes, tags and priority (read-only below editor), and the next step.
+- **Tasks**: status and priority filters (one request each), a checkbox per task named "Mark *task*
+  done" / "Reopen *task*", status as a word, priority, assignee, due date; **New task** in a
+  dialog (title checked first, sent once, kept on failure); delete after a dialog naming the task.
+- **Members**: members (role change and removal for the owner, each removal confirmed naming the
+  person and what they lose) and invitations (status in words, expiry, Withdraw confirmed);
+  **Invite someone** in a dialog (address checked first; roles described).
+- **Activity**: the latest 50 events with actor and time, and **Post a note** (contributors).
+  Changes made in the other tabs make an opened Activity tab read again.
+- **Submission** (replaces `/workspace/[id]/submission`, which now redirects to `?tab=submission`;
+  `components/workspace/submission/`): with none yet, **Draft a submission** (title required,
+  format), sent once however often pressed, kept when refused. Then the submission's title and
+  status, the lifecycle as steps (Draft, Ready, Submitted, Under review, Decision; the current one
+  `aria-current="step"`, states in words), the **readiness** check (the server's, in words:
+  required documents ready, how much of the details is filled in, what blocks it and what is worth
+  checking; its summary sentence repeats these with enum values and is not shown), and **Change status**:
+  one button per allowed move ("Mark ready to submit", "Mark as submitted", "Withdraw"…), the
+  forward move primary; "ready" is disabled with its reason while the check has blockers. A note
+  for the change is optional and says that it replaces the submission's notes (as the API does).
+  **Details** (title, format, venue or track, submission ID, portal address checked as a web
+  address, abstract, notes) save together and keep the draft on failure; Discard changes.
+  **Documents** (status, required or optional, kind, version, format, where stored, checksum):
+  Mark ready, and More actions — Record a new version (dialog), Version history (dialog, asked for
+  when opened), Archive, Delete (confirmed). **History** is a disclosure asked for when opened.
+  Delete submission (owner; draft or withdrawn only) is confirmed. Several submissions for one call
+  are listed to choose from; Start another submission.
+
+**Submissions** (`/submissions`): chips with counts per status in the address (`?status=`), then
+each submission: title (opens its item's Submission tab), format · venue, status, deadline in
+words, last update.
+
+**Reading list** (`/reading-list`, `components/reading-list/`): Export selected (.bib) and Export
+all (.bib) in the header (unchanged: the selected ids, or the whole list or the current status;
+at most 200 selected), chips "To read (4)" in the address with the page (`?status=READING&page=2`,
+`Pagination`). Each paper: a checkbox "Select *title*", the serif title linking to its DOI or page
+(described as opening a new tab), authors · venue · year, "DOI: …", **Status** (shown at once,
+rolled back with the reason if refused), **Notes** behind a disclosure ("Add notes", open from the
+start when the paper has notes; private, saved when the box is left, never exported) and Remove —
+a dialog naming the paper, since its notes go with it. The papers are under an h2 ("All papers" or
+the status). Empty and filtered
+states differ; a failed list offers Try again.
+
+**Calendar** (`/calendar`, `components/calendar/`): Export calendar (.ics) (unchanged: fetched with
+the session, "Exporting…" while in flight, the server's reason on failure) and Add milestone, both
+there from the first paint (disabled until the calendar is known, so the page does not move).
+A line of facts instead of stat cards (upcoming dates, disputed dates, extended deadlines), filter
+chips with counts, Previous month / Today / Next month and the month as h2 (announced), and the
+view: **Agenda** (default below 768px) or **Month** (default from 768px); view, month and filter
+are in the address (`?view=month&month=2026-11&type=SUBMISSIONS`). The agenda lists the month's
+days with their events; an empty month says when the next date is and offers to go there. The
+month grid is a table, Sunday first, seven equal columns that fit 320px: a day with events is a
+button ("Tuesday 18 November 2026, today: 2 events") that lists them below; titles show in the
+cells from 768px, a count below. Your milestones are marked with a dashed rule, call dates with a
+solid one (and in words: "Your milestone" / the venue). An event opens a dialog: kind, date, time
+with its zone, source, the call, an extension's reason, a dispute between sources, links to the
+call and the workspace; your milestones can be deleted after a confirmation. Add milestone checks
+the title and date first, is sent once and kept on failure. No emoji, no `alert()` or
+`confirm()`.
+
+**Requests.** Per page load, without the shell's session check and unread count:
+
+| Page | Requests |
+|---|---|
+| Workspace | 2: the list and the counts (+1 list per filter, search or sort; +1 counts after a change) |
+| Workspace item | 1: the item (+1 the members for a collaborator); each tab's own on first opening — Tasks 2 (tasks, members), Submission 3 (submissions, then the readiness check and documents of the one shown; history when opened), Members 2, Activity 1 |
+| Submissions | 2: the list and the counts |
+| Reading list | 1 per status and page |
+| Calendar | 2: the default calendar, then its events (the month, view and filter need none) |
+
+| Part | Where |
+|---|---|
+| Primitives | `components/ui/{Tabs,Menu}/` |
+| Workspace | `app/workspace/{page,layout}.tsx`, `components/workspace/{WorkspacePage,WorkspaceRow,WorkspaceNav,StatusMenu,ItemNotesForm,ChipCount,useWorkspaceList,workflow}.ts(x)`, `Workspace.module.css` |
+| Item | `app/workspace/[id]/page.tsx`, `app/workspace/[id]/submission/page.tsx` (redirect), `components/workspace/item/*`, `components/workspace/submission/*` |
+| Submissions | `app/submissions/{page,layout}.tsx`, `components/workspace/SubmissionsPage.tsx` |
+| Reading list | `app/reading-list/{page,layout}.tsx`, `components/reading-list/{ReadingListPage.tsx,ReadingList.module.css}` |
+| Calendar | `app/calendar/{page,layout}.tsx`, `components/calendar/{CalendarPage.tsx,calendarModel.ts,Calendar.module.css}` |
+| Words | `utils/status.ts` (submission, document, task, invitation, readiness, role), `components/workspace/submission/words.ts`, `components/calendar/calendarModel.ts` |
+| Tests | `tests/workspace-status.test.tsx`, `workspace-item.test.tsx`, `workspace-submission.test.tsx`, `calendar-view.test.tsx`, `reading-list-page.test.tsx` (P7 states), `ui-primitives.test.tsx` (Menu, Tabs); updated: `deadline-risk`, `workspace-collaborate-link`, `submissions-page`, `session-restore`, `calendar-events`, `calendar-export`, `design-tokens` (ratchet 120); e2e `auth`, `shell`, `pages`, `layout`, `workflow` |
