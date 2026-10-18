@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useId, useRef, useState, type FocusEvent, type ReactNode } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ChevronDown, LogIn, LogOut, SunMoon, UserPlus } from "lucide-react";
 import { logout as revokeTokens } from "../../services/api";
 import { ROLE_LABELS } from "../../types/auth";
 import { useSession } from "../auth/SessionProvider";
 import { ThemeSwitcher } from "../ui/ThemeSwitcher/ThemeSwitcher";
-import { accountItemsFor, currentHref } from "../../utils/navigation";
+import { accountItemsFor } from "../../utils/navigation";
+import { Disclosure } from "./Disclosure";
 import styles from "./AccountMenu.module.css";
 
 /** Up to two initials for the avatar: "Ada Lovelace" → "AL". */
@@ -59,7 +59,7 @@ export function AccountMenu() {
           <UserPlus size={16} aria-hidden="true" />
           Create account
         </Link>
-        <Disclosure buttonClassName={styles.iconTrigger} label="Appearance" title="Appearance" button={<SunMoon size={20} aria-hidden="true" />}>
+        <Disclosure className={styles.disclosure} panelClassName={styles.panel} buttonClassName={styles.iconTrigger} label="Appearance" title="Appearance" button={<SunMoon size={20} aria-hidden="true" />}>
           <ThemeRow />
         </Disclosure>
       </div>
@@ -83,6 +83,8 @@ export function AccountMenu() {
   return (
     <div key="account" className={styles.account}>
       <Disclosure
+        className={styles.disclosure}
+        panelClassName={styles.panel}
         buttonClassName={styles.trigger}
         // Starts with the name shown on the button (WCAG 2.5.3), then says what it opens.
         label={`${user.full_name}, account menu`}
@@ -136,80 +138,6 @@ function ThemeRow() {
         Theme
       </span>
       <ThemeSwitcher />
-    </div>
-  );
-}
-
-/**
- * A button that shows and hides a panel below it (WAI-ARIA disclosure). `children` may be a
- * function of (close, the current page's shell href) for panels with links.
- */
-function Disclosure({
-  button,
-  buttonClassName,
-  label,
-  title,
-  children,
-}: {
-  button: ReactNode;
-  buttonClassName: string;
-  /** The button's accessible name. */
-  label: string;
-  title?: string;
-  children: ReactNode | ((close: () => void, current: string | null) => ReactNode);
-}) {
-  const pathname = usePathname() ?? "/";
-  // Open only on the page it was opened on: following a link closes it without an effect (and
-  // coming back to that page does not reopen it).
-  const [openOn, setOpenOn] = useState<string | null>(null);
-  if (openOn !== null && openOn !== pathname) setOpenOn(null);
-  const open = openOn === pathname;
-  const panelId = useId();
-  const area = useRef<HTMLDivElement>(null);
-  const trigger = useRef<HTMLButtonElement>(null);
-  const close = () => setOpenOn(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: PointerEvent) => {
-      if (!area.current?.contains(event.target as Node)) setOpenOn(null);
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      setOpenOn(null);
-      trigger.current?.focus();
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
-
-  // Tabbing out of the open panel closes it (focus has already moved on; leave it there).
-  const onBlur = (event: FocusEvent<HTMLDivElement>) => {
-    const next = event.relatedTarget as Node | null;
-    if (open && next !== null && !area.current?.contains(next)) setOpenOn(null);
-  };
-
-  return (
-    <div ref={area} className={styles.disclosure} onBlur={onBlur}>
-      <button
-        ref={trigger}
-        type="button"
-        className={buttonClassName}
-        aria-label={label}
-        aria-expanded={open}
-        aria-controls={panelId}
-        title={title}
-        onClick={() => setOpenOn(open ? null : pathname)}
-      >
-        {button}
-      </button>
-      <div id={panelId} className={styles.panel} hidden={!open}>
-        {typeof children === "function" ? children(close, currentHref(pathname)) : children}
-      </div>
     </div>
   );
 }

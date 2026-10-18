@@ -6,6 +6,7 @@ import {
   applyThemePreference,
   readThemePreference,
   watchSystemTheme,
+  watchThemePreference,
   type ThemePreference,
 } from "../../../utils/theme";
 import styles from "./ThemeSwitcher.module.css";
@@ -25,6 +26,8 @@ export function ThemeSwitcher({ className }: { className?: string }) {
   // The inline script in <head> already applied the stored choice; read it after mount.
   const [preference, setPreference] = useState<ThemePreference>("system");
   useEffect(() => setPreference(readThemePreference()), []);
+  // Another theme control (Settings → Appearance) may change it while this one is mounted.
+  useEffect(() => watchThemePreference(setPreference), []);
 
   useEffect(() => {
     if (preference !== "system") return;

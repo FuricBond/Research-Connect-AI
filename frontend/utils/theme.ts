@@ -11,6 +11,8 @@ export type ThemePreference = "system" | "light" | "dark";
 export type ResolvedTheme = "light" | "dark";
 
 export const THEME_STORAGE_KEY = "rc-theme";
+/** Dispatched on window after a choice is applied, so every theme control shows it (P8). */
+export const THEME_CHANGED_EVENT = "rc-theme-changed";
 const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 export function isThemePreference(value: unknown): value is ThemePreference {
@@ -46,7 +48,18 @@ export function applyThemePreference(preference: ThemePreference): ResolvedTheme
   } catch {
     // Storage can be blocked; the choice still applies for this page view.
   }
+  window.dispatchEvent(new CustomEvent<ThemePreference>(THEME_CHANGED_EVENT, { detail: preference }));
   return resolved;
+}
+
+/** Calls `onChange` with the new choice whenever any theme control applies one. */
+export function watchThemePreference(onChange: (preference: ThemePreference) => void): () => void {
+  const listener = (event: Event) => {
+    const preference = (event as CustomEvent<unknown>).detail;
+    if (isThemePreference(preference)) onChange(preference);
+  };
+  window.addEventListener(THEME_CHANGED_EVENT, listener);
+  return () => window.removeEventListener(THEME_CHANGED_EVENT, listener);
 }
 
 /** Calls `onChange` when the OS switches between light and dark. Returns an unsubscribe. */
