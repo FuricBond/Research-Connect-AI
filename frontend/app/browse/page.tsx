@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import { OpportunityList } from "../../components/OpportunityList";
 import { PageHeader } from "../../components/ui/PageHeader/PageHeader";
-import "../../styles/opportunities.css";
 
 export const metadata: Metadata = {
-  title: "Browse All Calls — ResearchConnect AI",
+  title: "Calls for papers — ResearchConnect AI",
   description:
-    "Browse all academic calls for papers, conferences, journals, workshops, and special issues tracked by ResearchConnect AI.",
+    "Browse calls for papers from conferences, journals, workshops and special issues, with each call's deadline and venue risk.",
 };
 
 /**
- * /browse route — Browse All Calls (tab: all_opportunities)
+ * /browse — Calls for papers (P5): search, filters, sort and pages in the address; each call
+ * links to its own page, /calls/[id].
  */
 export default function BrowsePage() {
   return (

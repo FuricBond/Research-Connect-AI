@@ -17,7 +17,8 @@ test("a researcher discovers, saves, applies and is notified of the decision", a
 
   await test.step("browse lists the open calls", async () => {
     await primaryNav(page).getByRole("link", { name: "Calls for papers" }).click();
-    await expect(page.getByRole("heading", { name: "Recommended opportunities" })).toBeVisible();
+    // P5: the page's h1 names the list (the old "Recommended opportunities" heading went).
+    await expect(page.getByRole("heading", { level: 1, name: "Calls for papers" })).toBeVisible();
     await expect(page.locator(".opportunity-card").first()).toBeVisible();
     expect(await page.locator(".opportunity-card").count()).toBeGreaterThanOrEqual(5);
   });

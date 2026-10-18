@@ -28,9 +28,9 @@ test("every signed-in page renders against the live API without contract errors"
     ["/researcher?section=recommendations", /Unified Evidence-Backed Recommendations/],
     ["/researcher?section=personalization", /Personalization Controls & Transparency/],
     ["/researcher?section=history", /Recommendation Feedback & Behavioral Learning/],
-    // Opened directly, the paper-based tools explain themselves instead of dead-ending.
-    ["/similar", /Similar Research/],
-    ["/opportunities", /Opportunity Matcher/],
+    // Opened directly, the paper-based tools explain themselves instead of dead-ending (P5 names).
+    ["/similar", /Similar papers/],
+    ["/opportunities", /Find venues/],
     ["/researcher/preferences", /Researcher Preferences Foundation/],
     ["/workspace", /Opportunity Workspace/],
     ["/submissions", /Submissions/],
@@ -41,7 +41,8 @@ test("every signed-in page renders against the live API without contract errors"
     ["/postings", /Research Postings/],
     ["/postings/applications", /My Applications/],
     ["/peers", /Peer & Co-Author Discovery/],
-    ["/browse", /Recommended opportunities/],
+    // P5: the list's own heading went; the page's h1 names it.
+    ["/browse", /Calls for papers/],
   ];
   for (const [path, heading] of pages) {
     await test.step(path, async () => {
@@ -56,16 +57,30 @@ test("every signed-in page renders against the live API without contract errors"
     await expect(page.getByRole("button", { name: "How this was scored" }).first()).toBeVisible();
   });
 
-  await test.step("literature search -> similar research -> matching venues", async () => {
+  await test.step("literature search -> similar papers -> matching venues -> a call's page", async () => {
     await page.goto("/");
     const box = page.getByRole("searchbox", { name: "Search research literature" });
     await box.fill("information retrieval");
     await box.press("Enter");
-    await expect(page.getByRole("button", { name: "Why this rank?" }).first()).toBeVisible({ timeout: 60_000 });
-    await page.getByRole("button", { name: "Find Similar Research" }).first().click();
-    await expect(page.getByRole("button", { name: "Why similar?" }).first()).toBeVisible({ timeout: 60_000 });
-    await page.getByRole("button", { name: /Match Calls for This Paper/i }).first().click();
-    await expect(page.getByRole("button", { name: "Why matched?" }).first()).toBeVisible({ timeout: 60_000 });
+    // P5 names: "Why this result?" (named with its paper), "Find similar", "Why similar?",
+    // "Find venues for this paper", "Why this venue?".
+    await expect(page.getByRole("button", { name: /^Why this result\?/ }).first()).toBeVisible({ timeout: 60_000 });
+    await page.getByRole("link", { name: "Find similar" }).first().click();
+    await expect(page).toHaveURL(/\/similar\?paper=[0-9a-f-]{36}$/);
+    await expect(page.getByRole("button", { name: /^Why similar\?/ }).first()).toBeVisible({ timeout: 60_000 });
+    await page.getByRole("link", { name: "Find venues for this paper" }).click();
+    await expect(page).toHaveURL(/\/opportunities\?paper=[0-9a-f-]{36}$/);
+    await expect(page.getByRole("button", { name: /^Why this venue\?/ }).first()).toBeVisible({ timeout: 60_000 });
+    await page.locator(".opportunity-card").first().getByRole("heading").getByRole("link").click();
+    await expect(page).toHaveURL(/\/calls\/[0-9a-f-]{36}$/);
+    await expect(page.getByRole("heading", { level: 2, name: "Dates" })).toBeVisible();
+  });
+
+  await test.step("a call's page shows its workspace status", async () => {
+    await page.goto(`/calls/${venue.id}`);
+    await expect(page.getByRole("heading", { level: 1, name: venue.title })).toBeVisible();
+    await expect(page.getByText("In your workspace:")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Saved to workspace" })).toBeVisible();
   });
 
   await test.step("workspace collaboration and submission pages", async () => {
