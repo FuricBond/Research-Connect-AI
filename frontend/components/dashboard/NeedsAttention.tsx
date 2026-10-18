@@ -169,7 +169,7 @@ function ProfileAndGetStarted({
   if (!calls.data || !reading.data || !context) return null;
 
   const steps = [
-    { done: context.active_interests_count > 0, label: "Add your research interests", href: "/researcher?section=interests" },
+    { done: context.active_interests_count > 0, label: "Add your research interests", href: "/researcher/preferences" },
     { done: calls.data.total_count > 0, label: "Save a call for papers to your workspace", href: "/browse" },
     { done: reading.data.total_count > 0, label: "Save a paper to your reading list", href: "/" },
   ];

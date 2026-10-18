@@ -491,7 +491,8 @@ describe("student home", () => {
 
     const steps = within(region("Needs attention")).getAllByRole("listitem");
     expect(steps.map((li) => li.textContent)).toEqual(["Add your research interests", "Save a call for papers to your workspace", "Save a paper to your reading list"]);
-    expect(within(steps[0]).getByRole("link")).toHaveAttribute("href", "/researcher?section=interests");
+    // P6: interests are added where preferences are edited (the profile's old section is gone).
+    expect(within(steps[0]).getByRole("link")).toHaveAttribute("href", "/researcher/preferences");
     // Each section explains its own emptiness and what to do next — not a failure.
     expect(within(region("Recommended for you")).getByText("No recommendations yet.")).toBeInTheDocument();
     expect(within(region("Reading progress")).getByText("No saved papers yet.")).toBeInTheDocument();

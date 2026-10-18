@@ -48,7 +48,7 @@ export function PostingsThatFit() {
           if (best.length === 0) {
             return empty(
               <>
-                Fit comes from your topics and skills. <Link href="/researcher?section=interests">Add your research interests</Link>.
+                Fit comes from your topics and skills. <Link href="/researcher/preferences">Add your research interests</Link>.
               </>
             );
           }
