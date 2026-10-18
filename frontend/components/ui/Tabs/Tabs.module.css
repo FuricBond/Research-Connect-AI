@@ -1,0 +1,72 @@
+/* Tabs — DESIGN_SYSTEM.md §8.3. Tokens only. */
+/* The tabs wrap onto another line rather than scroll, so none is ever out of view (WCAG 1.4.10). */
+.scroller {
+  max-width: 100%;
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--rc-space-1);
+  min-width: 0;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  min-height: var(--rc-target-min);
+  padding: var(--rc-space-2) var(--rc-space-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--rc-text-secondary);
+  font: inherit;
+  font-size: var(--rc-text-body-size);
+  font-weight: var(--rc-weight-medium);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--rc-duration-instant) var(--rc-ease-standard);
+}
+
+.tab:hover {
+  color: var(--rc-text);
+}
+
+.active {
+  border-bottom-color: var(--rc-brand);
+  color: var(--rc-text);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.tab:focus-visible {
+  outline-offset: calc(var(--rc-focus-offset) * -1);
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  padding: 0 var(--rc-space-1);
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-surface-sunken);
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-label-size);
+  font-variant-numeric: tabular-nums;
+}
+
+.panel {
+  padding-top: var(--rc-space-5);
+  min-width: 0;
+}
+
+.panel:focus {
+  outline: none;
+}
+
+.panel:focus-visible {
+  outline: var(--rc-focus-width) solid var(--rc-focus-ring);
+  outline-offset: var(--rc-focus-offset);
+}

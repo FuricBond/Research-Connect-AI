@@ -12,6 +12,8 @@ import { Dialog, Drawer } from "../components/ui/Dialog/Dialog";
 import { Alert, EmptyState, ErrorState, SkeletonList } from "../components/ui/State/State";
 import { PriorityLabel, StatusBadge } from "../components/ui/Badge/Badge";
 import { PageHeader } from "../components/ui/PageHeader/PageHeader";
+import { Menu } from "../components/ui/Menu/Menu";
+import { TabPanel, Tabs } from "../components/ui/Tabs/Tabs";
 import { MatchScore, matchBand } from "../components/research/MatchScore";
 import { applicationStatusMeta, postingStatusMeta, workspaceStatusMeta } from "../utils/status";
 
@@ -243,5 +245,80 @@ describe("status semantics", () => {
     expect(matchBand(45)).toBe("good");
     expect(matchBand(30)).toBe("partial");
     expect(matchBand(10)).toBe("weak");
+  });
+});
+
+describe("Menu (P7)", () => {
+  function setup() {
+    const archive = vi.fn();
+    render(
+      <Menu
+        triggerLabel="More actions for Paper 1"
+        trigger="More"
+        items={[
+          { id: "open", label: "Open", onSelect: vi.fn() },
+          { id: "locked", label: "Restore", onSelect: vi.fn(), disabled: true },
+          { id: "archive", label: "Archive", onSelect: archive },
+        ]}
+      />
+    );
+    return { archive, trigger: screen.getByRole("button", { name: "More actions for Paper 1" }) };
+  }
+
+  it("opens with the arrow key on the first item, skips disabled items and wraps", () => {
+    const { trigger } = setup();
+    expect(trigger).toHaveAttribute("aria-haspopup", "menu");
+    expect(trigger).toHaveAttribute("aria-expanded", "false");
+    fireEvent.keyDown(trigger, { key: "ArrowDown" });
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("menuitem", { name: "Open" })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole("menu"), { key: "ArrowDown" });
+    expect(screen.getByRole("menuitem", { name: "Archive" })).toHaveFocus();
+    fireEvent.keyDown(screen.getByRole("menu"), { key: "ArrowDown" });
+    expect(screen.getByRole("menuitem", { name: "Open" })).toHaveFocus();
+    expect(screen.getByRole("menuitem", { name: "Restore" })).toBeDisabled();
+  });
+
+  it("closes on Escape and hands focus back to its button", () => {
+    const { trigger } = setup();
+    fireEvent.click(trigger);
+    fireEvent.keyDown(screen.getByRole("menu"), { key: "Escape" });
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("runs the chosen item and closes", () => {
+    const { archive, trigger } = setup();
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole("menuitem", { name: "Archive" }));
+    expect(archive).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(trigger).toHaveFocus();
+  });
+});
+
+describe("Tabs (P7)", () => {
+  function Example() {
+    const [selected, setSelected] = useState("one");
+    return (
+      <>
+        <Tabs label="Example" idPrefix="ex" tabs={[{ id: "one", label: "One" }, { id: "two", label: "Two", count: 4 }]} selected={selected} onSelect={setSelected} />
+        <TabPanel idPrefix="ex" id="one" hidden={selected !== "one"}>
+          First
+        </TabPanel>
+        <TabPanel idPrefix="ex" id="two" hidden={selected !== "two"}>
+          Second
+        </TabPanel>
+      </>
+    );
+  }
+
+  it("names panels by their tabs, reads counts as text and keeps hidden panels out of view", () => {
+    render(<Example />);
+    expect(screen.getByRole("tab", { name: "Two 4" })).toHaveAttribute("aria-controls", "ex-panel-two");
+    expect(screen.getByRole("tabpanel", { name: "One" })).toHaveTextContent("First");
+    fireEvent.click(screen.getByRole("tab", { name: "Two 4" }));
+    expect(screen.getByRole("tabpanel", { name: "Two 4" })).toHaveTextContent("Second");
+    expect(screen.getByText("First")).not.toBeVisible();
   });
 });

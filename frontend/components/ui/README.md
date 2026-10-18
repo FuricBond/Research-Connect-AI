@@ -43,6 +43,8 @@ Specification: [docs/design/DESIGN_SYSTEM.md](../../../docs/design/DESIGN_SYSTEM
 | Where a detail page sits | `Breadcrumb` (`nav aria-label="Breadcrumb"`; only "‹ parent" below 640px) |
 | A long list in pages | `Pagination` ("Showing 21–40 of 312", Previous page / Next page, optional page size) |
 | State kept in the query string | `useAddressSearch` (`hooks/`): the address bar is the truth; `go(href)` records with `pushState` |
+| Views of one object (an item's Overview, Tasks…) | `Tabs` + `TabPanel` (ARIA tabs: one Tab stop, arrows/Home/End; wrap rather than scroll on narrow screens; keep the tab in the address; `hidden` keeps an opened panel mounted). Not for page navigation: links with `aria-current` (P7) |
+| A list of actions behind one button (status, "More actions") | `Menu` (`role="menu"`; arrows, Home/End, Escape returns focus; `triggerLabel` names it, `danger` and `disabled` items) (P7) |
 | A paper, a call | `PaperCard`, `OpportunityCard`, `CitationMetadata`, `TopicTags` (`components/research/`); their explanation in `EvidencePanel`, the paper in `PaperPanel` (load them through `lazyPanels.ts`) |
 
 Layout without new CSS: `.rc-container`, `.rc-stack`, `.rc-cluster`, `.rc-grid` (set

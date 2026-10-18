@@ -1,0 +1,90 @@
+/* Menu — DESIGN_SYSTEM.md §8.3 (Popover / Dropdown). Tokens only. */
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  max-width: 100%;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  min-height: var(--rc-target-min);
+  max-width: 100%;
+  padding: var(--rc-space-1) var(--rc-space-2);
+  border: var(--rc-border-width) solid var(--rc-border-control);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface);
+  color: var(--rc-text);
+  font: inherit;
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--rc-duration-instant) var(--rc-ease-standard);
+}
+
+.trigger:hover:not(:disabled) {
+  background: var(--rc-surface-hover);
+}
+
+.trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + var(--rc-space-1));
+  z-index: var(--rc-z-dropdown);
+  display: flex;
+  flex-direction: column;
+  min-width: 12rem;
+  max-width: min(20rem, calc(100vw - 2 * var(--rc-page-padding)));
+  padding: var(--rc-space-1);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface-raised);
+  box-shadow: var(--rc-shadow-popover);
+}
+
+.start {
+  left: 0;
+}
+
+.end {
+  right: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  min-height: var(--rc-target-min);
+  padding: var(--rc-space-1) var(--rc-space-3);
+  border: 0;
+  border-radius: var(--rc-radius-sm);
+  background: none;
+  color: var(--rc-text);
+  font: inherit;
+  font-size: var(--rc-text-small-size);
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover:not(:disabled),
+.item:focus-visible {
+  background: var(--rc-hover);
+}
+
+.item:focus-visible {
+  outline-offset: calc(var(--rc-focus-offset) * -1);
+}
+
+.item:disabled {
+  color: var(--rc-text-muted);
+  cursor: not-allowed;
+}
+
+.danger {
+  color: var(--rc-danger);
+}
