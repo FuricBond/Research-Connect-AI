@@ -9,7 +9,7 @@
 
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
@@ -275,7 +275,10 @@ describe("workspace cards", () => {
     const card = within(title.closest(".workspace-card") as HTMLElement);
     expect(card.getByText("Applied")).toBeInTheDocument();
     expect(card.getByText("Medium priority")).toBeInTheDocument();
-    expect(card.getByRole("button", { name: "Move to Accepted" })).toBeInTheDocument();
+    // P7: the status is a menu of the moves the server allows (here Accepted and Archived).
+    fireEvent.click(card.getByRole("button", { name: "Status: Applied. Change status" }));
+    expect(card.getByRole("menuitem", { name: "Move to accepted" })).toBeInTheDocument();
+    expect(card.getByRole("menuitem", { name: "Move to archived" })).toBeInTheDocument();
     expect(card.getByRole("combobox", { name: /Priority for IEEE Conference/ })).toBeInTheDocument();
     expect(card.queryByText("APPLIED")).not.toBeInTheDocument();
   });

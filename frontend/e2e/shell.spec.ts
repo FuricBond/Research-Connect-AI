@@ -109,11 +109,11 @@ test("/workspace never shows the signed-out shell while the session is restored,
   await page.goto("/workspace", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("status").filter({ hasText: "Checking your session" })).toBeAttached();
   await expect(page.getByRole("link", { name: /sign in/i })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Opportunity Workspace" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1, name: "Workspace" })).toHaveCount(0);
   expect(page.url()).toMatch(/\/workspace$/);
 
   release();
-  await expect(page.getByRole("heading", { name: "Opportunity Workspace" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Workspace" })).toBeVisible();
   await page.waitForLoadState("networkidle");
   await expect(accountMenu(page)).toBeVisible();
   const cls = await page.evaluate(() => (window as unknown as { __cls: number }).__cls);

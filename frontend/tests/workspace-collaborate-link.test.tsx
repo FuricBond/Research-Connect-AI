@@ -2,16 +2,18 @@
  * The collaboration page must be reachable from the workspace.
  *
  * `/workspace/[id]` (members, invitations, tasks and activity) existed, but nothing linked to
- * it, so a researcher could only reach it by typing the URL. Each workspace card now carries
- * a "Collaborate" link next to "Submissions".
+ * it, so a researcher could only reach it by typing the URL. P7: the item page has tabs, so each
+ * row's title opens it, its next step ("Draft submission") opens the Submission tab, and the
+ * row's "More actions" menu has Collaborate (the Members tab).
  */
 
 import React from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 
+const push = vi.hoisted(() => vi.fn());
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({ replace: vi.fn(), push, back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => "/workspace",
   useSearchParams: () => new URLSearchParams(),
 }));
@@ -72,8 +74,12 @@ describe("workspace page", () => {
       </SessionProvider>
     );
 
-    expect(await screen.findByText("International Conference on Information Retrieval Systems")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /collaborate/i })).toHaveAttribute("href", `/workspace/${ITEM_ID}`);
-    expect(screen.getByRole("link", { name: /submissions/i })).toHaveAttribute("href", `/workspace/${ITEM_ID}/submission`);
+    const title = await screen.findByRole("link", { name: "International Conference on Information Retrieval Systems" });
+    expect(title).toHaveAttribute("href", `/workspace/${ITEM_ID}`);
+    expect(screen.getByRole("link", { name: /draft submission/i })).toHaveAttribute("href", `/workspace/${ITEM_ID}?tab=submission`);
+
+    fireEvent.click(screen.getByRole("button", { name: /More actions for International Conference/ }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Collaborate" }));
+    expect(push).toHaveBeenCalledWith(`/workspace/${ITEM_ID}?tab=members`);
   });
 });

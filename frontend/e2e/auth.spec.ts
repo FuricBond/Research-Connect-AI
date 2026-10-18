@@ -42,7 +42,7 @@ test("a visitor registers, navigates, signs out and signs back in", async ({ pag
   await test.step("authenticated navigation reaches protected pages", async () => {
     await primaryNav(page).getByRole("link", { name: "Workspace" }).click();
     await expect(page).toHaveURL(/\/workspace$/);
-    await expect(page.getByRole("heading", { name: "Opportunity Workspace" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Workspace" })).toBeVisible();
   });
 
   await test.step("leaving a page while its session check is in flight keeps this browser signed in", async () => {
@@ -56,7 +56,7 @@ test("a visitor registers, navigates, signs out and signs back in", async ({ pag
     await page.goto("/reading-list");
     await checking;
     await page.goto("/workspace");
-    await expect(page.getByRole("heading", { name: "Opportunity Workspace" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Workspace" })).toBeVisible();
     await expect(accountMenu(page)).toBeVisible();
     await page.unroute(`${API_URL}/api/v1/auth/me`);
   });
@@ -73,7 +73,7 @@ test("a visitor registers, navigates, signs out and signs back in", async ({ pag
     await expect(page.getByRole("status").filter({ hasText: "Password changed" })).toBeVisible();
     // The fresh token works: a protected page still opens.
     await primaryNav(page).getByRole("link", { name: "Workspace" }).click();
-    await expect(page.getByRole("heading", { name: "Opportunity Workspace" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Workspace" })).toBeVisible();
   });
 
   await test.step("signing out ends the session in this browser", async () => {
@@ -93,7 +93,7 @@ test("a visitor registers, navigates, signs out and signs back in", async ({ pag
     await page.getByLabel(/password/i).fill(changedPassword);
     await page.getByRole("button", { name: /sign in/i }).click();
     await expect(page).toHaveURL(/\/workspace$/);
-    await expect(page.getByRole("heading", { name: "Opportunity Workspace" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Workspace" })).toBeVisible();
   });
 
   await test.step("a wrong password (here the old one) is refused with a readable message", async () => {

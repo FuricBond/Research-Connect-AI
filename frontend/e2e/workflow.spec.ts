@@ -44,6 +44,17 @@ test("a researcher discovers, saves, applies and is notified of the decision", a
     await expect(page.locator(".workspace-card", { hasText: savedTitle })).toBeVisible();
   });
 
+  await test.step("the researcher moves the saved call along, through its status menu", async () => {
+    // P7: the menu offers the server's allowed moves; the change shows at once and persists.
+    const row = page.locator(".workspace-card", { hasText: savedTitle });
+    await row.getByRole("button", { name: "Status: Saved. Change status" }).click();
+    await expect(row.getByRole("menuitem")).toHaveText(["Move to considering", "Move to planning", "Move to archived"]);
+    await row.getByRole("menuitem", { name: "Move to planning" }).click();
+    await expect(row.getByRole("button", { name: "Status: Planning. Change status" })).toBeVisible();
+    await page.reload();
+    await expect(page.locator(".workspace-card", { hasText: savedTitle }).getByRole("button", { name: "Status: Planning. Change status" })).toBeVisible();
+  });
+
   await test.step("the researcher applies to an opening", async () => {
     await primaryNav(page).getByRole("link", { name: "Research postings" }).click();
     await page.getByRole("link", { name: POSTING }).first().click();

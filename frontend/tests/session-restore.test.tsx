@@ -69,7 +69,7 @@ describe("while the session is being restored", () => {
     await act(async () => undefined);
 
     expect(screen.getByRole("status")).toHaveTextContent("Checking your session");
-    expect(screen.queryByRole("heading", { name: "Opportunity Workspace" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { level: 1, name: "Workspace" })).not.toBeInTheDocument();
     // Nothing that is about to change: no Sign in, no visitor navigation.
     expect(screen.queryByRole("link", { name: "Sign in" })).not.toBeInTheDocument();
     const nav = screen.getByRole("navigation", { name: "Primary" });
@@ -87,26 +87,27 @@ describe("once the session is restored", () => {
     serveShell("STUDENT", { other: workspace(false) });
     renderWorkspace();
 
-    expect(await screen.findByRole("heading", { name: "Opportunity Workspace" })).toBeInTheDocument();
-    // The stat strip is already there, waiting for its numbers.
-    const strip = document.querySelector<HTMLElement>(".workspace-stats-strip")!;
-    expect(strip).toHaveAttribute("aria-busy", "true");
-    for (const label of ["Active Pipeline", "Applied", "Archived"]) expect(within(strip).getByText(label)).toBeInTheDocument();
-    expect(strip).not.toHaveTextContent(/\d/);
-    // Tab counts are unknown, not zero; the workspace is not called empty.
-    const saved = screen.getByRole("button", { name: /^Saved/ });
-    expect(saved).toHaveTextContent("Saved–");
-    expect(saved).not.toHaveTextContent("0");
-    expect(screen.queryByText("Your workspace is empty")).not.toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Workspace" })).toBeInTheDocument();
+    // P7: status chips with counts replace the stat strip; the chips are there, waiting for numbers.
+    const chips = screen.getByRole("group", { name: "Filter by status" });
+    expect(within(chips).getByRole("button", { name: "All" })).toHaveAttribute("aria-pressed", "true");
+    for (const label of ["Saved", "Applied", "Archived"]) expect(within(chips).getByRole("button", { name: label })).toBeInTheDocument();
+    // Counts are unknown, not zero; the list is busy and the workspace is not called empty.
+    // (A hidden, unannounced placeholder keeps each chip's width, so nothing rewraps when they come.)
+    for (const chip of within(chips).getAllByRole("button")) expect(chip).toHaveAccessibleName(/^[\D]+$/);
+    expect(chips.querySelectorAll("[aria-hidden=true]")).toHaveLength(8);
+    expect(screen.getByRole("region", { name: "All calls" })).toHaveAttribute("aria-busy", "true");
+    expect(screen.queryByText("Your workspace is empty.")).not.toBeInTheDocument();
   });
 
   it("then shows the real numbers, with one session request in all", async () => {
     const fetchMock = serveShell("STUDENT", { other: workspace(true) });
     renderWorkspace();
 
-    expect(await screen.findByText("Your workspace is empty")).toBeInTheDocument();
-    expect(document.querySelector(".workspace-stats-strip")).not.toHaveAttribute("aria-busy");
-    expect(screen.getByRole("button", { name: /^Saved/ })).toHaveTextContent("Saved1");
+    expect(await screen.findByText("Your workspace is empty.")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "All calls" })).not.toHaveAttribute("aria-busy");
+    await waitFor(() => expect(screen.getByRole("button", { name: "Saved (1)" })).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "All (4)" })).toHaveAttribute("aria-pressed", "true");
     expect(requestsTo(fetchMock, "/api/v1/auth/me")).toBe(1);
     expect(requestsTo(fetchMock, "/notifications/unread-count")).toBe(1);
   });

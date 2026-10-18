@@ -1,0 +1,345 @@
+/* P7 — workspace (/workspace, /submissions): list first (plan §13). Rows stack on phones:
+   title, deadline and risk, then status, next step and more actions. Tokens only. */
+.localNav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-1);
+  margin: 0 0 var(--rc-space-5);
+  padding: 0;
+  list-style: none;
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+}
+
+.localLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rc-target-min);
+  padding: var(--rc-space-2) var(--rc-space-3);
+  border-bottom: 2px solid transparent;
+  color: var(--rc-text-secondary);
+  font-weight: var(--rc-weight-medium);
+  text-decoration: none;
+}
+
+.localLink:hover {
+  color: var(--rc-text);
+}
+
+.localLink[aria-current="page"] {
+  border-bottom-color: var(--rc-brand);
+  color: var(--rc-text);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  margin-bottom: var(--rc-space-6);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+  min-height: var(--rc-target-min);
+  padding: var(--rc-space-1) var(--rc-space-3);
+  border: var(--rc-border-width) solid var(--rc-border-control);
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-surface);
+  color: var(--rc-text-secondary);
+  font: inherit;
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-medium);
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: var(--rc-surface-hover);
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--rc-brand);
+  background: var(--rc-brand-subtle);
+  color: var(--rc-brand-text);
+}
+
+/* The count is text after a space ("Saved (3)"), so it is part of the button's name as read.
+   Until it is known, a hidden placeholder keeps its width, so the chips do not rewrap (P7 CLS). */
+.chipCount {
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+}
+
+.chipCountPending {
+  visibility: hidden;
+}
+
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rc-space-3) var(--rc-space-5);
+}
+
+.search {
+  display: flex;
+  flex: 1 1 18rem;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rc-space-2);
+  min-width: 0;
+}
+
+.search > :first-child {
+  flex: 1 1 12rem;
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  min-width: 0;
+}
+
+.resultsTitle {
+  margin: 0;
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.alertActions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rc-space-3);
+  padding: var(--rc-space-4);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+  min-width: 0;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+@media (min-width: 900px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
+  .rowDetails {
+    grid-column: 1 / -1;
+  }
+}
+
+.rowMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  min-width: 0;
+}
+
+.rowTitle {
+  margin: 0;
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.rowTitleLink {
+  color: var(--rc-text);
+  text-decoration: none;
+}
+
+.rowTitleLink:hover {
+  color: var(--rc-link);
+  text-decoration: underline;
+}
+
+.rowFacts {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.rowSignals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-4);
+}
+
+.rowControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2) var(--rc-space-3);
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .rowControls {
+    justify-content: flex-end;
+  }
+}
+
+.statusStatic {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2);
+  min-height: var(--rc-target-min);
+}
+
+.saving {
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-muted);
+}
+
+.statusTrigger {
+  border-color: var(--rc-border);
+}
+
+.moreTrigger {
+  justify-content: center;
+  min-width: var(--rc-target-min);
+  padding: var(--rc-space-1);
+  border-color: transparent;
+  background: transparent;
+}
+
+.nextStep {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  min-height: var(--rc-target-min);
+  color: var(--rc-link);
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-semibold);
+  text-decoration: none;
+}
+
+.nextStep:hover {
+  text-decoration: underline;
+}
+
+button.nextStep {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-semibold);
+  cursor: pointer;
+}
+
+.rowDetails > summary {
+  min-height: var(--rc-target-min);
+  color: var(--rc-link);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-target-min);
+  font-weight: var(--rc-weight-medium);
+  cursor: pointer;
+}
+
+.rowDetailsBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  max-width: var(--rc-measure);
+  padding: var(--rc-space-2) 0;
+}
+
+.inlineForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+}
+
+.tags {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  padding-left: var(--rc-space-2);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-sm);
+  background: var(--rc-surface-sunken);
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-small-size);
+  overflow-wrap: anywhere;
+}
+
+.tagForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rc-space-2);
+}
+
+.tagForm > :first-child {
+  flex: 1 1 12rem;
+}
+
+.notice {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+}
+
+.notice:empty {
+  display: none;
+}
+
+/* Submissions list (/submissions) */
+.subMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-4);
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+}
