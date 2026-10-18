@@ -6,6 +6,8 @@
  * Matches backend app.schemas.research_intelligence schemas 1-to-1.
  */
 
+import type { RecommendationExplanation } from "./researcher";
+
 export type SignalProvenanceType =
   | "EXPLICIT_PREFERENCE"
   | "INFERRED_PREFERENCE"
@@ -128,6 +130,8 @@ export interface UnifiedRecommendationItem {
   workspace_context: OpportunityWorkspaceContext;
   primary_match_reason: string;
   evidence_tiers: EvidenceTierBreakdown[];
+  /** P6: the Phase 3.8 explanation the backend sends with each item, kept for "Why this match?" (fields may be missing). */
+  explanation?: Partial<RecommendationExplanation> | null;
 }
 
 export interface UnifiedRecommendationResponse {
@@ -216,7 +220,8 @@ export interface ApiUnifiedRecommendationItem {
   deadline_intelligence?: ApiDeadlineIntelligence | null;
   workspace_context: ApiWorkspaceContext;
   evidence_tiers: ApiEvidenceTier[];
-  explanation?: { primary_reasons?: string[]; personalization_strength?: string | null } | null;
+  /** The Phase 3.8 explanation (backend RecommendationExplanationSchema). */
+  explanation?: Partial<RecommendationExplanation> | null;
 }
 
 export interface ApiUnifiedRecommendationResponse {

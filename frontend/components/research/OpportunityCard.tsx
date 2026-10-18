@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 import { ExternalLink } from "lucide-react";
 import type { ExplanationSchema } from "../../types/discovery";
 import type { OpportunityListItem } from "../../types/opportunity";
@@ -34,6 +34,13 @@ interface OpportunityCardProps {
   onSaved?: (item: WorkspaceItem) => void;
   /** Called as the title's link is followed (to remember the way back). */
   onFollow?: () => void;
+  /** P6 (recommendations): the rank, a custom evidence row, extra actions, and a save that is also an interaction. */
+  rank?: number;
+  evidence?: ReactNode;
+  actionsExtra?: ReactNode;
+  interactionProfileId?: string;
+  /** Lets the caller describe its own controls with the title (`aria-describedby`). */
+  titleId?: string;
 }
 
 /**
@@ -44,8 +51,9 @@ interface OpportunityCardProps {
  * carries the match band, its reasons and "Why this venue?". Deadline and risk never look alike.
  * `opportunity-card` stays on the element as a stable hook for tests.
  */
-export function OpportunityCard({ call, match, saved = false, onSaved, onFollow }: OpportunityCardProps) {
-  const titleId = `call-${useId()}`;
+export function OpportunityCard({ call, match, saved = false, onSaved, onFollow, rank, evidence, actionsExtra, interactionProfileId, titleId: givenTitleId }: OpportunityCardProps) {
+  const generatedTitleId = `call-${useId()}`;
+  const titleId = givenTitleId ?? generatedTitleId;
   const deadline = workspaceDeadline(call);
   const facts = [call.organizer || call.publisher, call.location, deliveryModeLabel(call.delivery_mode)].filter(Boolean).join(" · ");
   const indexing = (call.indexing ?? []).filter((name) => typeof name === "string" && name.trim());
@@ -56,7 +64,7 @@ export function OpportunityCard({ call, match, saved = false, onSaved, onFollow 
     <article className={`${styles.card} opportunity-card`} aria-labelledby={titleId}>
       <div className={styles.top}>
         <div className={styles.kind}>
-          {match && <span className={styles.rank}>{match.rank}.</span>}
+          {(match?.rank ?? rank) !== undefined && <span className={styles.rank}>{match?.rank ?? rank}.</span>}
           <Badge tone="neutral">{callTypeLabel(call.opportunity_type)}</Badge>
         </div>
         {match ? (
@@ -100,11 +108,13 @@ export function OpportunityCard({ call, match, saved = false, onSaved, onFollow 
         </div>
       )}
 
+      {evidence && <div className={styles.evidence}>{evidence}</div>}
+
       {indexing.length > 0 && <p className={styles.indexing}>Indexed in {indexing.join(", ")}</p>}
       {call.summary && <p className={styles.summary}>{call.summary}</p>}
 
       <div className={styles.actions}>
-        <SaveCallButton opportunityId={call.id} isSaved={saved} onSaved={onSaved} describedBy={titleId} />
+        <SaveCallButton opportunityId={call.id} isSaved={saved} onSaved={onSaved} describedBy={titleId} interactionProfileId={interactionProfileId} />
         {call.website_url && (
           <a href={call.website_url} className={styles.action} target="_blank" rel="noopener noreferrer" aria-describedby={titleId}>
             <ExternalLink size={16} aria-hidden="true" />
@@ -112,6 +122,7 @@ export function OpportunityCard({ call, match, saved = false, onSaved, onFollow 
             <span className="rc-visually-hidden"> (opens in new tab)</span>
           </a>
         )}
+        {actionsExtra}
       </div>
     </article>
   );

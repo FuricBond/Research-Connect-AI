@@ -2446,6 +2446,7 @@ function toRecommendationItem(item: ApiUnifiedRecommendationItem): UnifiedRecomm
     primary_match_reason:
       item.explanation?.primary_reasons?.[0] ?? item.explanation?.personalization_strength ?? "",
     evidence_tiers: (item.evidence_tiers ?? []).map(toEvidenceTier),
+    explanation: item.explanation ?? null,
   };
 }
 

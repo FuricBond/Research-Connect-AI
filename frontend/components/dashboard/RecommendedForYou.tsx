@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useState } from "react";
 import type { ApiResource } from "../../hooks/useApiResource";
@@ -8,31 +7,27 @@ import type { UnifiedRecommendationResponse } from "../../types/research_intelli
 import { humanizeEnum } from "../../utils/date";
 import { DeadlineCountdown } from "../research/DeadlineCountdown";
 import { MatchScore } from "../research/MatchScore";
+import { EvidencePanel } from "../research/lazyPanels";
 import { Button } from "../ui/Button/Button";
 import { EmptyState } from "../ui/State/State";
 import { DashboardModule, Loaded } from "./Module";
 import styles from "./Dashboard.module.css";
 
-/** The explanation is code most visits never need: loaded when "Why?" is first used. */
-const WhyThisRecommendationModal = dynamic(
-  () => import("../personalization/WhyThisRecommendationModal").then((loaded) => loaded.WhyThisRecommendationModal),
-  { ssr: false }
-);
-
 /**
  * Student "Recommended for you" (plan §8): the top three calls for this researcher, each with its
- * match band, the one main reason, and "Why?" — the existing explanation, loaded only when asked
- * for (so it is not part of the page's requests).
+ * match band, the one main reason, and "Why?" — the shared Evidence panel (P6), loaded only when
+ * asked for (so it is not part of the page's requests).
  */
 export function RecommendedForYou({ recommendations, profileId }: { recommendations: ApiResource<UnifiedRecommendationResponse>; profileId: string }) {
   const [why, setWhy] = useState<string | null>(null);
   const interests = recommendations.data?.researcher_context?.active_interests_count;
+  const whyItem = why === null ? null : (recommendations.data?.recommendations.find((item) => item.opportunity_id === why) ?? null);
 
   return (
     <DashboardModule
       id="dashboard-recommended"
       title="Recommended for you"
-      action={<Link href="/researcher?section=recommendations">All recommendations</Link>}
+      action={<Link href="/recommendations">All recommendations</Link>}
       reserve="list"
     >
       <Loaded
@@ -50,7 +45,7 @@ export function RecommendedForYou({ recommendations, profileId }: { recommendati
               description={
                 interests === 0 ? (
                   <>
-                    <Link href="/researcher?section=interests">Add your research interests</Link> and recommendations start from them.
+                    <Link href="/researcher/preferences">Add your research interests</Link> and recommendations start from them.
                   </>
                 ) : (
                   "New calls are matched to your interests as they arrive."
@@ -84,7 +79,26 @@ export function RecommendedForYou({ recommendations, profileId }: { recommendati
           )
         }
       </Loaded>
-      {why !== null && <WhyThisRecommendationModal isOpen onClose={() => setWhy(null)} researcherId={profileId} recommendationId={why} />}
+      {whyItem && (
+        <EvidencePanel
+          subject={{
+            title: whyItem.title,
+            context: "recommendation",
+            score: whyItem.composite_score,
+            scoreKind: "match",
+            explanation: null,
+            recommendation: {
+              profileId,
+              opportunityId: whyItem.opportunity_id,
+              finalScore: whyItem.composite_score,
+              relevanceScore: whyItem.relevance_score,
+              personalizationScore: whyItem.personalization_score,
+              explanation: whyItem.explanation ?? null,
+            },
+          }}
+          onClose={() => setWhy(null)}
+        />
+      )}
     </DashboardModule>
   );
 }

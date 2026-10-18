@@ -7,6 +7,7 @@ import { assessmentWord, citationsLabel, countedSignals, plainSummary, signalDes
 import { Drawer } from "../ui/Dialog/Dialog";
 import { DeadlineMilestones, type CallDates } from "./DeadlineMilestones";
 import { MatchScore } from "./MatchScore";
+import { RecommendationEvidence, type RecommendationSubject } from "./RecommendationEvidence";
 import { Fact, RiskDetails } from "./RiskDetails";
 import { ScoreMeter } from "./ScoreMeter";
 import { TopicTags } from "./TopicTags";
@@ -24,7 +25,9 @@ export interface EvidenceSubject {
   scoreKind: "relevance" | "similarity" | "match";
   explanation: ExplanationSchema | null;
   sharedTopics?: string[];
-  /** A call: its venue risk and its dates (venue matching). */
+  /** P6: a recommendation — "Why this match?" — explained from the recommendation API's own data. */
+  recommendation?: RecommendationSubject;
+  /** A call: its venue risk and its dates (venue matching, recommendations). */
   call?: {
     risk: RiskExplanation | null;
     riskLevel?: string | null;
@@ -81,72 +84,76 @@ export function EvidencePanel({ subject, onClose, section = "match", rankingMode
   return (
     <Drawer open onClose={onClose} title={explainLabel(context)} description={subject.title} size="lg" className="evidence-panel">
       <div className={styles.stack}>
-        <section className={styles.section} aria-labelledby={`${id}-match`}>
-          <h3 id={`${id}-match`} tabIndex={-1} className={styles.sectionTitle}>
-            {context === "venue" ? "How well it fits the paper" : context === "similar" ? "How similar it is" : "How well it matches"}
-          </h3>
-          <div className={styles.cluster}>
-            <MatchScore score={subject.score} kind={subject.scoreKind} />
-            {subject.rank ? <span className={styles.muted}>Ranked #{subject.rank}</span> : null}
-          </div>
-          {summary && <p className={styles.text}>{summary}</p>}
-          {!explanation && <p className={styles.muted}>No explanation was returned for this item.</p>}
-
-          {signals.length > 0 && (
-            <div className={styles.meters} aria-label="What counted" role="group">
-              {signals.map((signal) => (
-                <ScoreMeter
-                  key={signal.signal_name}
-                  name={signalName(signal.signal_name, context)}
-                  score={signal.score}
-                  assessment={assessmentWord(signal.qualitative_assessment)}
-                  available={signal.is_available}
-                  description={signalDescription(signal.signal_name, context)}
-                />
-              ))}
+        {subject.recommendation ? (
+          <RecommendationEvidence subject={subject.recommendation} headingId={id} />
+        ) : (
+          <section className={styles.section} aria-labelledby={`${id}-match`}>
+            <h3 id={`${id}-match`} tabIndex={-1} className={styles.sectionTitle}>
+              {context === "venue" ? "How well it fits the paper" : context === "similar" ? "How similar it is" : "How well it matches"}
+            </h3>
+            <div className={styles.cluster}>
+              <MatchScore score={subject.score} kind={subject.scoreKind} />
+              {subject.rank ? <span className={styles.muted}>Ranked #{subject.rank}</span> : null}
             </div>
-          )}
+            {summary && <p className={styles.text}>{summary}</p>}
+            {!explanation && <p className={styles.muted}>No explanation was returned for this item.</p>}
 
-          {topics.length > 0 && (
-            <div className={styles.group}>
-              <h4 className={styles.groupTitle}>{context === "search" ? "Topics shared with your search" : "Shared topics"}</h4>
-              <TopicTags topics={topics} shared label="Shared topics" />
-            </div>
-          )}
-
-          {explanation && explanation.strengths.length > 0 && (
-            <div className={styles.group}>
-              <h4 className={styles.groupTitle}>Evidence</h4>
-              <ol className={styles.list}>
-                {explanation.strengths.map((strength, i) => (
-                  <li key={i}>{strength}</li>
+            {signals.length > 0 && (
+              <div className={styles.meters} aria-label="What counted" role="group">
+                {signals.map((signal) => (
+                  <ScoreMeter
+                    key={signal.signal_name}
+                    name={signalName(signal.signal_name, context)}
+                    score={signal.score}
+                    assessment={assessmentWord(signal.qualitative_assessment)}
+                    available={signal.is_available}
+                    description={signalDescription(signal.signal_name, context)}
+                  />
                 ))}
-              </ol>
-            </div>
-          )}
-          {explanation && explanation.limitations.length > 0 && (
-            <div className={styles.group}>
-              <h4 className={styles.groupTitle}>Limits of this match</h4>
-              <ul className={styles.list}>
-                {explanation.limitations.map((limitation, i) => (
-                  <li key={i}>{limitation}</li>
-                ))}
-              </ul>
-            </div>
-          )}
+              </div>
+            )}
 
-          {evidence && context !== "venue" && (
-            <div className={styles.group}>
-              <h4 className={styles.groupTitle}>About the paper</h4>
-              <dl className={styles.facts}>
-                <Fact term="Citations" value={citationsLabel(evidence.citation_count) ?? "Not known"} />
-                <Fact term="Open access" value={evidence.oa_status ? assessmentWord(evidence.oa_status) : evidence.is_in_doaj ? "Yes (DOAJ)" : "Not known"} />
-                {evidence.canonical_venue_name && <Fact term="Published in" value={evidence.canonical_venue_name} />}
-                {evidence.institution_names.length > 0 && <Fact term="Institutions" value={evidence.institution_names.join(", ")} />}
-              </dl>
-            </div>
-          )}
-        </section>
+            {topics.length > 0 && (
+              <div className={styles.group}>
+                <h4 className={styles.groupTitle}>{context === "search" ? "Topics shared with your search" : "Shared topics"}</h4>
+                <TopicTags topics={topics} shared label="Shared topics" />
+              </div>
+            )}
+
+            {explanation && explanation.strengths.length > 0 && (
+              <div className={styles.group}>
+                <h4 className={styles.groupTitle}>Evidence</h4>
+                <ol className={styles.list}>
+                  {explanation.strengths.map((strength, i) => (
+                    <li key={i}>{strength}</li>
+                  ))}
+                </ol>
+              </div>
+            )}
+            {explanation && explanation.limitations.length > 0 && (
+              <div className={styles.group}>
+                <h4 className={styles.groupTitle}>Limits of this match</h4>
+                <ul className={styles.list}>
+                  {explanation.limitations.map((limitation, i) => (
+                    <li key={i}>{limitation}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {evidence && context !== "venue" && (
+              <div className={styles.group}>
+                <h4 className={styles.groupTitle}>About the paper</h4>
+                <dl className={styles.facts}>
+                  <Fact term="Citations" value={citationsLabel(evidence.citation_count) ?? "Not known"} />
+                  <Fact term="Open access" value={evidence.oa_status ? assessmentWord(evidence.oa_status) : evidence.is_in_doaj ? "Yes (DOAJ)" : "Not known"} />
+                  {evidence.canonical_venue_name && <Fact term="Published in" value={evidence.canonical_venue_name} />}
+                  {evidence.institution_names.length > 0 && <Fact term="Institutions" value={evidence.institution_names.join(", ")} />}
+                </dl>
+              </div>
+            )}
+          </section>
+        )}
 
         {call && (
           <section className={styles.section} aria-labelledby={`${id}-risk`}>
@@ -166,7 +173,7 @@ export function EvidencePanel({ subject, onClose, section = "match", rankingMode
           </section>
         )}
 
-        {explanation && (
+        {explanation && !subject.recommendation && (
           <details className={styles.technical}>
             <summary>Technical details</summary>
             <div className={styles.technicalBody}>

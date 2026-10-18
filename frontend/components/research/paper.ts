@@ -61,5 +61,6 @@ export function venuesHref(workId: string): string {
 export function explainLabel(context: ExplanationContext): string {
   if (context === "similar") return "Why similar?";
   if (context === "venue") return "Why this venue?";
+  if (context === "recommendation") return "Why this match?";
   return "Why this result?";
 }

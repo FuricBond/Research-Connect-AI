@@ -193,14 +193,16 @@ textarea.control {
 /* Switch: settings that apply immediately. Label left, state word right. */
 .switchRow {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--rc-space-4);
+  gap: var(--rc-space-2) var(--rc-space-4);
   min-width: 0;
 }
 
 .switchText {
   display: flex;
+  flex: 1 1 12rem;
   flex-direction: column;
   gap: 2px;
   min-width: 0;

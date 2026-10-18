@@ -366,8 +366,11 @@ th {
   max-width: var(--rc-measure);
 }
 
-/* A component-level horizontal scroller (wide tables): give it a role, a label and tabindex. */
+/* A component-level horizontal scroller (wide tables): give it a role, a label and tabindex.
+   It is the containing block of what is inside it, so a visually hidden caption or label (absolutely
+   positioned) is clipped with the rest instead of widening the page (P6). */
 .rc-scroll-x {
+  position: relative;
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-x: contain;

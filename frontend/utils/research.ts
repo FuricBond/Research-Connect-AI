@@ -9,7 +9,7 @@ import type { ExplanationSchema, SignalContributionSchema } from "../types/disco
 import { humanizeEnum } from "./date";
 
 /** Where an explanation comes from: the search names its keyword signal after the query. */
-export type ExplanationContext = "search" | "similar" | "venue";
+export type ExplanationContext = "search" | "similar" | "venue" | "recommendation";
 
 interface SignalWords {
   /** The short reason on a card's evidence line ("Similar meaning · Shared topics"); a noun phrase, so it also reads in a sentence. */
