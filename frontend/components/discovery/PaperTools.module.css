@@ -1,0 +1,158 @@
+/* P5 — the paper-based pages (similar papers, find venues): the chosen paper, filters, results. Tokens only. */
+.source {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  margin-bottom: var(--rc-space-6);
+  padding: var(--rc-card-padding);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface-sunken);
+  min-width: 0;
+}
+
+.sourceLabel {
+  margin: 0;
+  font-size: var(--rc-text-label-size);
+  line-height: var(--rc-text-label-lh);
+  font-weight: var(--rc-weight-semibold);
+  letter-spacing: var(--rc-tracking-label);
+  color: var(--rc-text-muted);
+}
+
+.sourceTitle {
+  margin: 0;
+  font-family: var(--rc-font-serif);
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.sourceTitle:focus {
+  outline: none;
+}
+
+.sourceTitle:focus-visible {
+  outline: var(--rc-focus-width) solid var(--rc-focus-ring);
+  outline-offset: var(--rc-focus-offset);
+}
+
+.abstractBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--rc-space-1);
+}
+
+.abstract,
+.abstractClamped {
+  margin: 0;
+  max-width: var(--rc-measure);
+  font-size: var(--rc-text-body-size);
+  line-height: var(--rc-text-body-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.abstractClamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.toggle {
+  min-height: var(--rc-target-min);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--rc-link);
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-medium);
+  cursor: pointer;
+}
+
+.toggle:hover {
+  text-decoration: underline;
+}
+
+.note {
+  margin: 0;
+  max-width: var(--rc-measure);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.sourceActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-3);
+  padding-top: var(--rc-space-2);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.toolLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-1);
+  min-height: var(--rc-target-min);
+  color: var(--rc-link);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-medium);
+  text-decoration: none;
+}
+
+.toolLink:hover {
+  text-decoration: underline;
+}
+
+/* Venue filters: a wrapping grid of fields. */
+.filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--rc-space-4);
+  align-items: end;
+  margin-bottom: var(--rc-space-6);
+  padding: var(--rc-card-padding);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.check {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  min-width: 0;
+}
+
+.resultsTitle {
+  margin: 0;
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.resultsTitle:focus {
+  outline: none;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

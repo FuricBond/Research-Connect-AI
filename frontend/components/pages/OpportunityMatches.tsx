@@ -1,355 +1,295 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import {
-  AlertCircle,
-  ArrowLeft,
-  BookOpen,
-  Calendar,
-  Loader2,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { OpportunityCard } from "../discovery/OpportunityCard";
-import { PaginationControls } from "../discovery/PaginationControls";
-import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
-import { matchOpportunitiesForResearch, ApiError } from "../../services/api";
-import { getSelectedWork, setSelectedWork as rememberSelectedWork } from "../../hooks/useSelectedWork";
-import { PaperContextRequired, ToolPageHeader } from "../discovery/PaperContextRequired";
-import type {
-  ExplanationSchema,
-  OpportunityMatchItem,
-  OpportunityMatchParams,
-  ResearchWorkRead,
-} from "../../types/discovery";
-import type { OpportunityDeadline, RiskExplanation } from "../../types/opportunity";
+import Link from "next/link";
+import { Suspense, useRef, useState, type KeyboardEvent } from "react";
+import { Compass } from "lucide-react";
+import { useApiResource } from "../../hooks/useApiResource";
+import { matchOpportunitiesForResearch } from "../../services/api";
+import type { OpportunityMatchItem } from "../../types/discovery";
+import type { WorkspaceItem } from "../../types/workspace";
+import { CALL_TYPES, DELIVERY_MODES, callTypeLabel, deliveryModeLabel } from "../../utils/research";
+import { PaperContextRequired } from "../discovery/PaperContextRequired";
+import { SourcePaper } from "../discovery/SourcePaper";
+import { usePaperContext } from "../discovery/paperContext";
+import type { EvidenceSection } from "../research/EvidencePanel";
+import { EvidencePanel } from "../research/lazyPanels";
+import { OpportunityCard } from "../research/OpportunityCard";
+import { similarHref, venuesHref } from "../research/paper";
+import { useTrackedCalls } from "../research/trackedCalls";
+import { Breadcrumb } from "../ui/Breadcrumb/Breadcrumb";
+import { Button } from "../ui/Button/Button";
+import { Checkbox, Select, TextInput } from "../ui/Field/Field";
+import { PageHeader } from "../ui/PageHeader/PageHeader";
+import { Pagination } from "../ui/Pagination/Pagination";
+import { EmptyState, ErrorState, SkeletonList } from "../ui/State/State";
+import styles from "../discovery/PaperTools.module.css";
 
-export function OpportunityMatchesPage() {
-  const router = useRouter();
-  const [selectedWork, setSelectedWork] = useState<ResearchWorkRead | null>(null);
+const PAGE_SIZE = 20;
 
-  const [items, setItems] = useState<OpportunityMatchItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+interface VenueFilters {
+  type: string;
+  mode: string;
+  maxFee: number | null;
+  location: string;
+  knownFee: boolean;
+  upcoming: boolean;
+}
 
-  const [filters, setFilters] = useState<OpportunityMatchParams>({
-    limit: 20,
-    offset: 0,
-    explain: true,
-  });
+/** "Upcoming deadlines only" starts off (P5 decision on plan Q10): nothing is hidden unasked. */
+const NO_FILTERS: VenueFilters = { type: "", mode: "", maxFee: null, location: "", knownFee: false, upcoming: false };
 
-  const [opportunityType, setOpportunityType] = useState<string>("");
-  const [upcomingOnly, setUpcomingOnly] = useState<boolean>(false);
-  const [deliveryMode, setDeliveryMode] = useState<string>("");
-  const [maxApcUsd, setMaxApcUsd] = useState<string>("");
-  const [requireKnownApc, setRequireKnownApc] = useState<boolean>(false);
-  const [locationFilter, setLocationFilter] = useState<string>("");
+const header = (
+  <PageHeader
+    title="Find venues"
+    description="Calls for papers ranked for one paper you choose, each with its deadline, its venue risk and the reasons it fits."
+  />
+);
 
-  // Explainability Drawer State (Phases 2.5F, 2.6F, 2.7F)
-  const [selectedExplanation, setSelectedExplanation] = useState<ExplanationSchema | null>(null);
-  const [selectedRiskExplanation, setSelectedRiskExplanation] = useState<RiskExplanation | null>(null);
-  const [selectedDeadlineExplanation, setSelectedDeadlineExplanation] = useState<OpportunityDeadline | null>(null);
-  const [drawerTitle, setDrawerTitle] = useState("");
-  const [drawerInitialTab, setDrawerInitialTab] = useState<"match" | "risk" | "deadline">("match");
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  // Hydrate selectedWork from sessionStorage on mount
-  useEffect(() => {
-    const work = getSelectedWork();
-    setSelectedWork(work);
-    if (work) {
-      fetchMatches(work.id, filters);
-    }
-  }, []);
-
-  const fetchMatches = async (workId: string, currentFilters: OpportunityMatchParams) => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const parsedMaxApc = maxApcUsd ? parseFloat(maxApcUsd) : undefined;
-      const response = await matchOpportunitiesForResearch(
-        workId,
-        {
-          ...currentFilters,
-          opportunity_type: opportunityType || undefined,
-          upcoming_only: upcomingOnly || undefined,
-          delivery_mode: deliveryMode || undefined,
-          max_apc_usd: !isNaN(parsedMaxApc as number) ? parsedMaxApc : undefined,
-          require_known_apc: requireKnownApc || undefined,
-          location: locationFilter.trim() || undefined,
-          explain: true,
-        },
-        abortController.signal
-      );
-      setItems(response.items);
-      setTotal(response.total);
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === "AbortError") {
-        return;
-      }
-      if (err instanceof ApiError) {
-        setError(err.detail || err.message);
-      } else if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unexpected error occurred while matching opportunities.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
+/** A text filter that applies on Enter or on leaving the field, so typing asks the API once. */
+function CommitField({ label, value, onCommit, type = "text", placeholder, hint }: { label: string; value: string; onCommit: (value: string) => void; type?: "text" | "number"; placeholder?: string; hint?: string }) {
+  const [text, setText] = useState(value);
+  const [shown, setShown] = useState(value);
+  if (value !== shown) {
+    setShown(value);
+    setText(value);
+  }
+  const commit = () => {
+    if (text.trim() !== value) onCommit(text.trim());
   };
-
-  // Re-fetch when filters change (after work is loaded)
-  useEffect(() => {
-    if (selectedWork?.id) {
-      fetchMatches(selectedWork.id, filters);
-    }
-  }, [opportunityType, upcomingOnly, deliveryMode, maxApcUsd, requireKnownApc, locationFilter]);
-
-  const handlePageChange = (newOffset: number) => {
-    const updated = { ...filters, offset: newOffset };
-    setFilters(updated);
-    if (selectedWork) {
-      fetchMatches(selectedWork.id, updated);
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleOpenExplain = (
-    item: OpportunityMatchItem,
-    initialTab: "match" | "risk" | "deadline" = "match"
-  ) => {
-    setSelectedExplanation(item.explanation || null);
-    setSelectedRiskExplanation(item.risk_explanation || item.opportunity.risk_explanation || null);
-    setSelectedDeadlineExplanation(item.deadline_explanation || item.opportunity.deadline_intelligence || null);
-    setDrawerTitle(item.opportunity.title);
-    setDrawerInitialTab(initialTab);
-    setIsDrawerOpen(true);
-  };
-
-  const handleBackToSearch = () => {
-    router.push("/");
-  };
-
-  // A paper picked on this page (P0.7) is remembered for the session like one picked in search.
-  // The button that picked it disappears, so focus moves to the chosen paper's title.
-  const paperHeading = useRef<HTMLHeadingElement>(null);
-  const focusPaperHeading = useRef(false);
-  useEffect(() => {
-    if (selectedWork && focusPaperHeading.current) {
-      focusPaperHeading.current = false;
-      paperHeading.current?.focus();
-    }
-  }, [selectedWork]);
-
-  const chooseWork = (work: ResearchWorkRead) => {
-    rememberSelectedWork(work);
-    focusPaperHeading.current = true;
-    setSelectedWork(work);
-    fetchMatches(work.id, filters);
-  };
-
-  const header = (
-    <ToolPageHeader
-      title="Opportunity Matcher"
-      description="Ranks calls for papers and venues for one paper you choose, with each call's deadline and venue risk."
+  return (
+    <TextInput
+      label={label}
+      type={type}
+      inputMode={type === "number" ? "numeric" : undefined}
+      min={type === "number" ? 0 : undefined}
+      placeholder={placeholder}
+      hint={hint}
+      value={text}
+      onChange={(event) => setText(event.target.value)}
+      onBlur={commit}
+      onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          commit();
+        }
+      }}
     />
   );
+}
 
-  if (!selectedWork) {
+function Venues() {
+  const { paperId, work, origin, headingRef, choose } = usePaperContext(venuesHref);
+  const [filters, setFilters] = useState<VenueFilters>(NO_FILTERS);
+  const [page, setPage] = useState(1);
+  const [evidence, setEvidence] = useState<{ item: OpportunityMatchItem; section: EvidenceSection } | null>(null);
+  const [savedHere, setSavedHere] = useState<Record<string, WorkspaceItem>>({});
+  const resultsHeading = useRef<HTMLHeadingElement>(null);
+  const tracked = useTrackedCalls();
+
+  // A different paper starts again from the first page.
+  const [pageFor, setPageFor] = useState(paperId);
+  if (pageFor !== paperId) {
+    setPageFor(paperId);
+    setPage(1);
+  }
+
+  const offset = (page - 1) * PAGE_SIZE;
+  const filtersKey = JSON.stringify(filters);
+  const matches = useApiResource(
+    paperId ? `venues:${paperId}:${filtersKey}:${offset}:${PAGE_SIZE}` : null,
+    (signal) =>
+      matchOpportunitiesForResearch(
+        paperId!,
+        {
+          limit: PAGE_SIZE,
+          offset,
+          opportunity_type: filters.type || undefined,
+          delivery_mode: filters.mode || undefined,
+          max_apc_usd: filters.maxFee ?? undefined,
+          require_known_apc: filters.knownFee || undefined,
+          location: filters.location || undefined,
+          upcoming_only: filters.upcoming || undefined,
+          explain: true,
+        },
+        signal
+      ),
+    { isEmpty: (data) => data.items.length === 0, scope: "public" }
+  );
+
+  if (!paperId) {
     return (
-      <section className="opportunity-matches-page empty-selection" aria-label="Opportunity Matcher">
+      <section className="opportunity-matches-page empty-selection" aria-label="Find venues">
         {header}
-        <PaperContextRequired actionLabel="Match Calls & Venues" onChoose={chooseWork} />
+        <PaperContextRequired actionLabel="Find venues" onChoose={choose} />
       </section>
     );
   }
 
+  const change = (next: Partial<VenueFilters>) => {
+    setFilters((previous) => ({ ...previous, ...next }));
+    setPage(1);
+  };
+  const toPage = (next: number) => {
+    setPage(next);
+    resultsHeading.current?.focus();
+  };
+  const filtered = JSON.stringify(filters) !== JSON.stringify(NO_FILTERS);
+  const total = matches.data?.total ?? 0;
+  const open = evidence?.item;
+
   return (
-    <section className="opportunity-matches-page" aria-label="Opportunity Matcher">
-      {/* Back button */}
-      <button type="button" className="back-link-btn" onClick={handleBackToSearch}>
-        <ArrowLeft size={16} />
-        <span>Back to Literature Search</span>
-      </button>
+    <section className="opportunity-matches-page" aria-label="Find venues">
+      <Breadcrumb items={[{ label: "Search", href: origin }, { label: work?.title ?? "Chosen paper" }]} current="Find venues" />
       {header}
 
-      {/* Target Paper Banner */}
-      <div className="source-paper-hero">
-        <div className="source-hero-eyebrow">
-          <BookOpen size={14} />
-          <span>Manuscript / Target Research Work</span>
-        </div>
-        <h2 className="source-hero-title" ref={paperHeading} tabIndex={-1}>
-          {selectedWork.title}
-        </h2>
-        {selectedWork.abstract && (
-          <p className="source-hero-abstract">{selectedWork.abstract}</p>
-        )}
-      </div>
-
-      {/* Opportunity Filters Strip */}
-      <div className="opportunity-filters-strip">
-        <div className="filter-select-wrap">
-          <label htmlFor="opp-type-filter">Category:</label>
-          <select
-            id="opp-type-filter"
-            value={opportunityType}
-            onChange={(e) => setOpportunityType(e.target.value)}
-          >
-            <option value="">All Categories</option>
-            <option value="CONFERENCE">Conferences</option>
-            <option value="JOURNAL">Journals</option>
-            <option value="WORKSHOP">Workshops</option>
-            <option value="CALL_FOR_PAPERS">Calls for Papers</option>
-            <option value="SPECIAL_ISSUE">Special Issues</option>
-          </select>
-        </div>
-
-        <div className="filter-select-wrap">
-          <label htmlFor="delivery-mode-filter">Attendance:</label>
-          <select
-            id="delivery-mode-filter"
-            value={deliveryMode}
-            onChange={(e) => setDeliveryMode(e.target.value)}
-          >
-            <option value="">All Modes</option>
-            <option value="ONLINE">Online / Virtual</option>
-            <option value="HYBRID">Hybrid</option>
-            <option value="OFFLINE">In-Person (Offline)</option>
-          </select>
-        </div>
-
-        <div className="filter-input-wrap">
-          <label htmlFor="max-apc-filter">Max APC ($):</label>
-          <input
-            id="max-apc-filter"
-            type="number"
-            min="0"
-            step="100"
-            placeholder="e.g. 1000"
-            value={maxApcUsd}
-            onChange={(e) => setMaxApcUsd(e.target.value)}
-          />
-        </div>
-
-        <div className="filter-input-wrap">
-          <label htmlFor="location-filter">Location:</label>
-          <input
-            id="location-filter"
-            type="text"
-            placeholder="e.g. London, USA"
-            value={locationFilter}
-            onChange={(e) => setLocationFilter(e.target.value)}
-          />
-        </div>
-
-        <div className="filter-checkbox-wrap">
-          <label>
-            <input
-              type="checkbox"
-              checked={requireKnownApc}
-              onChange={(e) => setRequireKnownApc(e.target.checked)}
-            />
-            <span>Require Stated Fee</span>
-          </label>
-        </div>
-
-        <div className="filter-checkbox-wrap">
-          <label>
-            <input
-              type="checkbox"
-              checked={upcomingOnly}
-              onChange={(e) => setUpcomingOnly(e.target.checked)}
-            />
-            <span>Upcoming Only</span>
-          </label>
-        </div>
-      </div>
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="state-container loading-state" role="status">
-          <Loader2 size={24} className="spin" />
-          <p>Evaluating venue quality, predatory risk, topic compatibility, and submission deadlines...</p>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && !isLoading && (
-        <div className="state-container error-state" role="alert">
-          <AlertCircle size={24} className="status-error" />
-          <div>
-            <h4>Matching Error</h4>
-            <p>{error}</p>
-            <button
-              type="button"
-              className="retry-btn"
-              onClick={() => fetchMatches(selectedWork.id, filters)}
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && !error && items.length === 0 && (
-        <div className="state-container empty-state">
-          <Calendar size={28} className="empty-icon" />
-          <h4>No academic opportunities matched this paper</h4>
-          <p>Try broadening your filters or unchecking &quot;Upcoming Deadlines Only&quot;.</p>
-        </div>
-      )}
-
-      {/* Results Grid */}
-      {!isLoading && items.length > 0 && (
-        <div className="results-container">
-          <div className="results-header">
-            <h3>Ranked Target Venues &amp; Calls</h3>
-            <span className="results-count-text">{total} relevant venues identified</span>
-          </div>
-
-          <div className="results-grid">
-            {items.map((item) => (
-              <OpportunityCard
-                key={item.opportunity.id}
-                item={item}
-                onExplain={handleOpenExplain}
-              />
-            ))}
-          </div>
-
-          <PaginationControls
-            total={total}
-            limit={filters.limit || 20}
-            offset={filters.offset || 0}
-            onPageChange={handlePageChange}
-            isLoading={isLoading}
-          />
-        </div>
-      )}
-
-      {/* Slide-over Explainability Drawer (Phase 2.5F + 2.6F + 2.7F) */}
-      <ExplainabilityDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        explanation={selectedExplanation}
-        entityTitle={drawerTitle}
-        entityType="opportunity"
-        riskExplanation={selectedRiskExplanation}
-        deadlineExplanation={selectedDeadlineExplanation}
-        initialTab={drawerInitialTab}
+      <SourcePaper
+        work={work}
+        headingRef={headingRef}
+        action={
+          <Link href={similarHref(paperId)} className={styles.toolLink}>
+            <Compass size={16} aria-hidden="true" />
+            Similar papers
+          </Link>
+        }
       />
+
+      <form className={styles.filters} aria-label="Venue filters" onSubmit={(event) => event.preventDefault()}>
+        <Select label="Type" value={filters.type} onChange={(event) => change({ type: event.target.value })}>
+          <option value="">All types</option>
+          {CALL_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {callTypeLabel(type)}
+            </option>
+          ))}
+        </Select>
+        <Select label="Attendance" value={filters.mode} onChange={(event) => change({ mode: event.target.value })}>
+          <option value="">Any</option>
+          {DELIVERY_MODES.map((mode) => (
+            <option key={mode} value={mode}>
+              {deliveryModeLabel(mode)}
+            </option>
+          ))}
+        </Select>
+        <CommitField
+          label="Highest fee (USD)"
+          type="number"
+          placeholder="e.g. 1000"
+          value={filters.maxFee === null ? "" : String(filters.maxFee)}
+          onCommit={(value) => {
+            const fee = Number(value);
+            change({ maxFee: value && Number.isFinite(fee) && fee >= 0 ? fee : null });
+          }}
+        />
+        <CommitField label="Location" placeholder="e.g. London, online" value={filters.location} onCommit={(location) => change({ location })} />
+        <Checkbox label="Only venues that state their fee" checked={filters.knownFee} onChange={(event) => change({ knownFee: event.target.checked })} />
+        {/* The hint stays outside the label, so it describes the box without becoming its name. */}
+        <div className={styles.check}>
+          <Checkbox label="Upcoming deadlines only" aria-describedby="venues-upcoming-hint" checked={filters.upcoming} onChange={(event) => change({ upcoming: event.target.checked })} />
+          <p id="venues-upcoming-hint" className={styles.note}>
+            Leaves out calls whose deadline has passed and calls with no listed deadline.
+          </p>
+        </div>
+      </form>
+
+      <section className={styles.results} aria-labelledby="venue-results-heading" aria-busy={matches.status === "loading" || undefined}>
+        <h2 id="venue-results-heading" ref={resultsHeading} tabIndex={-1} className={styles.resultsTitle}>
+          {matches.status === "success" ? `${total.toLocaleString("en")} matching call${total === 1 ? "" : "s"}` : "Matching calls"}
+        </h2>
+        <p role="status" className="rc-visually-hidden">
+          {matches.status === "loading" ? "Finding venues…" : matches.status === "success" ? `${total} matching calls` : matches.status === "empty" ? "No calls match." : ""}
+        </p>
+
+        {matches.status === "loading" && <SkeletonList rows={4} lines={3} label="Finding venues" announce={false} />}
+        {matches.status === "error" &&
+          (matches.error?.kind === "not-found" ? (
+            <ErrorState
+              kind="not-found"
+              title="This paper could not be found"
+              description="It may have been removed from the corpus. Search for it again to choose it."
+              actions={<Link href="/" className={styles.toolLink}>Go to search</Link>}
+            />
+          ) : (
+            <ErrorState
+              kind={matches.error?.kind === "network" ? "offline" : "failed"}
+              title="Venues could not be found"
+              description={matches.error?.kind === "network" ? "The server could not be reached. Check your connection and try again." : "Something went wrong while matching. Try again in a moment."}
+              onRetry={matches.retry}
+              announce={matches.retries > 0}
+            />
+          ))}
+        {matches.status === "empty" &&
+          (total > 0 ? (
+            <EmptyState variant="no-results" title="This page is past the last one" actions={<Button onClick={() => toPage(1)}>Go to the first page</Button>} />
+          ) : (
+            <EmptyState
+              variant="no-results"
+              title="No calls match this paper"
+              description={filtered ? "Try fewer filters, or include calls without an upcoming deadline." : "No call in the collection is close enough to this paper's topic and type."}
+              actions={filtered ? <Button onClick={() => change(NO_FILTERS)}>Clear filters</Button> : undefined}
+            />
+          ))}
+        {matches.status === "success" && matches.data && (
+          <>
+            <ul className={styles.list}>
+              {matches.data.items.map((item) => (
+                <li key={item.opportunity.id}>
+                  <OpportunityCard
+                    call={item.opportunity}
+                    match={{
+                      rank: item.rank,
+                      score: item.match_score,
+                      explanation: item.explanation ?? null,
+                      onExplain: (section) => setEvidence({ item, section }),
+                    }}
+                    saved={tracked.byCall.has(item.opportunity.id) || item.opportunity.id in savedHere}
+                    onSaved={(saved) => setSavedHere((previous) => ({ ...previous, [item.opportunity.id]: saved }))}
+                  />
+                </li>
+              ))}
+            </ul>
+            <Pagination page={page} total={total} pageSize={PAGE_SIZE} onPage={toPage} noun="calls" label="Matching calls pages" />
+          </>
+        )}
+      </section>
+
+      {open && evidence && (
+        <EvidencePanel
+          subject={{
+            title: open.opportunity.title,
+            context: "venue",
+            rank: open.rank,
+            score: open.match_score,
+            scoreKind: "match",
+            explanation: open.explanation ?? null,
+            sharedTopics: open.shared_topic_names,
+            call: {
+              risk: open.risk_explanation ?? open.opportunity.risk_explanation ?? null,
+              riskLevel: open.opportunity.risk_level,
+              isPredatory: open.opportunity.is_predatory_flag,
+              deadline: open.deadline_explanation ?? open.opportunity.deadline_intelligence ?? null,
+              dates: open.opportunity,
+            },
+          }}
+          section={evidence.section}
+          onClose={() => setEvidence(null)}
+          rankingMode={matches.data?.ranking_mode}
+        />
+      )}
     </section>
+  );
+}
+
+/**
+ * Find venues (`/opportunities?paper=<id>`, FRONTEND_REDESIGN_PLAN.md §10–11): calls for papers
+ * ranked for one paper, reached from the paper, with a breadcrumb back to its search. Every call
+ * shows its deadline and venue risk apart from each other; "Why this venue?", the risk badge and
+ * "All dates" open the Evidence panel at their part. The filters are the API's; one request per
+ * paper, filter set and page, and an answer always belongs to the request it was asked for.
+ */
+export function OpportunityMatchesPage() {
+  return (
+    <Suspense fallback={header}>
+      <Venues />
+    </Suspense>
   );
 }

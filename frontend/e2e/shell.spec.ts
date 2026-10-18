@@ -22,7 +22,7 @@ test("the header search opens the search page with the query in the URL, and sea
   await field.fill("information retrieval");
   await field.press("Enter");
   await expect(page).toHaveURL(/\/\?q=information(%20|\+)retrieval$/);
-  await expect(page.getByRole("button", { name: "Why this rank?" }).first()).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole("button", { name: /^Why this result\?/ }).first()).toBeVisible({ timeout: 60_000 });
   await expect(page.getByRole("searchbox", { name: "Search research literature" })).toHaveValue("information retrieval");
   // The search page has its own box; the header does not repeat it there.
   await expect(page.getByRole("searchbox", { name: "Search papers" })).toHaveCount(0);
@@ -30,7 +30,7 @@ test("the header search opens the search page with the query in the URL, and sea
 
   // The URL is the search: reload keeps it, back returns to where the person was.
   await page.reload();
-  await expect(page.getByRole("button", { name: "Why this rank?" }).first()).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole("button", { name: /^Why this result\?/ }).first()).toBeVisible({ timeout: 60_000 });
   await page.goBack();
   await expect(page).toHaveURL(/\/workspace$/);
   network.expectClean();
@@ -261,7 +261,8 @@ test("the navigation drawer's Tab order is Close, then the links, in both direct
     if (!el || el === document.body) return "(outside the page)";
     return el.getAttribute("aria-label") || el.textContent?.trim() || `unnamed <${el.tagName.toLowerCase()}>`;
   });
-  const expected = ["Close", "Literature search", "Calls for papers", "Research postings", "Similar research", "Opportunity matcher"];
+  // P5: similar papers and venue matching are actions on a paper, not navigation.
+  const expected = ["Close", "Literature search", "Calls for papers", "Research postings"];
 
   const forward: string[] = [];
   for (let i = 0; i < expected.length; i++) {

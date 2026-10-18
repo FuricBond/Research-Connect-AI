@@ -11,7 +11,7 @@ import { DEMO, DEMO_PASSWORD, accountMenu, openNavigation, primaryNav, signInThr
  */
 const WIDTHS = [1440, 1280, 1024, 768, 390, 360, 320];
 const PAGES = [
-  "/dashboard", "/", "/workspace", "/reading-list", "/calendar", "/notifications", "/postings", "/similar", "/browse",
+  "/dashboard", "/", "/workspace", "/reading-list", "/calendar", "/notifications", "/postings", "/similar", "/opportunities", "/browse",
   // Every profile section: each has its own panels, and a section's grid once outgrew the page.
   "/researcher", "/researcher?section=interests", "/researcher?section=recommendations",
   "/researcher?section=personalization", "/researcher?section=history", "/researcher/preferences",
@@ -24,8 +24,6 @@ const STUDENT_DESTINATIONS = [
   "Literature search",
   "Calls for papers",
   "Research postings",
-  "Similar research",
-  "Opportunity matcher",
   "Workspace",
   "Submissions",
   "Reading list",

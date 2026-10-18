@@ -78,14 +78,15 @@ afterEach(() => {
   window.sessionStorage.clear();
 });
 
-describe("Similar Research without a selected paper", () => {
+describe("Similar papers without a selected paper", () => {
   it("says what it does, why it needs a paper and how to find one", async () => {
     serve(false);
     renderWithSession(<SimilarResearchPage />);
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Similar Research" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Similar papers" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Choose a paper to start" })).toBeInTheDocument();
-    expect(screen.getByText("Find Similar Research")).toBeInTheDocument();
+    // P5: the action is "Find similar" on a paper's card and panel.
+    expect(screen.getByText("Find similar", { selector: "strong" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Find a paper in Literature Search" })).toHaveAttribute("href", "/");
     // A visitor has no reading list, and no paper is picked for them.
     await waitFor(() => expect(paths).not.toContain("/api/v1/reading-list"));
@@ -104,34 +105,35 @@ describe("Similar Research without a selected paper", () => {
 
     await waitFor(() => expect(paths).toContain(`/api/v1/discovery/research/${SAVED_WORK.id}/similar`));
     expect(getSelectedWork()?.id).toBe(SAVED_WORK.id);
-    expect(await screen.findByText(SAVED_WORK.title)).toBeInTheDocument();
+    // P5: the chosen paper's title is the heading (the breadcrumb names it too).
+    expect(await screen.findByRole("heading", { level: 2, name: SAVED_WORK.title })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Choose a paper to start" })).not.toBeInTheDocument();
     // The button that picked it is gone: focus moves to the chosen paper, not to the page body.
     await waitFor(() => expect(screen.getByRole("heading", { level: 2, name: SAVED_WORK.title })).toHaveFocus());
   });
 });
 
-describe("Similar Research with a selected paper", () => {
+describe("Similar papers with a selected paper", () => {
   it("still opens straight on that paper", async () => {
     serve(false);
     setSelectedWork({ id: SAVED_WORK.id, title: SAVED_WORK.title });
     renderWithSession(<SimilarResearchPage />);
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Similar Research" })).toBeInTheDocument();
-    expect(screen.getByText(SAVED_WORK.title)).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Similar papers" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 2, name: SAVED_WORK.title })).toBeInTheDocument();
     await waitFor(() => expect(paths).toContain(`/api/v1/discovery/research/${SAVED_WORK.id}/similar`));
     // Focus moves only after a choice made on this page, never on arrival.
     expect(screen.getByRole("heading", { level: 2, name: SAVED_WORK.title })).not.toHaveFocus();
   });
 });
 
-describe("Opportunity Matcher without a selected paper", () => {
+describe("Find venues without a selected paper", () => {
   it("explains itself and offers the same ways in", async () => {
     serve(false);
     renderWithSession(<OpportunityMatchesPage />);
 
-    expect(await screen.findByRole("heading", { level: 1, name: "Opportunity Matcher" })).toBeInTheDocument();
-    expect(screen.getByText("Match Calls & Venues")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "Find venues" })).toBeInTheDocument();
+    expect(screen.getByText("Find venues", { selector: "strong" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Find a paper in Literature Search" })).toHaveAttribute("href", "/");
   });
 });

@@ -14,7 +14,6 @@ import {
   Briefcase,
   CalendarDays,
   ClipboardList,
-  Compass,
   FileText,
   GraduationCap,
   House,
@@ -22,7 +21,6 @@ import {
   Settings,
   ShieldCheck,
   SlidersHorizontal,
-  Sparkles,
   User,
   Users,
 } from "lucide-react";
@@ -60,8 +58,8 @@ export const NAV_SECTIONS: readonly NavSection[] = [
       { href: "/", label: "Literature search", icon: BookOpen, public: true },
       { href: "/browse", label: "Calls for papers", icon: Megaphone, public: true },
       { href: "/postings", label: "Research postings", icon: ClipboardList, public: true },
-      { href: "/similar", label: "Similar research", icon: Compass, public: true },
-      { href: "/opportunities", label: "Opportunity matcher", icon: Sparkles, public: true },
+      // P5: similar papers (/similar) and venue matching (/opportunities) work from one paper,
+      // so they are actions on a paper (its card and panel), not destinations (plan §7, §10).
     ],
   },
   {
@@ -110,6 +108,16 @@ export const SHELL_HREFS: readonly string[] = [
   NOTIFICATIONS_HREF,
 ];
 
+/**
+ * P5: a call's page (/calls/[id]) belongs to "Calls for papers"; similar papers and venue
+ * matching, reached from a paper in a search, belong to "Literature search".
+ */
+const SECTION_OF: readonly [prefix: string, href: string][] = [
+  ["/calls", "/browse"],
+  ["/similar", "/"],
+  ["/opportunities", "/"],
+];
+
 /** Whether `pathname` is `href` or a page beneath it ("/" only matches itself). */
 export function isWithin(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
@@ -123,6 +131,10 @@ export function isWithin(pathname: string, href: string): boolean {
  * postings").
  */
 export function currentHref(pathname: string, hrefs: readonly string[] = SHELL_HREFS): string | null {
+  // P5: pages that belong to a destination without sitting beneath its address.
+  for (const [prefix, href] of SECTION_OF) {
+    if (isWithin(pathname, prefix) && hrefs.includes(href)) return href;
+  }
   let best: string | null = null;
   for (const href of hrefs) {
     if (isWithin(pathname, href) && (best === null || href.length > best.length)) best = href;

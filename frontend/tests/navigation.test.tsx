@@ -67,9 +67,14 @@ describe("navigation model", () => {
   });
 
   it("offers a visitor only the public discovery pages", () => {
-    expect(labels(null).sort()).toEqual(
-      ["Calls for papers", "Literature search", "Opportunity matcher", "Research postings", "Similar research"].sort()
-    );
+    // P5: similar papers and venue matching left the navigation; they are actions on a paper.
+    expect(labels(null).sort()).toEqual(["Calls for papers", "Literature search", "Research postings"].sort());
+  });
+
+  it("lists the paper-based tools nowhere: they work from a chosen paper (P5, plan §7, §10)", () => {
+    const listed = [...NAV_SECTIONS.flatMap((section) => section.items), ...ACCOUNT_ITEMS].map((item) => item.href);
+    expect(listed).not.toContain("/similar");
+    expect(listed).not.toContain("/opportunities");
   });
 
   it("groups destinations by task, in a fixed order", () => {
@@ -97,6 +102,11 @@ describe("navigation model", () => {
     expect(currentHref("/login")).toBeNull();
     // "/" is the search page only, not every page.
     expect(currentHref("/browse")).toBe("/browse");
+    // P5: a call's page belongs to the calls; the paper tools to the search they are reached from.
+    expect(currentHref("/calls/2b0e0b5c-8d1f-4c55-9f0a-7a1d3c9e4f21")).toBe("/browse");
+    expect(currentHref("/similar")).toBe("/");
+    expect(currentHref("/opportunities")).toBe("/");
+    expect(currentHref("/similarity")).toBeNull();
   });
 
   it("covers every page of the app, and links only to pages that exist", () => {
@@ -178,7 +188,7 @@ describe("primary navigation", () => {
 
     const nav = await screen.findByRole("navigation", { name: "Primary" });
     expect(await within(nav).findByRole("link", { name: "Literature search" })).toHaveAttribute("aria-current", "page");
-    expect(within(nav).getAllByRole("link")).toHaveLength(5);
+    expect(within(nav).getAllByRole("link")).toHaveLength(3);
     expect(within(nav).queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /^Notifications/ })).not.toBeInTheDocument();
     await act(async () => undefined);
@@ -242,8 +252,6 @@ describe("navigation drawer (below 1024px)", () => {
       "Literature search",
       "Calls for papers",
       "Research postings",
-      "Similar research",
-      "Opportunity matcher",
       "Workspace",
       "Submissions",
       "Reading list",

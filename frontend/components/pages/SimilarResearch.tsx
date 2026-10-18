@@ -1,246 +1,172 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { AlertCircle, ArrowLeft, BookOpen, Compass, Loader2, Sparkles } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { SimilarResearchCard } from "../discovery/SimilarResearchCard";
-import { PaginationControls } from "../discovery/PaginationControls";
-import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
-import { getSimilarResearch, ApiError } from "../../services/api";
-import { getSelectedWork, setSelectedWork as rememberSelectedWork } from "../../hooks/useSelectedWork";
-import { PaperContextRequired, ToolPageHeader } from "../discovery/PaperContextRequired";
-import type {
-  ExplanationSchema,
-  ResearchWorkRead,
-  SimilarResearchItem,
-  SimilarResearchParams,
-} from "../../types/discovery";
+import Link from "next/link";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Megaphone } from "lucide-react";
+import { useApiResource } from "../../hooks/useApiResource";
+import { getSimilarResearch, lookupReadingList } from "../../services/api";
+import { setSelectedWork } from "../../hooks/useSelectedWork";
+import type { ResearchWorkRead } from "../../types/discovery";
+import { useSession } from "../auth/SessionProvider";
+import { PaperContextRequired } from "../discovery/PaperContextRequired";
+import { SourcePaper } from "../discovery/SourcePaper";
+import { usePaperContext } from "../discovery/paperContext";
+import { PaperCard } from "../research/PaperCard";
+import { EvidencePanel, PaperPanel } from "../research/lazyPanels";
+import { fromSimilarItem, similarHref, venuesHref, type PaperItem } from "../research/paper";
+import { Breadcrumb } from "../ui/Breadcrumb/Breadcrumb";
+import { Button } from "../ui/Button/Button";
+import { PageHeader } from "../ui/PageHeader/PageHeader";
+import { Pagination } from "../ui/Pagination/Pagination";
+import { EmptyState, ErrorState, SkeletonList } from "../ui/State/State";
+import styles from "../discovery/PaperTools.module.css";
 
-export function SimilarResearchPage() {
-  const router = useRouter();
-  const [selectedWork, setSelectedWork] = useState<ResearchWorkRead | null>(null);
+const PAGE_SIZE = 20;
 
-  const [items, setItems] = useState<SimilarResearchItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const header = (
+  <PageHeader title="Similar papers" description="Papers closest in meaning and topic to one paper you choose, each with the reasons it is similar." />
+);
 
-  const [filters, setFilters] = useState<SimilarResearchParams>({
-    limit: 20,
-    offset: 0,
-    explain: true,
-  });
+function SimilarPapers() {
+  const { paperId, work, origin, headingRef, choose } = usePaperContext(similarHref);
+  const [page, setPage] = useState(1);
+  const [paper, setPaper] = useState<PaperItem | null>(null);
+  const [evidence, setEvidence] = useState<PaperItem | null>(null);
+  const resultsHeading = useRef<HTMLHeadingElement>(null);
 
-  // Explainability Drawer State
-  const [selectedExplanation, setSelectedExplanation] = useState<ExplanationSchema | null>(null);
-  const [drawerTitle, setDrawerTitle] = useState("");
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  // A different paper starts again from its first page.
+  const [pageFor, setPageFor] = useState(paperId);
+  if (pageFor !== paperId) {
+    setPageFor(paperId);
+    setPage(1);
+  }
 
-  const abortControllerRef = useRef<AbortController | null>(null);
-
-  // Hydrate selectedWork from sessionStorage on mount
-  useEffect(() => {
-    const work = getSelectedWork();
-    setSelectedWork(work);
-    if (work) {
-      fetchSimilar(work.id, filters);
-    }
-  }, []);
-
-  const fetchSimilar = async (workId: string, currentFilters: SimilarResearchParams) => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await getSimilarResearch(
-        workId,
-        { ...currentFilters, explain: true },
-        abortController.signal
-      );
-      setItems(response.items);
-      setTotal(response.total);
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === "AbortError") {
-        return;
-      }
-      if (err instanceof ApiError) {
-        setError(err.detail || err.message);
-      } else if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unexpected error occurred while fetching similar research.");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePageChange = (newOffset: number) => {
-    const updated = { ...filters, offset: newOffset };
-    setFilters(updated);
-    if (selectedWork) {
-      fetchSimilar(selectedWork.id, updated);
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const handleOpenExplain = (item: SimilarResearchItem) => {
-    setSelectedExplanation(item.explanation || null);
-    setDrawerTitle(item.work.title);
-    setIsDrawerOpen(true);
-  };
-
-  const handleBackToSearch = () => {
-    router.push("/");
-  };
-
-  // A paper picked on this page (P0.7) is remembered for the session like one picked in search.
-  // The button that picked it disappears, so focus moves to the chosen paper's title.
-  const paperHeading = useRef<HTMLHeadingElement>(null);
-  const focusPaperHeading = useRef(false);
-  useEffect(() => {
-    if (selectedWork && focusPaperHeading.current) {
-      focusPaperHeading.current = false;
-      paperHeading.current?.focus();
-    }
-  }, [selectedWork]);
-
-  const chooseWork = (work: ResearchWorkRead) => {
-    rememberSelectedWork(work);
-    focusPaperHeading.current = true;
-    setSelectedWork(work);
-    fetchSimilar(work.id, filters);
-  };
-
-  const header = (
-    <ToolPageHeader
-      title="Similar Research"
-      description="Finds the papers closest in meaning and topic to one paper you choose."
-    />
+  const similar = useApiResource(
+    paperId ? `similar:${paperId}:${(page - 1) * PAGE_SIZE}:${PAGE_SIZE}` : null,
+    (signal) => getSimilarResearch(paperId!, { limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, explain: true }, signal),
+    { isEmpty: (data) => data.items.length === 0, scope: "public" }
   );
+  const items = useMemo(() => (similar.data?.items ?? []).map(fromSimilarItem), [similar.data]);
 
-  if (!selectedWork) {
+  // Which of these the signed-in researcher has saved (for the Save buttons and the citation export).
+  const { status: sessionStatus } = useSession();
+  const [savedWorks, setSavedWorks] = useState<Record<string, string>>({});
+  useEffect(() => {
+    if (sessionStatus !== "authenticated" || items.length === 0) {
+      setSavedWorks({});
+      return;
+    }
+    const controller = new AbortController();
+    lookupReadingList(
+      items.map((item) => item.work.id),
+      controller.signal
+    )
+      .then((result) => setSavedWorks(result.saved))
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [items, sessionStatus]);
+  const handleSaved = (workId: string, itemId: string) => setSavedWorks((previous) => ({ ...previous, [workId]: itemId }));
+
+  if (!paperId) {
     return (
-      <section className="similar-research-page empty-selection" aria-label="Similar Research">
+      <section className="similar-research-page empty-selection" aria-label="Similar papers">
         {header}
-        <PaperContextRequired actionLabel="Find Similar Research" onChoose={chooseWork} />
+        <PaperContextRequired actionLabel="Find similar" onChoose={choose} />
       </section>
     );
   }
 
+  const total = similar.data?.total ?? 0;
+  const remember = (next: ResearchWorkRead) => setSelectedWork(next);
+  const toPage = (next: number) => {
+    setPage(next);
+    resultsHeading.current?.focus();
+  };
+
   return (
-    <section className="similar-research-page" aria-label="Similar Research">
-      {/* Back to search link */}
-      <button type="button" className="back-link-btn" onClick={handleBackToSearch}>
-        <ArrowLeft size={16} />
-        <span>Back to Literature Search</span>
-      </button>
+    <section className="similar-research-page" aria-label="Similar papers">
+      <Breadcrumb items={[{ label: "Search", href: origin }, { label: work?.title ?? "Chosen paper" }]} current="Similar papers" />
       {header}
 
-      {/* Source Paper Banner */}
-      <div className="source-paper-hero">
-        <div className="source-hero-eyebrow">
-          <BookOpen size={14} />
-          <span>Source Reference Work</span>
-        </div>
-        <h2 className="source-hero-title" ref={paperHeading} tabIndex={-1}>
-          {selectedWork.title}
-        </h2>
-        {selectedWork.abstract && (
-          <p className="source-hero-abstract">{selectedWork.abstract}</p>
-        )}
-        <div className="source-hero-actions">
-          <button
-            type="button"
-            className="action-btn primary-btn"
-            onClick={() => {
-              setSelectedWork(selectedWork);
-              router.push("/opportunities");
-            }}
-          >
-            <Sparkles size={15} />
-            <span>Match Calls for This Paper</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="state-container loading-state" role="status">
-          <Loader2 size={24} className="spin" />
-          <p>Analyzing semantic vectors and canonical taxonomy DAG proximity...</p>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && !isLoading && (
-        <div className="state-container error-state" role="alert">
-          <AlertCircle size={24} className="status-error" />
-          <div>
-            <h4>Retrieval Error</h4>
-            <p>{error}</p>
-            <button
-              type="button"
-              className="retry-btn"
-              onClick={() => fetchSimilar(selectedWork.id, filters)}
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && !error && items.length === 0 && (
-        <div className="state-container empty-state">
-          <Compass size={28} className="empty-icon" />
-          <h4>No similar research works found</h4>
-          <p>No other works in the repository met the similarity criteria for this reference paper.</p>
-        </div>
-      )}
-
-      {/* Results Grid */}
-      {!isLoading && items.length > 0 && (
-        <div className="results-container">
-          <div className="results-header">
-            <h3>Similar Research Works</h3>
-            <span className="results-count-text">{total} similar works discovered</span>
-          </div>
-
-          <div className="results-grid">
-            {items.map((item) => (
-              <SimilarResearchCard
-                key={item.work.id}
-                item={item}
-                onExplain={handleOpenExplain}
-              />
-            ))}
-          </div>
-
-          <PaginationControls
-            total={total}
-            limit={filters.limit || 20}
-            offset={filters.offset || 0}
-            onPageChange={handlePageChange}
-            isLoading={isLoading}
-          />
-        </div>
-      )}
-
-      {/* Slide-over Explainability Drawer */}
-      <ExplainabilityDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        explanation={selectedExplanation}
-        entityTitle={drawerTitle}
-        entityType="research_work"
+      <SourcePaper
+        work={work}
+        headingRef={headingRef}
+        action={
+          <Link href={venuesHref(paperId)} className={styles.toolLink}>
+            <Megaphone size={16} aria-hidden="true" />
+            Find venues for this paper
+          </Link>
+        }
       />
+
+      <section className={styles.results} aria-labelledby="similar-results-heading" aria-busy={similar.status === "loading" || undefined}>
+        <h2 id="similar-results-heading" ref={resultsHeading} tabIndex={-1} className={styles.resultsTitle}>
+          {similar.status === "success" ? `${total.toLocaleString("en")} similar paper${total === 1 ? "" : "s"}` : "Similar papers"}
+        </h2>
+        <p role="status" className="rc-visually-hidden">
+          {similar.status === "loading" ? "Finding similar papers…" : similar.status === "success" ? `${total} similar papers` : similar.status === "empty" ? "No similar papers found." : ""}
+        </p>
+
+        {similar.status === "loading" && <SkeletonList rows={4} lines={3} label="Finding similar papers" announce={false} />}
+        {similar.status === "error" &&
+          (similar.error?.kind === "not-found" ? (
+            <ErrorState
+              kind="not-found"
+              title="This paper could not be found"
+              description="It may have been removed from the corpus. Search for it again to choose it."
+              actions={<Link href="/" className={styles.toolLink}>Go to search</Link>}
+            />
+          ) : (
+            <ErrorState
+              kind={similar.error?.kind === "network" ? "offline" : "failed"}
+              title="Similar papers could not be loaded"
+              description={similar.error?.kind === "network" ? "The server could not be reached. Check your connection and try again." : "Something went wrong while loading. Try again in a moment."}
+              onRetry={similar.retry}
+              announce={similar.retries > 0}
+            />
+          ))}
+        {similar.status === "empty" &&
+          (total > 0 ? (
+            <EmptyState variant="no-results" title="This page is past the last one" actions={<Button onClick={() => toPage(1)}>Go to the first page</Button>} />
+          ) : (
+            <EmptyState variant="no-results" title="No similar papers found" description="No other paper in the corpus is close enough to this one in meaning or topic." />
+          ))}
+        {similar.status === "success" && (
+          <>
+            <ul className={styles.list}>
+              {items.map((item) => (
+                <li key={item.work.id}>
+                  <PaperCard item={item} onOpen={setPaper} onExplain={setEvidence} onChoose={remember} saved={item.work.id in savedWorks} onSaved={handleSaved} />
+                </li>
+              ))}
+            </ul>
+            <Pagination page={page} total={total} pageSize={PAGE_SIZE} onPage={toPage} noun="similar papers" label="Similar papers pages" />
+          </>
+        )}
+      </section>
+
+      {paper && <PaperPanel item={paper} onClose={() => setPaper(null)} savedItemId={savedWorks[paper.work.id] ?? null} onSaved={handleSaved} onChoose={remember} />}
+      {evidence && (
+        <EvidencePanel
+          subject={{ title: evidence.work.title, context: "similar", rank: evidence.rank, score: evidence.score, scoreKind: "similarity", explanation: evidence.explanation, sharedTopics: evidence.sharedTopics }}
+          onClose={() => setEvidence(null)}
+          rankingMode={similar.data?.ranking_mode}
+        />
+      )}
     </section>
+  );
+}
+
+/**
+ * Similar papers (`/similar?paper=<id>`, FRONTEND_REDESIGN_PLAN.md §10): reached from a paper —
+ * its card or its panel — with a breadcrumb back to the search it came from and the paper
+ * summarised at the top. Opened without a paper it explains itself (P0.7). One request per paper
+ * and page; an answer always belongs to the paper it was asked for.
+ */
+export function SimilarResearchPage() {
+  return (
+    <Suspense fallback={header}>
+      <SimilarPapers />
+    </Suspense>
   );
 }
