@@ -239,7 +239,7 @@ describe("search page query in the URL", () => {
 
     await waitFor(() => expect(searchCalls(fetchMock)).toEqual(["information retrieval"]));
     expect(box()).toHaveValue("information retrieval");
-    expect(await screen.findByText("No research works matched your query")).toBeInTheDocument();
+    expect(await screen.findByText("No papers matched your search")).toBeInTheDocument();
     await act(async () => undefined);
     expect(searchCalls(fetchMock)).toHaveLength(1);
     // Arriving from a link is not a header search: focus is left alone.
@@ -297,7 +297,7 @@ describe("search page query in the URL", () => {
     expect(screen.queryByText("results for alpha")).not.toBeInTheDocument();
     expect(box()).toHaveValue("beta");
     expect(addressQuery()).toBe("beta");
-    expect(screen.queryByText(/Retrieving and ranking/)).not.toBeInTheDocument(); // not stuck loading
+    expect(screen.queryByText(/Searching papers/)).not.toBeInTheDocument(); // not stuck loading (P5 wording)
     expect(searchCalls(fetchMock)).toEqual(["alpha", "beta"]);
   });
 
@@ -308,7 +308,7 @@ describe("search page query in the URL", () => {
     submit("alpha");
     submit("beta");
     await answer("alpha");
-    expect(screen.getByRole("status")).toHaveTextContent(/Retrieving/);
+    expect(screen.getByRole("status")).toHaveTextContent(/Searching papers/);
     expect(screen.queryByText("results for alpha")).not.toBeInTheDocument();
     await answer("beta");
     expect(screen.getByText("results for beta")).toBeInTheDocument();
@@ -368,7 +368,7 @@ describe("search page query in the URL", () => {
     visit("/?q=retrieval");
     serveSearch();
     const view = render(page());
-    expect(await screen.findByText("No research works matched your query")).toBeInTheDocument();
+    expect(await screen.findByText("No papers matched your search")).toBeInTheDocument();
 
     visit("/");
     view.rerender(page());

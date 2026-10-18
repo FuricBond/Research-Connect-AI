@@ -1,83 +1,123 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState, useRef } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { AlertCircle, BookOpen, Loader2, Search } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 import { SearchBar } from "../discovery/SearchBar";
 import { SearchFilters } from "../discovery/SearchFilters";
-import { ResearchResultCard } from "../discovery/ResearchResultCard";
-import { PaginationControls } from "../discovery/PaginationControls";
-import { ExplainabilityDrawer } from "../discovery/ExplainabilityDrawer";
 import { searchResearchWorks, lookupReadingList, ApiError } from "../../services/api";
 import { useSession } from "../auth/SessionProvider";
 import { VisitorIntro } from "../auth/VisitorIntro";
-import { currentUrlQuery, searchHref, takeSearchFocusRequest } from "../../utils/search";
+import { setSelectedWork } from "../../hooks/useSelectedWork";
+import { takeSearchFocusRequest } from "../../utils/search";
+import {
+  EMPTY_SEARCH,
+  PAGE_SIZES,
+  activeFilterCount,
+  currentSearchState,
+  parseSearchState,
+  searchRequestKey,
+  searchStateHref,
+  serializeSearchState,
+  toSearchParams,
+  withoutFilters,
+  type SearchSort,
+  type SearchState,
+} from "../../utils/searchState";
+import { PaperCard } from "../research/PaperCard";
+import { EvidencePanel, PaperPanel } from "../research/lazyPanels";
+import { fromSearchResult, type PaperItem } from "../research/paper";
+import { Button } from "../ui/Button/Button";
+import { Drawer } from "../ui/Dialog/Dialog";
+import { Select } from "../ui/Field/Field";
 import { PageHeader } from "../ui/PageHeader/PageHeader";
-import type {
-  ExplanationSchema,
-  QueryIntelligenceSchema,
-  ResearchSearchParams,
-  ResearchSearchResultItem,
-} from "../../types/discovery";
+import { Pagination } from "../ui/Pagination/Pagination";
+import { EmptyState, ErrorState, SkeletonList } from "../ui/State/State";
+import type { ResearchSearchResponse, ResearchWorkRead } from "../../types/discovery";
+import styles from "../discovery/Search.module.css";
+
+/** After this long a search says it is still working (plan §9: slow-query notice after 3 s). */
+const SLOW_AFTER_MS = 3000;
+
+type SearchFailure = "network" | "server" | "invalid";
+
+const SORT_LABELS: Record<SearchSort, string> = {
+  relevance: "Relevance",
+  newest: "Newest first (this page)",
+  cited: "Most cited (this page)",
+};
 
 /**
- * Reports the URL's `q` whenever it changes (on arrival, from the header search, back and
- * forward). Isolated in its own Suspense boundary: reading search params on the client keeps
+ * Reports the URL's query string whenever it changes (on arrival, from the header search, back
+ * and forward). Isolated in its own Suspense boundary: reading search params on the client keeps
  * the rest of the page prerendered.
  */
-function UrlQuery({ onChange }: { onChange: (query: string | null) => void }) {
-  const query = useSearchParams().get("q");
+function UrlState({ onChange }: { onChange: (query: string) => void }) {
+  const query = useSearchParams().toString();
   useEffect(() => onChange(query), [query, onChange]);
   return null;
 }
 
+function sortItems(items: PaperItem[], sort: SearchSort): PaperItem[] {
+  if (sort === "relevance") return items;
+  const sorted = [...items];
+  if (sort === "newest") sorted.sort((a, b) => (b.work.publication_year ?? -Infinity) - (a.work.publication_year ?? -Infinity) || a.rank - b.rank);
+  if (sort === "cited") sorted.sort((a, b) => (b.work.cited_by_count ?? -1) - (a.work.cited_by_count ?? -1) || a.rank - b.rank);
+  return sorted;
+}
+
+/** Records `state` in the address bar; a state the bar already shows adds no history entry. */
+function record(state: SearchState, mode: "push" | "replace" = "push") {
+  const shown = currentSearchState();
+  if (shown && serializeSearchState(shown) === serializeSearchState(state)) return;
+  const href = searchStateHref(state);
+  if (mode === "replace") window.history.replaceState(null, "", href);
+  else window.history.pushState(null, "", href);
+}
+
 /**
- * Literature search. The query lives in the URL (`/?q=…`), so a search can be bookmarked,
- * shared, reloaded and reached from the header's global search. Filters and pagination stay in
- * the page.
+ * Literature search (FRONTEND_REDESIGN_PLAN.md §9). The whole search lives in the URL
+ * (`/?q=…&type=…&year=…&oa=1&cites=…&mode=…&sort=…&page=…&per=…`, utils/searchState.ts), so a
+ * search can be bookmarked, shared, reloaded and reached from the header's global search.
  *
- * The latest submission always wins (P2 audit): a search typed here runs at once and the address
- * bar is updated with the browser's own history (Next.js keeps `useSearchParams` in step with
- * native `pushState` without fetching the page again), so no page navigation is ever pending
- * behind the person's back. The URL itself starts a search only when it changes from outside
- * this box — a direct link, back/forward, or the header search — and only for the address the
- * bar actually shows, so a late notification for an older address can neither search again nor
- * overwrite what is being typed.
+ * The latest submission always wins (P2 audit): a search started here runs at once and the
+ * address bar is updated with the browser's own history (Next.js keeps `useSearchParams` in step
+ * with native `pushState` without fetching the page again), so no page navigation is ever pending
+ * behind the person's back. The URL itself starts a search only when it changes from outside this
+ * page — a direct link, back/forward, or the header search — and only for the address the bar
+ * actually shows, so a late notification for an older address can neither search again nor
+ * overwrite what is being typed. A newer search aborts the older one, and an older answer is never
+ * shown. Sorting reorders the page in hand and asks the API nothing.
  */
 export function DiscoverySearch() {
-  const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState<Partial<ResearchSearchParams>>({
-    limit: 20,
-    offset: 0,
-    explain: true,
-    include_query_intelligence: true,
-  });
+  // The state on screen; the results, when shown, answer its request key.
+  const [state, setState] = useState<SearchState>(EMPTY_SEARCH);
+  // "pending" until the address has been read: the page is prerendered without knowing the URL,
+  // so its first paint is only the title and the search box. The start page or the results are
+  // then added below them, which moves nothing (P5: showing the start page first and replacing it
+  // with results moved the layout by 104–179px, CLS 0.07–0.11).
+  const [phase, setPhase] = useState<"pending" | "start" | "loading" | "done" | "error">("pending");
+  const [response, setResponse] = useState<ResearchSearchResponse | null>(null);
+  const [failure, setFailure] = useState<SearchFailure | null>(null);
+  const [slow, setSlow] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [paper, setPaper] = useState<PaperItem | null>(null);
+  const [evidence, setEvidence] = useState<PaperItem | null>(null);
 
-  const [items, setItems] = useState<ResearchSearchResultItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [queryIntelligence, setQueryIntelligence] = useState<QueryIntelligenceSchema | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasSearched, setHasSearched] = useState(false);
-
-  // Explainability Drawer State
-  const [selectedExplanation, setSelectedExplanation] = useState<ExplanationSchema | null>(null);
-  const [drawerTitle, setDrawerTitle] = useState("");
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const abortControllerRef = useRef<AbortController | null>(null);
-  // The latest filters, for a search started by the URL rather than by a filter change.
-  const filtersRef = useRef(filters);
-  filtersRef.current = filters;
-  // The query whose results are shown or loading (null: the landing state).
-  const searchedQueryRef = useRef<string | null>(null);
-  // The query of the request in flight, if any.
-  const loadingQueryRef = useRef<string | null>(null);
+  // The request key whose results are shown or loading (null: the start page).
+  const shownKeyRef = useRef<string | null>(null);
+  // The request key of the request in flight, if any.
+  const loadingKeyRef = useRef<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const resultsHeading = useRef<HTMLHeadingElement>(null);
 
   // Reading list: which visible works the signed-in user has already saved (work id -> item id).
   const { status: sessionStatus } = useSession();
   const [savedWorks, setSavedWorks] = useState<Record<string, string>>({});
+  const items = useMemo(() => (response?.items ?? []).map(fromSearchResult), [response]);
 
   useEffect(() => {
     if (sessionStatus !== "authenticated" || items.length === 0) {
@@ -100,255 +140,316 @@ export function DiscoverySearch() {
     setSavedWorks((previous) => ({ ...previous, [workId]: itemId }));
   };
 
-  const executeSearch = async (
-    searchQuery: string,
-    currentFilters: Partial<ResearchSearchParams>
-  ) => {
-    if (!searchQuery.trim()) return;
+  // The slow-search notice: only while the same search is still loading.
+  useEffect(() => {
+    if (phase !== "loading") return;
+    const timer = window.setTimeout(() => setSlow(true), SLOW_AFTER_MS);
+    return () => window.clearTimeout(timer);
+  }, [phase, state]);
 
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+  const executeSearch = async (next: SearchState) => {
+    if (!next.q.trim()) return;
+    abortControllerRef.current?.abort();
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
-    loadingQueryRef.current = searchQuery;
+    const key = searchRequestKey(next);
+    loadingKeyRef.current = key;
+    shownKeyRef.current = key;
 
-    setIsLoading(true);
-    setError(null);
-    setHasSearched(true);
+    setState(next);
+    setPhase("loading");
+    setFailure(null);
+    setSlow(false);
+    setPaper(null);
+    setEvidence(null);
 
     try {
-      const response = await searchResearchWorks(
-        {
-          q: searchQuery,
-          ...currentFilters,
-          explain: true,
-          include_query_intelligence: true,
-        },
-        abortController.signal
-      );
+      const answer = await searchResearchWorks(toSearchParams(next), abortController.signal);
       // A newer search replaced this one: its answer must not replace the newer results.
       if (abortController.signal.aborted) return;
-
-      setItems(response.items);
-      setTotal(response.total);
-      setQueryIntelligence(response.query_intelligence || null);
+      setResponse(answer);
+      setPhase("done");
     } catch (err: unknown) {
-      if (abortController.signal.aborted || (err instanceof Error && err.name === "AbortError")) {
-        return;
-      }
-      if (err instanceof ApiError) {
-        setError(err.detail || err.message);
-      } else if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("An unexpected error occurred while searching.");
-      }
+      if (abortController.signal.aborted || (err instanceof Error && err.name === "AbortError")) return;
+      // Words chosen here, never the server's text.
+      setFailure(err instanceof ApiError ? (err.status >= 500 ? "server" : "invalid") : "network");
+      setResponse(null);
+      setPhase("error");
     } finally {
       // Only the latest search ends the loading state.
-      if (abortControllerRef.current === abortController) {
-        loadingQueryRef.current = null;
-        setIsLoading(false);
-      }
+      if (abortControllerRef.current === abortController) loadingKeyRef.current = null;
     }
   };
-
-  const searchFromStart = (newQuery: string) => {
-    searchedQueryRef.current = newQuery;
-    setQuery(newQuery);
-    const updatedFilters = { ...filtersRef.current, offset: 0 };
-    setFilters(updatedFilters);
-    executeSearch(newQuery, updatedFilters);
-  };
   // executeSearch only uses state setters and refs, so the latest one is always equivalent.
-  const searchFromStartRef = useRef(searchFromStart);
-  searchFromStartRef.current = searchFromStart;
+  const executeRef = useRef(executeSearch);
+  executeRef.current = executeSearch;
 
-  const handleUrlQuery = useCallback((urlQuery: string | null) => {
+  const handleUrlState = useCallback((query: string) => {
+    const fromUrl = parseSearchState(new URLSearchParams(query));
     // The router applies address changes in a transition; if the bar has already moved on, a
     // newer notification follows and this one is stale.
-    if (urlQuery !== currentUrlQuery()) return;
-    const trimmed = urlQuery?.trim() ?? "";
-    if (trimmed) {
-      // Already shown (this box submitted it): nothing to do, and nothing to overwrite.
-      if (trimmed !== searchedQueryRef.current) searchFromStartRef.current(trimmed);
+    const bar = currentSearchState();
+    if (!bar || serializeSearchState(fromUrl) !== serializeSearchState(bar)) return;
+
+    if (fromUrl.q) {
+      // Already shown or loading (this page asked for it): nothing to ask again, nothing to overwrite.
+      if (searchRequestKey(fromUrl) !== shownKeyRef.current) executeRef.current(fromUrl);
+      else if (fromUrl.sort !== stateRef.current.sort) setState(fromUrl);
       // Arrived from the header search: keyboard focus goes to the box that now holds the query.
-      if (takeSearchFocusRequest(trimmed)) searchInputRef.current?.focus();
+      if (takeSearchFocusRequest(fromUrl.q)) searchInputRef.current?.focus();
       return;
     }
     // No query in the URL (the navigation's "Literature search", or back to the start): the
-    // landing state, with nothing still loading.
+    // start page, with nothing still loading.
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
-    loadingQueryRef.current = null;
-    searchedQueryRef.current = null;
-    setQuery("");
-    setItems([]);
-    setTotal(0);
-    setQueryIntelligence(null);
-    setError(null);
-    setIsLoading(false);
-    setHasSearched(false);
+    loadingKeyRef.current = null;
+    shownKeyRef.current = null;
+    setState(fromUrl);
+    setResponse(null);
+    setFailure(null);
+    setPhase("start");
+    setPaper(null);
+    setEvidence(null);
   }, []);
 
-  const handleQuerySubmit = (newQuery: string) => {
-    // The same query is already being fetched (a double press): one request is enough.
-    if (newQuery === loadingQueryRef.current) return;
-    searchFromStart(newQuery);
-    // Record it in the address bar; an unchanged query adds no history entry.
-    if (currentUrlQuery() !== newQuery) window.history.pushState(null, "", searchHref(newQuery));
+  const handleQuerySubmit = (q: string) => {
+    // A new query keeps the filters, sort and page size, from the first page.
+    const next = { ...stateRef.current, q, page: 1 };
+    // The same search is already being fetched (a double press): one request is enough.
+    if (searchRequestKey(next) === loadingKeyRef.current) return;
+    record(next);
+    executeSearch(next);
   };
 
-  const handleFilterChange = (updated: Partial<ResearchSearchParams>) => {
-    const updatedFilters = { ...filters, ...updated, offset: 0 };
-    setFilters(updatedFilters);
-    if (query) {
-      executeSearch(query, updatedFilters);
+  const changeFilters = (change: Partial<SearchState>) => {
+    const next = { ...stateRef.current, ...change, page: 1 };
+    if (!next.q) {
+      record(next, "replace");
+      setState(next);
+      return;
     }
+    record(next);
+    executeSearch(next);
   };
 
-  const handleResetFilters = () => {
-    const reset = {
-      limit: 20,
-      offset: 0,
-      explain: true,
-      include_query_intelligence: true,
-    };
-    setFilters(reset);
-    if (query) {
-      executeSearch(query, reset);
-    }
+  const changeSort = (sort: SearchSort) => {
+    const next = { ...stateRef.current, sort };
+    record(next, next.q ? "push" : "replace");
+    setState(next);
   };
 
-  const handlePageChange = (newOffset: number) => {
-    const updated = { ...filters, offset: newOffset };
-    setFilters(updated);
-    executeSearch(query, updated);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const changePage = (page: number) => {
+    const next = { ...stateRef.current, page };
+    record(next);
+    executeSearch(next);
+    resultsHeading.current?.focus();
   };
 
-  const handleLimitChange = (newLimit: number) => {
-    const updated = { ...filters, limit: newLimit, offset: 0 };
-    setFilters(updated);
-    executeSearch(query, updated);
+  const changePageSize = (perPage: number) => {
+    const next = { ...stateRef.current, perPage, page: 1 };
+    record(next);
+    executeSearch(next);
   };
 
-  const handleOpenExplain = (item: ResearchSearchResultItem) => {
-    setSelectedExplanation(item.explanation || null);
-    setDrawerTitle(item.work.title);
-    setIsDrawerOpen(true);
-  };
+  const chooseWork = (work: ResearchWorkRead) => setSelectedWork(work, searchStateHref(stateRef.current));
+
+  const filterCount = activeFilterCount(state);
+  const shownItems = sortItems(items, state.sort);
+  const total = response?.total ?? 0;
+  const announcement =
+    phase === "loading"
+      ? slow
+        ? "Still searching. Large searches can take a few seconds."
+        : "Searching papers…"
+      : phase === "done"
+        ? total === 0
+          ? "No papers matched your search."
+          : `${total.toLocaleString("en")} result${total === 1 ? "" : "s"}`
+        : "";
+
+  const filters = <SearchFilters state={state} onChange={changeFilters} onClear={() => changeFilters(withoutFilters(stateRef.current))} />;
 
   return (
     <section className="discovery-search-page" aria-label="Research Literature Discovery">
       <Suspense fallback={null}>
-        <UrlQuery onChange={handleUrlQuery} />
+        <UrlState onChange={handleUrlState} />
       </Suspense>
       <PageHeader
         title="Literature search"
-        description="Find papers by topic, method or author. Every result shows why it ranks where it does."
+        description="Find papers by topic, method or author. Results combine meaning and keyword matching, and every result says why it is there."
       />
 
       <SearchBar
-        initialQuery={query}
+        initialQuery={state.q}
         inputRef={searchInputRef}
         onSearch={handleQuerySubmit}
-        isLoading={isLoading}
-        queryIntelligence={queryIntelligence}
+        isLoading={phase === "loading"}
+        queryIntelligence={phase === "done" ? (response?.query_intelligence ?? null) : null}
+        showSuggestions={phase === "start"}
       />
 
-      <SearchFilters
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        onReset={handleResetFilters}
-      />
+      <p role="status" className="rc-visually-hidden">
+        {announcement}
+      </p>
 
-      {/* Loading State */}
-      {isLoading && (
-        <div className="state-container loading-state" role="status">
-          <Loader2 size={24} className="spin" />
-          <p>Retrieving and ranking research works across vector and lexical channels...</p>
-        </div>
-      )}
-
-      {/* Error State */}
-      {error && !isLoading && (
-        <div className="state-container error-state" role="alert">
-          <AlertCircle size={24} className="status-error" />
-          <div>
-            <h4>Search Error</h4>
-            <p>{error}</p>
-            <button
-              type="button"
-              className="retry-btn"
-              onClick={() => executeSearch(query, filters)}
-            >
-              Retry Search
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && !error && hasSearched && items.length === 0 && (
-        <div className="state-container empty-state">
-          <BookOpen size={28} className="empty-icon" />
-          <h4>No research works matched your query</h4>
-          <p>Try searching broader terms, checking for spelling variations, or clearing active filters.</p>
-        </div>
-      )}
-
-      {/* Initial Landing Prompt; a visitor also reads what an account adds (P3). */}
-      {!hasSearched && !isLoading && (
-        <div className="state-container prompt-state">
-          <Search size={28} className="prompt-icon" aria-hidden="true" />
-          <h4>Begin your literature search</h4>
-          <p>Type a topic, methodology, or academic acronym to discover relevant literature and match venues.</p>
+      {phase === "pending" ? null : phase === "start" ? (
+        <div className={styles.start}>
+          <EmptyState
+            headingLevel={2}
+            title="Begin your literature search"
+            description="Type a topic, method or acronym to find papers, then open one to see why it matches, find similar papers or find venues for it."
+          />
+          {/* A visitor also reads what an account adds (P3). */}
           {sessionStatus === "unauthenticated" && <VisitorIntro />}
         </div>
-      )}
+      ) : (
+        <div className={styles.layout}>
+          <aside className={styles.rail} aria-labelledby="search-filters-heading">
+            <h2 id="search-filters-heading" className={styles.railTitle}>
+              Filters
+            </h2>
+            {filters}
+          </aside>
 
-      {/* Result Cards List */}
-      {!isLoading && items.length > 0 && (
-        <div className="results-container">
-          <div className="results-header">
-            <h2>Matching papers</h2>
-            <span className="results-count-text">
-              {total} total results found
-            </span>
-          </div>
+          <section className={styles.results} aria-labelledby="search-results-heading" aria-busy={phase === "loading" || undefined}>
+            <div className={styles.resultsHeader}>
+              <h2 id="search-results-heading" ref={resultsHeading} tabIndex={-1} className={styles.resultsTitle}>
+                {phase === "done" ? `${total.toLocaleString("en")} result${total === 1 ? "" : "s"}` : "Results"}
+              </h2>
+              <div className={styles.resultsTools}>
+                <Button
+                  className={styles.filtersButton}
+                  size="sm"
+                  aria-haspopup="dialog"
+                  leadingIcon={<SlidersHorizontal size={16} aria-hidden="true" />}
+                  onClick={() => setFiltersOpen(true)}
+                >
+                  Filters{filterCount > 0 ? ` (${filterCount})` : ""}
+                </Button>
+                <Select
+                  label="Sort"
+                  value={state.sort}
+                  onChange={(event) => changeSort(event.target.value as SearchSort)}
+                  className={styles.sort}
+                  hint={state.sort !== "relevance" ? "Reorders the papers on this page; pages follow relevance." : undefined}
+                >
+                  {(Object.keys(SORT_LABELS) as SearchSort[]).map((sort) => (
+                    <option key={sort} value={sort}>
+                      {SORT_LABELS[sort]}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            </div>
 
-          <div className="results-grid">
-            {items.map((item) => (
-              <ResearchResultCard
-                key={item.work.id}
-                item={item}
-                onExplain={handleOpenExplain}
-                isSaved={item.work.id in savedWorks}
-                onSaved={handleSaved}
+            {phase === "loading" && (
+              <>
+                {slow && <p className={styles.slow}>This search is taking longer than usual. Results will appear here.</p>}
+                <SkeletonList rows={4} lines={3} label="Searching papers" announce={false} />
+              </>
+            )}
+
+            {phase === "error" && (
+              <ErrorState
+                kind={failure === "network" ? "offline" : "failed"}
+                title="The search could not be completed"
+                description={
+                  failure === "network"
+                    ? "The server could not be reached. Check your connection and try again."
+                    : failure === "server"
+                      ? "Something went wrong on our side. Try again in a moment."
+                      : "This search could not be run. Try different words or fewer filters."
+                }
+                onRetry={() => executeSearch(stateRef.current)}
+                announce
               />
-            ))}
-          </div>
+            )}
 
-          <PaginationControls
-            total={total}
-            limit={filters.limit || 20}
-            offset={filters.offset || 0}
-            onPageChange={handlePageChange}
-            onLimitChange={handleLimitChange}
-            isLoading={isLoading}
-          />
+            {phase === "done" && items.length === 0 && (
+              <EmptyState
+                variant="no-results"
+                title={total > 0 ? "This page is past the last one" : "No papers matched your search"}
+                description={
+                  total > 0
+                    ? "Go back to the first page of results."
+                    : filterCount > 0
+                      ? "Check the spelling, try broader terms, or clear the filters."
+                      : "Check the spelling, or try broader or different terms."
+                }
+                actions={
+                  total > 0 ? (
+                    <Button onClick={() => changePage(1)}>Go to the first page</Button>
+                  ) : filterCount > 0 ? (
+                    <Button onClick={() => changeFilters(withoutFilters(stateRef.current))}>Clear filters</Button>
+                  ) : undefined
+                }
+              />
+            )}
+
+            {phase === "done" && items.length > 0 && (
+              <>
+                <ul className={styles.list}>
+                  {shownItems.map((item) => (
+                    <li key={item.work.id}>
+                      <PaperCard
+                        item={item}
+                        onOpen={setPaper}
+                        onExplain={setEvidence}
+                        onChoose={chooseWork}
+                        saved={item.work.id in savedWorks}
+                        onSaved={handleSaved}
+                      />
+                    </li>
+                  ))}
+                </ul>
+                <Pagination
+                  page={state.page}
+                  total={total}
+                  pageSize={state.perPage}
+                  onPage={changePage}
+                  pageSizes={PAGE_SIZES}
+                  onPageSize={changePageSize}
+                  label="Search results pages"
+                />
+              </>
+            )}
+          </section>
         </div>
       )}
 
-      {/* Slide-over Explainability Drawer */}
-      <ExplainabilityDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        explanation={selectedExplanation}
-        entityTitle={drawerTitle}
-        entityType="research_work"
-      />
+      <Drawer
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        title="Filters"
+        description="Results update as you change a filter."
+        footer={
+          <Button variant="primary" onClick={() => setFiltersOpen(false)}>
+            Show results
+          </Button>
+        }
+      >
+        {filters}
+      </Drawer>
+
+      {paper && (
+        <PaperPanel item={paper} onClose={() => setPaper(null)} savedItemId={savedWorks[paper.work.id] ?? null} onSaved={handleSaved} onChoose={chooseWork} />
+      )}
+      {evidence && (
+        <EvidencePanel
+          subject={{
+            title: evidence.work.title,
+            context: "search",
+            rank: evidence.rank,
+            score: evidence.score,
+            scoreKind: "relevance",
+            explanation: evidence.explanation,
+            sharedTopics: evidence.sharedTopics,
+          }}
+          onClose={() => setEvidence(null)}
+          rankingMode={response?.ranking_mode}
+        />
+      )}
     </section>
   );
 }

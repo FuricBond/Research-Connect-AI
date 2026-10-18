@@ -1,161 +1,115 @@
 "use client";
 
-import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Filter, RotateCcw } from "lucide-react";
-import type { RankingMode, ResearchSearchParams } from "../../types/discovery";
+import { useState, type KeyboardEvent } from "react";
+import type { RankingMode } from "../../types/discovery";
+import { WORK_TYPES, activeFilterCount, type SearchState } from "../../utils/searchState";
+import { workTypeLabel } from "../../utils/research";
+import { Button } from "../ui/Button/Button";
+import { Checkbox, Select, TextInput } from "../ui/Field/Field";
+import styles from "./Search.module.css";
 
 interface SearchFiltersProps {
-  filters: Partial<ResearchSearchParams>;
-  onFilterChange: (updated: Partial<ResearchSearchParams>) => void;
-  onReset: () => void;
+  state: SearchState;
+  /** A filter changed: the page records it in the address and searches again (from page 1). */
+  onChange: (change: Partial<SearchState>) => void;
+  onClear: () => void;
 }
 
-export const SearchFilters: React.FC<SearchFiltersProps> = ({
-  filters,
-  onFilterChange,
-  onReset,
-}) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const activeFilterCount = [
-    filters.min_year,
-    filters.max_year,
-    filters.work_type,
-    filters.is_oa,
-    filters.min_citations,
-    filters.ranking_mode && filters.ranking_mode !== "general",
-  ].filter(Boolean).length;
-
-  return (
-    <aside className="filters-panel" aria-label="Search filter controls">
-      <div className="filters-header">
-        <button
-          type="button"
-          className="filters-toggle-btn"
-          onClick={() => setIsExpanded(!isExpanded)}
-          aria-expanded={isExpanded}
-        >
-          <Filter size={16} />
-          <span>Filters & Ranking Mode</span>
-          {activeFilterCount > 0 && (
-            <span className="filters-count-badge">{activeFilterCount} active</span>
-          )}
-          {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
-
-        {activeFilterCount > 0 && (
-          <button
-            type="button"
-            className="filters-reset-btn"
-            onClick={onReset}
-            title="Reset all filters to defaults"
-          >
-            <RotateCcw size={14} />
-            <span>Reset</span>
-          </button>
-        )}
-      </div>
-
-      {isExpanded && (
-        <div className="filters-body">
-          <div className="filter-group">
-            <label htmlFor="ranking-mode-select">Ranking Mode</label>
-            <select
-              id="ranking-mode-select"
-              value={filters.ranking_mode || "general"}
-              onChange={(e) =>
-                onFilterChange({ ranking_mode: e.target.value as RankingMode })
-              }
-            >
-              <option value="general">General Discovery (Balanced)</option>
-              <option value="research_similarity">Similar Research (Freshness-weighted)</option>
-              <option value="research_opportunity">Opportunity Matching (Type & Quality)</option>
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="work-type-select">Publication Type</label>
-            <select
-              id="work-type-select"
-              value={filters.work_type || ""}
-              onChange={(e) =>
-                onFilterChange({ work_type: e.target.value || undefined })
-              }
-            >
-              <option value="">All Types</option>
-              <option value="article">Journal Article</option>
-              <option value="preprint">Preprint</option>
-              <option value="book-chapter">Book Chapter</option>
-              <option value="dataset">Dataset</option>
-            </select>
-          </div>
-
-          <div className="filter-group filter-group-row">
-            <div>
-              <label htmlFor="min-year-input">From Year</label>
-              <input
-                id="min-year-input"
-                type="number"
-                min="1950"
-                max="2030"
-                placeholder="e.g. 2018"
-                value={filters.min_year || ""}
-                onChange={(e) =>
-                  onFilterChange({
-                    min_year: e.target.value ? parseInt(e.target.value, 10) : undefined,
-                  })
-                }
-              />
-            </div>
-            <div>
-              <label htmlFor="max-year-input">To Year</label>
-              <input
-                id="max-year-input"
-                type="number"
-                min="1950"
-                max="2030"
-                placeholder="e.g. 2026"
-                value={filters.max_year || ""}
-                onChange={(e) =>
-                  onFilterChange({
-                    max_year: e.target.value ? parseInt(e.target.value, 10) : undefined,
-                  })
-                }
-              />
-            </div>
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="min-citations-input">Min Citations</label>
-            <input
-              id="min-citations-input"
-              type="number"
-              min="0"
-              placeholder="0"
-              value={filters.min_citations || ""}
-              onChange={(e) =>
-                onFilterChange({
-                  min_citations: e.target.value ? parseInt(e.target.value, 10) : undefined,
-                })
-              }
-            />
-          </div>
-
-          <div className="filter-group filter-checkbox">
-            <label>
-              <input
-                type="checkbox"
-                checked={Boolean(filters.is_oa)}
-                onChange={(e) =>
-                  onFilterChange({ is_oa: e.target.checked ? true : undefined })
-                }
-              />
-              <span>Open Access Only</span>
-            </label>
-          </div>
-        </div>
-      )}
-    </aside>
-  );
+const RANKING_LABELS: Record<RankingMode, string> = {
+  general: "Balanced (default)",
+  research_similarity: "Similar research — favours recent work",
+  research_opportunity: "Venue matching — favours publication type and quality",
 };
 
+/**
+ * A number filter that applies when the person is done typing it — on Enter or on leaving the
+ * field — so typing "2018" runs one search, not four. An emptied field removes the filter.
+ */
+function NumberFilter({ label, value, onCommit, min, max, placeholder }: { label: string; value: number | null; onCommit: (value: number | null) => void; min: number; max: number; placeholder: string }) {
+  const [text, setText] = useState(value === null ? "" : String(value));
+  const [shown, setShown] = useState(value);
+  if (value !== shown) {
+    setShown(value);
+    setText(value === null ? "" : String(value));
+  }
+  const commit = () => {
+    const trimmed = text.trim();
+    if (!trimmed) {
+      if (value !== null) onCommit(null);
+      return;
+    }
+    const parsed = Number(trimmed);
+    if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
+      setText(value === null ? "" : String(value));
+      return;
+    }
+    if (parsed !== value) onCommit(parsed);
+  };
+  return (
+    <TextInput
+      label={label}
+      type="number"
+      inputMode="numeric"
+      min={min}
+      max={max}
+      placeholder={placeholder}
+      value={text}
+      onChange={(event) => setText(event.target.value)}
+      onBlur={commit}
+      onKeyDown={(event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          commit();
+        }
+      }}
+    />
+  );
+}
+
+/**
+ * The search filters (FRONTEND_REDESIGN_PLAN.md §9): publication type, years, citations, open
+ * access, and the ranking mode as an advanced control. Shown as a rail beside the results from
+ * 1280px and in a sheet below. Every filter is part of the address (utils/searchState.ts).
+ */
+export function SearchFilters({ state, onChange, onClear }: SearchFiltersProps) {
+  const count = activeFilterCount(state);
+  return (
+    <div className={styles.filters}>
+      <Select label="Publication type" value={state.type ?? ""} onChange={(event) => onChange({ type: (event.target.value || null) as SearchState["type"] })}>
+        <option value="">All types</option>
+        {WORK_TYPES.map((type) => (
+          <option key={type} value={type}>
+            {workTypeLabel(type)}
+          </option>
+        ))}
+      </Select>
+      <fieldset className={styles.years}>
+        <legend className={styles.legend}>Published</legend>
+        <NumberFilter label="From year" value={state.minYear} min={1800} max={2100} placeholder="e.g. 2018" onCommit={(minYear) => onChange({ minYear })} />
+        <NumberFilter label="To year" value={state.maxYear} min={1800} max={2100} placeholder="e.g. 2026" onCommit={(maxYear) => onChange({ maxYear })} />
+      </fieldset>
+      <NumberFilter label="At least this many citations" value={state.minCitations} min={1} max={1_000_000_000} placeholder="e.g. 10" onCommit={(minCitations) => onChange({ minCitations })} />
+      <Checkbox label="Open access only" checked={state.openAccess} onChange={(event) => onChange({ openAccess: event.target.checked })} />
+      <details className={styles.advanced} open={state.mode !== "general" || undefined}>
+        <summary>Advanced</summary>
+        <Select
+          label="Ranking"
+          hint="Changes how the results are weighted and ordered."
+          value={state.mode}
+          onChange={(event) => onChange({ mode: event.target.value as RankingMode })}
+        >
+          {(Object.keys(RANKING_LABELS) as RankingMode[]).map((mode) => (
+            <option key={mode} value={mode}>
+              {RANKING_LABELS[mode]}
+            </option>
+          ))}
+        </Select>
+      </details>
+      {count > 0 && (
+        <Button variant="ghost" size="sm" onClick={onClear}>
+          Clear filters ({count})
+        </Button>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,215 @@
+/* P5 — literature search: the search bar, the filter rail (from 1280px) or sheet, the results. Tokens only. */
+
+/* ── Search bar ── */
+.bar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  margin-bottom: var(--rc-space-6);
+}
+
+.form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rc-space-3);
+}
+
+.input {
+  flex: 1 1 18rem;
+}
+
+.hint,
+.expansion {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-2);
+}
+
+.suggestionsLabel {
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-muted);
+}
+
+.suggestionList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.suggestion {
+  min-height: var(--rc-target-min);
+  padding: var(--rc-space-1) var(--rc-space-3);
+  border: var(--rc-border-width) solid var(--rc-border-control);
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-surface);
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--rc-duration-instant) var(--rc-ease-standard), border-color var(--rc-duration-instant) var(--rc-ease-standard);
+}
+
+.suggestion:hover {
+  border-color: var(--rc-border-strong);
+  background: var(--rc-hover);
+  color: var(--rc-text);
+}
+
+/* ── Filters ── */
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  min-width: 0;
+}
+
+.years {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr));
+  gap: var(--rc-space-3);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.legend {
+  grid-column: 1 / -1;
+  margin-bottom: var(--rc-space-1);
+  padding: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.advanced {
+  border-top: var(--rc-border-width) solid var(--rc-border);
+  padding-top: var(--rc-space-3);
+}
+
+.advanced > summary {
+  min-height: var(--rc-target-min);
+  margin-bottom: var(--rc-space-2);
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-target-min);
+  font-weight: var(--rc-weight-semibold);
+  cursor: pointer;
+}
+
+/* ── Page ── */
+.start {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rc-space-6);
+  align-items: start;
+}
+
+.rail {
+  display: none;
+}
+
+.railTitle {
+  margin: 0 0 var(--rc-space-3);
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+@media (min-width: 1280px) {
+  .layout {
+    grid-template-columns: minmax(13rem, 15rem) minmax(0, 1fr);
+  }
+
+  .rail {
+    display: block;
+    position: sticky;
+    top: calc(var(--rc-header-height) + var(--rc-space-4));
+    padding: var(--rc-card-padding);
+    border: var(--rc-border-width) solid var(--rc-border);
+    border-radius: var(--rc-radius-lg);
+    background: var(--rc-surface);
+  }
+
+  /* Beats the Button primitive's own display (stylesheet order is not guaranteed). */
+  .resultsTools .filtersButton {
+    display: none;
+  }
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  min-width: 0;
+}
+
+.resultsHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--rc-space-3);
+}
+
+.resultsTitle {
+  margin: 0;
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.resultsTitle:focus {
+  outline: none;
+}
+
+.resultsTools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rc-space-3);
+}
+
+.sort {
+  min-width: min(100%, 13rem);
+}
+
+.slow {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

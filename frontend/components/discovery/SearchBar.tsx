@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useState, type Ref } from "react";
-import { ArrowRight, Loader2, Search, X } from "lucide-react";
+import { useId, useState, type FormEvent, type Ref } from "react";
+import { ArrowRight } from "lucide-react";
 import type { QueryIntelligenceSchema } from "../../types/discovery";
+import { Button } from "../ui/Button/Button";
+import { SearchInput } from "../ui/Field/Field";
+import styles from "./Search.module.css";
 
 interface SearchBarProps {
   /** The query on screen: the latest one submitted here or arrived through the URL. */
@@ -11,25 +14,26 @@ interface SearchBarProps {
   onSearch: (query: string) => void;
   isLoading?: boolean;
   queryIntelligence?: QueryIntelligenceSchema | null;
-  placeholder?: string;
+  /** The first view shows a few example searches. */
+  showSuggestions?: boolean;
 }
 
 const SUGGESTED_QUERIES = [
-  "Graph Neural Networks for molecular prediction",
+  "Graph neural networks for molecular prediction",
   "Attention mechanisms in transformer architectures",
   "Medical image segmentation using deep learning",
-  "RAG retrieval augmented generation with knowledge graphs",
+  "Retrieval-augmented generation with knowledge graphs",
 ];
 
-export const SearchBar: React.FC<SearchBarProps> = ({
-  initialQuery = "",
-  inputRef,
-  onSearch,
-  isLoading = false,
-  queryIntelligence,
-  placeholder = "Search research works by keywords, methods, authors, or topics (e.g., GNN, LLM, Computer Vision)...",
-}) => {
+/**
+ * The literature search box (DESIGN_SYSTEM.md §8.2 SearchInput). Its name stays "Search research
+ * literature" (plan §23). The submit button is never disabled — not while a search runs (Enter
+ * must always start the newer search, P2 audit) and not while empty (a hint says what to type).
+ */
+export function SearchBar({ initialQuery = "", inputRef, onSearch, isLoading = false, queryIntelligence, showSuggestions = false }: SearchBarProps) {
+  const hintId = useId();
   const [inputVal, setInputVal] = useState(initialQuery);
+  const [emptyHint, setEmptyHint] = useState(false);
   // A search that arrives from outside (the URL, the header search) shows its query here too.
   // The page changes `initialQuery` only for a submission from this box (whose text it already
   // holds) or an outside navigation, so text typed since the last search is not overwritten.
@@ -39,94 +43,76 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     setInputVal(initialQuery);
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (inputVal.trim()) {
-      onSearch(inputVal.trim());
+  const handleSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    const query = inputVal.trim();
+    if (!query) {
+      setEmptyHint(true);
+      return;
     }
+    setEmptyHint(false);
+    onSearch(query);
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setInputVal(suggestion);
-    onSearch(suggestion);
-  };
+  const expanded = queryIntelligence?.was_expanded ? queryIntelligence : null;
 
   return (
-    <div className="search-bar-container">
-      <form onSubmit={handleSubmit} className="search-form" role="search">
-        <div className="search-input-wrapper">
-          <Search size={18} className="search-icon" />
-          <input
-            ref={inputRef}
-            type="search"
-            value={inputVal}
-            onChange={(e) => setInputVal(e.target.value)}
-            placeholder={placeholder}
-            aria-label="Search research literature"
-            className="search-input"
-          />
-          {inputVal && (
-            <button
-              type="button"
-              className="clear-button"
-              onClick={() => setInputVal("")}
-              aria-label="Clear search input"
-            >
-              <X size={16} />
-            </button>
-          )}
-        </div>
-
-        <button
-          type="submit"
-          className="search-submit-btn"
-          // Not disabled while a search runs: a disabled default button would make Enter do
-          // nothing, silently dropping a newer query (P2 audit). A new search replaces the old.
-          disabled={!inputVal.trim()}
-          aria-label="Submit search"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 size={16} className="spin" />
-              <span>Searching...</span>
-            </>
-          ) : (
-            <>
-              <span>Search</span>
-              <ArrowRight size={16} />
-            </>
-          )}
-        </button>
+    <div className={styles.bar}>
+      <form onSubmit={handleSubmit} className={styles.form} role="search" aria-label="Literature">
+        <SearchInput
+          ref={inputRef}
+          label="Search research literature"
+          hideLabel
+          value={inputVal}
+          onChange={(event) => {
+            setInputVal(event.target.value);
+            if (emptyHint) setEmptyHint(false);
+          }}
+          onClear={() => setInputVal("")}
+          placeholder="Topic, method or author — for example GNN, LLM, computer vision"
+          aria-describedby={emptyHint ? hintId : undefined}
+          className={styles.input}
+        />
+        <Button type="submit" variant="primary" loading={isLoading} aria-label="Submit search" trailingIcon={isLoading ? undefined : <ArrowRight size={16} aria-hidden="true" />}>
+          Search
+        </Button>
       </form>
-
-      {/* Query Intelligence Acronym Expansion Banner */}
-      {queryIntelligence && queryIntelligence.was_expanded && (
-        <div className="query-intelligence-banner" role="status">
-          <span className="qi-badge">Acronym Intelligence</span>
-          <span className="qi-text">
-            Expanded <strong>{queryIntelligence.detected_acronyms.join(", ")}</strong> to{" "}
-            <em>{queryIntelligence.detected_terms.join(", ")}</em>
-          </span>
-        </div>
+      {emptyHint && (
+        <p id={hintId} className={styles.hint}>
+          Type a topic, method or author to search.
+        </p>
       )}
 
-      {/* Quick Search Suggestions */}
-      {!queryIntelligence && (
-        <div className="suggestions-row">
-          <span className="suggestions-label">Try:</span>
-          {SUGGESTED_QUERIES.map((query) => (
-            <button
-              key={query}
-              type="button"
-              className="suggestion-chip"
-              onClick={() => handleSuggestionClick(query)}
-            >
-              {query}
-            </button>
-          ))}
+      {expanded && (
+        <p className={styles.expansion}>
+          Also searched for <strong>{expanded.detected_terms.join(", ")}</strong>
+          {expanded.detected_acronyms.length > 0 && <> (from {expanded.detected_acronyms.join(", ")})</>}.
+        </p>
+      )}
+
+      {showSuggestions && (
+        <div className={styles.suggestions}>
+          <span className={styles.suggestionsLabel} id={`${hintId}-try`}>
+            Try:
+          </span>
+          <ul className={styles.suggestionList} aria-labelledby={`${hintId}-try`}>
+            {SUGGESTED_QUERIES.map((query) => (
+              <li key={query}>
+                <button
+                  type="button"
+                  className={styles.suggestion}
+                  onClick={() => {
+                    setInputVal(query);
+                    onSearch(query);
+                  }}
+                >
+                  {query}
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
     </div>
   );
-};
-
+}
