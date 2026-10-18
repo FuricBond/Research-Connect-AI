@@ -22,6 +22,9 @@
  *   using them unmounts: there is no cache across pages or accounts. A request nobody needs any
  *   more is aborted, and an answer that arrives after its request was replaced is ignored.
  * - `retry()` asks again, for everyone using the key. Nothing retries on its own.
+ * - P5: `scope: "public"` is for data that is the same for everyone (calls for papers, papers):
+ *   it loads for visitors too, and from the first render rather than after the session check.
+ *   Its entries are shared by whoever is on the page and dropped like any other.
  *
  * A 401 is still reported to the session by the API client, which signs the browser out.
  */
@@ -130,11 +133,13 @@ export function heldApiResources(): number {
 export function useApiResource<T>(
   key: string | null,
   load: (signal: AbortSignal) => Promise<T>,
-  options: { isEmpty?: (data: T) => boolean } = {}
+  options: { isEmpty?: (data: T) => boolean; scope?: "account" | "public" } = {}
 ): ApiResource<T> {
   const { user } = useSession();
-  // The account is part of the identity: one account's answers are never another's.
-  const scopedKey = key === null || user === null ? null : `${user.id}::${key}`;
+  // The account is part of the identity: one account's answers are never another's. Public data
+  // has one identity for everyone, so it does not wait for (or change with) the session.
+  const owner = options.scope === "public" ? "public" : (user?.id ?? null);
+  const scopedKey = key === null || owner === null ? null : `${owner}::${key}`;
 
   // The latest loader and emptiness test, without making them part of the identity.
   const loadRef = useRef(load);

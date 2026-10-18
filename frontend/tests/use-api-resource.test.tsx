@@ -294,3 +294,67 @@ describe("useApiResource", () => {
     expect(load).not.toHaveBeenCalled();
   });
 });
+
+/** P5: data that is the same for everyone (calls, papers) uses `scope: "public"`. */
+function PublicConsumer({ name, resourceKey, load }: { name: string; resourceKey: string | null; load: (key: string, signal: AbortSignal) => Promise<{ items: string[] }> }) {
+  const resource = useApiResource(resourceKey, (signal) => load(resourceKey!, signal), { isEmpty: (d) => d.items.length === 0, scope: "public" });
+  return <Probe name={name} resource={resource} />;
+}
+
+describe("useApiResource with scope: public (P5)", () => {
+  it("loads for a visitor, from the first render, while account data still asks for nothing", async () => {
+    const { load, pending } = controllable<{ items: string[] }>();
+    const account = controllable<{ items: string[] }>();
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(jsonResponse({}, 401))));
+    render(
+      <SessionProvider>
+        <PublicConsumer name="calls" resourceKey="calls:page=1" load={load} />
+        <Consumer name="mine" resourceKey="workspace" load={account.load} />
+      </SessionProvider>
+    );
+    expect(load).toHaveBeenCalledTimes(1);
+    await act(async () => pending[0].resolve({ items: ["a call"] }));
+    expect(text("calls")).toBe("success:a call:r0");
+    expect(text("mine")).toBe("idle:r0");
+    expect(account.load).not.toHaveBeenCalled();
+  });
+
+  it("does not ask again when the session settles or changes", async () => {
+    const { load, pending } = controllable<{ items: string[] }>();
+    const user = makeUser();
+    storeSession(makeTokenResponse({ user }));
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(jsonResponse(user))));
+    render(
+      <SessionProvider>
+        <SessionState />
+        <PublicConsumer name="paper" resourceKey="similar:p1" load={load} />
+      </SessionProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("session")).toHaveTextContent("authenticated"));
+    await act(async () => pending[0].resolve({ items: ["related"] }));
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(text("paper")).toBe("success:related:r0");
+  });
+
+  it("keeps public and account entries apart, and drops public ones with their last user", async () => {
+    const { load, pending } = controllable<{ items: string[] }>();
+    function Toggle() {
+      const [shown, setShown] = useState(true);
+      return (
+        <>
+          {shown && <PublicConsumer name="p" resourceKey="workspace" load={load} />}
+          <Consumer name="a" resourceKey="workspace" load={load} />
+          <button onClick={() => setShown(false)}>hide</button>
+        </>
+      );
+    }
+    await signedIn(<Toggle />);
+    // Same key, two identities: one public request and one for the account.
+    expect(load).toHaveBeenCalledTimes(2);
+    expect(heldApiResources()).toBe(2);
+    fireEvent.click(screen.getByText("hide"));
+    await act(async () => undefined);
+    expect(pending.find((entry) => entry.signal.aborted)).toBeDefined();
+    expect(heldApiResources()).toBe(1);
+  });
+});
