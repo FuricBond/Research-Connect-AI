@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
 import { useSession } from "../auth/SessionProvider";
+import { NEW_POSTING_HREF } from "../../utils/postings";
+import { ButtonLink } from "../ui/Button/Button";
 import { Card } from "../ui/Card/Card";
 import { PageHeader } from "../ui/PageHeader/PageHeader";
 import { EmptyState } from "../ui/State/State";
@@ -43,7 +45,19 @@ export function Dashboard() {
   if (user === null || role === null) return null;
   return (
     <div className={styles.page}>
-      <PageHeader display title={<>Welcome back, {user.full_name.trim() || "researcher"}</>} description={DESCRIPTION[role]} />
+      <PageHeader
+        display
+        title={<>Welcome back, {user.full_name.trim() || "researcher"}</>}
+        description={DESCRIPTION[role]}
+        // P9: the recruiting home's one main action.
+        actions={
+          role === "FACULTY" && (
+            <ButtonLink href={NEW_POSTING_HREF} variant="primary" leadingIcon={<Plus size={16} aria-hidden="true" />}>
+              New posting
+            </ButtonLink>
+          )
+        }
+      />
       {role === "STUDENT" && <StudentDashboard profileId={profileId} />}
       {role === "FACULTY" && <FacultyDashboard profileId={profileId} />}
       {role === "ADMIN" && <AdminHome />}

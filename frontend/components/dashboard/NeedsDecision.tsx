@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ApiResource } from "../../hooks/useApiResource";
 import type { ApplicationListResponse, ResearchPosting, ResearchPostingListResponse } from "../../types/posting";
+import { APPLICANTS_HREF, inboxHref } from "../../utils/postings";
 import { EmptyState } from "../ui/State/State";
 import { DashboardModule, Loaded, ModuleError, ModuleLoading } from "./Module";
 import { DECISION_POSTINGS, usePostingApplications } from "./resources";
@@ -16,6 +17,7 @@ const AWAITING = new Set(["SUBMITTED", "UNDER_REVIEW"]);
  * author's postings. There is no aggregate endpoint (plan Q4), so the applications of at most
  * three open postings — those with the most applications — are fetched, one request each, after
  * the postings list; when more postings have applications the module says so and links to them.
+ * P9: each posting opens in the applicant inbox, filtered to it, where the decisions are taken.
  */
 export function NeedsDecision({ mine }: { mine: ApiResource<ResearchPostingListResponse> }) {
   const withApplications = (mine.data?.postings ?? [])
@@ -31,7 +33,7 @@ export function NeedsDecision({ mine }: { mine: ApiResource<ResearchPostingListR
   ].slice(0, DECISION_POSTINGS);
 
   return (
-    <DashboardModule id="dashboard-decisions" title="Needs your decision" action={<Link href="/postings">Your postings</Link>} reserve="timeline">
+    <DashboardModule id="dashboard-decisions" title="Needs your decision" action={<Link href={APPLICANTS_HREF}>All applicants</Link>} reserve="timeline">
       <Loaded resource={mine} loading="Loading your postings" failure="Your postings could not be loaded.">
         {() => {
           if (chosen.length === 0) return <NothingWaiting />;
@@ -61,7 +63,7 @@ export function NeedsDecision({ mine }: { mine: ApiResource<ResearchPostingListR
               )}
               {others > 0 && (
                 <p className={styles.more}>
-                  {others} more open posting{others === 1 ? " has" : "s have"} applications. <Link href="/postings">See your postings</Link>
+                  {others} more open posting{others === 1 ? " has" : "s have"} applications. <Link href={APPLICANTS_HREF}>See all applicants</Link>
                 </p>
               )}
             </>
@@ -87,7 +89,7 @@ function DecisionRow({ posting, submitted, underReview }: { posting: ResearchPos
   const parts = [submitted > 0 ? `${submitted} new` : null, underReview > 0 ? `${underReview} under review` : null].filter(Boolean);
   return (
     <li className={styles.item}>
-      <Link href={`/postings/${posting.id}`} className={styles.itemTitle}>
+      <Link href={inboxHref({ status: null, posting: posting.id })} className={styles.itemTitle}>
         {posting.title}
       </Link>
       <span className={styles.meta}>

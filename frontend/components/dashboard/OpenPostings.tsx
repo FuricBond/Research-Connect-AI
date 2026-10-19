@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { ApiResource } from "../../hooks/useApiResource";
 import type { ResearchPostingListResponse } from "../../types/posting";
+import { MY_POSTINGS_HREF, mineHref } from "../../utils/postings";
 import { postingStatusMeta } from "../../utils/status";
 import { DeadlineCountdown } from "../research/DeadlineCountdown";
 import { StatusBadge } from "../ui/Badge/Badge";
@@ -15,10 +16,11 @@ const SHOWN = 5;
 /**
  * Faculty "Your open postings" (plan §8): each open posting with its applicants, application
  * deadline and status, from the same `GET /postings/mine` that "Needs your decision" reads.
+ * P9: managed in My postings (`/postings?view=mine`).
  */
 export function OpenPostings({ mine }: { mine: ApiResource<ResearchPostingListResponse> }) {
   return (
-    <DashboardModule id="dashboard-open-postings" title="Your open postings" action={<Link href="/postings">Manage postings</Link>} reserve="timeline">
+    <DashboardModule id="dashboard-open-postings" title="Your open postings" action={<Link href={MY_POSTINGS_HREF}>Manage postings</Link>} reserve="timeline">
       <Loaded resource={mine} loading="Loading your postings" failure="Your postings could not be loaded.">
         {(data) => {
           const open = data.postings.filter((posting) => posting.status === "OPEN");
@@ -31,7 +33,7 @@ export function OpenPostings({ mine }: { mine: ApiResource<ResearchPostingListRe
                 title="You have no open postings."
                 description={
                   <>
-                    Projects, thesis topics and assistantships you publish on <Link href="/postings">Research postings</Link> appear here.
+                    Projects, thesis topics and assistantships you publish from <Link href={MY_POSTINGS_HREF}>My postings</Link> appear here.
                   </>
                 }
               />
@@ -60,7 +62,7 @@ export function OpenPostings({ mine }: { mine: ApiResource<ResearchPostingListRe
                 ))}
               </ul>
               {open.length > SHOWN && (
-                <Link href="/postings" className={styles.more}>
+                <Link href={mineHref({ status: "OPEN", page: 1 })} className={styles.more}>
                   See all {open.length} open postings
                 </Link>
               )}

@@ -360,8 +360,9 @@ describe("student home", () => {
     for (const name of ["Needs attention", "Upcoming (next 30 days)", "Recommended for you", "Postings that fit you", "Reading progress"]) {
       expect(region(name)).toBeInTheDocument();
     }
-    // Faculty modules are not a student's.
+    // Faculty modules are not a student's, nor is writing a posting (P9).
     expect(screen.queryByRole("region", { name: "Needs your decision" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "New posting" })).not.toBeInTheDocument();
     await settled();
   });
 
@@ -583,6 +584,10 @@ describe("faculty home", () => {
     for (const name of ["Needs attention", "Recommended for you", "Postings that fit you", "Reading progress"]) {
       expect(screen.queryByRole("region", { name })).not.toBeInTheDocument();
     }
+    // P9: the recruiting home's one main action, and its modules open the faculty pages.
+    expect(screen.getByRole("link", { name: "New posting" })).toHaveAttribute("href", "/postings/new");
+    expect(within(region("Needs your decision")).getByRole("link", { name: "All applicants" })).toHaveAttribute("href", "/postings/applicants");
+    expect(within(region("Your open postings")).getByRole("link", { name: "Manage postings" })).toHaveAttribute("href", "/postings?view=mine");
   });
 
   it("needs your decision: new and under-review applications of the three busiest open postings, and the rest named", async () => {
@@ -593,6 +598,8 @@ describe("faculty home", () => {
     const section = region("Needs your decision");
     const rows = within(section).getAllByRole("listitem");
     expect(rows.map((li) => li.querySelector("a")?.textContent)).toEqual(["RA: benchmark curation", "Thesis: neural ranking"]);
+    // P9: each posting opens in the applicant inbox, filtered to it.
+    expect(rows[0].querySelector("a")).toHaveAttribute("href", "/postings/applicants?posting=f1");
     expect(rows[0]).toHaveTextContent("2 new · 1 under review");
     expect(rows[1]).toHaveTextContent("1 under review");
     expect(within(section).getByText(/1 more open posting has applications/)).toBeInTheDocument();
