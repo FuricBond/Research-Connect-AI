@@ -1174,3 +1174,97 @@ through `THEME_CHANGED_EVENT` (`utils/theme.ts`). `styles/notifications.css` is 
 | Bell | `components/shell/{NotificationBell.tsx,NotificationBell.module.css,Disclosure.tsx}` |
 | Settings | `app/settings/page.tsx`, `app/settings/notifications/page.tsx` (redirect), `components/settings/{SettingsPage,NotificationSettings,AppearanceSettings}.tsx` |
 | Tests | `tests/notifications-p8.test.tsx`, `settings-p8.test.tsx`; updated `notification-types`, `notification-settings-push`, `notification-settings-posting-match`, `notification-live-updates`, `auth-pages`, `auth-revocation`, `design-tokens` (ratchet 105); e2e `pages`, `workflow`, `layout` |
+
+## 21. Faculty (P9)
+
+The faculty side of research postings (plan §14). Faculty get a **Recruiting** group in the
+navigation — My postings (`/postings?view=mine`) and Applicants (`/postings/applicants`); students
+and administrators do not see it (navigation only: the pages check the role and the API scopes
+every answer to the signed-in author). A link may carry a query: `currentHref(path, hrefs, search)`
+marks My postings on its view only, and writing or editing a posting belongs to it. The postings'
+own pages are links with `aria-current` under the header: Discover · My postings · Applicants
+(FACULTY and ADMIN, the accounts the server lets author) · My applications.
+
+**Home** (`/dashboard`): the P4 recruiting modules, now leading to the faculty pages — each row of
+"Needs your decision" opens the inbox filtered to that posting, "Manage postings" opens My
+postings — and "New posting" as the page's one primary action.
+
+**My postings**: every posting of the author's, drafts included, 25 a page, status chips with the
+server's counts (`/postings/mine/summary`), all in the address (`?view=mine&status=&page=`). From
+1024px a table — Posting (title and category), Status, Applicants, New, Deadline, actions — and
+below, each row stacks as a card with its labels (the table keeps explicit `role`s, so it is still
+a table to assistive technology). "New" counts applications not reviewed yet (`SUBMITTED`) for up
+to ten open postings with applications; any other posting shows a dash read as "Not counted",
+never a zero. A row's actions: Edit (not for archived postings — the backend refuses them) and an
+"Actions for …" menu of the moves the server lists, in the order Publish/Reopen, Close, Mark
+filled, Return to draft, Archive, **Cancel posting** (last, confirmed), plus **Delete draft**
+(confirmed) for drafts.
+
+**Editor** (`/postings/new`, `/postings/[id]/edit`): a full page with sections Basics,
+Description, Skills, Dates and terms, Contact, and a live preview of the PostingCard (sticky beside
+the form from 1280px, under it below). The backend's rules (title 5–300, description ≥ 20, 25
+skills, 1–100 positions, two-letter country, email, a web address, a future deadline on create,
+end after start, the appointment terms' ranges) are checked before anything is sent; a summary
+lists what to fix and the first field takes focus. Saving sends one request; a refusal or a network
+failure keeps everything entered, with the reason above the form. A new posting is a draft; an edit
+sends only the fields that changed (the backend's PATCH applies only what it gets), and nothing
+when nothing did. Appointment terms are offered only for internships, assistantships and
+post-docs. The posting's own page opens afterwards.
+
+**Applicants** (`/postings/applicants`): one inbox, grouped by posting (h2 per posting with its
+status, deadline and count), filtered by status (chips with counts from the answers) and by
+posting, in the address (`?status=&posting=`). There is no aggregate endpoint (plan Q4): the inbox
+reads the author's postings, then — all at once — the applications of the ten most recently
+published open postings that have applications (at most 11 requests; a posting without
+applications costs none). Older open postings and postings that are no longer open are listed
+under "Applications not shown here", each linked to its page, where its applications are. Each
+application appears once, under the posting it was made to (the API's `posting_id`).
+
+**Applicant review** (`ApplicantCard`, the faculty ApplicationCard; in the inbox and on the
+posting's page): the applicant, level · institution, the status in words, when they applied, email
+and CV link (a link only when it is a web address), the statement of interest (serif, four lines,
+then "Show the whole statement"), the message shared with them and the private note, what happens
+next once nothing is left to decide, and the history. Decisions follow the review pipeline —
+**Mark under review → Shortlist → Make offer** — with one primary (Shortlist while submitted or
+under review, Make offer once shortlisted) and **Not selected** last as a danger-ghost action that
+asks first, with an optional message to the applicant; only the moves the server lists are
+offered (it sends them sorted by name, which is never used). Nothing is shown before the server
+agrees; one request per application at a time; a refusal leaves the server's state and says so in
+plain words (the server's enum words are not shown); an older answer never replaces a newer one.
+The API gives the author no fit for an applicant, so none is shown.
+
+**Confirmations** (`ConfirmDialogs.tsx`, on `Dialog`): the title names the change and its object
+("Mark Ada Lovelace as not selected for “RA: benchmark curation”?", "Cancel “…”?", "Delete the draft
+“…”?"), the body its consequences as the backend applies them. Cancel, Close, Escape and the
+backdrop send nothing; the danger button sends once and the dialog stays open with the reason if
+the server refuses. Focus returns to the button that opened it, or to the applicant's name (the
+list's heading after a deleted draft) when that button is gone.
+
+**A posting's page** (`/postings/[id]`): on the design system (styles/postings.css now serves only
+`/postings/applications`). The author gets "Manage this posting" (where it stands, Edit, the
+lifecycle actions as above) and its applications; a student keeps their fit and the apply flow
+("Apply now", `#cover-note`, "Submit application"); the reader's own application status is in
+words. The applicant review, the confirmations and the application form load when needed
+(`components/postings/lazy.tsx`); the author's controls come with the page, since arriving late
+above the posting they would push it down.
+
+**Links into a page's query** (`hooks/useAddressSearch.ts`, P5): a link renders the new page
+before the router updates the address bar, so arriving from another page the router's query is
+used until the bar shows this page, and the page renders once more after every router change. A
+late router report for an address the bar has left is still ignored. Without this, a link to
+`/postings?view=mine` or `/postings/applicants?posting=…` from another page opened the page's
+default view.
+
+**Requests and size.** My postings: the page and the counts, then up to ten application lists.
+Applicants: at most 11. A posting's page: the posting (after the session check), plus its
+applications for the author or the fit for a student. First-load JS: `/postings` 138 kB,
+`/postings/[id]` 138, `/postings/new` 135, `/postings/[id]/edit` 136, `/postings/applicants` 141
+(1 kB over the 140 kB budget; P12), `/dashboard` 138.
+
+| Part | Where |
+|---|---|
+| Routes | `app/postings/page.tsx` (Discover, `?view=mine`), `app/postings/new/`, `app/postings/[id]/{page,edit/}`, `app/postings/applicants/` |
+| Pages | `components/postings/{PostingsPage,MyPostings,ApplicantsInbox,PostingEditor,EditPosting,PostingDetail,PostingManage,PostingAuthor,ApplyForm,PostingsNav}.tsx`, `Faculty.module.css`, `lazy.tsx` |
+| Review | `components/postings/{ApplicantCard,ConfirmDialogs}.tsx`, `useApplicationDecisions.ts`, `usePostingChanges.ts`, `errors.ts` |
+| Rules and words | `utils/postings.ts` (decision order, lifecycle actions, addresses, the inbox's choice), `components/postings/postingForm.ts` (the editor's rules and payloads), `resources.ts` |
+| Tests | `tests/postings-p9.test.tsx`, `address-search.test.tsx`; updated `navigation`, `home-page`, `design-tokens` (ratchet 102); e2e `faculty.spec.ts` (new), `shell` |

@@ -44,6 +44,8 @@ Specification: [docs/design/DESIGN_SYSTEM.md](../../../docs/design/DESIGN_SYSTEM
 | A long list in pages | `Pagination` ("Showing 21–40 of 312", Previous page / Next page, optional page size) |
 | State kept in the query string | `useAddressSearch` (`hooks/`): the address bar is the truth; `go(href)` records with `pushState` |
 | Views of one object (an item's Overview, Tasks…) | `Tabs` + `TabPanel` (ARIA tabs: one Tab stop, arrows/Home/End; wrap rather than scroll on narrow screens; keep the tab in the address; `hidden` keeps an opened panel mounted). Not for page navigation: links with `aria-current` (P7) |
+| A table on wide screens that stacks on phones | `<table>` with explicit `role`s (`table`, `row`, `cell`, `columnheader`) and `data-label` on each cell; below 1024px the rows stack as cards with their labels, the roles keep it a table for assistive technology (P9: My postings, `components/postings/Faculty.module.css`) |
+| A consequential change ("Not selected", "Cancel posting") | `Dialog` naming the change and its object in the title; Cancel/Escape send nothing, Confirm sends once (P9: `components/postings/ConfirmDialogs.tsx`) |
 | A list of actions behind one button (status, "More actions") | `Menu` (`role="menu"`; arrows, Home/End, Escape returns focus; `triggerLabel` names it, `danger` and `disabled` items) (P7) |
 | A paper, a call | `PaperCard`, `OpportunityCard`, `CitationMetadata`, `TopicTags` (`components/research/`); their explanation in `EvidencePanel`, the paper in `PaperPanel` (load them through `lazyPanels.ts`) |
 
