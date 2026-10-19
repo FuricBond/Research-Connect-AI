@@ -1,10 +1,5 @@
-/* P6 — the student side of /postings: search and filters above, the postings below. The
-   authoring form and "My postings" keep styles/postings.css until P9. Tokens only. */
-/* The legacy page container already spaces its children; the header's own margin would double it. */
-.header.header {
-  margin-bottom: 0;
-}
-
+/* P6 — the student side of /postings: search and filters above, the postings below. P9 moved
+   the authoring to its own pages (Faculty.module.css). Tokens only. */
 .filters {
   display: flex;
   flex-direction: column;
@@ -13,6 +8,7 @@
   border: var(--rc-border-width) solid var(--rc-border);
   border-radius: var(--rc-radius-lg);
   background: var(--rc-surface);
+  margin-bottom: var(--rc-section-gap);
 }
 
 .searchRow {

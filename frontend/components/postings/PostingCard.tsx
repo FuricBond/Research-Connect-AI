@@ -22,6 +22,8 @@ export interface PostingCardProps {
   busy?: boolean;
   /** Phase 5.15: the signed-in student's fit, when one was computed. */
   fit?: PostingFit | null;
+  /** P9: false in the editor's preview, where the posting has no page yet. */
+  linkTitle?: boolean;
 }
 
 /**
@@ -32,7 +34,7 @@ export interface PostingCardProps {
  * The author's lifecycle controls follow the server's allowed transitions. The deadline's words
  * come from the server's day count, so the urgency shown is the urgency the API reported.
  */
-export function PostingCard({ posting, showOwnerControls = false, onTransition, onDelete, busy = false, fit = null }: PostingCardProps) {
+export function PostingCard({ posting, showOwnerControls = false, onTransition, onDelete, busy = false, fit = null, linkTitle = true }: PostingCardProps) {
   const titleId = `posting-${useId()}`;
   const place = posting.location || posting.country || null;
   const facts = [
@@ -51,9 +53,13 @@ export function PostingCard({ posting, showOwnerControls = false, onTransition, 
       </div>
 
       <h3 className={styles.title}>
-        <Link id={titleId} href={`/postings/${posting.id}`} className={styles.titleLink}>
-          {posting.title}
-        </Link>
+        {linkTitle ? (
+          <Link id={titleId} href={`/postings/${posting.id}`} className={styles.titleLink}>
+            {posting.title}
+          </Link>
+        ) : (
+          <span id={titleId}>{posting.title}</span>
+        )}
       </h3>
       <p className={styles.facts}>{facts.join(" · ")}</p>
 
