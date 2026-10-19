@@ -84,6 +84,35 @@ describe("navigation model", () => {
     expect(navigationFor(null).map((section) => section.label)).toEqual(["Discover"]);
   });
 
+  it("gives faculty the recruiting pages, and nobody else (P9, plan §7)", () => {
+    const faculty = navigationFor("FACULTY");
+    expect(faculty.map((section) => section.label)).toEqual([undefined, "Discover", "Recruiting", "My research", "For you"]);
+    expect(faculty.find((section) => section.group === "recruiting")!.items.map((item) => [item.label, item.href])).toEqual([
+      ["My postings", "/postings?view=mine"],
+      ["Applicants", "/postings/applicants"],
+    ]);
+    for (const role of ["STUDENT", "ADMIN", null] as const) {
+      expect(labels(role)).not.toContain("My postings");
+      expect(labels(role)).not.toContain("Applicants");
+    }
+  });
+
+  it("marks a link with a query only on its own view: My postings is not Research postings (P9)", () => {
+    const faculty = navigationFor("FACULTY").flatMap((section) => section.items.map((item) => item.href));
+    const student = navigationFor("STUDENT").flatMap((section) => section.items.map((item) => item.href));
+    expect(currentHref("/postings", faculty, "view=mine")).toBe("/postings?view=mine");
+    expect(currentHref("/postings", faculty, "view=mine&status=DRAFT&page=2")).toBe("/postings?view=mine");
+    expect(currentHref("/postings", faculty, "")).toBe("/postings");
+    expect(currentHref("/postings", faculty, "view=other")).toBe("/postings");
+    expect(currentHref("/postings/applicants", faculty, "status=SUBMITTED")).toBe("/postings/applicants");
+    // Writing or editing a posting belongs to My postings, for those who have it.
+    expect(currentHref("/postings/new", faculty)).toBe("/postings?view=mine");
+    expect(currentHref("/postings/0b9c/edit", faculty)).toBe("/postings?view=mine");
+    expect(currentHref("/postings/new", student)).toBe("/postings");
+    // A posting's own page is still Research postings.
+    expect(currentHref("/postings/0b9c", faculty)).toBe("/postings");
+  });
+
   it("keeps notifications out of the lists: the bell is the one way in", () => {
     const listed = [...NAV_SECTIONS.flatMap((section) => section.items), ...ACCOUNT_ITEMS].map((item) => item.href);
     expect(listed).not.toContain("/notifications");
@@ -131,7 +160,8 @@ describe("navigation model", () => {
       if (reachedFromAccountControls.includes(route)) continue;
       expect(currentHref(route.replace(/\[[^\]]+\]/g, "x")), route).not.toBeNull();
     }
-    for (const href of SHELL_HREFS) expect(routes, href).toContain(href);
+    // P9: a link may carry a query (My postings, /postings?view=mine); its page is the path.
+    for (const href of SHELL_HREFS) expect(routes, href).toContain(href.split("?")[0]);
   });
 });
 
@@ -181,6 +211,19 @@ describe("primary navigation", () => {
     expect(await within(nav).findByRole("link", { name: "Find peers" })).toBeInTheDocument();
     expect(within(nav).queryByRole("link", { name: "Find a supervisor" })).not.toBeInTheDocument();
     expect(within(nav).queryByRole("link", { name: "Platform administration" })).not.toBeInTheDocument();
+  });
+
+  it("gives faculty Recruiting, with My postings current on its view only (P9)", async () => {
+    serveShell("FACULTY");
+    pathname = "/postings/applicants";
+    renderShell();
+
+    const nav = await screen.findByRole("navigation", { name: "Primary" });
+    const recruiting = await within(nav).findByRole("list", { name: "Recruiting" });
+    expect(within(recruiting).getByRole("link", { name: "My postings" })).toHaveAttribute("href", "/postings?view=mine");
+    expect(within(recruiting).getByRole("link", { name: "Applicants" })).toHaveAttribute("aria-current", "page");
+    expect(within(nav).getByRole("link", { name: "Research postings" })).not.toHaveAttribute("aria-current");
+    expect(nav.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
   });
 
   it("shows a visitor the public pages only and asks nothing about notifications", async () => {

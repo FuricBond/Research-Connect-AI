@@ -130,6 +130,13 @@ test("the navigation follows the role: faculty have no supervisor search", async
   await expect(nav.getByRole("link", { name: "Find peers" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Find a supervisor" })).toHaveCount(0);
   await expect(nav.getByRole("link", { name: "Platform administration" })).toHaveCount(0);
+  // P9: faculty recruit from their own group of pages; My postings is current on its view only.
+  const recruiting = nav.getByRole("list", { name: "Recruiting" });
+  await expect(recruiting.getByRole("link")).toHaveText(["My postings", "Applicants"]);
+  await recruiting.getByRole("link", { name: "My postings" }).click();
+  await expect(page).toHaveURL(/\/postings\?view=mine$/);
+  await expect(recruiting.getByRole("link", { name: "My postings" })).toHaveAttribute("aria-current", "page");
+  await expect(nav.getByRole("link", { name: "Research postings" })).not.toHaveAttribute("aria-current", "page");
   await accountMenu(page).click();
   await expect(page.getByRole("banner").getByText("Faculty account", { exact: true })).toBeVisible();
   network.expectClean();

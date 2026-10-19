@@ -12,12 +12,14 @@ import {
   BookMarked,
   BookOpen,
   Briefcase,
+  ClipboardPen,
   CalendarDays,
   ClipboardList,
   Compass,
   FileText,
   GraduationCap,
   House,
+  Inbox,
   Megaphone,
   Settings,
   ShieldCheck,
@@ -27,9 +29,10 @@ import {
 } from "lucide-react";
 import type { PlatformRole } from "../types/auth";
 
-export type NavGroup = "start" | "discover" | "research" | "foryou" | "admin";
+export type NavGroup = "start" | "discover" | "recruiting" | "research" | "foryou" | "admin";
 
 export interface NavItem {
+  /** May carry a query (`/postings?view=mine`): the link is current only with that query. */
   href: string;
   label: string;
   icon: LucideIcon;
@@ -64,6 +67,16 @@ export const NAV_SECTIONS: readonly NavSection[] = [
       { href: "/postings", label: "Research postings", icon: ClipboardList, public: true },
       // P5: similar papers (/similar) and venue matching (/opportunities) work from one paper,
       // so they are actions on a paper (its card and panel), not destinations (plan §7, §10).
+    ],
+  },
+  {
+    // P9: a faculty member's recruiting (plan §7); hidden for students and administrators, who
+    // still reach every page beneath it by its address (the pages and the API decide access).
+    group: "recruiting",
+    label: "Recruiting",
+    items: [
+      { href: "/postings?view=mine", label: "My postings", icon: ClipboardPen, roles: ["FACULTY"] },
+      { href: "/postings/applicants", label: "Applicants", icon: Inbox, roles: ["FACULTY"] },
     ],
   },
   {
@@ -115,12 +128,15 @@ export const SHELL_HREFS: readonly string[] = [
 
 /**
  * P5: a call's page (/calls/[id]) belongs to "Calls for papers"; similar papers and venue
- * matching, reached from a paper in a search, belong to "Literature search".
+ * matching, reached from a paper in a search, belong to "Literature search". P9: writing or
+ * editing a posting belongs to "My postings" (for those who have it).
  */
-const SECTION_OF: readonly [prefix: string, href: string][] = [
+const SECTION_OF: readonly [page: string | RegExp, href: string][] = [
   ["/calls", "/browse"],
   ["/similar", "/"],
   ["/opportunities", "/"],
+  ["/postings/new", "/postings?view=mine"],
+  [/^\/postings\/[^/]+\/edit$/, "/postings?view=mine"],
 ];
 
 /** Whether `pathname` is `href` or a page beneath it ("/" only matches itself). */
@@ -129,20 +145,30 @@ export function isWithin(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
+/** A link with a query stands for its own page with that query only (`/postings?view=mine`). */
+function matches(pathname: string, search: URLSearchParams, href: string): boolean {
+  const [path, query] = href.split("?");
+  if (query === undefined) return isWithin(pathname, path);
+  if (pathname !== path) return false;
+  return [...new URLSearchParams(query)].every(([name, value]) => search.get(name) === value);
+}
+
 /**
  * The one shell link that stands for the current page: the most specific href the pathname
- * is within, so /researcher/preferences is "Research preferences", not "Researcher profile".
- * Null when no shell link stands for it (sign-in, a posting's own page is still "Research
- * postings").
+ * (and query) is within, so /researcher/preferences is "Research preferences", not "Researcher
+ * profile", and /postings?view=mine is "My postings", not "Research postings". Null when no
+ * shell link stands for it (sign-in, a posting's own page is still "Research postings").
  */
-export function currentHref(pathname: string, hrefs: readonly string[] = SHELL_HREFS): string | null {
+export function currentHref(pathname: string, hrefs: readonly string[] = SHELL_HREFS, search = ""): string | null {
   // P5: pages that belong to a destination without sitting beneath its address.
-  for (const [prefix, href] of SECTION_OF) {
-    if (isWithin(pathname, prefix) && hrefs.includes(href)) return href;
+  for (const [page, href] of SECTION_OF) {
+    const within = typeof page === "string" ? isWithin(pathname, page) : page.test(pathname);
+    if (within && hrefs.includes(href)) return href;
   }
+  const params = new URLSearchParams(search);
   let best: string | null = null;
   for (const href of hrefs) {
-    if (isWithin(pathname, href) && (best === null || href.length > best.length)) best = href;
+    if (matches(pathname, params, href) && (best === null || href.length > best.length)) best = href;
   }
   return best;
 }

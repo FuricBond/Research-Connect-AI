@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useId } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, useId } from "react";
 import { useSession } from "../auth/SessionProvider";
-import { currentHref, navigationFor } from "../../utils/navigation";
+import { currentHref, navigationFor, type NavSection } from "../../utils/navigation";
 import styles from "./PrimaryNav.module.css";
 
 /**
@@ -34,10 +34,39 @@ export function PrimaryNav({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   const sections = navigationFor(status === "authenticated" ? role : null);
-  const current = currentHref(pathname);
-
+  const hrefs = sections.flatMap((section) => section.items.map((item) => item.href));
+  // P9: a link with a query (My postings, /postings?view=mine) needs the address's query. Reading
+  // it makes a statically rendered page wait for the browser, so only the marking waits: until
+  // then the links are marked by the path alone. The <nav> itself stays the same element.
+  const byPath = <Links sections={sections} baseId={baseId} current={currentHref(pathname, hrefs)} onNavigate={onNavigate} />;
   return (
     <nav aria-label="Primary" className={styles.nav}>
+      {hrefs.some((href) => href.includes("?")) ? (
+        <Suspense fallback={byPath}>
+          <LinksWithQuery sections={sections} baseId={baseId} pathname={pathname} hrefs={hrefs} onNavigate={onNavigate} />
+        </Suspense>
+      ) : (
+        byPath
+      )}
+    </nav>
+  );
+}
+
+interface LinksProps {
+  sections: NavSection[];
+  baseId: string;
+  current: string | null;
+  onNavigate?: () => void;
+}
+
+function LinksWithQuery({ pathname, hrefs, ...rest }: Omit<LinksProps, "current"> & { pathname: string; hrefs: string[] }) {
+  const search = useSearchParams();
+  return <Links {...rest} current={currentHref(pathname, hrefs, search?.toString() ?? "")} />;
+}
+
+function Links({ sections, baseId, current, onNavigate }: LinksProps) {
+  return (
+    <>
       {sections.map((section) => {
         const labelId = `${baseId}-${section.group}`;
         return (
@@ -68,6 +97,6 @@ export function PrimaryNav({ onNavigate }: { onNavigate?: () => void }) {
           </div>
         );
       })}
-    </nav>
+    </>
   );
 }
