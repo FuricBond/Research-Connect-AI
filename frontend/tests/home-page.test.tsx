@@ -18,8 +18,9 @@ import React from "react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 
+const replace = vi.fn();
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ replace: vi.fn(), push: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
+  useRouter: () => ({ replace, push: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => "/dashboard",
   useSearchParams: () => new URLSearchParams(),
 }));
@@ -674,11 +675,14 @@ describe("faculty home", () => {
 });
 
 describe("administrator home", () => {
-  it("offers Platform administration first and makes no dashboard requests", async () => {
+  it("takes an administrator to the administration overview and makes no dashboard requests", async () => {
+    // P10: the overview is an administrator's home (plan §8); /dashboard replaces itself with it.
+    replace.mockReset();
     serve("ADMIN");
     renderHome();
-    const link = await screen.findByRole("link", { name: /Platform administration/ });
+    const link = await screen.findByRole("link", { name: /administration overview/ });
     expect(link).toHaveAttribute("href", "/admin");
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/admin"));
     await act(async () => undefined);
     expect(dashboardRequests()).toEqual([]);
   });

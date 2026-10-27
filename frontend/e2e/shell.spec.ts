@@ -129,7 +129,9 @@ test("the navigation follows the role: faculty have no supervisor search", async
   const nav = primaryNav(page);
   await expect(nav.getByRole("link", { name: "Find peers" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Find a supervisor" })).toHaveCount(0);
-  await expect(nav.getByRole("link", { name: "Platform administration" })).toHaveCount(0);
+  // P10: no administration pages either.
+  await expect(nav.getByRole("list", { name: "Administration" })).toHaveCount(0);
+  await expect(nav.getByRole("link", { name: "Overview" })).toHaveCount(0);
   // P9: faculty recruit from their own group of pages; My postings is current on its view only.
   const recruiting = nav.getByRole("list", { name: "Recruiting" });
   await expect(recruiting.getByRole("link")).toHaveText(["My postings", "Applicants"]);

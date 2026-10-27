@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo } from "react";
-import { ArrowRight, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo } from "react";
+import { Plus } from "lucide-react";
+import { AuthPending } from "../auth/RequireAuth";
 import { useSession } from "../auth/SessionProvider";
 import { NEW_POSTING_HREF } from "../../utils/postings";
 import { ButtonLink } from "../ui/Button/Button";
-import { Card } from "../ui/Card/Card";
 import { PageHeader } from "../ui/PageHeader/PageHeader";
 import { EmptyState } from "../ui/State/State";
 import { DashboardModule } from "./Module";
@@ -29,20 +30,27 @@ import {
 } from "./resources";
 import styles from "./Dashboard.module.css";
 
+/**
+ * P10: an administrator's home, the administration overview (utils/navigation.ts "Overview"). A
+ * literal: importing the navigation's config or utils/admin here would add their code to this page.
+ */
+const ADMIN_HOME_HREF = "/admin";
+
 const DESCRIPTION = {
   STUDENT: "What needs your attention, what is new for you, and what is coming up.",
   FACULTY: "Applications waiting for you, your open postings, and what is coming up.",
-  ADMIN: "Accounts, roles and research data are managed in Platform administration.",
 } as const;
 
 /**
  * P4 — the signed-in home (`/dashboard`, FRONTEND_REDESIGN_PLAN.md §8): student and faculty
  * modules, each loading and failing on its own, at most seven requests (see resources.ts).
- * Administrators get the way to Platform administration (their overview is P10).
+ * P10: an administrator's home is the administration overview (plan §8), so /dashboard — where
+ * signing in lands — takes them there, replacing itself in the history.
  */
 export function Dashboard() {
   const { user, role, profileId } = useSession();
   if (user === null || role === null) return null;
+  if (role === "ADMIN") return <AdminHome />;
   return (
     <div className={styles.page}>
       <PageHeader
@@ -60,7 +68,6 @@ export function Dashboard() {
       />
       {role === "STUDENT" && <StudentDashboard profileId={profileId} />}
       {role === "FACULTY" && <FacultyDashboard profileId={profileId} />}
-      {role === "ADMIN" && <AdminHome />}
     </div>
   );
 }
@@ -136,17 +143,16 @@ function NoProfile({ id, title }: { id: string; title: string }) {
 }
 
 function AdminHome() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace(ADMIN_HOME_HREF);
+  }, [router]);
   return (
-    <section aria-labelledby="dashboard-admin" className={styles.module}>
-      <h2 id="dashboard-admin" className="rc-visually-hidden">
-        Administration
-      </h2>
-      <Card variant="interactive" padding="compact">
-        <Link href="/admin" className={styles.itemTitle}>
-          Platform administration <ArrowRight size={16} aria-hidden="true" />
-        </Link>
-        <p className={styles.reason}>Accounts, roles and research data freshness.</p>
-      </Card>
-    </section>
+    <>
+      <AuthPending label="Opening the administration overview…" />
+      <p className={styles.reason}>
+        <Link href={ADMIN_HOME_HREF}>Go to the administration overview</Link>
+      </p>
+    </>
   );
 }

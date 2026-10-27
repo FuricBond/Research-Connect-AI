@@ -16,15 +16,17 @@ import {
   CalendarDays,
   ClipboardList,
   Compass,
+  Database,
   FileText,
   GraduationCap,
   House,
   Inbox,
+  LayoutDashboard,
   Megaphone,
   Settings,
-  ShieldCheck,
   SlidersHorizontal,
   User,
+  UserCog,
   Users,
 } from "lucide-react";
 import type { PlatformRole } from "../types/auth";
@@ -55,8 +57,13 @@ export interface NavSection {
  */
 export const NAV_SECTIONS: readonly NavSection[] = [
   {
+    // P10: an administrator's home is the administration overview (plan §7, §8); /dashboard
+    // takes them there.
     group: "start",
-    items: [{ href: "/dashboard", label: "Home", icon: House }],
+    items: [
+      { href: "/dashboard", label: "Home", icon: House, roles: ["STUDENT", "FACULTY"] },
+      { href: "/admin", label: "Overview", icon: LayoutDashboard, roles: ["ADMIN"] },
+    ],
   },
   {
     group: "discover",
@@ -99,9 +106,13 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     ],
   },
   {
+    // P10: the overview's two pages (plan §7, §15). Administrators see this group second.
     group: "admin",
     label: "Administration",
-    items: [{ href: "/admin", label: "Platform administration", icon: ShieldCheck, roles: ["ADMIN"] }],
+    items: [
+      { href: "/admin/users", label: "Users", icon: UserCog, roles: ["ADMIN"] },
+      { href: "/admin/research-data", label: "Research data", icon: Database, roles: ["ADMIN"] },
+    ],
   },
 ];
 
@@ -180,12 +191,17 @@ function visibleTo(item: NavItem, role: PlatformRole | null): boolean {
 
 /**
  * The primary navigation this visitor may see, empty groups left out. `role` is null for a
- * signed-out visitor.
+ * signed-out visitor. P10: administration is an administrator's main job, so their Administration
+ * group follows the overview (plan §7: Overview · Administration · Discover).
  */
 export function navigationFor(role: PlatformRole | null): NavSection[] {
-  return NAV_SECTIONS.map((section) => ({ ...section, items: section.items.filter((item) => visibleTo(item, role)) })).filter(
+  const sections = NAV_SECTIONS.map((section) => ({ ...section, items: section.items.filter((item) => visibleTo(item, role)) })).filter(
     (section) => section.items.length > 0
   );
+  if (role !== "ADMIN") return sections;
+  const admin = sections.filter((section) => section.group === "admin");
+  const others = sections.filter((section) => section.group !== "admin");
+  return [...others.slice(0, 1), ...admin, ...others.slice(1)];
 }
 
 /** The account menu's pages for a signed-in role. */

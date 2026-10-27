@@ -55,15 +55,20 @@ describe("navigation model", () => {
     expect(labels("STUDENT")).toContain("Find a supervisor");
     expect(labels("FACULTY")).not.toContain("Find a supervisor");
     expect(labels("ADMIN")).not.toContain("Find a supervisor");
-    expect(labels("ADMIN")).toContain("Platform administration");
-    expect(labels("STUDENT")).not.toContain("Platform administration");
-    expect(labels("FACULTY")).not.toContain("Platform administration");
-    // Every signed-in role keeps the destinations it had before P2.
+    // P10: the administration overview and its two pages, for administrators only (plan §7).
+    for (const label of ["Overview", "Users", "Research data"]) {
+      expect(labels("ADMIN")).toContain(label);
+      expect(labels("STUDENT")).not.toContain(label);
+      expect(labels("FACULTY")).not.toContain(label);
+    }
+    // Every signed-in role keeps the destinations it had before P2; an administrator's home is the
+    // administration overview (P10), which /dashboard leads to.
     for (const role of ["STUDENT", "FACULTY", "ADMIN"] as const) {
-      for (const label of ["Home", "Literature search", "Calls for papers", "Research postings", "Workspace", "Reading list", "Calendar", "Find peers"]) {
+      for (const label of [role === "ADMIN" ? "Overview" : "Home", "Literature search", "Calls for papers", "Research postings", "Workspace", "Reading list", "Calendar", "Find peers"]) {
         expect(labels(role), `${role} ${label}`).toContain(label);
       }
     }
+    expect(labels("ADMIN")).not.toContain("Home");
   });
 
   it("offers a visitor only the public discovery pages", () => {
@@ -80,7 +85,13 @@ describe("navigation model", () => {
   it("groups destinations by task, in a fixed order", () => {
     // P6: "People" became "For you", with the recommendations first (plan §6).
     expect(navigationFor("STUDENT").map((section) => section.label)).toEqual([undefined, "Discover", "My research", "For you"]);
-    expect(navigationFor("ADMIN").map((section) => section.label)).toEqual([undefined, "Discover", "My research", "For you", "Administration"]);
+    // P10: administration is an administrator's main job, so its group follows the overview.
+    expect(navigationFor("ADMIN").map((section) => section.label)).toEqual([undefined, "Administration", "Discover", "My research", "For you"]);
+    expect(navigationFor("ADMIN")[0].items.map((item) => [item.label, item.href])).toEqual([["Overview", "/admin"]]);
+    expect(navigationFor("ADMIN")[1].items.map((item) => [item.label, item.href])).toEqual([
+      ["Users", "/admin/users"],
+      ["Research data", "/admin/research-data"],
+    ]);
     expect(navigationFor(null).map((section) => section.label)).toEqual(["Discover"]);
   });
 
@@ -193,14 +204,27 @@ describe("primary navigation", () => {
     expect(within(forYou).getAllByRole("link").map((link) => link.textContent?.trim())).toEqual(["Recommendations", "Find a supervisor", "Find peers"]);
   });
 
-  it("gives an administrator the administration page and no supervisor search", async () => {
+  it("gives an administrator the administration pages and no supervisor search", async () => {
     serveShell("ADMIN");
     pathname = "/admin";
     renderShell();
 
     const nav = await screen.findByRole("navigation", { name: "Primary" });
-    expect(await within(nav).findByRole("link", { name: "Platform administration" })).toHaveAttribute("aria-current", "page");
+    expect(await within(nav).findByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
+    const administration = within(nav).getByRole("list", { name: "Administration" });
+    expect(within(administration).getAllByRole("link").map((link) => link.textContent?.trim())).toEqual(["Users", "Research data"]);
+    expect(within(administration).getByRole("link", { name: "Users" })).not.toHaveAttribute("aria-current");
     expect(within(nav).queryByRole("link", { name: "Find a supervisor" })).not.toBeInTheDocument();
+  });
+
+  it("marks the administration page an administrator is on, not the overview (P10)", async () => {
+    serveShell("ADMIN");
+    pathname = "/admin/users";
+    renderShell();
+
+    const nav = await screen.findByRole("navigation", { name: "Primary" });
+    expect(await within(nav).findByRole("link", { name: "Users" })).toHaveAttribute("aria-current", "page");
+    expect(within(nav).getByRole("link", { name: "Overview" })).not.toHaveAttribute("aria-current");
   });
 
   it("gives faculty neither the supervisor search nor administration", async () => {
@@ -210,7 +234,8 @@ describe("primary navigation", () => {
     const nav = await screen.findByRole("navigation", { name: "Primary" });
     expect(await within(nav).findByRole("link", { name: "Find peers" })).toBeInTheDocument();
     expect(within(nav).queryByRole("link", { name: "Find a supervisor" })).not.toBeInTheDocument();
-    expect(within(nav).queryByRole("link", { name: "Platform administration" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("list", { name: "Administration" })).not.toBeInTheDocument();
+    expect(within(nav).queryByRole("link", { name: "Users" })).not.toBeInTheDocument();
   });
 
   it("gives faculty Recruiting, with My postings current on its view only (P9)", async () => {
