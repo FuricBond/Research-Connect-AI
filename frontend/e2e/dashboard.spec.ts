@@ -30,6 +30,16 @@ async function dashboardRequests(page: Page, load: () => Promise<unknown>): Prom
   return made;
 }
 
+/**
+ * P10: lets the sign-in landing (itself /dashboard) finish before a load is measured. Its requests
+ * that wait for another answer (fit scores after the postings) could otherwise start after the
+ * recording did and be counted as the measured load's.
+ */
+async function settleLanding(page: Page) {
+  await page.waitForLoadState("networkidle");
+  await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
+}
+
 async function expectModules(page: Page, names: string[]) {
   for (const name of names) {
     const region = page.getByRole("region", { name, exact: true });
@@ -44,6 +54,7 @@ test("a student's home: the five modules, at most seven requests, the same on re
   // Signing in with no destination lands on the home.
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("heading", { level: 1, name: /^Welcome back/ })).toBeVisible();
+  await settleLanding(page);
 
   const modules = ["Needs attention", "Upcoming (next 30 days)", "Recommended for you", "Postings that fit you", "Reading progress"];
   const first = await dashboardRequests(page, () => page.goto("/dashboard"));
@@ -67,6 +78,7 @@ test("a faculty member's home: the four modules and at most seven requests, none
   const network = watch(page);
   await signInThroughTheForm(page, DEMO.faculty, DEMO_PASSWORD);
   await expect(page).toHaveURL(/\/dashboard$/);
+  await settleLanding(page);
 
   const made = await dashboardRequests(page, () => page.goto("/dashboard"));
   await expectModules(page, ["Needs your decision", "Your open postings", "Upcoming deadlines", "Recommended papers"]);
