@@ -46,3 +46,14 @@ export interface IngestionRunListResponse {
   items: IngestionRunRead[];
   research_refresh: ResearchRefreshStatus;
 }
+
+/**
+ * P10 — readiness, `GET /api/health/ready` (backend/app/api/health.py): 200 when the database
+ * answers and its schema is this build's, 503 with the same body otherwise. Coarse states only.
+ */
+export interface ReadinessResponse {
+  status: "ready" | "not_ready";
+  database: "ok" | "unreachable";
+  /** backend/app/db/schema_status.py SchemaState. */
+  schema: "current" | "behind" | "unrecognized" | "uninitialized" | "unknown" | "not_checked";
+}

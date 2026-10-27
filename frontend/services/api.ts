@@ -199,7 +199,7 @@ import type {
   ReadingListResponse,
   ReadingStatus,
 } from "../types/reading_list";
-import type { IngestionRunListResponse } from "../types/admin";
+import type { IngestionRunListResponse, ReadinessResponse } from "../types/admin";
 import { getAuthHeaders } from "./auth";
 
 // NEXT_PUBLIC_API_URL replaces former VITE_API_URL
@@ -430,6 +430,27 @@ export async function fetchIngestionRuns(
   query.set("limit", String(params.limit ?? 20));
   query.set("research_only", String(params.researchOnly ?? true));
   return fetchJson<IngestionRunListResponse>(`/api/v1/admin/ingestion-runs?${query.toString()}`, { signal });
+}
+
+/**
+ * P10 — the backend's readiness (`GET /api/health/ready`, public). A 503 is an answer, not a
+ * failure: its body says what is not ready. Any other failure, or a body of another shape, throws.
+ */
+export async function fetchReadiness(signal?: AbortSignal): Promise<ReadinessResponse> {
+  const response = await fetch(`${API_URL}/api/health/ready`, { signal });
+  if (response.ok || response.status === 503) {
+    let body: unknown = null;
+    try {
+      body = await response.json();
+    } catch {
+      // Not the backend's answer (a proxy's error page): reported as the status below.
+    }
+    const answer = body as Partial<ReadinessResponse> | null;
+    if (answer && typeof answer.status === "string" && typeof answer.database === "string" && typeof answer.schema === "string") {
+      return answer as ReadinessResponse;
+    }
+  }
+  throw new ApiError(response.status, `Request failed with status ${response.status}`);
 }
 
 // ── Legacy Opportunities API ──────────────────────────────────────────────────
