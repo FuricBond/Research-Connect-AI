@@ -1,9 +1,15 @@
 /**
- * Research refresh (step 4/6) — the admin console's Data freshness card.
+ * Research refresh (step 4/6) — the admin console's Data freshness card; since P10 the research data
+ * monitor (`components/admin/ResearchDataMonitor.tsx`), which replaced it (plan §15).
  *
- * It reads `GET /api/v1/admin/ingestion-runs` and shows whether the scheduled research
- * refresh is on, the last run and its status, papers added in the last 24 hours, the next
- * run estimate and the last five passes, with loading, empty and error states.
+ * It reads `GET /api/v1/admin/ingestion-runs` and shows whether the scheduled research refresh is
+ * on, the last run and its status, papers added in the last 24 hours, the next run estimate and the
+ * passes of the latest refresh by lane and subfield, with loading, empty and error states. Kept from
+ * the card: these facts and their words, `formatRelative`, and the pass/lane parsing of a run's
+ * `research_refresh:{run_tag}:{lane}:{subfield}` label. Changed on purpose in P10: the newest 100
+ * passes are read (for the last 20 refreshes), lanes and subfields have names, passes are listed in
+ * the order they ran, the state has a word, a failed load is worded by the page (never the
+ * server's text) and a refused one is told apart from a failure.
  */
 
 import React from "react";
@@ -15,9 +21,13 @@ vi.mock("../services/api", async (importOriginal) => {
   return { ...actual, fetchIngestionRuns: vi.fn() };
 });
 
-import { DataFreshnessCard, formatRelative } from "../components/admin/DataFreshnessCard";
+import { ResearchDataMonitor } from "../components/admin/ResearchDataMonitor";
+import { SessionProvider } from "../components/auth/SessionProvider";
+import { clearActiveIdentity, storeSession } from "../services/auth";
 import { ApiError, fetchIngestionRuns } from "../services/api";
 import type { IngestionRunListResponse, IngestionRunRead } from "../types/admin";
+import { formatRelative } from "../utils/admin";
+import { jsonResponse, makeTokenResponse, makeUser } from "./factories";
 
 const NOW = new Date("2026-10-02T12:00:00Z");
 const mockedFetch = vi.mocked(fetchIngestionRuns);
@@ -78,27 +88,43 @@ function statusRow(label: string): HTMLElement {
   return header.closest("tr") as HTMLElement;
 }
 
+function renderMonitor() {
+  return render(
+    <SessionProvider>
+      <ResearchDataMonitor />
+    </SessionProvider>
+  );
+}
+
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ["Date"] });
   vi.setSystemTime(NOW);
+  mockedFetch.mockReset();
+  storeSession(makeTokenResponse({ user: makeUser({ role: "ADMIN" }) }));
+  vi.stubGlobal(
+    "fetch",
+    vi.fn((url: string) => (String(url).endsWith("/api/v1/auth/me") ? Promise.resolve(jsonResponse(makeUser({ role: "ADMIN" }))) : Promise.resolve(jsonResponse({ detail: "unexpected" }, 404))))
+  );
 });
 
 afterEach(() => {
+  clearActiveIdentity();
+  vi.unstubAllGlobals();
   vi.useRealTimers();
 });
 
-describe("DataFreshnessCard", () => {
-  it("shows a loading state while the runs are fetched", () => {
+describe("ResearchDataMonitor (was DataFreshnessCard)", () => {
+  it("shows a loading state while the runs are fetched", async () => {
     mockedFetch.mockReturnValue(new Promise(() => {}));
-    render(<DataFreshnessCard />);
+    renderMonitor();
 
-    expect(screen.getByRole("status")).toHaveTextContent("Loading data freshness");
-    expect(mockedFetch).toHaveBeenCalledWith({ limit: 5 }, expect.any(AbortSignal));
+    expect(await screen.findByText("Loading the research data status")).toHaveAttribute("role", "status");
+    await waitFor(() => expect(mockedFetch).toHaveBeenCalledWith({ limit: 100 }, expect.any(AbortSignal)));
   });
 
-  it("shows the schedule, last run, papers added, next run and recent passes", async () => {
+  it("shows the schedule, last run, papers added, next run and the latest refresh's passes", async () => {
     mockedFetch.mockResolvedValue(makeResponse());
-    render(<DataFreshnessCard />);
+    renderMonitor();
 
     await screen.findByRole("table", { name: "Research refresh status" });
     expect(statusRow("Scheduled refresh")).toHaveTextContent("On, every 8 h");
@@ -107,11 +133,12 @@ describe("DataFreshnessCard", () => {
     expect(statusRow("Papers added (24 h)")).toHaveTextContent("37");
     expect(statusRow("Next run")).toHaveTextContent("in 5 hours");
 
-    const runs = screen.getByRole("table", { name: "Recent research refresh runs" });
+    // The passes of the latest refresh, in the order they ran, with lane and subfield names.
+    const runs = screen.getByRole("table", { name: "Latest refresh by lane" });
     const rows = within(runs).getAllByRole("row").slice(1);
     expect(rows).toHaveLength(2);
-    expect(rows[0]).toHaveTextContent(/rising\s*1702\s*12\s*30\s*Completed/);
-    expect(rows[1]).toHaveTextContent(/newest\s*1702\s*0\s*0\s*Failed \(budget exhausted\)/);
+    expect(rows[0]).toHaveTextContent(/Newest papers\s*Artificial Intelligence\s*1702\s*0\s*0\s*Failed \(budget exhausted\)/);
+    expect(rows[1]).toHaveTextContent(/Rising papers\s*Artificial Intelligence\s*1702\s*12\s*30\s*Completed/);
   });
 
   it("says when the refresh is off and nothing has run", async () => {
@@ -128,7 +155,7 @@ describe("DataFreshnessCard", () => {
         },
       })
     );
-    render(<DataFreshnessCard />);
+    renderMonitor();
 
     expect(await screen.findByText("No research refresh has run yet.")).toBeInTheDocument();
     expect(statusRow("Scheduled refresh")).toHaveTextContent("Off");
@@ -139,23 +166,26 @@ describe("DataFreshnessCard", () => {
 
   it("shows an error and recovers on Refresh", async () => {
     mockedFetch.mockRejectedValueOnce(new ApiError(503, "Service Unavailable"));
-    render(<DataFreshnessCard />);
+    renderMonitor();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Could not load data freshness.");
+    expect(await screen.findByRole("heading", { name: "The research data status could not be loaded." })).toBeInTheDocument();
+    expect(screen.queryByText(/Healthy/)).not.toBeInTheDocument();
 
     mockedFetch.mockResolvedValueOnce(makeResponse());
     fireEvent.click(screen.getByRole("button", { name: /refresh/i }));
 
-    await waitFor(() => expect(screen.queryByRole("alert")).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.queryByText("The research data status could not be loaded.")).not.toBeInTheDocument());
     expect(statusRow("Papers added (24 h)")).toHaveTextContent("37");
     expect(mockedFetch).toHaveBeenCalledTimes(2);
   });
 
-  it("shows the backend's message for a client error", async () => {
+  it("tells a refused request apart from a failure, in its own words", async () => {
     mockedFetch.mockRejectedValue(new ApiError(403, "Forbidden", "Administrator role required"));
-    render(<DataFreshnessCard />);
+    renderMonitor();
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("Administrator role required");
+    expect(await screen.findByRole("heading", { name: "Only administrators can see the research data status." })).toBeInTheDocument();
+    expect(screen.queryByText("The research data status could not be loaded.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Administrator role required")).not.toBeInTheDocument();
   });
 });
 

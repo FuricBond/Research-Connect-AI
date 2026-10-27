@@ -1,0 +1,676 @@
+/* P10 — administration (plan §15): the overview, the research data monitor and the users page.
+   Tokens only. The users table stacks below 1024px; the run tables scroll inside their own region
+   (plan §16), so no page scrolls sideways (320px included). */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.strong {
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.secondary {
+  display: block;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.footnote {
+  margin: 0;
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text-secondary);
+}
+
+.empty {
+  margin: 0;
+  color: var(--rc-text-secondary);
+}
+
+.lead {
+  margin: 0;
+}
+
+.moreLink {
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-medium);
+  color: var(--rc-link);
+}
+
+.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.code {
+  font-family: var(--rc-font-mono);
+  font-size: var(--rc-text-mono-size);
+  color: var(--rc-text-muted);
+}
+
+.failedText {
+  color: var(--rc-danger);
+}
+
+/* ── Overview: modules in two columns from 1280px (narrower columns made the cards too tall) ── */
+.overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--rc-section-gap);
+}
+
+@media (min-width: 1280px) {
+  .overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.module {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  min-width: 0;
+}
+
+.moduleBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  min-width: 0;
+}
+
+/* Each module keeps the height of a typical answer from its first paint (measured on the e2e stack
+   and with healthy, stale and failing monitor answers), so one answering late moves little below it.
+   The lists show at most three items. */
+.reserveHealth {
+  min-height: 11rem;
+}
+
+.reserveAccounts {
+  min-height: 11rem;
+}
+
+.reserveResearch {
+  min-height: 18rem;
+}
+
+.reserveList {
+  min-height: 15rem;
+}
+
+@media (min-width: 1280px) {
+  /* Half a row wide, a stale or failing message wraps onto more lines. */
+  .reserveResearch {
+    min-height: 20.5rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .reserveAccounts {
+    min-height: 14.5rem;
+  }
+
+  .reserveResearch {
+    min-height: 21rem;
+  }
+}
+
+@media (max-width: 479.98px) {
+  .reserveHealth {
+    min-height: 15rem;
+  }
+}
+
+@media (max-width: 359.98px) {
+  /* The three counts stack one per row. */
+  .reserveAccounts {
+    min-height: 20rem;
+  }
+}
+
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  min-width: 0;
+}
+
+.pairs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: var(--rc-space-3) var(--rc-space-5);
+  margin: 0;
+}
+
+.pairs dt {
+  font-size: var(--rc-text-label-size);
+  line-height: var(--rc-text-label-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text-secondary);
+}
+
+.pairs dd {
+  margin: var(--rc-space-1) 0 0;
+  overflow-wrap: anywhere;
+}
+
+.bigNumber {
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+  font-variant-numeric: tabular-nums;
+  color: var(--rc-text);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  padding: var(--rc-space-2) 0;
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+}
+
+.listItem:last-child {
+  border-bottom: 0;
+}
+
+.itemLink {
+  color: var(--rc-text);
+  font-weight: var(--rc-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.itemLink:hover {
+  color: var(--rc-link);
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8rem), 1fr));
+  gap: var(--rc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.countLink {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+  min-height: var(--rc-target-min);
+  padding: var(--rc-space-3);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-md);
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-small-size);
+  text-decoration: none;
+}
+
+.countLink:hover {
+  border-color: var(--rc-border-strong);
+  background: var(--rc-surface-hover);
+}
+
+/* ── The state: a dot of its tone and the word (the word carries it) ── */
+.statusLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--rc-space-1) var(--rc-space-2);
+  margin: 0;
+}
+
+.stateWord {
+  font-size: var(--rc-text-title-size);
+  line-height: var(--rc-text-title-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+}
+
+.fact {
+  color: var(--rc-text-secondary);
+}
+
+.dot {
+  flex: 0 0 auto;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-text-muted);
+}
+
+.tone-success {
+  background: var(--rc-success);
+}
+
+.tone-info,
+.tone-brand,
+.tone-brand-strong {
+  background: var(--rc-info);
+}
+
+.tone-warning {
+  background: var(--rc-warning);
+}
+
+.tone-danger {
+  background: var(--rc-danger);
+}
+
+.tone-neutral,
+.tone-muted {
+  background: var(--rc-text-muted);
+}
+
+/* ── Research data ── */
+.monitor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-section-gap);
+  min-width: 0;
+}
+
+.monitorBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rc-space-3);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  min-width: 0;
+}
+
+.facts,
+.runs {
+  width: 100%;
+  border-collapse: collapse;
+  border: var(--rc-border-width) solid var(--rc-border);
+  background: var(--rc-surface);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-variant-numeric: tabular-nums;
+}
+
+.facts th,
+.facts td,
+.runs th,
+.runs td {
+  padding: var(--rc-cell-padding-y) var(--rc-cell-padding-x);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.facts th {
+  width: 14rem;
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text-secondary);
+}
+
+.runs th {
+  background: var(--rc-surface-sunken);
+  font-size: var(--rc-text-label-size);
+  line-height: var(--rc-text-label-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text-secondary);
+  white-space: nowrap;
+}
+
+.runs .number,
+.facts .number {
+  text-align: right;
+}
+
+.facts td.number {
+  text-align: left;
+}
+
+.runs td {
+  min-width: 6rem;
+}
+
+.target:target td,
+.target:focus td {
+  background: var(--rc-brand-subtle);
+}
+
+.when {
+  display: flex;
+  flex-direction: column;
+}
+
+.history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+}
+
+.strip,
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend {
+  gap: var(--rc-space-2) var(--rc-space-4);
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--rc-space-2);
+}
+
+/* 24px squares: large enough to be a target where one is a link (WCAG 2.5.8). */
+.square {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: var(--rc-border-width) solid var(--rc-border-strong);
+  border-radius: var(--rc-radius-xs);
+  background: var(--rc-surface-sunken);
+  color: var(--rc-text-secondary);
+}
+
+.legendSquare {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.square-check {
+  border-color: var(--rc-success-border);
+  background: var(--rc-success-subtle);
+  color: var(--rc-success);
+}
+
+.square-partial {
+  border-color: var(--rc-warning-border);
+  background: var(--rc-warning-subtle);
+  color: var(--rc-warning);
+}
+
+.square-cross {
+  border-color: var(--rc-danger-border);
+  background: var(--rc-danger-subtle);
+  color: var(--rc-danger);
+}
+
+.square-running {
+  border-color: var(--rc-info-border);
+  background: var(--rc-info-subtle);
+  color: var(--rc-info);
+}
+
+a.square:hover {
+  border-color: var(--rc-danger);
+}
+
+/* ── Users ── */
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  margin-bottom: var(--rc-space-6);
+}
+
+.searchForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--rc-space-2);
+  max-width: 36rem;
+}
+
+.searchField {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+  min-width: 0;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--rc-target-min);
+  padding: var(--rc-space-1) var(--rc-space-3);
+  border: var(--rc-border-width) solid var(--rc-border-control);
+  border-radius: var(--rc-radius-full);
+  background: var(--rc-surface);
+  color: var(--rc-text-secondary);
+  font: inherit;
+  font-size: var(--rc-text-small-size);
+  font-weight: var(--rc-weight-medium);
+  cursor: pointer;
+}
+
+.chip:hover {
+  background: var(--rc-surface-hover);
+}
+
+.chip[aria-pressed="true"] {
+  border-color: var(--rc-brand);
+  background: var(--rc-brand-subtle);
+  color: var(--rc-brand-text);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-4);
+  min-width: 0;
+}
+
+.resultsHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--rc-space-1) var(--rc-space-3);
+}
+
+.resultsTitle {
+  margin: 0;
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text);
+  overflow-wrap: anywhere;
+}
+
+.alertActions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--rc-space-2);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  border: var(--rc-border-width) solid var(--rc-border);
+  background: var(--rc-surface);
+  font-variant-numeric: tabular-nums;
+}
+
+.table th {
+  padding: var(--rc-cell-padding-y) var(--rc-cell-padding-x);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+  background: var(--rc-surface-sunken);
+  font-size: var(--rc-text-label-size);
+  line-height: var(--rc-text-label-lh);
+  font-weight: var(--rc-weight-semibold);
+  color: var(--rc-text-secondary);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: var(--rc-cell-padding-y) var(--rc-cell-padding-x);
+  border-bottom: var(--rc-border-width) solid var(--rc-border);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  color: var(--rc-text);
+  vertical-align: top;
+}
+
+.row:last-child td {
+  border-bottom: 0;
+}
+
+.row:hover td {
+  background: var(--rc-surface-hover);
+}
+
+.accountCell {
+  min-width: 14rem;
+}
+
+.accountName {
+  display: block;
+  font-size: var(--rc-text-body-size);
+  font-weight: var(--rc-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.you {
+  font-weight: var(--rc-weight-regular);
+  color: var(--rc-text-secondary);
+}
+
+.roleTrigger {
+  font-weight: var(--rc-weight-semibold);
+}
+
+.statusCell {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--rc-space-1);
+}
+
+.actionsCell {
+  white-space: nowrap;
+}
+
+.actionsCell > * + * {
+  margin-left: var(--rc-space-2);
+}
+
+.saving {
+  font-size: var(--rc-text-small-size);
+  color: var(--rc-text-secondary);
+}
+
+@media (max-width: 1023.98px) {
+  /* The rows stack as cards with their labels; the explicit roles keep them a table for
+     assistive technology although they are no longer displayed as one. */
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table {
+    border: 0;
+    background: transparent;
+  }
+
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .row {
+    margin-bottom: var(--rc-space-3);
+    padding: var(--rc-card-padding-compact);
+    border: var(--rc-border-width) solid var(--rc-border);
+    border-radius: var(--rc-radius-lg);
+    background: var(--rc-surface);
+  }
+
+  .row:hover td {
+    background: transparent;
+  }
+
+  .table td {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--rc-space-1) var(--rc-space-3);
+    padding: var(--rc-space-1) 0;
+    border-bottom: 0;
+  }
+
+  .table td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 5rem;
+    font-size: var(--rc-text-label-size);
+    font-weight: var(--rc-weight-semibold);
+    color: var(--rc-text-secondary);
+  }
+
+  .table td.accountCell {
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    padding-bottom: var(--rc-space-2);
+  }
+
+  .table td.actionsCell {
+    gap: var(--rc-space-2);
+    padding-top: var(--rc-space-2);
+    white-space: normal;
+  }
+
+  .actionsCell > * + * {
+    margin-left: 0;
+  }
+}
+
+/* ── Confirmations ── */
+.dialogBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+}
+
+.dialogBody p {
+  margin: 0;
+}
