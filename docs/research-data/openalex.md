@@ -290,8 +290,9 @@ updated rather than duplicated, so overlapping windows cost calls but never crea
 count as failed, and the run is `PARTIAL`. A failed request fails only its pass. A stop (the
 job's timeout or a shutdown) ends the refresh at a page boundary without counting a failure.
 After two runs in a row with every pass failed, each active administrator gets an in-app
-alert. The admin page's Data freshness card shows the last run, its status, the papers added
-in the last 24 hours and the next run.
+alert. Administration → Research data (`/admin/research-data`) shows whether the refresh is
+healthy, stale or failing, the last run, the papers added in the last 24 hours, the next run, the
+last 20 refreshes and the latest refresh by lane.
 
 ### Budget
 

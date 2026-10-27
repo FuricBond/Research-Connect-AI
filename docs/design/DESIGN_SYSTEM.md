@@ -752,7 +752,7 @@ and the others carry on.
 |---|---|
 | Student | **Needs attention**: tracked calls due within 14 days (status and next step), offers and applications in progress, a nudge while the profile is incomplete, and the three-step **Get started** checklist (add interests, save a call, save a paper) until it is done · **Upcoming (next 30 days)**: a dot timeline of call deadlines (filled) and calendar milestones (hollow) · **Recommended for you**: three calls with match band, one reason and "Why?" (the explanation loads when asked) · **Postings that fit you**: the three open postings that fit best, with the main reason · **Reading progress**: to read, reading, done |
 | Faculty | **Needs your decision**: new and under-review applications of the three busiest open postings (no aggregate endpoint; more are named and linked) · **Your open postings**: applicants, deadline, status · **Upcoming deadlines**: tracked calls and postings closing within 30 days · **Recommended papers**: papers similar to the newest paper of the researcher's (no endpoint recommends papers) |
-| Admin | Platform administration (the admin overview is P10) |
+| Admin | None: `/dashboard` takes an administrator to the administration overview, their home (P10, §22) |
 
 Notifications stay in the bell until P8 gives it a shared list (the plan's latest-three module
 would otherwise only repeat the bell's count).
@@ -1268,3 +1268,83 @@ applications for the author or the fit for a student. First-load JS: `/postings`
 | Review | `components/postings/{ApplicantCard,ConfirmDialogs}.tsx`, `useApplicationDecisions.ts`, `usePostingChanges.ts`, `errors.ts` |
 | Rules and words | `utils/postings.ts` (decision order, lifecycle actions, addresses, the inbox's choice), `components/postings/postingForm.ts` (the editor's rules and payloads), `resources.ts` |
 | Tests | `tests/postings-p9.test.tsx`, `address-search.test.tsx`; updated `navigation`, `home-page`, `design-tokens` (ratchet 102); e2e `faculty.spec.ts` (new), `shell` |
+
+## 22. Administration (P10)
+
+The administrator's side (plan §15). Administrators get **Overview** (`/admin`) in place of Home and
+an **Administration** group — Users (`/admin/users`), Research data (`/admin/research-data`) —
+straight after it; other roles do not see them (navigation only: the pages check the role, and every
+endpoint behind them is ADMIN only on the server). `/dashboard`, where signing in lands, replaces
+itself with the overview for an administrator. Personal research tools stay in their navigation
+(plan Q5 is still open).
+
+**Overview** (`/admin`): the title first, then five modules in two columns from 1280px, each a section
+with an h2 and one card that keeps a typical answer's height from its first paint (sized for the
+healthy, stale and failing monitor states, and loading placeholders never taller), loading and
+failing on its own (Try again retries only what failed): **System health**, the backend's readiness
+(`GET /api/health/ready`: Ready / Not ready, the database and schema in words; a 503 is an answer, not
+a failure; no answer is "unknown", never healthy); **Research data**, the monitor's state, papers
+added in 24 hours, last and next run; **Latest failed passes**, the newest three among the monitor's
+refreshes, each linked to its refresh; **Accounts**, the server's total per role (one row asked for
+each), linked to Users filtered by it, and the total only when every count is known (an unknown count
+is a dash read as "Not counted", never a zero); **Deactivated accounts**, from one page of the 200
+oldest accounts (the API cannot filter by activity), said to be "among the 200 oldest of N" when not
+all fit (the first three listed). Six requests, all at once, once each.
+
+**Research data monitor** (`components/admin/ResearchDataMonitor.tsx`, replaces the Data freshness
+card): reads the newest 100 passes (`GET /admin/ingestion-runs?limit=100`); the passes sharing a run
+tag are one refresh, whose outcome follows the backend (running if a pass runs, failed if every pass
+failed); when the answer is full, the oldest refresh may be cut short and is left out. The state, by
+`monitorState` (`utils/admin.ts`):
+
+| State | When | Shown |
+|---|---|---|
+| Off | the scheduled refresh is switched off | neutral; when it last ran |
+| Not run yet | on, nothing has run | neutral; the next run if estimated |
+| Failing | every pass of the newest refresh failed | danger Alert: how many in a row, the error category, when the last success was |
+| Stale | no refresh completed for more than two intervals (or the answer reaches back that far without one) | warning Alert: for how long |
+| Refreshing now | a refresh runs, not stale | info; when it started |
+| Healthy | the newest refresh completed within two intervals | success; "refreshed 3 hours ago · next in 5 hours", and "1 of 2 passes failed" when some did |
+| Unknown | a status this page does not know | muted, never healthy |
+
+A request that fails is never a state: the page says the status could not be loaded (permission
+apart: "Only administrators…") with Try again, and "Refresh status" keeps what is shown while it asks.
+The status line is a dot of the state's tone and its word (the word carries it). Then the facts
+(scheduled refresh, last run, its status, papers added in 24 h, next run, overdue said in words);
+**Recent refreshes**: the last 20 as 24px squares, oldest first, each with a glyph and its words
+(completed, completed with failures, failed, running), failed ones linking to their row in the table
+beneath (started, outcome and error categories, passes completed, added, updated); and **Latest
+refresh by lane**: "Newest papers" / "Rising papers", the subfield's name (the Computer Science
+subfields; another id reads "Subfield 1234") with its id, added, updated, outcome. The run tables
+scroll inside their own region on narrow screens (plan §16); the page never does.
+
+**Users** (`/admin/users`): 25 a page, searched by name or email (sent on Search, not while typing)
+and filtered by role, all in the address (`?role=&q=&page=`), so back, forward and a shared link open
+the same page; another page, filter or search never shows the previous one's rows, and a page past
+the last says so and leads to the last. From 1024px a table (Account: name, email, "(you)"; Role;
+Status: Active / Deactivated, Verified / Not verified; Joined; actions); below, each account stacks as
+a card with its labels (explicit `role`s keep it a table). A refused list is a permission state, never
+"no accounts". Only the API's fields are shown.
+
+**Role change**: the row's role menu ("Role of Ada Lovelace: Faculty. Change the role") offers the
+other roles; choosing one asks first. The title names the person and both roles ("Change Ada
+Lovelace’s role from Faculty to Administrator?"), the body the account's email and what the new role
+may do (on one's own account: that administration is lost at once). Cancel, Close, Escape and the
+backdrop send nothing; confirming sends exactly one request (Cancel is disabled while it is sent), the
+row then shows the role the server answered with, and a polite status says so. A refusal keeps the
+server's role and says why in plain words; the backend refuses to demote or deactivate the last
+active administrator (409). Changing one's own account reads the session again.
+
+**Activation and verification**: from "Actions for …": Deactivate / Reactivate account, Mark as
+verified / not verified, applied at once with an **Undo** in the page's notice (there is no toast
+primitive; the notice stays until dismissed or replaced). Deactivating one's own account asks first
+(one is signed out at once). Rows compare `updated_at`, so an older answer never puts old values back.
+
+| Part | Where |
+|---|---|
+| Routes | `app/admin/{page,layout}.tsx`, `app/admin/users/`, `app/admin/research-data/` |
+| Pages | `components/admin/{AdminOverview,AdminUsers,ResearchDataMonitor,AdminDialogs}.tsx`, `Admin.module.css` |
+| Requests and changes | `components/admin/resources.ts`, `useAccountChanges.ts`, `errors.ts`; `services/api.ts` `fetchReadiness` |
+| Rules and words | `utils/admin.ts` (the monitor's state, refreshes, lanes and subfields, readiness, the users page's address) |
+| Removed | `components/admin/DataFreshnessCard.tsx` (replaced), `styles/auth.css` (only the old admin page used it) |
+| Tests | `tests/admin-p10.test.tsx`; `data-freshness-card.test.tsx` now tests the monitor (same cases; words changed on purpose); updated `navigation`, `home-page`; e2e `admin.spec.ts` (new), `shell`, `dashboard` (the sign-in landing settles before a load's requests are counted, as in `faculty.spec.ts`) |
