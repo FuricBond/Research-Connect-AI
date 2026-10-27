@@ -7,6 +7,8 @@ export const DEMO_PASSWORD = process.env.E2E_DEMO_PASSWORD ?? "";
 export const DEMO = {
   faculty: "demo.faculty@researchconnect.test",
   student: "demo.student@researchconnect.test",
+  // P10: the seeded administrator (e2e/api/conftest.py DEMO_EMAILS).
+  admin: "demo.admin@researchconnect.test",
 };
 
 export function uniqueEmail(label: string): string {
