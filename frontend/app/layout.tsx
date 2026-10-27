@@ -8,8 +8,6 @@ import { fontVariables } from "./fonts";
 import "../styles/tokens.css";
 import "../styles/base.css";
 import "../styles/globals.css";
-// The sign-in, registration and administration pages share these styles.
-import "../styles/auth.css";
 // Utility classes used by the personalization and unified-intelligence panels.
 import "../styles/tailwind.css";
 
