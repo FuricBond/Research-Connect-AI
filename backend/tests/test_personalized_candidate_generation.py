@@ -790,4 +790,4 @@ def test_api_get_personalized_candidates_forbidden(
 def test_api_get_personalized_candidates_not_found(client: TestClient):
     random_id = uuid.uuid4()
     resp = client.get(f"/api/v1/researchers/{random_id}/personalized-candidates")
-    assert resp.status_code == 404
+    assert resp.status_code == 401  # audit SEC-04: signed out hears 401 whether or not it exists

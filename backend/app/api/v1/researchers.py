@@ -483,20 +483,23 @@ def _resolve_researcher_profile_auth(
     current_user_id: uuid.UUID | None,
     db: Session,
 ) -> ResearchProfileModel:
-    profile = ResearcherProfileService.get_profile(db, researcher_id)
-    if not profile:
-        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
-    if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Researcher profile with ID '{researcher_id}' not found.",
-        )
+    # Identity comes first, and whoever is not the owner hears the same thing for an id that
+    # exists and one that does not (audit SEC-04): these routes must not confirm that a profile
+    # exists. Only the caller's own id can still be told "not found".
     if current_user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authentication required.",
         )
-    if profile.user_id != current_user_id:
+    profile = ResearcherProfileService.get_profile(db, researcher_id)
+    if not profile:
+        profile = ResearcherProfileService.get_profile_by_user_id(db, researcher_id)
+    if profile is None and researcher_id == current_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Researcher profile with ID '{researcher_id}' not found.",
+        )
+    if profile is None or profile.user_id != current_user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Forbidden: You do not have permission to access this researcher resource.",

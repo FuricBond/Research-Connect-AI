@@ -6,6 +6,7 @@ from typing import Any
 import uuid
 
 from sqlalchemy import func, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.models.notification import (
@@ -72,7 +73,13 @@ class NotificationService:
             posting_match_min_score=60,
         )
         db.add(prefs)
-        db.commit()
+        try:
+            db.commit()
+        except IntegrityError:
+            # Two first requests raced and the other one created the row (unique on profile_id,
+            # audit API-01). Theirs has the same defaults, so it is the answer.
+            db.rollback()
+            return db.execute(stmt).scalars().one()
         db.refresh(prefs)
         return prefs
 

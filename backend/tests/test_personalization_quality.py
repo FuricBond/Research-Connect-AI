@@ -1054,7 +1054,7 @@ def test_api_personalization_quality_endpoints_and_authorization(
       - GET /api/v1/researchers/{id}/personalization/quality/signals
       - POST /api/v1/researchers/{id}/personalization/quality/recompute
       - Multi-tenant isolation: User A cannot access or recompute User B's profile.
-      - 404 for unknown researcher ID.
+      - 403 for unknown researcher ID, as for someone else's (audit SEC-04).
     """
     user_a, profile_a = sample_user_and_profile
     opp1, opp2, _, _ = sample_opportunities
@@ -1147,12 +1147,12 @@ def test_api_personalization_quality_endpoints_and_authorization(
     )
     assert res_forbidden_b.status_code == 403
 
-    # Non-existent researcher returns 404
+    # Non-existent researcher answers as someone else's does (audit SEC-04)
     res_404 = client.get(
         f"/api/v1/researchers/{uuid.uuid4()}/personalization/quality",
         headers={"X-User-ID": str(user_a.id)},
     )
-    assert res_404.status_code == 404
+    assert res_404.status_code == 403
 
     # ── Test 3: GET /quality/contexts ─────────────────────────────────────────
     res_contexts = client.get(
@@ -1221,11 +1221,11 @@ def test_api_personalization_quality_endpoints_and_authorization(
     )
     assert res_recompute_forbidden.status_code == 403
 
-    # Recompute for non-existent profile returns 404
+    # Recompute for non-existent profile answers as someone else's does (audit SEC-04)
     res_recompute_404 = client.post(
         f"/api/v1/researchers/{uuid.uuid4()}/personalization/quality/recompute",
         json=recompute_payload,
         headers={"X-User-ID": str(user_a.id)},
     )
-    assert res_recompute_404.status_code == 404
+    assert res_recompute_404.status_code == 403
 

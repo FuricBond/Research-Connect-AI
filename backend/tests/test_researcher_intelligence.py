@@ -681,4 +681,4 @@ class TestResearcherIntelligenceAPI:
     def test_not_found_endpoint(self, client: TestClient):
         random_id = uuid.uuid4()
         response = client.get(f"/api/v1/researchers/{random_id}/research-intelligence")
-        assert response.status_code == 404
+        assert response.status_code == 401  # audit SEC-04: signed out hears 401 whether or not it exists

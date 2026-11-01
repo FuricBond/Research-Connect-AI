@@ -1,7 +1,7 @@
 """
 Phase 6 — Platform administration API (ADMIN role only).
 
-  GET   /admin/users            List accounts (filter by role, search by email/name)
+  GET   /admin/users            List accounts (filter by role, active, verified; search by email/name)
   PATCH /admin/users/{user_id}  Change role, activation, or verification status
   GET   /admin/ingestion-runs   Recent ingestion runs and research refresh freshness
 """
@@ -34,11 +34,15 @@ def list_users(
     admin: AdminUser,
     role: Annotated[PlatformRole | None, Query(description="Filter by platform role")] = None,
     search: Annotated[str | None, Query(max_length=255, description="Match email or name")] = None,
+    is_active: Annotated[bool | None, Query(description="Only active, or only deactivated, accounts")] = None,
+    is_verified: Annotated[bool | None, Query(description="Only verified, or only not yet verified, accounts")] = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
     db: Session = Depends(get_db),
 ) -> AdminUserListResponse:
-    return AuthService.list_users(db, role=role, search=search, limit=limit, offset=offset)
+    return AuthService.list_users(
+        db, role=role, search=search, is_active=is_active, is_verified=is_verified, limit=limit, offset=offset
+    )
 
 
 @router.patch(

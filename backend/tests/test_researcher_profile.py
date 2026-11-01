@@ -488,8 +488,7 @@ class TestResearcherProfileAPI:
     def test_api_get_profile_not_found(self, client: TestClient):
         random_id = uuid.uuid4()
         res = client.get(f"/api/v1/researchers/{random_id}")
-        assert res.status_code == 404
-        assert "not found" in res.json()["detail"].lower()
+        assert res.status_code == 401  # audit SEC-04: signed out hears 401 whether or not it exists
 
     def test_api_patch_profile(self, client: TestClient, db_session: Session):
         create_payload = ResearcherProfileCreate(
