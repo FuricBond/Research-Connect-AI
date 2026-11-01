@@ -6,7 +6,7 @@ import { fetchPersonalizedCandidates } from "../../../services/api";
 import type { CandidateSourceType } from "../../../types/researcher";
 import { humanizeEnum } from "../../../utils/date";
 import { DeadlineCountdown } from "../../research/DeadlineCountdown";
-import { Fact } from "../../research/RiskDetails";
+import { Fact } from "../../research/Fact";
 import { RiskIndicator } from "../../research/RiskIndicator";
 import { Button } from "../../ui/Button/Button";
 import { Checkbox, Select } from "../../ui/Field/Field";

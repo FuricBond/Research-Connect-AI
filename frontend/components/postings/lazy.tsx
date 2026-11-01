@@ -6,9 +6,7 @@ import { SkeletonList, SkeletonText } from "../ui/State/State";
 /**
  * P9 — the faculty-only parts of the postings pages load when they are first needed (as P5's
  * lazyPanels and P7's lazyTabs), so a visitor or a student reading /postings or a posting's page
- * never downloads My postings, the applicant review or the confirmations. (The author's controls
- * on a posting's page come with the page: they sit above the posting, so arriving late they would
- * push it down.)
+ * never downloads My postings, the applicant review or the confirmations.
  */
 export const MyPostings = dynamic(() => import("./MyPostings").then((loaded) => loaded.MyPostings), {
   ssr: false,

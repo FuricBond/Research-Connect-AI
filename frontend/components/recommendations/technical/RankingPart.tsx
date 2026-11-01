@@ -5,7 +5,7 @@ import { useApiResource } from "../../../hooks/useApiResource";
 import { fetchPersonalizedRecommendations } from "../../../services/api";
 import type { AblationSummary, PersonalizedRankedCandidate, PersonalizedRankingResponse } from "../../../types/researcher";
 import { DeadlineCountdown } from "../../research/DeadlineCountdown";
-import { Fact } from "../../research/RiskDetails";
+import { Fact } from "../../research/Fact";
 import { RiskIndicator } from "../../research/RiskIndicator";
 import { Button } from "../../ui/Button/Button";
 import { Checkbox, Select } from "../../ui/Field/Field";

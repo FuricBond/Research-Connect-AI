@@ -13,8 +13,13 @@ import { EmptyState, ErrorState, SkeletonList } from "../ui/State/State";
 import { groupHeading, groupRecommendations } from "./grouping";
 import { RecommendationCard } from "./RecommendationCard";
 import { usePersonalizationSettings, usePreferenceIntelligence, useRankedRecommendations } from "./resources";
-import { TransparencyPanel } from "./TransparencyPanel";
 import styles from "./Recommendations.module.css";
+
+// Audit PERF-04: only asked for once the list has settled, so its code loads then too.
+const TransparencyPanel = dynamic(() => import("./TransparencyPanel").then((loaded) => loaded.TransparencyPanel), {
+  ssr: false,
+  loading: () => <SkeletonList rows={3} lines={1} label="Loading what shapes your recommendations" announce={false} />,
+});
 
 // P12: the page's last section, far below the recommendations: it never pushes them when it arrives.
 const TechnicalDetails = dynamic(() => import("./TechnicalDetails").then((loaded) => loaded.TechnicalDetails), {

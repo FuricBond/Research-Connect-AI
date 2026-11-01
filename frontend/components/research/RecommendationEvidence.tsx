@@ -24,7 +24,7 @@ import {
 import { Button } from "../ui/Button/Button";
 import { SkeletonList } from "../ui/State/State";
 import { MatchScore } from "./MatchScore";
-import { Fact } from "./RiskDetails";
+import { Fact } from "./Fact";
 import { ScoreMeter } from "./ScoreMeter";
 import { TopicTags } from "./TopicTags";
 import styles from "./Details.module.css";

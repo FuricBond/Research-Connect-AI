@@ -1,11 +1,13 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { safeExternalUrl } from "../../utils/safeUrl";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CalendarPlus, ExternalLink, LogIn } from "lucide-react";
 import { useApiResource } from "../../hooks/useApiResource";
 import { isUuid } from "../../utils/ids";
-import { fetchDefaultCalendar, fetchOpportunity, fetchOpportunityRiskExplanation, projectOpportunityToCalendar } from "../../services/api";
+import { fetchOpportunity, fetchOpportunityRiskExplanation } from "../../services/api";
 import type { WorkspaceItem } from "../../types/workspace";
 import { callsOrigin } from "../../utils/callsState";
 import { formatDeadlineDate } from "../../utils/date";
@@ -14,8 +16,7 @@ import { workspaceStatusMeta } from "../../utils/status";
 import { workspaceDeadline } from "../../utils/workspace";
 import { useSession } from "../auth/SessionProvider";
 import { DeadlineCountdown } from "../research/DeadlineCountdown";
-import { DeadlineMilestones } from "../research/DeadlineMilestones";
-import { Fact, RiskDetails } from "../research/RiskDetails";
+import { Fact } from "../research/Fact";
 import { RiskIndicator } from "../research/RiskIndicator";
 import { SaveCallButton } from "../research/SaveCallButton";
 import { useTrackedCalls } from "../research/trackedCalls";
@@ -27,6 +28,16 @@ import { Alert, ErrorState, Skeleton, SkeletonList, SkeletonText } from "../ui/S
 import styles from "./CallDetail.module.css";
 
 type CalendarState = { state: "idle" } | { state: "working" } | { state: "done"; added: number; total: number } | { state: "failed" };
+
+const RiskDetails = dynamic(() => import("../research/RiskDetails").then((loaded) => loaded.RiskDetails), {
+  ssr: false,
+  loading: () => <SkeletonList rows={2} label="Loading the venue risk assessment" announce={false} />,
+});
+
+const DeadlineMilestones = dynamic(() => import("../research/DeadlineMilestones").then((loaded) => loaded.DeadlineMilestones), {
+  ssr: false,
+  loading: () => <SkeletonList rows={2} label="Loading the dates" announce={false} />,
+});
 
 function eventDates(start: string | null, end: string | null): string | null {
   if (!start) return null;
@@ -134,6 +145,8 @@ export function CallDetail({ id }: { id: string }) {
     if (calendar.state === "working") return;
     setCalendar({ state: "working" });
     try {
+      // Loaded here: most visits to a call never add it to a calendar.
+      const { fetchDefaultCalendar, projectOpportunityToCalendar } = await import("../../services/api/calendar");
       const target = await fetchDefaultCalendar();
       const result = await projectOpportunityToCalendar(target.id, { opportunity_id: data.id });
       setCalendar({ state: "done", added: result.created_count, total: result.projected_events.length });
@@ -165,15 +178,15 @@ export function CallDetail({ id }: { id: string }) {
                 Add dates to calendar
               </Button>
             )}
-            {data.website_url && (
-              <a href={data.website_url} className={styles.external} target="_blank" rel="noopener noreferrer">
+            {safeExternalUrl(data.website_url) && (
+              <a href={safeExternalUrl(data.website_url) ?? undefined} className={styles.external} target="_blank" rel="noopener noreferrer">
                 <ExternalLink size={16} aria-hidden="true" />
                 Source
                 <span className="rc-visually-hidden"> (opens in new tab)</span>
               </a>
             )}
-            {data.submission_url && (
-              <a href={data.submission_url} className={styles.external} target="_blank" rel="noopener noreferrer">
+            {safeExternalUrl(data.submission_url) && (
+              <a href={safeExternalUrl(data.submission_url) ?? undefined} className={styles.external} target="_blank" rel="noopener noreferrer">
                 <ExternalLink size={16} aria-hidden="true" />
                 Submission site
                 <span className="rc-visually-hidden"> (opens in new tab)</span>

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { OpportunityMatchesPage } from "../../components/pages/OpportunityMatches";
+import { VenuesRoute } from "./VenuesRoute";
 
 export const metadata: Metadata = {
-  title: "Opportunity Matcher — ResearchConnect AI",
+  title: "Find venues — ResearchConnect AI",
   description:
     "Match and rank academic venues, conferences, journals, and calls for papers by semantic compatibility, publication-type fit, predatory-risk score, and deadline urgency.",
 };
@@ -13,5 +13,5 @@ export const metadata: Metadata = {
  * Reads the selected ResearchWorkRead from sessionStorage, hydrated client-side.
  */
 export default function OpportunitiesPage() {
-  return <OpportunityMatchesPage />;
+  return <VenuesRoute />;
 }

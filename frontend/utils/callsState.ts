@@ -19,7 +19,7 @@
  */
 
 import type { OpportunityFilters } from "../services/api";
-import { CALL_TYPES, DELIVERY_MODES } from "./research";
+import { CALL_TYPES, DELIVERY_MODES } from "./callLabels";
 
 export const CALLS_PAGE_SIZE = 20;
 export const CALL_SORTS = ["newest", "deadline", "title"] as const;

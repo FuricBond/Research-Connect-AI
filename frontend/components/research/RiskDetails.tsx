@@ -1,3 +1,4 @@
+import { Fact } from "./Fact";
 import type React from "react";
 import type { RiskEvidenceItem, RiskExplanation } from "../../types/opportunity";
 import { humanizeEnum } from "../../utils/date";
@@ -5,15 +6,6 @@ import { riskPresentation } from "../../utils/risk";
 import { RiskIndicator } from "./RiskIndicator";
 import styles from "./Details.module.css";
 
-/** One term and its value in a definition list (every pair in its own group, as HTML allows). */
-export function Fact({ term, value }: { term: string; value: React.ReactNode }) {
-  return (
-    <div className={styles.factRow}>
-      <dt>{term}</dt>
-      <dd>{value}</dd>
-    </div>
-  );
-}
 
 function EvidenceList({ title, items, Heading }: { title: string; items: RiskEvidenceItem[]; Heading: "h3" | "h4" }) {
   if (items.length === 0) return null;

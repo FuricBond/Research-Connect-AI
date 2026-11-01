@@ -24,17 +24,20 @@ import {
   type SearchSort,
   type SearchState,
 } from "../../utils/searchState";
-import { PaperCard } from "../research/PaperCard";
 import { EvidencePanel, PaperPanel } from "../research/lazyPanels";
 import { fromSearchResult, type PaperItem } from "../research/paper";
 import { Button } from "../ui/Button/Button";
-import { Drawer } from "../ui/Dialog/Dialog";
+import { Drawer } from "../ui/Dialog/LazyDrawer";
 import { Select } from "../ui/Field/Field";
 import { PageHeader } from "../ui/PageHeader/PageHeader";
 import { Pagination } from "../ui/Pagination/Pagination";
 import { EmptyState, ErrorState, SkeletonList } from "../ui/State/State";
 import type { ResearchSearchResponse, ResearchWorkRead } from "../../types/discovery";
 import styles from "../discovery/Search.module.css";
+
+// The start page has no results, so its visitors do not download them. A search loads this with its
+// answer, and shows both together: a placeholder per result would move the page as each one arrived.
+const loadPaperCard = () => import("../research/PaperCard");
 
 /** After this long a search says it is still working (plan §9: slow-query notice after 3 s). */
 const SLOW_AFTER_MS = 3000;
@@ -97,6 +100,7 @@ export function DiscoverySearch() {
   // then added below them, which moves nothing (P5: showing the start page first and replacing it
   // with results moved the layout by 104–179px, CLS 0.07–0.11).
   const [phase, setPhase] = useState<"pending" | "start" | "loading" | "done" | "error">("pending");
+  const [Card, setCard] = useState<typeof import("../research/PaperCard").PaperCard | null>(null);
   const [response, setResponse] = useState<ResearchSearchResponse | null>(null);
   const [failure, setFailure] = useState<SearchFailure | null>(null);
   const [slow, setSlow] = useState(false);
@@ -164,9 +168,10 @@ export function DiscoverySearch() {
     setEvidence(null);
 
     try {
-      const answer = await searchResearchWorks(toSearchParams(next), abortController.signal);
+      const [answer, loaded] = await Promise.all([searchResearchWorks(toSearchParams(next), abortController.signal), loadPaperCard()]);
       // A newer search replaced this one: its answer must not replace the newer results.
       if (abortController.signal.aborted) return;
+      setCard(() => loaded.PaperCard);
       setResponse(answer);
       setPhase("done");
     } catch (err: unknown) {
@@ -185,6 +190,7 @@ export function DiscoverySearch() {
   executeRef.current = executeSearch;
 
   const handleUrlState = useCallback((query: string) => {
+    if (query) void loadPaperCard();
     const fromUrl = parseSearchState(new URLSearchParams(query));
     // The router applies address changes in a transition; if the bar has already moved on, a
     // newer notification follows and this one is stale.
@@ -392,14 +398,14 @@ export function DiscoverySearch() {
                 <ul className={styles.list}>
                   {shownItems.map((item) => (
                     <li key={item.work.id}>
-                      <PaperCard
+                      {Card && <Card
                         item={item}
                         onOpen={setPaper}
                         onExplain={setEvidence}
                         onChoose={chooseWork}
                         saved={item.work.id in savedWorks}
                         onSaved={handleSaved}
-                      />
+                      />}
                     </li>
                   ))}
                 </ul>

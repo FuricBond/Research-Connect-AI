@@ -5,7 +5,7 @@ import { useApiResource } from "../../../hooks/useApiResource";
 import { fetchGovernanceEvents, fetchPersonalizationDrift, fetchPersonalizationHealth, recomputePersonalizationHealth } from "../../../services/api";
 import type { SignalDriftItem } from "../../../types/personalization";
 import { humanizeEnum } from "../../../utils/date";
-import { Fact } from "../../research/RiskDetails";
+import { Fact } from "../../research/Fact";
 import { Button } from "../../ui/Button/Button";
 import { Select } from "../../ui/Field/Field";
 import details from "../../research/Details.module.css";

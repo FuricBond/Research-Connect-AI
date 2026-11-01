@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useId } from "react";
 import { Trash2 } from "lucide-react";
@@ -7,7 +8,6 @@ import type { PostingFit, PostingStatus, ResearchPosting } from "../../types/pos
 import { POSTING_STATUS_LABELS, POSTING_TYPE_LABELS, WORK_MODE_LABELS } from "../../types/posting";
 import { postingStatusMeta } from "../../utils/postingStatus";
 import { DeadlineCountdown } from "../research/DeadlineCountdown";
-import { FitScore } from "../research/FitScore";
 import { TopicTags } from "../research/TopicTags";
 import { Badge, StatusBadge } from "../ui/Badge/Badge";
 import { Button } from "../ui/Button/Button";
@@ -25,6 +25,9 @@ export interface PostingCardProps {
   /** P9: false in the editor's preview, where the posting has no page yet. */
   linkTitle?: boolean;
 }
+
+// Only for a signed-in student, and only once their fits have arrived.
+const FitScore = dynamic(() => import("../research/FitScore").then((loaded) => loaded.FitScore), { ssr: false });
 
 /**
  * A research posting in a list (DESIGN_SYSTEM.md §9 PostingCard): the category, the status and

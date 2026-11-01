@@ -134,11 +134,11 @@ beforeEach(() => {
 });
 
 describe("PostingCard fit", () => {
-  it("shows the score, band and top reason when a fit is given", () => {
+  it("shows the score, band and top reason when a fit is given", async () => {
     render(<PostingCard posting={makePosting()} fit={makeFit()} />);
 
     const card = screen.getByRole("article", { name: makePosting().title });
-    expect(card).toHaveTextContent("Strong fit · 82%");
+    await waitFor(() => expect(card).toHaveTextContent("Strong fit · 82%"));
     expect(within(card).getByText("Shares your research topics: Information Retrieval")).toBeInTheDocument();
   });
 
