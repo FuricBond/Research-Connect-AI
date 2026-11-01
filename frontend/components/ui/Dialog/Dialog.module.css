@@ -136,3 +136,10 @@
     transform: translateX(calc(-1 * var(--rc-space-6)));
   }
 }
+
+/* A confirmation's body: its text, then the reason if the server did not agree. */
+.confirmBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+}

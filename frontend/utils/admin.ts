@@ -60,27 +60,7 @@ export function laneLabel(lane: string): string {
   return LANE_LABELS[lane] ?? lane;
 }
 
-/**
- * OpenAlex subfield names for the Computer Science field (plan Q7: names, not ids). An id not
- * listed here is shown as "Subfield 1234".
- */
-const SUBFIELD_NAMES: Record<string, string> = {
-  "1702": "Artificial Intelligence",
-  "1703": "Computational Theory and Mathematics",
-  "1704": "Computer Graphics and Computer-Aided Design",
-  "1705": "Computer Networks and Communications",
-  "1706": "Computer Science Applications",
-  "1707": "Computer Vision and Pattern Recognition",
-  "1708": "Hardware and Architecture",
-  "1709": "Human-Computer Interaction",
-  "1710": "Information Systems",
-  "1711": "Signal Processing",
-  "1712": "Software",
-};
-
-export function subfieldLabel(id: string): string {
-  return SUBFIELD_NAMES[id] ?? `Subfield ${id}`;
-}
+export { subfieldLabel } from "./subfields";
 
 export interface Pass {
   run: IngestionRunRead;
@@ -314,52 +294,5 @@ export function readinessMeta(health: ReadinessResponse): { status: StatusMeta; 
 /* ── Accounts ──────────────────────────────────────────────────────────── */
 
 /** The roles in the order they are offered. */
-export const ROLES: readonly PlatformRole[] = ["STUDENT", "FACULTY", "ADMIN"];
 
-export const ROLE_PLURALS: Record<PlatformRole, string> = {
-  STUDENT: "Student researchers",
-  FACULTY: "Faculty",
-  ADMIN: "Administrators",
-};
-
-export const USERS_HREF = "/admin/users";
-export const RESEARCH_DATA_HREF = "/admin/research-data";
-
-/** Accounts per page on the users page (plan §15). */
-export const USERS_PAGE_SIZE = 25;
-/** The most accounts one answer holds (backend limit): the overview reads one such page. */
-export const ACCOUNT_SCAN_LIMIT = 200;
-
-export interface UsersQuery {
-  role: PlatformRole | null;
-  q: string;
-  page: number;
-}
-
-export function readUsersQuery(params: URLSearchParams): UsersQuery {
-  const role = params.get("role");
-  const page = Number.parseInt(params.get("page") ?? "1", 10);
-  return {
-    role: role !== null && (ROLES as readonly string[]).includes(role) ? (role as PlatformRole) : null,
-    q: (params.get("q") ?? "").trim().slice(0, 255),
-    page: Number.isFinite(page) && page >= 1 ? page : 1,
-  };
-}
-
-export function usersHref(query: Partial<UsersQuery>): string {
-  const params = new URLSearchParams();
-  if (query.role) params.set("role", query.role);
-  if (query.q) params.set("q", query.q);
-  if (query.page && query.page > 1) params.set("page", String(query.page));
-  const search = params.toString();
-  return search ? `${USERS_HREF}?${search}` : USERS_HREF;
-}
-
-/** What a role change does, as the backend applies it (the role is read on every request). */
-export function roleChangeConsequence(to: PlatformRole, ownAccount: boolean): string {
-  const effect = "It takes effect on their next request; nothing else about the account changes.";
-  if (ownAccount && to !== "ADMIN") return "This is your own account: you lose access to administration as soon as the change is made, and another administrator would have to give it back.";
-  if (to === "ADMIN") return `Administrators can see and change every account, including roles, and see the platform's data. ${effect}`;
-  if (to === "FACULTY") return `Faculty can write research postings and decide on applications. ${effect}`;
-  return `Student researchers apply to postings and can find a supervisor; they cannot write or manage research postings or administer the platform. ${effect}`;
-}
+export * from "./adminUsers";

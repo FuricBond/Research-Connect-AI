@@ -17,7 +17,8 @@ import { useRef } from "react";
 import { useApiResource, type ApiResource } from "../../hooks/useApiResource";
 import { fetchAdminUsers, fetchIngestionRuns, fetchReadiness } from "../../services/api";
 import type { PlatformRole } from "../../types/auth";
-import { ACCOUNT_SCAN_LIMIT, RUNS_LIMIT, USERS_PAGE_SIZE, type UsersQuery } from "../../utils/admin";
+import { RUNS_LIMIT } from "../../utils/admin";
+import { ACCOUNT_SCAN_LIMIT, USERS_PAGE_SIZE, type UsersQuery } from "../../utils/adminUsers";
 
 export function useIngestionRuns() {
   return useApiResource(`admin:ingestion-runs:${RUNS_LIMIT}`, (signal) => fetchIngestionRuns({ limit: RUNS_LIMIT }, signal));
@@ -38,12 +39,22 @@ export function useAccountScan() {
 }
 
 export function usersKey(query: UsersQuery): string {
-  return `admin:users:${query.role ?? "all"}:${(query.page - 1) * USERS_PAGE_SIZE}:${query.q}`;
+  return `admin:users:${query.role ?? "all"}:${query.status ?? "any"}:${(query.page - 1) * USERS_PAGE_SIZE}:${query.q}`;
 }
 
 export function useUsersPage(query: UsersQuery) {
   return useApiResource(usersKey(query), (signal) =>
-    fetchAdminUsers({ role: query.role ?? undefined, search: query.q || undefined, limit: USERS_PAGE_SIZE, offset: (query.page - 1) * USERS_PAGE_SIZE }, signal)
+    fetchAdminUsers(
+      {
+        role: query.role ?? undefined,
+        search: query.q || undefined,
+        isActive: query.status === "active" ? true : query.status === "inactive" ? false : undefined,
+        isVerified: query.status === "unverified" ? false : undefined,
+        limit: USERS_PAGE_SIZE,
+        offset: (query.page - 1) * USERS_PAGE_SIZE,
+      },
+      signal
+    )
   );
 }
 

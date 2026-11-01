@@ -1,25 +1,30 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { Ban, CheckCircle2, ChevronDown } from "lucide-react";
 import { useAddressSearch } from "../../hooks/useAddressSearch";
 import type { AdminUserListResponse, AdminUserRead, PlatformRole } from "../../types/auth";
 import { ROLE_LABELS } from "../../types/auth";
-import { readUsersQuery, ROLE_PLURALS, ROLES, USERS_PAGE_SIZE, usersHref, type UsersQuery } from "../../utils/admin";
+import { readUsersQuery, ROLE_PLURALS, ROLES, USER_STATUS_FILTERS, USERS_PAGE_SIZE, usersHref, type UsersQuery } from "../../utils/adminUsers";
 import { useSession } from "../auth/SessionProvider";
 import { StatusBadge } from "../ui/Badge/Badge";
 import { Button, ButtonLink } from "../ui/Button/Button";
 import { SearchInput } from "../ui/Field/Field";
 import { Menu } from "../ui/Menu/Menu";
 import { PageHeader } from "../ui/PageHeader/PageHeader";
+import { Toast } from "../ui/Toast/Toast";
 import { Pagination } from "../ui/Pagination/Pagination";
 import { Alert, EmptyState, ErrorState, SkeletonList } from "../ui/State/State";
-import { DeactivateSelfDialog, RoleChangeDialog } from "./AdminDialogs";
 import { useKeptFor, usersKey, useUsersPage } from "./resources";
 import { useAccountChanges } from "./useAccountChanges";
 import styles from "./Admin.module.css";
 
 type Confirming = { kind: "role"; user: AdminUserRead; to: PlatformRole } | { kind: "deactivate-self"; user: AdminUserRead } | null;
+
+// Asked only when a change needs confirming.
+const RoleChangeDialog = dynamic(() => import("./AdminDialogs").then((loaded) => loaded.RoleChangeDialog), { ssr: false });
+const DeactivateSelfDialog = dynamic(() => import("./AdminDialogs").then((loaded) => loaded.DeactivateSelfDialog), { ssr: false });
 
 function nameOf(user: AdminUserRead): string {
   return user.full_name.trim() || user.email;
@@ -31,7 +36,7 @@ function joined(iso: string): string {
 
 /**
  * P10 — Users (`/admin/users`, plan §15): every account, 25 a page, searched by name or email and
- * filtered by role, all in the address (`?role=&q=&page=`), so back, forward and a shared link
+ * filtered by role and status, all in the address (`?role=&status=&q=&page=`), so back, forward and a shared link
  * open the same page. From 1024px a table; below, each account stacks as a card with its labels.
  *
  * A role change goes through the row's role menu and a confirmation naming the person, the old and
@@ -62,7 +67,7 @@ export function AdminUsers() {
 
   const rows = data ? data.users.map(changes.current) : null;
   const loading = data === undefined && (list.status === "loading" || list.status === "idle");
-  const filtered = query.role !== null || query.q !== "";
+  const filtered = query.role !== null || query.status !== null || query.q !== "";
   const failure = changes.failure && !confirming ? changes.failure : null;
   const visit = (next: Partial<UsersQuery>) => go(usersHref({ ...query, ...next }));
 
@@ -98,7 +103,14 @@ export function AdminUsers() {
     }));
   };
 
-  const heading = query.q ? `Accounts matching “${query.q}”${query.role ? `, ${ROLE_PLURALS[query.role].toLowerCase()}` : ""}` : query.role ? ROLE_PLURALS[query.role] : "All accounts";
+  const statusWord = USER_STATUS_FILTERS.find((filter) => filter.value === query.status)?.label;
+  const heading = [
+    query.q ? `Accounts matching “${query.q}”` : query.role ? ROLE_PLURALS[query.role] : statusWord ? "Accounts" : "All accounts",
+    query.q && query.role ? ROLE_PLURALS[query.role].toLowerCase() : null,
+    statusWord?.toLowerCase(),
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <>
@@ -139,8 +151,26 @@ export function AdminUsers() {
             </button>
           ))}
         </div>
+        <div className={styles.chips} role="group" aria-label="Filter by status">
+          {[null, ...USER_STATUS_FILTERS].map((filter) => (
+            <button key={filter?.value ?? "ANY"} type="button" className={styles.chip} aria-pressed={query.status === (filter?.value ?? null)} onClick={() => visit({ status: filter?.value ?? null, page: 1 })}>
+              {filter?.label ?? "Any status"}
+            </button>
+          ))}
+        </div>
       </div>
 
+      <Toast
+        message={changes.notice?.text ?? null}
+        onDismiss={changes.dismissNotice}
+        action={
+          changes.notice?.undo ? (
+            <Button size="sm" variant="secondary" onClick={undo} disabled={changes.pending.has(changes.notice.user.id)}>
+              Undo
+            </Button>
+          ) : undefined
+        }
+      />
       <section className={styles.results} aria-labelledby="users-heading" aria-busy={list.status === "loading" || undefined}>
         <div className={styles.resultsHead}>
           <h2 id="users-heading" className={styles.resultsTitle}>
@@ -155,25 +185,6 @@ export function AdminUsers() {
         <p role="status" className="rc-visually-hidden">
           {announcement}
         </p>
-        {changes.notice && (
-          <Alert
-            tone="success"
-            action={
-              <span className={styles.alertActions}>
-                {changes.notice.undo && (
-                  <Button size="sm" variant="secondary" onClick={undo} disabled={changes.pending.has(changes.notice.user.id)}>
-                    Undo
-                  </Button>
-                )}
-                <Button size="sm" variant="ghost" onClick={changes.dismissNotice}>
-                  Dismiss
-                </Button>
-              </span>
-            }
-          >
-            {changes.notice.text}
-          </Alert>
-        )}
         {failure && (
           <Alert
             tone="danger"
