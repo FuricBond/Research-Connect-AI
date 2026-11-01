@@ -638,7 +638,7 @@ files):
 4. Every `*.module.css` declaration of `font-size`, `border-radius`, `z-index` or
    `transition-duration` uses a token.
 5. An axe check (axe-core, already present) runs against the main routes in the e2e stack
-   and fails on any serious or critical violation.
+   and fails on any serious or critical violation (P11: `e2e/accessibility.spec.ts`, §23).
 
 ## 13. Implementation map (P1)
 
@@ -1348,3 +1348,75 @@ primitive; the notice stays until dismissed or replaced). Deactivating one's own
 | Rules and words | `utils/admin.ts` (the monitor's state, refreshes, lanes and subfields, readiness, the users page's address) |
 | Removed | `components/admin/DataFreshnessCard.tsx` (replaced), `styles/auth.css` (only the old admin page used it) |
 | Tests | `tests/admin-p10.test.tsx`; `data-freshness-card.test.tsx` now tests the monitor (same cases; words changed on purpose); updated `navigation`, `home-page`; e2e `admin.spec.ts` (new), `shell`, `dashboard` (the sign-in landing settles before a load's requests are counted, as in `faculty.spec.ts`) |
+
+## 23. Accessibility, reflow, motion and themes (P11)
+
+The close of plan §17 (P11). What every main route keeps, and the checks that hold it:
+
+**Automated accessibility** (`frontend/e2e/accessibility.spec.ts`, in the e2e stack's browser
+suite): axe-core 4.13 (the copy `eslint-plugin-jsx-a11y` installs; not pinned, plan §26), injected
+as the audit tool injects it, with the tags `wcag2a wcag2aa wcag21a wcag21aa wcag22aa
+best-practice`. A serious or critical violation fails; moderate and minor ones are left to the
+audit tool. Each page is checked once it has settled (no `aria-busy` in `main`), in the light and
+the dark theme (stored before the first script runs, as a returning person has it), at 1440px and
+at 390px with touch, and must have the theme asked for and no hydration error.
+
+| Role | Routes and states |
+|---|---|
+| Visitor | `/`, Appearance open, `/login`, `/register` (also with its field errors), `/browse`, a call, `/postings`, a posting, `/similar`, `/opportunities`, `/settings`, not found, search results with the paper panel open, the navigation drawer (below 1024px) |
+| Student | `/dashboard` (also with the account menu, the notifications panel and the drawer open), search results (also with the paper panel, "Why this result?", the filter sheet below 1280px, then Find similar and Find venues), `/recommendations`, `/researcher`, `/researcher/preferences`, `/supervisors`, `/peers`, `/workspace` (also with a status menu open, and with the server failing), a workspace item on each of its five tabs, `/submissions`, `/reading-list`, `/calendar`, `/notifications`, `/settings`, `/postings`, a posting, `/postings/applications`, `/browse`, a call, `/admin` (refused) |
+| Faculty | `/dashboard`, My postings, `/postings/new`, an own posting and its editor, `/postings/applicants`, `/researcher`, `/supervisors` (refused), `/notifications`, `/settings`, `/workspace` |
+| Administrator | `/admin`, `/admin/users` (also with a role change being confirmed, and with the server failing), `/admin/research-data`, `/notifications`, `/settings` |
+
+**Reflow** (WCAG 1.4.10): the same routes and states at 320px, in both themes: the page never
+scrolls sideways, and nothing visible reaches past the edge except inside a region that scrolls
+or clips on its own (the admin run tables, `.rc-scroll-x`). Names, titles and places come from
+people, so the suite also serves each route with a word no line can hold on the end of them:
+`overflow-wrap: break-word` on `body` breaks it (and only such a word), with `min-width: 0` or
+`anywhere` where a flex item would otherwise keep it whole.
+
+**Motion** (§6): with `prefers-reduced-motion: reduce` every duration token is 0ms and
+`styles/base.css` makes every animation and transition, legacy ones included, instant, with no
+smooth scrolling; the only looping animation is a loading spinner, which then stands still beside
+its words (`aria-busy`, the label). State changes are unchanged: dialogs and panels open, take
+focus, close and hand it back, the theme applies at once. Without the preference the tokens'
+80/140/200ms apply. Held by `tests/design-tokens.test.ts` (the tokens, the rule, no other loop) and
+the spec's motion tests (computed timings with and without the preference).
+
+**Themes**: as P1 and P8 made them — Match the system, Light, Dark, in Settings → Appearance and
+the account menu (`utils/theme.ts`, `data-theme` set before first paint, kept per browser). No
+component reads a colour in script, so a theme chosen on the page paints it as a page loaded in
+that theme does (the spec compares computed colours and the focus ring). Meaning never rests on
+colour alone: states carry a word or a glyph (badges, "Unread", the monitor's dots and squares,
+deadline chips). Rollback (plan P11): the theme can be held to light without touching a
+component — remove the two theme controls and resolve `THEME_INIT_SCRIPT` to light.
+
+**Focus is never dropped** (`Button`): natively disabling a button that has focus sends focus to the
+page, so a refusal leaves the person nowhere. While it works or has focus, a disabled `Button` is
+held instead: `aria-disabled`, the same look, focus kept, a press does nothing; otherwise it is
+natively disabled.
+
+**Fixed in P11**: Research preferences (a page from before the redesign; axe's one serious finding)
+names its five selects (Academic Level and Career Stage by their visible labels) and its fields;
+its opportunity-type and delivery-mode rows and the removal of a topic or keyword are buttons (they
+were a clickable row and a bare icon, out of keyboard reach); only the first load replaces the page
+with a spinner, so a change keeps focus and the scroll position; saved and failed messages are
+announced; a posting's "Apply for this opening" never
+drops focus — the form takes it from "Apply now", Cancel gives it back, after sending the section's
+heading takes it and the confirmation is a status message said once — and the posting stays on the
+page while it is read again; a workspace status move keeps focus (on the status while it saves,
+then on the new menu button) instead of dropping it to the page; the applicant inbox's own empty
+and error states are h2 under the h1.
+
+**Manual screen-reader pass** (plan §17: search → save, apply to a posting, track a call, a faculty
+decision, an administrator's role change, with NVDA + Chrome and VoiceOver + Safari): still to be
+done on machines that have them. The same five were walked by keyboard alone with the
+accessibility tree read at each step (focus, names, states, live-region text), which found the
+apply and status-move focus losses fixed above; that walk is not a substitute for the pass.
+
+| Part | Where |
+|---|---|
+| Suite | `frontend/e2e/accessibility.spec.ts` (runs first in the browser suite; three sign-ins, one per role) |
+| Motion rules | `styles/tokens.css`, `styles/base.css`; `tests/design-tokens.test.ts` (motion) |
+| Fixes | `components/ui/Button/Button.tsx`, `app/researcher/preferences/page.tsx`, `components/postings/{PostingDetail,ApplyForm,ApplicantsInbox}.tsx`, `components/workspace/{StatusMenu.tsx,Workspace.module.css}`; wrapping: `styles/base.css`, `components/dashboard/Dashboard.module.css`, `components/ui/Breadcrumb/Breadcrumb.module.css`, `components/profile/Profile.module.css` |
+| Tests | `tests/accessibility-p11.test.tsx`; `ui-primitives` (a held button); `calendar-export` (its button is held while exporting: `aria-disabled` replaces `disabled` in the assertion); suite stability: `vitest.setup.ts` waits up to five seconds for an element (the suite failed at random under load, also without the change under test), `use-api-resource` and `admin-p10` each had a race closed |

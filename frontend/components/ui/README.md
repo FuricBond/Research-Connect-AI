@@ -22,7 +22,7 @@ Specification: [docs/design/DESIGN_SYSTEM.md](../../../docs/design/DESIGN_SYSTEM
 |---|---|
 | Page title + one-line purpose + actions | `PageHeader` (`components/ui/PageHeader`) |
 | Section heading with a link or ghost action | `SectionHeader` |
-| An action | `Button` (`primary` once per section, `secondary`, `ghost`, `danger`, `danger-ghost`, `link`); `loading` keeps the label |
+| An action | `Button` (`primary` once per section, `secondary`, `ghost`, `danger`, `danger-ghost`, `link`); `loading` keeps the label; disabled while it works or has focus, it is held (`aria-disabled`, keeps focus) |
 | A call to action that navigates | `ButtonLink` |
 | An icon-only action | `IconButton` (`label` is required) |
 | Text, email, number, date input | `TextInput` (always a visible `label`; `hint`, `error`) |

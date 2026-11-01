@@ -65,7 +65,10 @@ The E2E project never touches a developer's stack or data:
    - the sign-in lifecycle;
    - the main researcher journey: discover, save, apply, get notified;
    - every signed-in page, with no failed API call or page error, which checks the
-     frontend and backend contracts.
+     frontend and backend contracts;
+   - accessibility (`accessibility.spec.ts`): no serious or critical axe violation on the main
+     routes of each role in the light and dark themes at 1440px and 390px, every route at
+     320px without sideways scrolling (long names and titles included), and reduced motion.
 4. **Stack suite** (`-m stack`):
    - `test_90`: runs the scheduler inside the backend and verifies each job's effect,
      idempotency and non-overlap;
