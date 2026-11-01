@@ -7,7 +7,7 @@ Validates:
   3. Secret token generation and exclusion from normal Read schemas.
   4. Accepting an invitation with valid token (creates active membership).
   5. Accepting with invalid token fails (404).
-  6. Idempotent acceptance (accepting already accepted invitation does not duplicate membership).
+  6. An accepted invitation cannot be used again (audit FUNC-01).
   7. Expired invitation cannot be accepted (400).
   8. Revoked invitation cannot be accepted (400).
   9. Declining an invitation.
@@ -202,7 +202,7 @@ def test_accept_invitation_success(db_session: Session, sample_workspace):
     assert inv.accepted_at is not None
 
 
-def test_accept_invitation_idempotent(db_session: Session, sample_workspace):
+def test_an_accepted_invitation_cannot_be_used_again(db_session: Session, sample_workspace):
     u_owner, _, u_invitee, ws = sample_workspace
 
     inv, token = WorkspaceCollaborationService.create_invitation(
@@ -215,20 +215,24 @@ def test_accept_invitation_idempotent(db_session: Session, sample_workspace):
         ),
     )
 
-    m1 = WorkspaceCollaborationService.accept_invitation(
+    WorkspaceCollaborationService.accept_invitation(
         db=db_session,
         token=token,
         user_id=u_invitee.id,
     )
 
     # Accept again
-    m2 = WorkspaceCollaborationService.accept_invitation(
-        db=db_session,
-        token=token,
-        user_id=u_invitee.id,
-    )
-
-    assert m1.id == m2.id
+    with pytest.raises(HTTPException) as exc_info:
+        WorkspaceCollaborationService.accept_invitation(
+            db=db_session,
+            token=token,
+            user_id=u_invitee.id,
+        )
+    assert exc_info.value.status_code == 400
+    assert "already been accepted" in exc_info.value.detail
+    assert db_session.execute(
+        select(WorkspaceMemberModel).where(WorkspaceMemberModel.user_id == u_invitee.id)
+    ).scalars().one()
 
 
 def test_accept_expired_invitation_fails(db_session: Session, sample_workspace):

@@ -96,6 +96,32 @@ class WorkspaceInvitationCreateResponse(BaseModel):
     token: str
 
 
+class MyWorkspaceInvitationRead(BaseModel):
+    """A pending invitation, as its invitee sees it. Carries no token."""
+    id: uuid.UUID
+    workspace_id: uuid.UUID
+    workspace_title: str | None = None
+    inviter_name: str | None = None
+    role: WorkspaceRole
+    created_at: datetime
+    expires_at: datetime
+
+
+class SharedWorkspaceRead(BaseModel):
+    """A workspace someone else owns that the caller has joined."""
+    workspace_id: uuid.UUID
+    workspace_title: str | None = None
+    owner_name: str | None = None
+    role: WorkspaceRole
+    joined_at: datetime | None = None
+
+
+class MyWorkspaceInvitationsResponse(BaseModel):
+    """What an invitee can act on: pending invitations, and the workspaces already joined."""
+    invitations: list[MyWorkspaceInvitationRead]
+    shared_workspaces: list[SharedWorkspaceRead]
+
+
 class WorkspaceInvitationListResponse(BaseModel):
     """List of pending or historical invitations for a workspace."""
     items: list[WorkspaceInvitationRead]

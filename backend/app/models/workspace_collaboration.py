@@ -198,7 +198,7 @@ class WorkspaceInvitationModel(Base):
 
     __tablename__ = "workspace_invitations"
     __table_args__ = (
-        UniqueConstraint("token", name="uq_workspace_invitations_token"),
+        UniqueConstraint("token_hash", name="uq_workspace_invitations_token_hash"),
         CheckConstraint(
             "status IN ('PENDING', 'ACCEPTED', 'DECLINED', 'EXPIRED', 'REVOKED')",
             name="chk_workspace_invitations_status",
@@ -250,12 +250,10 @@ class WorkspaceInvitationModel(Base):
         nullable=False,
         comment="Proposed role: EDITOR, CONTRIBUTOR, VIEWER",
     )
-    token: Mapped[str] = mapped_column(
-        String(255),
-        unique=True,
+    token_hash: Mapped[str] = mapped_column(
+        String(64),
         nullable=False,
-        index=True,
-        comment="Cryptographically secure invitation token",
+        comment="SHA-256 of the invitation token; the token itself is never stored",
     )
     status: Mapped[str] = mapped_column(
         String(50),

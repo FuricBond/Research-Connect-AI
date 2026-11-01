@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -19,12 +21,13 @@ from app.api.v1.workspace_collaboration import router as workspace_collaboration
 from app.core.cache import DiscoveryResponseCacheMiddleware
 from app.core.config import settings
 from app.core.logging_config import configure_logging
-from app.core.middleware import RequestContextMiddleware, SecurityHeadersMiddleware
+from app.core.middleware import RedactInvitationTokens, RequestContextMiddleware, SecurityHeadersMiddleware
 from app.core.rate_limiter import DiscoveryRateLimitMiddleware
 from app.core.security import validate_security_settings
 from app.scheduler.lifecycle import lifespan
 
 configure_logging(settings.log_level, settings.log_format)
+logging.getLogger("uvicorn.access").addFilter(RedactInvitationTokens())
 validate_security_settings()
 
 # The lifespan starts the Phase 6.3 background scheduler only when SCHEDULER_ENABLED=true.

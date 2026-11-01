@@ -19,6 +19,22 @@ access_logger = logging.getLogger("app.access")
 # Client-supplied correlation IDs are echoed back and logged, so constrain their shape.
 _REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]{1,128}$")
 
+# An invitation token in a path is a secret (audit SEC-05): it must never reach a log line.
+_INVITATION_TOKEN_IN_PATH = re.compile(r"(/invitations/)[^/\s?]+(/(?:accept|decline))")
+
+
+def redact_invitation_token(path: str) -> str:
+    return _INVITATION_TOKEN_IN_PATH.sub(r"\1[redacted]\2", path)
+
+
+class RedactInvitationTokens(logging.Filter):
+    """Keeps the token out of the web server's own access log (its arguments carry the path)."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if isinstance(record.args, tuple):
+            record.args = tuple(redact_invitation_token(a) if isinstance(a, str) else a for a in record.args)
+        return True
+
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
     """
@@ -41,14 +57,15 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             response.headers["X-Request-ID"] = request_id
             return response
         finally:
+            safe_path = redact_invitation_token(request.url.path)
             access_logger.info(
                 "%s %s %s",
                 request.method,
-                request.url.path,
+                safe_path,
                 status_code,
                 extra={
                     "http_method": request.method,
-                    "http_path": request.url.path,
+                    "http_path": safe_path,
                     "http_status": status_code,
                     "duration_ms": round((time.perf_counter() - started) * 1000, 2),
                     "user_id": getattr(request.state, "user_id", None),

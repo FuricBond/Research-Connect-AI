@@ -19,7 +19,7 @@ from typing import Any, Sequence
 import uuid
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.notification import (
@@ -29,6 +29,7 @@ from app.models.notification import (
     NotificationPreferenceModel,
     NotificationType,
 )
+from app.models.opportunity import OpportunityModel
 from app.models.research_profile import ResearchProfileModel
 from app.models.research_submission import ResearchSubmissionModel
 from app.models.saved_opportunity import SavedOpportunityModel
@@ -60,6 +61,12 @@ from app.services.workspace_authorization_service import (
 )
 
 logger = logging.getLogger(__name__)
+
+ROLE_WORDS = {
+    WorkspaceRole.EDITOR.value: "an editor",
+    WorkspaceRole.CONTRIBUTOR.value: "a contributor",
+    WorkspaceRole.VIEWER.value: "a viewer",
+}
 
 
 class WorkspaceCollaborationService:
@@ -456,7 +463,7 @@ class WorkspaceCollaborationService:
             invitee_email=email,
             invitee_user_id=target_user.id if target_user else None,
             role=payload.role.value,
-            token=raw_token,
+            token_hash=cls.hash_invitation_token(raw_token),
             status=InvitationStatus.PENDING.value,
             expires_at=expires_at,
         )
@@ -475,126 +482,222 @@ class WorkspaceCollaborationService:
         )
 
         if target_user is not None:
-            cls.send_collaboration_notification(
-                db,
-                recipient_user_id=target_user.id,
-                notification_type=NotificationType.WORKSPACE_INVITATION,
-                title="Invitation to Research Workspace",
-                body=f"You have been invited to collaborate on a research workspace as {payload.role.value}.",
-                source_id=workspace_id,
-            )
+            cls._notify_invitee(db, invitation, target_user.id)
 
         db.commit()
         db.refresh(invitation)
         return invitation, raw_token
 
-    @classmethod
-    def accept_invitation(
-        cls,
-        db: Session,
-        token: str,
-        user_id: uuid.UUID,
-    ) -> WorkspaceMemberModel:
+    @staticmethod
+    def hash_invitation_token(token: str) -> str:
         """
-        Accepts a workspace invitation.
-        Guarantees idempotency and verifies recipient identity.
+        Only this digest is stored (audit SEC-05). A token is 256 random bits, so a fast hash is
+        enough: unlike a password there is nothing to guess, and the lookup stays an indexed
+        equality.
         """
-        invitation = db.execute(
-            select(WorkspaceInvitationModel).where(WorkspaceInvitationModel.token == token)
-        ).scalar_one_or_none()
+        return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
+    @classmethod
+    def _invitation_by_token(cls, db: Session, token: str) -> WorkspaceInvitationModel:
+        invitation = db.execute(
+            select(WorkspaceInvitationModel)
+            .where(WorkspaceInvitationModel.token_hash == cls.hash_invitation_token(token))
+            .with_for_update()
+        ).scalar_one_or_none()
         if invitation is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Invalid invitation token.",
+                detail="This invitation link is not valid.",
             )
+        return invitation
 
-        # Idempotent return if already accepted
-        if invitation.status == InvitationStatus.ACCEPTED.value:
-            existing_member = db.execute(
-                select(WorkspaceMemberModel).where(
-                    WorkspaceMemberModel.workspace_id == invitation.workspace_id,
-                    WorkspaceMemberModel.user_id == user_id,
-                    WorkspaceMemberModel.status == MemberStatus.ACTIVE.value,
-                )
-            ).scalar_one_or_none()
-            if existing_member is not None:
-                return existing_member
+    @staticmethod
+    def _is_invitee(invitation: WorkspaceInvitationModel, user: UserModel) -> bool:
+        """An invitation belongs to the account it names, or to the address it was sent to."""
+        if invitation.invitee_user_id is not None:
+            return invitation.invitee_user_id == user.id
+        return user.email.lower() == invitation.invitee_email.lower()
 
-        if invitation.status == InvitationStatus.REVOKED.value:
+    @classmethod
+    def _invitation_of(cls, db: Session, invitation_id: uuid.UUID, user: UserModel) -> WorkspaceInvitationModel:
+        """
+        The caller's own invitation. Someone else's answers exactly as one that does not exist,
+        so ids cannot be probed.
+        """
+        invitation = db.execute(
+            select(WorkspaceInvitationModel)
+            .where(WorkspaceInvitationModel.id == invitation_id)
+            .with_for_update()
+        ).scalar_one_or_none()
+        if invitation is None or not cls._is_invitee(invitation, user):
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="This invitation has been revoked by the workspace owner.",
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="This invitation could not be found. It may have been sent to another account.",
             )
+        return invitation
 
-        if invitation.status == InvitationStatus.DECLINED.value:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="This invitation was previously declined.",
-            )
-
-        now = datetime.now(timezone.utc)
-        inv_expires = invitation.expires_at
-        if inv_expires.tzinfo is None:
-            inv_expires = inv_expires.replace(tzinfo=timezone.utc)
-        if now > inv_expires:
-            invitation.status = InvitationStatus.EXPIRED.value
-            db.commit()
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="This invitation has expired.",
-            )
-
+    @classmethod
+    def _account(cls, db: Session, user_id: uuid.UUID) -> UserModel:
         user = db.get(UserModel, user_id)
         if user is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found.",
             )
+        return user
 
-        # Verify email match if invitee_user_id was not explicitly specified
-        if invitation.invitee_user_id is not None and invitation.invitee_user_id != user_id:
+    @classmethod
+    def _assert_pending(cls, db: Session, invitation: WorkspaceInvitationModel, now: datetime) -> None:
+        """An invitation is answered once: every other state says why it can no longer be used."""
+        refusal = {
+            InvitationStatus.ACCEPTED.value: "This invitation has already been accepted.",
+            InvitationStatus.DECLINED.value: "This invitation has already been declined.",
+            InvitationStatus.REVOKED.value: "This invitation has been revoked by the workspace owner.",
+            InvitationStatus.EXPIRED.value: "This invitation has expired. Ask the workspace owner to send a new one.",
+        }.get(invitation.status)
+        if refusal is not None:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=refusal)
+
+        expires = invitation.expires_at
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+        if now > expires:
+            invitation.status = InvitationStatus.EXPIRED.value
+            db.commit()
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="This invitation was intended for a different user account.",
-            )
-        elif invitation.invitee_user_id is None and user.email.lower() != invitation.invitee_email.lower():
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"This invitation was sent to '{invitation.invitee_email}', but your account email is '{user.email}'.",
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="This invitation has expired. Ask the workspace owner to send a new one.",
             )
 
-        # Create or activate membership
+    @classmethod
+    def list_my_invitations(
+        cls,
+        db: Session,
+        user_id: uuid.UUID,
+    ) -> tuple[list[tuple[WorkspaceInvitationModel, str | None]], list[tuple[WorkspaceMemberModel, str | None, str | None]]]:
+        """The caller's pending invitations (with workspace titles) and the workspaces they joined."""
+        user = cls._account(db, user_id)
+        now = datetime.now(timezone.utc)
+
+        rows = db.execute(
+            select(WorkspaceInvitationModel, OpportunityModel.title)
+            .join(SavedOpportunityModel, SavedOpportunityModel.id == WorkspaceInvitationModel.workspace_id)
+            .join(OpportunityModel, OpportunityModel.id == SavedOpportunityModel.opportunity_id)
+            .where(
+                WorkspaceInvitationModel.status == InvitationStatus.PENDING.value,
+                or_(
+                    WorkspaceInvitationModel.invitee_user_id == user.id,
+                    and_(
+                        WorkspaceInvitationModel.invitee_user_id.is_(None),
+                        func.lower(WorkspaceInvitationModel.invitee_email) == user.email.lower(),
+                    ),
+                ),
+            )
+            .options(joinedload(WorkspaceInvitationModel.inviter))
+            .order_by(WorkspaceInvitationModel.created_at.desc(), WorkspaceInvitationModel.id.asc())
+        ).all()
+
+        def still_valid(invitation: WorkspaceInvitationModel) -> bool:
+            expires = invitation.expires_at
+            return (expires if expires.tzinfo else expires.replace(tzinfo=timezone.utc)) > now
+
+        invitations = [(invitation, title) for invitation, title in rows if still_valid(invitation)]
+
+        shared = db.execute(
+            select(WorkspaceMemberModel, OpportunityModel.title, UserModel.full_name)
+            .join(SavedOpportunityModel, SavedOpportunityModel.id == WorkspaceMemberModel.workspace_id)
+            .join(OpportunityModel, OpportunityModel.id == SavedOpportunityModel.opportunity_id)
+            .join(UserModel, UserModel.id == SavedOpportunityModel.user_id)
+            .where(
+                WorkspaceMemberModel.user_id == user.id,
+                WorkspaceMemberModel.status == MemberStatus.ACTIVE.value,
+                SavedOpportunityModel.user_id != user.id,
+            )
+            .order_by(WorkspaceMemberModel.joined_at.desc(), WorkspaceMemberModel.id.asc())
+        ).all()
+        return invitations, [(member, title, owner) for member, title, owner in shared]
+
+    @classmethod
+    def link_invitations_to_new_account(cls, db: Session, user: UserModel) -> int:
+        """
+        Someone invited before they had an account finds the invitation when they sign up with
+        that address: it is bound to the new account and they are told about it.
+        """
+        invitations = db.execute(
+            select(WorkspaceInvitationModel)
+            .where(
+                WorkspaceInvitationModel.status == InvitationStatus.PENDING.value,
+                WorkspaceInvitationModel.invitee_user_id.is_(None),
+                func.lower(WorkspaceInvitationModel.invitee_email) == user.email.lower(),
+            )
+            .options(joinedload(WorkspaceInvitationModel.inviter))
+        ).scalars().all()
+        for invitation in invitations:
+            invitation.invitee_user_id = user.id
+            cls._notify_invitee(db, invitation, user.id)
+        if invitations:
+            db.commit()
+        return len(invitations)
+
+    @classmethod
+    def _notify_invitee(cls, db: Session, invitation: WorkspaceInvitationModel, recipient_user_id: uuid.UUID) -> None:
+        title = db.execute(
+            select(OpportunityModel.title)
+            .join(SavedOpportunityModel, SavedOpportunityModel.opportunity_id == OpportunityModel.id)
+            .where(SavedOpportunityModel.id == invitation.workspace_id)
+        ).scalar_one_or_none()
+        inviter = invitation.inviter.full_name if invitation.inviter else "A researcher"
+        cls.send_collaboration_notification(
+            db,
+            recipient_user_id=recipient_user_id,
+            notification_type=NotificationType.WORKSPACE_INVITATION,
+            title="Invitation to a research workspace",
+            body=(
+                f"{inviter} invited you to work on “{title or 'a research workspace'}” as "
+                f"{ROLE_WORDS.get(invitation.role, 'a collaborator')}. "
+                "Accept or decline it on your notifications page."
+            ),
+            source_id=invitation.workspace_id,
+        )
+
+    @classmethod
+    def _accept(cls, db: Session, invitation: WorkspaceInvitationModel, user: UserModel) -> WorkspaceMemberModel:
+        now = datetime.now(timezone.utc)
+        cls._assert_pending(db, invitation, now)
+
         member = db.execute(
             select(WorkspaceMemberModel).where(
                 WorkspaceMemberModel.workspace_id == invitation.workspace_id,
-                WorkspaceMemberModel.user_id == user_id,
+                WorkspaceMemberModel.user_id == user.id,
             )
         ).scalar_one_or_none()
 
-        if member is not None:
-            member.status = MemberStatus.ACTIVE.value
-            member.role = invitation.role
-            member.joined_at = now
-            member.removed_at = None
-        else:
+        if member is None:
             member = WorkspaceMemberModel(
                 workspace_id=invitation.workspace_id,
-                user_id=user_id,
+                user_id=user.id,
                 role=invitation.role,
                 status=MemberStatus.ACTIVE.value,
                 joined_at=now,
             )
             db.add(member)
+            db.flush()
+        elif member.status != MemberStatus.ACTIVE.value:
+            member.status = MemberStatus.ACTIVE.value
+            member.role = invitation.role
+            member.joined_at = now
+            member.removed_at = None
+        # Someone who joined some other way in the meantime keeps the role they already have: an
+        # invitation never changes what an active member, least of all an owner, may do.
 
         invitation.status = InvitationStatus.ACCEPTED.value
         invitation.accepted_at = now
-        invitation.invitee_user_id = user_id
+        invitation.invitee_user_id = user.id
 
         cls.record_activity(
             db,
             workspace_id=invitation.workspace_id,
-            actor_id=user_id,
+            actor_id=user.id,
             activity_type=ActivityType.INVITATION_ACCEPTED,
             target_type="INVITATION",
             target_id=invitation.id,
@@ -603,7 +706,7 @@ class WorkspaceCollaborationService:
         cls.record_activity(
             db,
             workspace_id=invitation.workspace_id,
-            actor_id=user_id,
+            actor_id=user.id,
             activity_type=ActivityType.MEMBER_JOINED,
             target_type="MEMBER",
             target_id=member.id,
@@ -615,7 +718,7 @@ class WorkspaceCollaborationService:
             db,
             recipient_user_id=invitation.inviter_id,
             notification_type=NotificationType.INVITATION_ACCEPTED,
-            title="Invitation Accepted",
+            title="Invitation accepted",
             body=f"{user.full_name} accepted your invitation to join the workspace.",
             source_id=invitation.workspace_id,
         )
@@ -625,25 +728,75 @@ class WorkspaceCollaborationService:
         return member
 
     @classmethod
+    def _decline(cls, db: Session, invitation: WorkspaceInvitationModel, user: UserModel) -> None:
+        cls._assert_pending(db, invitation, datetime.now(timezone.utc))
+        invitation.status = InvitationStatus.DECLINED.value
+        invitation.invitee_user_id = user.id
+        cls.send_collaboration_notification(
+            db,
+            recipient_user_id=invitation.inviter_id,
+            notification_type=NotificationType.COLLABORATION_ACTIVITY,
+            title="Invitation declined",
+            body=f"{user.full_name} declined your invitation to join the workspace.",
+            source_id=invitation.workspace_id,
+        )
+        db.commit()
+
+    @classmethod
+    def _assert_token_holder_is_invitee(cls, invitation: WorkspaceInvitationModel, user: UserModel) -> None:
+        if not cls._is_invitee(invitation, user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This invitation was sent to a different account.",
+            )
+
+    @classmethod
+    def accept_invitation(
+        cls,
+        db: Session,
+        token: str,
+        user_id: uuid.UUID,
+    ) -> WorkspaceMemberModel:
+        """Accepts by token, for its invitee only. A token works once."""
+        invitation = cls._invitation_by_token(db, token)
+        user = cls._account(db, user_id)
+        cls._assert_token_holder_is_invitee(invitation, user)
+        return cls._accept(db, invitation, user)
+
+    @classmethod
     def decline_invitation(
         cls,
         db: Session,
         token: str,
         user_id: uuid.UUID,
     ) -> None:
-        """Declines an invitation."""
-        invitation = db.execute(
-            select(WorkspaceInvitationModel).where(WorkspaceInvitationModel.token == token)
-        ).scalar_one_or_none()
+        """Declines by token, for its invitee only."""
+        invitation = cls._invitation_by_token(db, token)
+        user = cls._account(db, user_id)
+        cls._assert_token_holder_is_invitee(invitation, user)
+        cls._decline(db, invitation, user)
 
-        if invitation is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Invalid invitation token.",
-            )
+    @classmethod
+    def accept_my_invitation(
+        cls,
+        db: Session,
+        invitation_id: uuid.UUID,
+        user_id: uuid.UUID,
+    ) -> WorkspaceMemberModel:
+        """Accepts from the notifications page: the signed-in account is the proof, no token."""
+        user = cls._account(db, user_id)
+        return cls._accept(db, cls._invitation_of(db, invitation_id, user), user)
 
-        invitation.status = InvitationStatus.DECLINED.value
-        db.commit()
+    @classmethod
+    def decline_my_invitation(
+        cls,
+        db: Session,
+        invitation_id: uuid.UUID,
+        user_id: uuid.UUID,
+    ) -> None:
+        """Declines from the notifications page."""
+        user = cls._account(db, user_id)
+        cls._decline(db, cls._invitation_of(db, invitation_id, user), user)
 
     @classmethod
     def revoke_invitation(
@@ -669,6 +822,11 @@ class WorkspaceCollaborationService:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Invitation '{invitation_id}' not found.",
+            )
+        if invitation.status != InvitationStatus.PENDING.value:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only a pending invitation can be withdrawn.",
             )
 
         now = datetime.now(timezone.utc)

@@ -29,6 +29,9 @@ from app.models.workspace_collaboration import (
     WorkspaceTaskModel,
 )
 from app.schemas.workspace_collaboration import (
+    MyWorkspaceInvitationRead,
+    MyWorkspaceInvitationsResponse,
+    SharedWorkspaceRead,
     WorkspaceActivityListResponse,
     WorkspaceActivityRead,
     WorkspaceCommentCreate,
@@ -313,6 +316,74 @@ def revoke_workspace_invitation(
 ) -> Response:
     user_id = require_user_id(current_user_id)
     WorkspaceCollaborationService.revoke_invitation(db, workspace_id, user_id, invitation_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get(
+    "/workspace-invitations/mine",
+    response_model=MyWorkspaceInvitationsResponse,
+    status_code=status.HTTP_200_OK,
+    summary="The caller's pending invitations and the workspaces they joined",
+)
+def list_my_workspace_invitations(
+    current_user_id: OptionalUserId = None,
+    db: Session = Depends(get_db),
+) -> MyWorkspaceInvitationsResponse:
+    user_id = require_user_id(current_user_id)
+    invitations, shared = WorkspaceCollaborationService.list_my_invitations(db, user_id)
+    return MyWorkspaceInvitationsResponse(
+        invitations=[
+            MyWorkspaceInvitationRead(
+                id=invitation.id,
+                workspace_id=invitation.workspace_id,
+                workspace_title=title,
+                inviter_name=invitation.inviter.full_name if invitation.inviter else None,
+                role=WorkspaceRole(invitation.role),
+                created_at=invitation.created_at,
+                expires_at=invitation.expires_at,
+            )
+            for invitation, title in invitations
+        ],
+        shared_workspaces=[
+            SharedWorkspaceRead(
+                workspace_id=member.workspace_id,
+                workspace_title=title,
+                owner_name=owner,
+                role=WorkspaceRole(member.role),
+                joined_at=member.joined_at,
+            )
+            for member, title, owner in shared
+        ],
+    )
+
+
+@router.post(
+    "/workspace-invitations/{invitation_id}/accept",
+    response_model=WorkspaceMemberRead,
+    status_code=status.HTTP_200_OK,
+    summary="Accept one of the caller's invitations",
+)
+def accept_my_workspace_invitation(
+    invitation_id: uuid.UUID,
+    current_user_id: OptionalUserId = None,
+    db: Session = Depends(get_db),
+) -> WorkspaceMemberRead:
+    user_id = require_user_id(current_user_id)
+    return build_member_read(WorkspaceCollaborationService.accept_my_invitation(db, invitation_id, user_id))
+
+
+@router.post(
+    "/workspace-invitations/{invitation_id}/decline",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Decline one of the caller's invitations",
+)
+def decline_my_workspace_invitation(
+    invitation_id: uuid.UUID,
+    current_user_id: OptionalUserId = None,
+    db: Session = Depends(get_db),
+) -> Response:
+    user_id = require_user_id(current_user_id)
+    WorkspaceCollaborationService.decline_my_invitation(db, invitation_id, user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 

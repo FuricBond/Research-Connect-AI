@@ -231,8 +231,8 @@ def test_invariant_4_cross_workspace_idor_forbidden(client: TestClient, test_dat
     assert res.status_code == 403
 
 
-# Invariant 5: Invitation acceptance is idempotent
-def test_invariant_5_invitation_acceptance_idempotent(db_session: Session, test_data):
+# Invariant 5: An invitation is answered once (audit FUNC-01)
+def test_invariant_5_invitation_cannot_be_reused(db_session: Session, test_data):
     d = test_data
     inv, token = WorkspaceCollaborationService.create_invitation(
         db=db_session,
@@ -247,17 +247,18 @@ def test_invariant_5_invitation_acceptance_idempotent(db_session: Session, test_
     db_session.add(new_user)
     db_session.commit()
 
-    m1 = WorkspaceCollaborationService.accept_invitation(
+    WorkspaceCollaborationService.accept_invitation(
         db=db_session,
         token=token,
         user_id=new_user.id,
     )
-    m2 = WorkspaceCollaborationService.accept_invitation(
-        db=db_session,
-        token=token,
-        user_id=new_user.id,
-    )
-    assert m1.id == m2.id
+    with pytest.raises(HTTPException) as exc_info:
+        WorkspaceCollaborationService.accept_invitation(
+            db=db_session,
+            token=token,
+            user_id=new_user.id,
+        )
+    assert exc_info.value.status_code == 400
 
 
 # Invariant 6: Expired invitations cannot be accepted

@@ -83,6 +83,10 @@ class AuthService:
             db.rollback()
             raise
         db.refresh(user)
+        # An invitation sent before the account existed is waiting for it.
+        from app.services.workspace_collaboration_service import WorkspaceCollaborationService
+
+        WorkspaceCollaborationService.link_invitations_to_new_account(db, user)
         logger.info("Registered account", extra={"registered_user_id": str(user.id), "role": user.role})
         return user
 
@@ -148,12 +152,21 @@ class AuthService:
         db: Session,
         role: PlatformRole | None = None,
         search: str | None = None,
+        is_active: bool | None = None,
+        is_verified: bool | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> AdminUserListResponse:
+        # No stored text can contain a NUL, and PostgreSQL refuses one outright (audit API-02).
+        if search and "\x00" in search:
+            return AdminUserListResponse(users=[], total=0)
         stmt = select(UserModel)
         if role is not None:
             stmt = stmt.where(UserModel.role == role.value)
+        if is_active is not None:
+            stmt = stmt.where(UserModel.is_active.is_(is_active))
+        if is_verified is not None:
+            stmt = stmt.where(UserModel.is_verified.is_(is_verified))
         if search:
             pattern = f"%{search.strip().lower()}%"
             stmt = stmt.where(
