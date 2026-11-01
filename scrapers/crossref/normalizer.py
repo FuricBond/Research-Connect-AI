@@ -17,6 +17,7 @@ import logging
 import re
 from typing import Any
 
+from app.core.url_safety import web_url_or_none
 from scrapers.crossref.doi_utils import canonicalize_doi
 from scrapers.crossref.models import (
     NormalizedCrossrefAuthor,
@@ -267,7 +268,9 @@ def normalize_crossref_work(raw: dict[str, Any]) -> NormalizedCrossrefWork:
     is_oa = False
     for lic in raw.get("license", []):
         if isinstance(lic, dict) and lic.get("URL"):
-            license_url = lic["URL"].strip()
+            license_url = web_url_or_none(lic["URL"])
+            if license_url is None:
+                continue
             if any(term in license_url.lower() for term in ["creativecommons.org", "open-access", "cc-by"]):
                 is_oa = True
             break
@@ -319,7 +322,7 @@ def normalize_crossref_work(raw: dict[str, Any]) -> NormalizedCrossrefWork:
         issue=issue,
         page=page,
         article_number=article_number,
-        url=raw.get("URL"),
+        url=web_url_or_none(raw.get("URL")),
         license_url=license_url,
         is_oa=is_oa,
         cited_by_count=cited_by_count,

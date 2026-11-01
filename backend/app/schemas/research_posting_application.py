@@ -8,6 +8,7 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.url_safety import validate_web_url
 from app.models.research_posting_application import (
     ApplicationStatus,
     CommitmentType,
@@ -90,7 +91,12 @@ class ApplicationCreate(BaseModel):
     contact_email: str | None = Field(default=None, max_length=255)
     portfolio_url: str | None = Field(default=None, max_length=2000)
 
-    @field_validator("cover_note", "portfolio_url")
+    @field_validator("portfolio_url")
+    @classmethod
+    def validate_portfolio_url(cls, v: str | None) -> str | None:
+        return validate_web_url(v)
+
+    @field_validator("cover_note")
     @classmethod
     def strip_text(cls, v: str | None) -> str | None:
         if v is None:

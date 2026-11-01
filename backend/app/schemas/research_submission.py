@@ -11,8 +11,9 @@ from enum import Enum
 from typing import Any
 import uuid
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.url_safety import validate_web_url
 from app.models.research_submission import SubmissionStatus, SubmissionType
 from app.models.submission_document import (
     DocumentStatus,
@@ -78,6 +79,11 @@ class ResearchSubmissionCreate(BaseModel):
         description="Personal notes, co-author tasks, or submission reminders",
     )
 
+    @field_validator("submission_url")
+    @classmethod
+    def validate_submission_url(cls, v: str | None) -> str | None:
+        return validate_web_url(v)
+
 
 class ResearchSubmissionUpdate(BaseModel):
     """Payload for partially updating draft submission metadata."""
@@ -117,6 +123,11 @@ class ResearchSubmissionUpdate(BaseModel):
         None,
         description="Updated notes",
     )
+
+    @field_validator("submission_url")
+    @classmethod
+    def validate_submission_url(cls, v: str | None) -> str | None:
+        return validate_web_url(v)
 
 
 class SubmissionStatusTransition(BaseModel):

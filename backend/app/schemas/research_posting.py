@@ -8,6 +8,8 @@ import uuid
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from app.core.url_safety import validate_web_url
+
 from app.models.research_posting import PostingStatus, PostingType, PostingWorkMode
 from app.schemas.research_posting_application import OpeningTermsSchema, OpeningTermsUpdate
 
@@ -120,6 +122,11 @@ class ResearchPostingBase(BaseModel):
     def normalize_country(cls, v: str | None) -> str | None:
         return _normalize_country_code(v)
 
+    @field_validator("external_url")
+    @classmethod
+    def validate_external_url(cls, v: str | None) -> str | None:
+        return validate_web_url(v)
+
     @field_validator("contact_email")
     @classmethod
     def validate_email(cls, v: str | None) -> str | None:
@@ -203,6 +210,11 @@ class ResearchPostingUpdate(BaseModel):
     @classmethod
     def normalize_country(cls, v: str | None) -> str | None:
         return _normalize_country_code(v)
+
+    @field_validator("external_url")
+    @classmethod
+    def validate_external_url(cls, v: str | None) -> str | None:
+        return validate_web_url(v)
 
     @field_validator("contact_email")
     @classmethod

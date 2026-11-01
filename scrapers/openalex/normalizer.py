@@ -22,6 +22,7 @@ import logging
 import re
 from typing import Any
 
+from app.core.url_safety import web_url_or_none
 from scrapers.openalex.abstract_utils import reconstruct_abstract
 from scrapers.openalex.models import (
     AuthorshipEntry,
@@ -137,7 +138,7 @@ def normalize_institution(raw: dict) -> NormalizedInstitution:
         ror=ror,
         country_code=raw.get("country_code"),
         institution_type=raw.get("type"),
-        homepage_url=raw.get("homepage_url"),
+        homepage_url=web_url_or_none(raw.get("homepage_url")),
         works_count=_safe_int(raw.get("works_count")),
         cited_by_count=_safe_int(raw.get("cited_by_count")),
         raw_metadata=raw_metadata,
@@ -220,7 +221,7 @@ def normalize_research_source(raw: dict) -> NormalizedResearchSource:
         host_organization=raw.get("host_organization_name") or raw.get("host_organization"),
         works_count=_safe_int(raw.get("works_count")),
         cited_by_count=_safe_int(raw.get("cited_by_count")),
-        homepage_url=raw.get("homepage_url"),
+        homepage_url=web_url_or_none(raw.get("homepage_url")),
         raw_metadata=raw_metadata,
     )
 
@@ -337,7 +338,7 @@ def normalize_work(raw: dict) -> NormalizedWork:
 
     # Landing page URL (from primary_location)
     primary_location = raw.get("primary_location") or {}
-    landing_page_url = primary_location.get("landing_page_url") or oa_info.get("oa_url")
+    landing_page_url = web_url_or_none(primary_location.get("landing_page_url")) or web_url_or_none(oa_info.get("oa_url"))
 
     return NormalizedWork(
         openalex_id=openalex_id,
