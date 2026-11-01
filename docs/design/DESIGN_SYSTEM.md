@@ -650,7 +650,7 @@ files):
 | Theme | `frontend/utils/theme.ts`, `components/ui/ThemeSwitcher` | Light, dark or system; stored in `localStorage` (`rc-theme`); applied before first paint by an inline script in `app/layout.tsx`. Styles never read `prefers-color-scheme`. Dark ships in P1 (the plan had P11). The control sits in the account menu from P2 (§14). |
 | Primitives (§8) | `frontend/components/ui/<Name>/` | Button/ButtonLink/IconButton, Field/TextInput/PasswordInput (P3)/TextArea/Select/SearchInput/Checkbox/RadioGroup/Switch, Card, Badge/StatusBadge/PriorityLabel, Dialog/Drawer (native `<dialog>`), Skeleton/SkeletonList, EmptyState, ErrorState, Alert, PageHeader/SectionHeader, ThemeSwitcher. CSS Modules + tokens. Usage: [`components/ui/README.md`](../../frontend/components/ui/README.md). |
 | Research indicators (§3.2, §8.5) | `frontend/components/research/` | DeadlineCountdown (DeadlineBadge), RiskIndicator (RiskBadge), MatchScore; `utils/date.ts`, `utils/risk.ts`. Every list that shows a call's deadline or venue risk uses them: home, workspace, recommendations, the candidate and ranking previews, submissions, the submission banner and the explanation drawer (`tests/canonical-indicators.test.tsx`). |
-| Status maps (§8.4) | `frontend/utils/status.ts` | `workspaceStatusMeta`, `applicationStatusMeta`, `postingStatusMeta`, `priorityMeta`. (In `utils/`, not `lib/`: the root `.gitignore` ignores every `lib/` directory.) |
+| Status maps (§8.4; split by domain in P12, §24) | `frontend/utils/status.ts` | `workspaceStatusMeta`, `applicationStatusMeta`, `postingStatusMeta`, `priorityMeta`. (In `utils/`, not `lib/`: the root `.gitignore` ignores every `lib/` directory.) |
 | Legacy bridge | `frontend/styles/globals.css` `:root`, `frontend/tailwind.config.ts` | Old CSS variables (including the 11 that were never defined) alias the tokens; Tailwind's palette resolves to the tokens (hue names → one brand, info, success, warning, danger; separate text/fill/edge maps), shadows flattened, radii on the scale. |
 | Enforcement (§12) | `frontend/tests/design-tokens.test.ts` | No colour literals outside `tokens.css`; no `dark:` classes, text < 12px, gradients or `prefers-color-scheme` in styles; module CSS uses tokens; inline-style ratchet; token contrast computed for both themes. |
 
@@ -1420,3 +1420,66 @@ apply and status-move focus losses fixed above; that walk is not a substitute fo
 | Motion rules | `styles/tokens.css`, `styles/base.css`; `tests/design-tokens.test.ts` (motion) |
 | Fixes | `components/ui/Button/Button.tsx`, `app/researcher/preferences/page.tsx`, `components/postings/{PostingDetail,ApplyForm,ApplicantsInbox}.tsx`, `components/workspace/{StatusMenu.tsx,Workspace.module.css}`; wrapping: `styles/base.css`, `components/dashboard/Dashboard.module.css`, `components/ui/Breadcrumb/Breadcrumb.module.css`, `components/profile/Profile.module.css` |
 | Tests | `tests/accessibility-p11.test.tsx`; `ui-primitives` (a held button); `calendar-export` (its button is held while exporting: `aria-disabled` replaces `disabled` in the assertion); suite stability: `vitest.setup.ts` waits up to five seconds for an element (the suite failed at random under load, also without the change under test), `use-api-resource` and `admin-p10` each had a race closed |
+
+## 24. Performance budgets and visual regression (P12)
+
+**Budgets** (`audit/performance-baseline.md` §5), checked on every build by `npm run check:bundle`
+(`frontend/scripts/check-bundle-budget.mjs`, after `npm run build`, also in CI; over budget fails):
+
+| Budget | Limit |
+|---|---|
+| Any route, First Load JS | ≤ 140 kB |
+| Typical route (median), First Load JS | ≤ 135 kB |
+| Shared by all | ≤ 110 kB |
+| Any route, CSS with its layouts | ≤ 28 kB |
+
+Sizes are gzip level 9, 1 kB = 1000 bytes, read from `.next/app-build-manifest.json`. **First Load JS
+is the figure `next build` prints and the one the budgets were set against. For app routes it leaves
+out the layouts' chunks**, which a real visit also downloads, so the check prints a second column,
+"With layouts", for that: reported, not budgeted. A route over budget: find what is in it before
+splitting anything. Measure a clean build (`rm -rf .next`), as CI does: a build over an existing cache
+can read a few tenths of a kB lower.
+
+What keeps a page small, from what P12 found (no heavy dependency was to blame):
+
+- **Import a helper from where only the helper lives.** One link helper imported from a card brought
+  the whole card and its indicators along. Webpack keeps every export any route uses, so a large
+  module costs its union on every page that touches it: `callHref` (`utils/callHref.ts`), `itemHref`
+  and `nextStep` (`components/workspace/workflow.ts`), call words (`utils/callLabels.ts`), a career
+  stage (`utils/academicStatus.ts`), and the status maps by domain (`utils/status.ts` for the workspace,
+  `postingStatus.ts`, `workflowStatus.ts`, `priority.ts`; shape and fallback in `statusMeta.ts`).
+- **Rare controls live in their own file**: `ui/Field/PasswordInput`, `RadioGroup`, `Switch`.
+- **Load what is asked for when it is asked for**: the reset confirmation
+  (`recommendations/ResetDialog.tsx`), what a paper tool shows without a paper
+  (`discovery/lazyPaperContext.tsx`); and what starts below the fold with its height reserved or nothing
+  under it: Technical details, a workspace item's notes form (`workspace/item/lazyTabs.tsx`). A split that only moves a request to just after the page's own is not worth it.
+
+**Splitting moves stylesheets.** Two CSS Module rules of equal specificity resolve by load order, and a
+new lazy boundary can change that order: a lazy notes form restyled the workspace's menu buttons until
+the visual suite caught it. An override of a primitive's class says why it wins (`button.statusTrigger`
+over Menu's `.trigger`). After any split, run the visual suite.
+
+**Legacy CSS**: `styles/globals.css` keeps only the rules reachable code can produce (9 kB from 49 kB;
+what remains is being migrated) and `styles/postings.css` the ones `/postings/applications` uses. The
+Tailwind palette is gone: no component used a colour utility, so a colour class now generates nothing;
+colour comes only from the tokens. Tailwind's output was unchanged by this.
+
+**Visual regression** (`frontend/e2e/visual.spec.ts`, baselines beside it, plan §24): 15 routes ×
+1440/768/390 × light/dark, 90 images, Chromium.
+
+    python e2e/run_e2e.py --suites visual                  # compare, on a fresh stack
+    python e2e/run_e2e.py --suites visual --update-visual  # new baselines
+
+A change is accepted only with a reason. The suite is not in the browser suite or GitHub CI: it needs
+the stack, and the baselines are per platform (taken on Windows; on another system Playwright finds
+none and writes its own). Dates would change daily, so the page's clock is fixed and every date in an
+API answer moves by the same distance to noon of its day. Postings published together and
+recommendations with equal scores tie, and the API's order for them follows each seed's random ids, so
+the suite puts ties in title order. `E2E_VISUAL_RATIO=0` compares pixel for pixel.
+
+| Part | Where |
+|---|---|
+| Budget check | `frontend/scripts/check-bundle-budget.mjs`, `tests/bundle-budget.test.ts`, `.github/workflows/ci.yml` |
+| Visual suite | `frontend/e2e/visual.spec.ts`, `frontend/e2e/visual.spec.ts-snapshots/`, `e2e/run_e2e.py` (`--suites visual`), `e2e/api/test_visual_seed.py` |
+| Runtime budgets | `frontend/e2e/performance.spec.ts`: layout shift ≤ 0.02, no repeated request, no page error, per role at 1440/768/390; deferred parts load only when asked for |
+| Tests | `paper-context` (the part without a paper arrives just after the title), `recommendations-page` (the lazy confirmation takes and returns focus; Technical details arrives just after the page), `ui-primitives` (imports follow the moved controls) |

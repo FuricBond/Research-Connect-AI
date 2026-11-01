@@ -69,6 +69,9 @@ The E2E project never touches a developer's stack or data:
    - accessibility (`accessibility.spec.ts`): no serious or critical axe violation on the main
      routes of each role in the light and dark themes at 1440px and 390px, every route at
      320px without sideways scrolling (long names and titles included), and reduced motion.
+   Separately, `--suites visual` compares 15 routes × 3 widths × 2 themes with the baselines in
+   `frontend/e2e/visual.spec.ts-snapshots` (add `--update-visual` for new ones); not part of a default
+   run. Baselines are per platform (taken on Windows).
 4. **Stack suite** (`-m stack`):
    - `test_90`: runs the scheduler inside the backend and verifies each job's effect,
      idempotency and non-overlap;

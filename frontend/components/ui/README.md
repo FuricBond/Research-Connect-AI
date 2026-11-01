@@ -11,7 +11,7 @@ Specification: [docs/design/DESIGN_SYSTEM.md](../../../docs/design/DESIGN_SYSTEM
   `tests/design-tokens.test.ts` enforces this.
 - One `h1` per page: use `PageHeader`. Sections use `SectionHeader` (h2). Never skip a level.
 - One primary action per section. A list of cards has no primary buttons on every card.
-- Every status goes through `utils/status.ts` (`StatusBadge`), every deadline through
+- Every status goes through a map in `utils/status.ts`, `postingStatus.ts` or `workflowStatus.ts` (`StatusBadge`), every deadline through
   `DeadlineCountdown`, every risk through `RiskIndicator`, every score through `MatchScore`:
   no enum values, no raw floats, no colour without a word.
 - Research objects (papers, calls, postings) take the serif title face (`.rc-title`).
@@ -26,10 +26,10 @@ Specification: [docs/design/DESIGN_SYSTEM.md](../../../docs/design/DESIGN_SYSTEM
 | A call to action that navigates | `ButtonLink` |
 | An icon-only action | `IconButton` (`label` is required) |
 | Text, email, number, date input | `TextInput` (always a visible `label`; `hint`, `error`) |
-| Password | `PasswordInput` (show/hide toggle named by its own text; `revealLabel` when a form has several) |
+| Password | `PasswordInput` from `Field/PasswordInput` (show/hide toggle named by its own text; `revealLabel` when a form has several) |
 | Long text / choice / search | `TextArea`, `Select` (native), `SearchInput` |
-| Yes/no in a form / setting that applies at once | `Checkbox` / `Switch` |
-| One of several | `RadioGroup` (fieldset + legend) |
+| Yes/no in a form / setting that applies at once | `Checkbox` / `Switch` from `Field/Switch` |
+| One of several | `RadioGroup` from `Field/RadioGroup` (fieldset + legend) |
 | A grouped object | `Card` (`default`, `muted`, `interactive`; `CardHeader`, `CardFooter`) |
 | Status word | `Badge`, `StatusBadge` + `utils/status.ts`, `PriorityLabel` |
 | Decision or short form over the page | `Dialog` |
