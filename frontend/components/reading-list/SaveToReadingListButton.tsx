@@ -26,17 +26,19 @@ interface SaveToReadingListButtonProps {
  * signal. P5: drawn with the Button primitive; the names and behaviour are unchanged.
  */
 export function SaveToReadingListButton({ workId, isSaved = false, onSaved, variant = "secondary", size = "sm", describedBy }: SaveToReadingListButtonProps) {
-  const { status } = useSession();
+  const { status, role } = useSession();
   const [saved, setSaved] = useState(isSaved);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [justSaved, setJustSaved] = useState(false);
 
   // The saved state can arrive after the first render, once the page has looked it up.
   useEffect(() => {
     if (isSaved) setSaved(true);
   }, [isSaved]);
 
-  if (status !== "authenticated") return null;
+  // Decision 2 (plan Q5): an administrator has no personal research tools to save to.
+  if (status !== "authenticated" || role === "ADMIN") return null;
 
   const save = async () => {
     if (saved || saving) return;
@@ -45,6 +47,7 @@ export function SaveToReadingListButton({ workId, isSaved = false, onSaved, vari
     try {
       const item = await addToReadingList(workId);
       setSaved(true);
+      setJustSaved(true);
       onSaved?.(workId, item.id);
     } catch {
       // The server's text never reaches the screen.
@@ -61,7 +64,6 @@ export function SaveToReadingListButton({ workId, isSaved = false, onSaved, vari
         size={size}
         onClick={save}
         loading={saving}
-        aria-pressed={saved}
         aria-label={saved ? "Saved to reading list" : "Save to reading list"}
         aria-describedby={describedBy}
         title={saved ? "On your reading list" : "Save to your reading list"}
@@ -69,6 +71,12 @@ export function SaveToReadingListButton({ workId, isSaved = false, onSaved, vari
       >
         {saved ? "Saved" : "Save"}
       </Button>
+      {/* Saving only goes one way, so it is an action that reports, not a toggle (audit A11Y-01). */}
+      {justSaved && (
+        <span className="rc-visually-hidden" role="status">
+          Saved to your reading list.
+        </span>
+      )}
       {failed && (
         <span className="rc-small rc-text-secondary" role="alert">
           Could not save to your reading list. Try again.

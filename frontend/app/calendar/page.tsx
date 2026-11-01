@@ -7,7 +7,7 @@ import { CalendarPage } from "../../components/calendar/CalendarPage";
 /** P7 — deadlines and milestones (components/calendar/CalendarPage). */
 export default function CalendarPageRoute() {
   return (
-    <RequireAuth>
+    <RequireAuth roles={["STUDENT", "FACULTY"]}>
       <Suspense fallback={null}>
         <CalendarPage />
       </Suspense>

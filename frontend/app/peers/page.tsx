@@ -6,7 +6,7 @@ import { PeersPage } from "../../components/people/PeersPage";
 /** /peers (P6): your discoverability and suggested peers. */
 export default function PeerDiscoveryPageRoute() {
   return (
-    <RequireAuth>
+    <RequireAuth roles={["STUDENT", "FACULTY"]}>
       <PeersPage />
     </RequireAuth>
   );

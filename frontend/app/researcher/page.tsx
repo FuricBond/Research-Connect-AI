@@ -12,7 +12,7 @@ import { ProfilePage } from "../../components/profile/ProfilePage";
  */
 export default function ResearcherPageRoute() {
   return (
-    <RequireAuth>
+    <RequireAuth roles={["STUDENT", "FACULTY"]}>
       {/* useSearchParams needs a boundary for this route to prerender. */}
       <Suspense fallback={null}>
         <ProfilePage />

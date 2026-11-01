@@ -7,7 +7,7 @@ import { SubmissionsPage } from "../../components/workspace/SubmissionsPage";
 /** P7 — every submission in one list (components/workspace/SubmissionsPage). */
 export default function SubmissionsRoute() {
   return (
-    <RequireAuth>
+    <RequireAuth roles={["STUDENT", "FACULTY"]}>
       <Suspense fallback={null}>
         <SubmissionsPage />
       </Suspense>

@@ -1,7 +1,10 @@
 "use client";
 
+import { useSession } from "../auth/SessionProvider";
+import { awaitingVerification } from "../../utils/recruiting";
+import { VerificationNotice } from "./VerificationNotice";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { useAddressSearch } from "../../hooks/useAddressSearch";
 import type { ApiResource } from "../../hooks/useApiResource";
@@ -37,6 +40,8 @@ type Confirming = { kind: "cancel" | "delete"; posting: ResearchPosting } | null
  * A posting whose new applications were not counted shows a dash, never a zero.
  */
 export function MyPostings() {
+  const { user } = useSession();
+  const waiting = awaitingVerification(user);
   const [params, go] = useAddressSearch();
   const query = readMineQuery(params);
   const list = useMyPostingsPage(query.status, query.page);
@@ -59,6 +64,11 @@ export function MyPostings() {
   const loading = data === undefined && (list.status === "loading" || list.status === "idle");
   const failure = changes.failure && !confirming ? changes.failure : null;
 
+  // As a page: "My postings", which /postings's layout cannot know (audit FUNC-10).
+  useEffect(() => {
+    document.title = "My postings — ResearchConnect AI";
+  }, []);
+
   const onAction = (posting: ResearchPosting, target: PostingStatus, confirm: boolean) => {
     if (confirm) {
       changes.dismissFailure();
@@ -74,11 +84,12 @@ export function MyPostings() {
         title="My postings"
         description="Your projects, thesis topics and openings, drafts included: their status, applicants and deadlines."
         actions={
-          <ButtonLink href={NEW_POSTING_HREF} variant="primary" leadingIcon={<Plus size={16} aria-hidden="true" />}>
+          !waiting && <ButtonLink href={NEW_POSTING_HREF} variant="primary" leadingIcon={<Plus size={16} aria-hidden="true" />}>
             New posting
           </ButtonLink>
         }
       />
+      {waiting && <VerificationNotice />}
       <PostingsNav current="mine" />
 
       <div className={styles.toolbar}>
@@ -134,7 +145,7 @@ export function MyPostings() {
             <EmptyState
               title="You have not written any postings yet."
               description="A posting starts as a draft only you can see; publish it when it is ready for researchers."
-              actions={<ButtonLink href={NEW_POSTING_HREF}>Write a posting</ButtonLink>}
+              actions={!waiting && <ButtonLink href={NEW_POSTING_HREF}>Write a posting</ButtonLink>}
             />
           )
         ) : (

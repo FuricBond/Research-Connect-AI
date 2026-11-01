@@ -160,7 +160,7 @@ describe("Calls for papers (/browse)", () => {
     render(withSession(<OpportunityList />));
     await screen.findByRole("heading", { level: 2, name: "41 calls" });
     const [workshop, journal] = screen.getAllByRole("article");
-    expect(await within(workshop).findByRole("button", { name: "Saved to workspace" })).toHaveAttribute("aria-pressed", "true");
+    expect(await within(workshop).findByRole("button", { name: "Saved to workspace" })).not.toHaveAttribute("aria-pressed");
     expect(within(journal).getByRole("button", { name: "Save to workspace" })).toBeInTheDocument();
     expect(paths(fetchMock, "/api/v1/workspace?")).toHaveLength(1);
   });

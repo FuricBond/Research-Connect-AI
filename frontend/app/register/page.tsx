@@ -47,7 +47,7 @@ const ROLE_CHOICES: { value: SelfServiceRole; label: string; hint: string }[] = 
   {
     value: "FACULTY",
     label: "Faculty",
-    hint: "Everything above, plus authoring research postings and reviewing applications.",
+    hint: "Everything above. Once an administrator has verified your account, you can also publish research postings and review applications.",
   },
 ];
 

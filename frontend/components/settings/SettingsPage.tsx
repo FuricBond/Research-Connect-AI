@@ -54,6 +54,12 @@ function Settings() {
               <dt>Account type</dt>
               <dd>{ROLE_LABELS[user.role]}</dd>
             </div>
+            {user.role === "FACULTY" && (
+              <div>
+                <dt>Verification</dt>
+                <dd>{user.is_verified ? "Verified: you can publish research postings." : "Waiting for an administrator to verify your account before you can publish research postings."}</dd>
+              </div>
+            )}
           </dl>
           <p className={styles.note}>Only an administrator can change the account type.</p>
           <div className={styles.rule}>

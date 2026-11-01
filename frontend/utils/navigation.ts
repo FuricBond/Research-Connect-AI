@@ -52,6 +52,12 @@ export interface NavSection {
 }
 
 /**
+ * Decision 2 (plan Q5): administrators run the platform, so a person's own research tools are not
+ * offered to them, here or at the pages' addresses. The roles that have them.
+ */
+const PERSONAL: readonly PlatformRole[] = ["STUDENT", "FACULTY"];
+
+/**
  * The primary navigation, in display order: grouped by what a person is doing. P6: "People"
  * became "For you" — the recommendations first, then supervisors and peers.
  */
@@ -90,19 +96,19 @@ export const NAV_SECTIONS: readonly NavSection[] = [
     group: "research",
     label: "My research",
     items: [
-      { href: "/workspace", label: "Workspace", icon: Briefcase },
-      { href: "/submissions", label: "Submissions", icon: FileText },
-      { href: "/reading-list", label: "Reading list", icon: BookMarked },
-      { href: "/calendar", label: "Calendar", icon: CalendarDays },
+      { href: "/workspace", label: "Workspace", icon: Briefcase, roles: PERSONAL },
+      { href: "/submissions", label: "Submissions", icon: FileText, roles: PERSONAL },
+      { href: "/reading-list", label: "Reading list", icon: BookMarked, roles: PERSONAL },
+      { href: "/calendar", label: "Calendar", icon: CalendarDays, roles: PERSONAL },
     ],
   },
   {
     group: "foryou",
     label: "For you",
     items: [
-      { href: "/recommendations", label: "Recommendations", icon: Compass },
+      { href: "/recommendations", label: "Recommendations", icon: Compass, roles: PERSONAL },
       { href: "/supervisors", label: "Find a supervisor", icon: GraduationCap, roles: ["STUDENT"] },
-      { href: "/peers", label: "Find peers", icon: Users },
+      { href: "/peers", label: "Find peers", icon: Users, roles: PERSONAL },
     ],
   },
   {
@@ -122,8 +128,8 @@ export const NAV_SECTIONS: readonly NavSection[] = [
  * to the notification settings, as the plan's account menu has it.
  */
 export const ACCOUNT_ITEMS: readonly NavItem[] = [
-  { href: "/researcher", label: "Researcher profile", icon: User },
-  { href: "/researcher/preferences", label: "Research preferences", icon: SlidersHorizontal },
+  { href: "/researcher", label: "Researcher profile", icon: User, roles: PERSONAL },
+  { href: "/researcher/preferences", label: "Research preferences", icon: SlidersHorizontal, roles: PERSONAL },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

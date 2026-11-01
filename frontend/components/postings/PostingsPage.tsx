@@ -1,12 +1,13 @@
 "use client";
 
+import { canRecruit } from "../../utils/recruiting";
 import { useCallback, useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { useAddressSearch } from "../../hooks/useAddressSearch";
 import { fetchPostingFits, fetchPostings } from "../../services/api";
 import type { PostingFilterParams, PostingFit, PostingType, PostingWorkMode, ResearchPosting } from "../../types/posting";
 import { POSTING_TYPE_LABELS, WORK_MODE_LABELS } from "../../types/posting";
-import { NEW_POSTING_HREF } from "../../utils/postings";
+import { NEW_POSTING_HREF } from "../../utils/postingLinks";
 import { RequireAuth } from "../auth/RequireAuth";
 import { useSession } from "../auth/SessionProvider";
 import { Button, ButtonLink } from "../ui/Button/Button";
@@ -16,7 +17,7 @@ import { EmptyState, ErrorState, SkeletonList } from "../ui/State/State";
 import { MyPostings } from "./lazy";
 import { PostingCard } from "./PostingCard";
 import { PostingsNav } from "./PostingsNav";
-import { POSTING_TYPES, WORK_MODES } from "./postingForm";
+import { POSTING_TYPES, WORK_MODES } from "./postingOptions";
 import discover from "./PostingsPage.module.css";
 
 /**
@@ -41,7 +42,7 @@ export function PostingsPage() {
  * applications"; for a signed-in student, one batch of fits once the list is in.
  */
 function Discover() {
-  const { status, hasRole } = useSession();
+  const { status, hasRole, user } = useSession();
   const [postings, setPostings] = useState<ResearchPosting[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -56,7 +57,7 @@ function Discover() {
   // Authoring is a faculty/admin capability. The server enforces this regardless; the UI only
   // avoids offering an action that would certainly be refused.
   const isSignedIn = status === "authenticated";
-  const canAuthor = isSignedIn && hasRole("FACULTY", "ADMIN");
+  const canAuthor = isSignedIn && canRecruit(user);
   const isStudent = isSignedIn && hasRole("STUDENT");
 
   // Phase 5.15: a signed-in student's fit for each listed posting, by posting id.
