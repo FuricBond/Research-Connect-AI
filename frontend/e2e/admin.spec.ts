@@ -9,8 +9,9 @@ import { API_URL, DEMO, DEMO_PASSWORD, newPassword, primaryNav, signInThroughThe
  * a fresh account's role: dismissing the confirmation sends nothing, confirming sends one change,
  * and the new role survives a reload. The pages fit every width.
  *
- * Two sign-ins (the target's registration, the administrator's). This spec runs first, so it ends
- * by waiting for a fresh sign-in minute: the specs after it (auth, dashboard…) use most of it.
+ * Two sign-ins (the target's registration, the administrator's). This spec runs early (after
+ * accessibility.spec, whose last sign-in is minutes before), so it ends by waiting for a fresh
+ * sign-in minute: the specs after it (auth, dashboard…) use most of it.
  */
 const WIDTHS = [1440, 1024, 768, 390, 320];
 
