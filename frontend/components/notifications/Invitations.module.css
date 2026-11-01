@@ -1,0 +1,64 @@
+/* Workspace invitations on the notifications page (audit FUNC-01). */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  margin-bottom: var(--rc-space-6);
+  padding: var(--rc-space-4);
+  border: var(--rc-border-width) solid var(--rc-border);
+  border-radius: var(--rc-radius-lg);
+  background: var(--rc-surface);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--rc-text-h3-size);
+  line-height: var(--rc-text-h3-lh);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--rc-space-3);
+}
+
+.row + .row {
+  padding-top: var(--rc-space-3);
+  border-top: var(--rc-border-width) solid var(--rc-border);
+}
+
+.main {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: var(--rc-text-body-size);
+  font-weight: var(--rc-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.meta {
+  margin: var(--rc-space-1) 0 0;
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-small-size);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--rc-space-2);
+}

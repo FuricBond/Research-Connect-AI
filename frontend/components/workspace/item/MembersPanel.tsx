@@ -50,7 +50,7 @@ export function MembersPanel({ workspaceId, can, userId, members, onChanged }: M
   const [emailError, setEmailError] = useState<string | null>(null);
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState<{ email: string; token: string } | null>(null);
+  const [sent, setSent] = useState<string | null>(null);
   const submitting = useRef(false);
   const emailRef = useRef<HTMLInputElement>(null);
 
@@ -61,7 +61,7 @@ export function MembersPanel({ workspaceId, can, userId, members, onChanged }: M
     setBusy(member.id);
     setError(null);
     try {
-      await updateWorkspaceMemberRole(workspaceId, member.id, { role: next });
+      await updateWorkspaceMemberRole(workspaceId, member.user_id, { role: next });
       setMessage(`${memberName(member)} is now ${workspaceRoleMeta(next).label.toLowerCase()}.`);
       members.retry();
       onChanged();
@@ -79,7 +79,7 @@ export function MembersPanel({ workspaceId, can, userId, members, onChanged }: M
     setConfirmError(null);
     try {
       if (confirm.kind === "remove") {
-        await removeWorkspaceMember(workspaceId, confirm.member.id);
+        await removeWorkspaceMember(workspaceId, confirm.member.user_id);
         setMessage(`Removed ${memberName(confirm.member)}.`);
         members.retry();
       } else {
@@ -111,7 +111,7 @@ export function MembersPanel({ workspaceId, can, userId, members, onChanged }: M
     setInviteError(null);
     try {
       const created = await createWorkspaceInvitation(workspaceId, { invitee_email: address, role });
-      setSent({ email: created.invitation.invitee_email, token: created.token });
+      setSent(created.invitation.invitee_email);
       setEmail("");
       setMessage(`Invitation sent to ${created.invitation.invitee_email}.`);
       invitations.retry();
@@ -269,7 +269,7 @@ export function MembersPanel({ workspaceId, can, userId, members, onChanged }: M
         open={inviting}
         onClose={() => setInviting(false)}
         title="Invite someone to this call"
-        description="If they have an account here, they get a notification and join when they accept."
+        description="They get a notification and answer it on their notifications page. Someone without an account finds the invitation when they sign up with this address."
         initialFocusRef={emailRef}
         footer={
           <>
@@ -284,8 +284,8 @@ export function MembersPanel({ workspaceId, can, userId, members, onChanged }: M
       >
         <form id="item-invite-form" className={styles.form} onSubmit={invite} noValidate>
           {sent && (
-            <Alert tone="success" announce title={`Invitation sent to ${sent.email}.`}>
-              If they have an account, they can accept it from their notifications. Its code, if they need it: <span className={styles.code}>{sent.token}</span>
+            <Alert tone="success" announce title={`Invitation sent to ${sent}.`}>
+              They can accept or decline it on their notifications page. It stays open for 7 days, and you can withdraw it below until they answer.
             </Alert>
           )}
           {inviteError && (

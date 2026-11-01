@@ -78,8 +78,8 @@ describe("notification types", () => {
       "fetch",
       vi.fn((url: string) => {
         if (url.endsWith("/api/v1/auth/me")) return Promise.resolve(jsonResponse(makeUser({ role: "STUDENT" })));
-        if (url.endsWith("/api/v1/notifications/unread-count")) {
-          return Promise.resolve(jsonResponse({ profile_id: PROFILE_ID, unread_count: 0 }));
+        if (url.endsWith("/api/v1/notifications?limit=3")) {
+          return Promise.resolve(jsonResponse({ notifications: [], total: 0, unread_count: 0 }));
         }
         if (url.endsWith("/api/v1/notifications/delivery-status")) {
           return Promise.resolve(
@@ -111,7 +111,8 @@ describe("notification types", () => {
       const card = screen.getByRole("listitem", { name: `${type} title` });
       // The kind in words, the title linking to the workspace item.
       expect(within(card).getByText(label)).toBeInTheDocument();
-      expect(within(card).getByRole("link", { name: `${type} title` })).toHaveAttribute("href", `/workspace/${WORKSPACE_ID}`);
+      // An invitation is answered on this page: its workspace does not open until it is accepted.
+      expect(within(card).getByRole("link", { name: `${type} title` })).toHaveAttribute("href", type === "WORKSPACE_INVITATION" ? "/notifications#invitations" : `/workspace/${WORKSPACE_ID}`);
       shapes.push(card.querySelector("svg")?.getAttribute("class") ?? "");
     }
     // Every type has a distinct icon, never the generic bell.

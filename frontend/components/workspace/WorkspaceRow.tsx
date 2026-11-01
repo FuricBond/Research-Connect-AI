@@ -11,7 +11,7 @@ import { DeadlineCountdown } from "../research/DeadlineCountdown";
 import { RiskIndicator } from "../research/RiskIndicator";
 import { PriorityLabel } from "../ui/Badge/Badge";
 import { Menu } from "../ui/Menu/Menu";
-import { ItemNotesForm } from "./ItemNotesForm";
+import { ItemNotesForm } from "./item/lazyTabs";
 import { StatusMenu } from "./StatusMenu";
 import { itemHref, nextStep } from "./workflow";
 import styles from "./Workspace.module.css";

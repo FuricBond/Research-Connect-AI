@@ -349,3 +349,29 @@ button.nextStep {
   font-size: var(--rc-text-small-size);
   color: var(--rc-text-secondary);
 }
+
+/* Workspaces someone else owns that this account joined. */
+.shared {
+  margin-top: var(--rc-space-8);
+}
+
+.sharedTitle {
+  margin: 0 0 var(--rc-space-3);
+  font-size: var(--rc-text-h2-size);
+  line-height: var(--rc-text-h2-lh);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.sharedList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sharedNote {
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-small-size);
+}

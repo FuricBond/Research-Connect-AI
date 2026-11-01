@@ -25,7 +25,7 @@ import {
 import { useAddressSearch } from "../../hooks/useAddressSearch";
 import { useApiResource } from "../../hooks/useApiResource";
 import { UNREAD_POLL_MS, notifyNotificationsChanged } from "../../hooks/useUnreadNotificationCount";
-import { fetchNotifications, markAllNotificationsAsRead, markNotificationAsRead, triggerReminderScheduler } from "../../services/api";
+import { fetchMyWorkspaceInvitations, fetchNotifications, markAllNotificationsAsRead, markNotificationAsRead, triggerReminderScheduler } from "../../services/api";
 import type { NotificationItem, NotificationType } from "../../types/notification";
 import { FILTERABLE_TYPES, groupBySource, notificationHref, notificationTime, notificationTypeLabel } from "../../utils/notifications";
 import { useSession } from "../auth/SessionProvider";
@@ -36,6 +36,7 @@ import { Alert, EmptyState, ErrorState, SkeletonList } from "../ui/State/State";
 import { ChipCount } from "../workspace/ChipCount";
 import { actionError } from "../workspace/workflow";
 import { useKept } from "../workspace/item/useWorkspaceItem";
+import { PendingInvitations } from "./PendingInvitations";
 import styles from "./Notifications.module.css";
 
 const PAGE = 50;
@@ -90,6 +91,16 @@ export function NotificationsPage() {
   const [params, go] = useAddressSearch();
   const { unreadOnly, type } = readNotificationFilters(params);
   const [limit, setLimit] = useState(PAGE);
+
+  // An invitation appears above the list: the list starts once that is known, so it never moves
+  // (audit PERF-01's rule, for every page). Not for long if the answer is slow.
+  const invitations = useApiResource("workspace-invitations:mine", (signal) => fetchMyWorkspaceInvitations(signal));
+  const [stoppedWaiting, setStoppedWaiting] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setStoppedWaiting(true), 1500);
+    return () => window.clearTimeout(timer);
+  }, []);
+  const waitingForInvitations = !stoppedWaiting && (invitations.status === "idle" || invitations.status === "loading");
   const filterKey = `${unreadOnly}:${type ?? "all"}`;
   const seenFilter = useRef(filterKey);
   if (seenFilter.current !== filterKey) {
@@ -234,6 +245,8 @@ export function NotificationsPage() {
         </Select>
       </div>
 
+      <PendingInvitations />
+
       <p role="status" className="rc-visually-hidden">
         {message}
       </p>
@@ -243,7 +256,7 @@ export function NotificationsPage() {
         </Alert>
       )}
 
-      {items === null ? (
+      {waitingForInvitations ? null : items === null ? (
         list.status === "error" ? (
           <ErrorState headingLevel={2} title="Your notifications could not be loaded" kind={list.error?.kind === "network" ? "offline" : "failed"} onRetry={retry} />
         ) : (
@@ -301,8 +314,9 @@ export function NotificationsPage() {
 }
 
 function NotificationRow({ item, busy, onRead }: { item: NotificationItem; busy: boolean; onRead: () => void }) {
+  const { role } = useSession();
   const unread = !item.read_at;
-  const href = notificationHref(item);
+  const href = notificationHref(item, role);
   const titleId = `notification-${item.id}`;
   const Icon = ICONS[item.notification_type] ?? Bell;
   const time = notificationTime(item.created_at);

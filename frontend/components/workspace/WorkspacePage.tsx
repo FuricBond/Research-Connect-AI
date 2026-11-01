@@ -1,12 +1,12 @@
 "use client";
 
+import { SharedWorkspaces } from "./SharedWorkspaces";
 import Link from "next/link";
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { useAddressSearch } from "../../hooks/useAddressSearch";
 import type { WorkspaceItem, WorkspaceStatus } from "../../types/workspace";
 import { workspaceStatusMeta } from "../../utils/status";
 import { Button } from "../ui/Button/Button";
-import { Dialog } from "../ui/Dialog/Dialog";
 import { SearchInput, Select } from "../ui/Field/Field";
 import { PageHeader } from "../ui/PageHeader/PageHeader";
 import { Alert, EmptyState, ErrorState, SkeletonList } from "../ui/State/State";
@@ -15,6 +15,8 @@ import { ChipCount } from "./ChipCount";
 import { WorkspaceNav } from "./WorkspaceNav";
 import { WorkspaceRow } from "./WorkspaceRow";
 import styles from "./Workspace.module.css";
+
+const ConfirmDialog = lazy(() => import("../ui/Dialog/ConfirmDialog").then((module) => ({ default: module.ConfirmDialog })));
 
 const STATUSES: WorkspaceStatus[] = ["SAVED", "CONSIDERING", "PLANNING", "APPLIED", "ACCEPTED", "REJECTED", "ARCHIVED"];
 const SORTS: { value: WorkspaceQuery["sort"]; label: string }[] = [
@@ -200,41 +202,28 @@ export function WorkspacePage() {
         )}
       </section>
 
-      <Dialog
-        open={removing !== null}
-        onClose={() => setRemoving(null)}
-        size="sm"
-        title={`Remove "${removing?.opportunity?.title ?? "this call"}" from your workspace?`}
-        footer={
-          <>
-            <Button variant="secondary" onClick={() => setRemoving(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              loading={removing !== null && pending.has(removing.id)}
-              onClick={async () => {
-                if (!removing) return;
-                const ok = await remove(removing);
-                if (ok) setRemoving(null);
-                else setRemoveFailed(true);
-              }}
-            >
-              Remove
-            </Button>
-          </>
-        }
-      >
-        <p>
-          Its notes, tags, tasks, submissions and their documents are deleted with it, and collaborators lose access. This cannot be undone; to keep them, archive it
-          instead.
-        </p>
-        {removeFailed && (
-          <Alert tone="danger" announce>
-            It could not be removed. Try again.
-          </Alert>
-        )}
-      </Dialog>
+      <SharedWorkspaces />
+
+      {removing && (
+        <Suspense fallback={null}>
+          <ConfirmDialog
+            title={<>Remove “{removing.opportunity?.title ?? "this call"}” from your workspace?</>}
+            confirmLabel="Remove"
+            failure={removeFailed ? "It could not be removed. Try again." : null}
+            onClose={() => setRemoving(null)}
+            onConfirm={async () => {
+              setRemoveFailed(false);
+              const ok = await remove(removing);
+              if (!ok) setRemoveFailed(true);
+              return ok;
+            }}
+          >
+            <p>
+              Its notes, tags, tasks, submissions and their documents are deleted with it, and collaborators lose access. To keep them, archive it instead.
+            </p>
+          </ConfirmDialog>
+        </Suspense>
+      )}
     </>
   );
 }

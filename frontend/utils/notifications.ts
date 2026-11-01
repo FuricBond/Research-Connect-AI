@@ -4,9 +4,13 @@
  * The API sends enum values (`DEADLINE_UPCOMING`, `RESEARCH_POSTING`); the interface shows words.
  * A value this map does not know yet is said in plain words, never as the raw identifier.
  */
+import type { PlatformRole } from "../types/auth";
+import { INVITATIONS_HREF } from "./invitations";
 import type { DeliveryChannel, NotificationItem } from "../types/notification";
 import { humanizeEnum } from "./date";
 import { isUuid } from "./ids";
+
+export { INVITATIONS_HREF };
 
 /** Each `notification_type` the backend allows (chk_notifications_type), as a reader would say it. */
 const TYPE_LABELS: Record<string, string> = {
@@ -92,9 +96,13 @@ export function groupBySource(items: readonly NotificationItem[]): NotificationG
 
 /**
  * Where a notification leads, or null when there is nowhere to go. Only ids that can be the API's
- * are linked; the destination page checks access (a workspace item opens for its members, P7).
+ * are linked; the destination page checks access (a workspace item opens for its members, P7). An
+ * invitation is answered on the notifications page: its workspace does not open until it is
+ * accepted. A research refresh alert leads to the monitor, for administrators only (audit FUNC-09).
  */
-export function notificationHref(item: NotificationItem): string | null {
+export function notificationHref(item: NotificationItem, role?: PlatformRole | null): string | null {
+  if (item.notification_type === "WORKSPACE_INVITATION") return INVITATIONS_HREF;
+  if (item.source_type === "SYSTEM" && item.metadata_json?.run_tag) return role === "ADMIN" ? "/admin/research-data" : null;
   if (item.source_type === "WORKSPACE" && isUuid(item.source_id)) return `/workspace/${encodeURIComponent(item.source_id)}`;
   if (item.source_type === "RESEARCH_POSTING" && isUuid(item.source_id)) return `/postings/${encodeURIComponent(item.source_id)}`;
   if (item.source_type === "CALENDAR_EVENT" || item.calendar_event_id) return "/calendar";
