@@ -246,6 +246,52 @@ describe("token contrast (WCAG 2.2 AA)", () => {
   });
 });
 
+/* ── Motion ──────────────────────────────────────────────────────────────── */
+
+/** The body of the first `@media (<query>)` block in a stylesheet (nested braces included). */
+function mediaBlock(source: string, query: string): string {
+  const start = source.indexOf(`@media (${query})`);
+  if (start < 0) throw new Error(`no @media (${query}) block`);
+  const open = source.indexOf("{", start);
+  let depth = 0;
+  for (let i = open; i < source.length; i++) {
+    if (source[i] === "{") depth += 1;
+    if (source[i] === "}" && --depth === 0) return source.slice(open + 1, i);
+  }
+  throw new Error(`unclosed @media (${query}) block`);
+}
+
+describe("motion (DESIGN_SYSTEM §6, P11)", () => {
+  const REDUCE = "prefers-reduced-motion: reduce";
+
+  it("makes every duration token instant when reduced motion is asked for", () => {
+    const declared = [...new Set([...code(TOKENS).matchAll(/(--rc-duration-[\w-]+)\s*:/g)].map((m) => m[1]))];
+    const reduced = Object.fromEntries([...mediaBlock(code(TOKENS), REDUCE).matchAll(/(--rc-duration-[\w-]+)\s*:\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
+    expect(declared.length).toBeGreaterThan(0);
+    expect(Object.fromEntries(declared.map((name) => [name, reduced[name]]))).toEqual(Object.fromEntries(declared.map((name) => [name, "0ms"])));
+  });
+
+  it("stops every animation, transition and smooth scroll, legacy ones included", () => {
+    const rule = mediaBlock(code(read(path.join(FRONTEND, "styles/base.css"))), REDUCE);
+    expect(rule).toMatch(/\*,\s*\*::before,\s*\*::after\s*\{/);
+    for (const declaration of [
+      /animation-duration:\s*0\.01ms !important/,
+      /animation-iteration-count:\s*1 !important/,
+      /transition-duration:\s*0\.01ms !important/,
+      /scroll-behavior:\s*auto !important/,
+    ]) {
+      expect(rule).toMatch(declaration);
+    }
+  });
+
+  it("loops no animation but a loading spinner", () => {
+    const loops = [...stylesheets, ...modules].flatMap((f) =>
+      [...code(read(f)).matchAll(/animation\s*:\s*([^;]+);/g)].filter((m) => /\binfinite\b/.test(m[1]) && !/^spin\b/.test(m[1].trim())).map((m) => `${rel(f)}: ${m[0]}`)
+    );
+    expect(loops).toEqual([]);
+  });
+});
+
 describe("line endings (P2 audit)", () => {
   // tokens.css as a Windows checkout has it (core.autocrlf=true writes CRLF).
   const CRLF = TOKENS.replace(/\n/g, "\r\n");
