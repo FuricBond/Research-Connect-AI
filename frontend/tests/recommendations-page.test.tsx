@@ -272,7 +272,8 @@ describe("recommendations page", () => {
       [`GET ${BASE}/personalized-recommendations`, `GET ${BASE}/preference-intelligence`, `GET ${BASE}/personalization/settings`, "GET /api/v1/workspace"].sort()
     );
 
-    const technical = screen.getByRole("region", { name: "Technical details" });
+    // P12: this section's code loads just after the page; it asks for nothing until a part is opened.
+    const technical = await screen.findByRole("region", { name: "Technical details" });
     expect(within(technical).getByText("Signals learned from your activity")).toBeInTheDocument();
     expect(calls.some((call) => /adaptive-signals|calibration|quality|health|drift|governance|history|evaluation/.test(call.path))).toBe(false);
   });
@@ -366,8 +367,11 @@ describe("recommendations page", () => {
   it("resets only after a confirmation that says what is kept", async () => {
     renderPage();
     const shapes = await screen.findByRole("region", { name: "What shapes your recommendations" });
-    fireEvent.click(await within(shapes).findByRole("button", { name: "Reset what was learned" }));
+    const reset = await within(shapes).findByRole("button", { name: "Reset what was learned" });
+    reset.focus();
+    fireEvent.click(reset);
 
+    // P12: the confirmation's code loads when asked for; it still takes focus and hands it back.
     const dialog = await screen.findByRole("dialog", { name: "Reset what was learned?" });
     expect(dialog).toHaveTextContent("the preferences you stated");
     expect(dialog).toHaveTextContent("your researcher profile and publications");
@@ -376,6 +380,7 @@ describe("recommendations page", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
     await waitFor(() => expect(screen.queryByRole("dialog", { name: "Reset what was learned?" })).not.toBeInTheDocument());
     expect(calls.some((call) => call.path.endsWith("/personalization/reset"))).toBe(false);
+    expect(reset).toHaveFocus();
 
     fireEvent.click(within(shapes).getByRole("button", { name: "Reset what was learned" }));
     fireEvent.click(within(await screen.findByRole("dialog", { name: "Reset what was learned?" })).getByRole("button", { name: "Reset" }));

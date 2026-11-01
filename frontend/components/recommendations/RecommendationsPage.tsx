@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { PersonalizedRankedCandidate, PersonalizedRankingResponse } from "../../types/researcher";
@@ -12,9 +13,14 @@ import { EmptyState, ErrorState, SkeletonList } from "../ui/State/State";
 import { groupHeading, groupRecommendations } from "./grouping";
 import { RecommendationCard } from "./RecommendationCard";
 import { usePersonalizationSettings, usePreferenceIntelligence, useRankedRecommendations } from "./resources";
-import { TechnicalDetails } from "./TechnicalDetails";
 import { TransparencyPanel } from "./TransparencyPanel";
 import styles from "./Recommendations.module.css";
+
+// P12: the page's last section, far below the recommendations: it never pushes them when it arrives.
+const TechnicalDetails = dynamic(() => import("./TechnicalDetails").then((loaded) => loaded.TechnicalDetails), {
+  ssr: false,
+  loading: () => <SkeletonList rows={3} lines={1} label="Loading technical details" announce={false} />,
+});
 
 function rankingNote(ranked: { ranked_count: number; personalization_enabled: boolean; is_cold_start: boolean }): string {
   const count = `${ranked.ranked_count} call${ranked.ranked_count === 1 ? "" : "s"}`;
