@@ -1,6 +1,6 @@
 export type WorkspaceRole = "OWNER" | "EDITOR" | "CONTRIBUTOR" | "VIEWER";
 
-export type MemberStatus = "ACTIVE" | "INVITED" | "REMOVED" | "LEFT";
+export type MemberStatus = "ACTIVE" | "INVITED" | "REMOVED";
 
 export type InvitationStatus =
   | "PENDING"
@@ -12,24 +12,28 @@ export type InvitationStatus =
 export type TaskStatus =
   | "TODO"
   | "IN_PROGRESS"
-  | "IN_REVIEW"
+  | "REVIEW"
   | "COMPLETED"
   | "CANCELLED";
 
 export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
 export type ActivityType =
-  | "MEMBER_INVITED"
   | "MEMBER_JOINED"
-  | "MEMBER_ROLE_CHANGED"
   | "MEMBER_REMOVED"
+  | "MEMBER_INVITED"
+  | "ROLE_CHANGED"
   | "TASK_CREATED"
   | "TASK_ASSIGNED"
   | "TASK_COMPLETED"
-  | "TASK_REOPENED"
+  | "TASK_UPDATED"
   | "DOCUMENT_UPDATED"
   | "SUBMISSION_UPDATED"
-  | "COMMENT_ADDED";
+  | "DEADLINE_CHANGED"
+  | "COMMENT_ADDED"
+  | "INVITATION_SENT"
+  | "INVITATION_ACCEPTED"
+  | "INVITATION_REVOKED";
 
 export interface WorkspaceMemberUserSummary {
   id: string;
@@ -179,4 +183,29 @@ export interface TaskFilterParams {
   due_before?: string;
   limit?: number;
   offset?: number;
+}
+
+/** A pending invitation, as its invitee sees it. Carries no token. */
+export interface MyWorkspaceInvitation {
+  id: string;
+  workspace_id: string;
+  workspace_title: string | null;
+  inviter_name: string | null;
+  role: WorkspaceRole;
+  created_at: string;
+  expires_at: string;
+}
+
+/** A workspace someone else owns that the caller has joined. */
+export interface SharedWorkspace {
+  workspace_id: string;
+  workspace_title: string | null;
+  owner_name: string | null;
+  role: WorkspaceRole;
+  joined_at: string | null;
+}
+
+export interface MyWorkspaceInvitationsResponse {
+  invitations: MyWorkspaceInvitation[];
+  shared_workspaces: SharedWorkspace[];
 }
