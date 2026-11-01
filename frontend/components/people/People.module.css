@@ -249,3 +249,26 @@
 .notice:empty {
   display: none;
 }
+
+/* The discoverability settings' height while they load, per layout (P12: no shift, plan §18). */
+.panelLoading {
+  min-height: 24.7rem;
+}
+
+@media (max-width: 1279.98px) {
+  .panelLoading {
+    min-height: 27.2rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .panelLoading {
+    min-height: 42.2rem;
+  }
+}
+
+@media (max-width: 359.98px) {
+  .panelLoading {
+    min-height: 47.8rem;
+  }
+}

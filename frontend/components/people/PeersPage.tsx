@@ -55,7 +55,10 @@ export function PeersPage() {
       <PageHeader title="Find peers" description={DESCRIPTION} />
       <div className={styles.page}>
         {settings.status === "loading" || settings.status === "idle" ? (
-          <SkeletonList rows={2} label="Loading your discoverability" announce={false} />
+          // P12: as tall as the settings it stands for, so the filters and results below stay put.
+          <div className={styles.panelLoading}>
+            <SkeletonList rows={2} label="Loading your discoverability" announce={false} />
+          </div>
         ) : shownSettings ? (
           <Discoverability profileId={profileId} settings={shownSettings} onSaved={setSaved} />
         ) : (

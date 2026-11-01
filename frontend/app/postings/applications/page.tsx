@@ -98,22 +98,23 @@ function MyApplicationsPage() {
         </button>
       </header>
 
-      {summary && (
-        <div className="postings-stats">
+      {/* P12: the row keeps its place while the counts load, so what is below it stays put. */}
+      {(summary || loading) && (
+        <div className="postings-stats" aria-busy={!summary || undefined}>
           <div className="postings-stat">
-            <div className="postings-stat-value">{summary.total}</div>
+            <div className="postings-stat-value">{summary ? summary.total : "–"}</div>
             <div className="postings-stat-label">Total</div>
           </div>
           <div className="postings-stat">
-            <div className="postings-stat-value">{summary.active}</div>
+            <div className="postings-stat-value">{summary ? summary.active : "–"}</div>
             <div className="postings-stat-label">Still in play</div>
           </div>
           <div className="postings-stat">
-            <div className="postings-stat-value">{summary.by_status.OFFERED ?? 0}</div>
+            <div className="postings-stat-value">{summary ? (summary.by_status.OFFERED ?? 0) : "–"}</div>
             <div className="postings-stat-label">Offers</div>
           </div>
           <div className="postings-stat">
-            <div className="postings-stat-value">{summary.by_status.ACCEPTED ?? 0}</div>
+            <div className="postings-stat-value">{summary ? (summary.by_status.ACCEPTED ?? 0) : "–"}</div>
             <div className="postings-stat-label">Accepted</div>
           </div>
         </div>
