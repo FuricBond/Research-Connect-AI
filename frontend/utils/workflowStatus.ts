@@ -33,7 +33,7 @@ export function documentStatusMeta(status: string | null | undefined): StatusMet
 const TASK_STATUS: Record<string, StatusMeta> = {
   TODO: { label: "To do", tone: "neutral", icon: Circle },
   IN_PROGRESS: { label: "In progress", tone: "brand", icon: Clock },
-  IN_REVIEW: { label: "In review", tone: "info", icon: Eye },
+  REVIEW: { label: "In review", tone: "info", icon: Eye },
   COMPLETED: { label: "Done", tone: "success", icon: CheckCircle2 },
   CANCELLED: { label: "Cancelled", tone: "muted", icon: XCircle },
 };

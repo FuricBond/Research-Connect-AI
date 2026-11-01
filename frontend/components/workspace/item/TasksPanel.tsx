@@ -15,7 +15,7 @@ import { actionError, shortDate, type Abilities } from "../workflow";
 import { useKept } from "./useWorkspaceItem";
 import styles from "./Item.module.css";
 
-const STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "IN_REVIEW", "COMPLETED", "CANCELLED"];
+export const TASK_STATUSES: TaskStatus[] = ["TODO", "IN_PROGRESS", "REVIEW", "COMPLETED", "CANCELLED"];
 const PRIORITIES: { value: TaskPriority; label: string }[] = [
   { value: "LOW", label: "Low" },
   { value: "MEDIUM", label: "Medium" },
@@ -171,7 +171,7 @@ export function TasksPanel({ workspaceId, can, userId, members, onChanged }: Tas
       <div className={styles.filters}>
         <Select label="Status" value={status} onChange={(event) => setStatus(event.target.value as TaskStatus | "")}>
           <option value="">All statuses</option>
-          {STATUSES.map((value) => (
+          {TASK_STATUSES.map((value) => (
             <option key={value} value={value}>
               {taskStatusMeta(value).label}
             </option>
