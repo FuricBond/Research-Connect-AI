@@ -61,5 +61,5 @@ def test_the_frontend_job_runs_the_local_checks_and_no_browser_suite():
     assert job["defaults"]["run"]["working-directory"] == "frontend"
     setup_node = next(step for step in job["steps"] if step.get("uses", "").startswith("actions/setup-node"))
     assert setup_node["with"]["cache"] == "npm"
-    assert _runs(job) == ["npm ci", "npm run type-check", "npm run lint", "npm test", "npm run build"]
+    assert _runs(job) == ["npm ci", "npm run type-check", "npm run lint", "npm test", "npm run build", "npm run check:bundle"]
     assert "e2e" not in " ".join(_runs(job) + _runs(_workflow()["jobs"]["backend"]))

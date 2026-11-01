@@ -13,6 +13,7 @@ Verifies:
 """
 from __future__ import annotations
 
+import gc
 import time
 import uuid
 
@@ -445,6 +446,10 @@ def test_batch_scoring_performance_and_zero_n_plus_one(sample_opportunity: Oppor
         for i in range(100)
     ]
 
+    # What is timed is the scoring: a garbage collection of everything earlier tests left behind
+    # landing in this window is not (it alone takes several times the budget in a full run).
+    gc.collect()
+    gc.disable()
     start_time = time.perf_counter()
     batch_results = PersonalizationScorer.score_opportunities_batch(
         profile_id=profile_id,
@@ -452,6 +457,7 @@ def test_batch_scoring_performance_and_zero_n_plus_one(sample_opportunity: Oppor
         opportunities=opps,
     )
     elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+    gc.enable()
 
     assert len(batch_results) == 100
     # 100 in-memory opportunity scorings must execute well under 50ms

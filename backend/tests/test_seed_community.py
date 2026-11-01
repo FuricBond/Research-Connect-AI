@@ -35,7 +35,7 @@ compiles(Vector, "sqlite")(lambda type_, compiler, **kw: "TEXT")
 compiles(TSVector, "sqlite")(lambda type_, compiler, **kw: "TEXT")
 
 PASSWORD = "CommunityTest123!"
-NOW = datetime(2026, 9, 28, 9, 0, tzinfo=timezone.utc)
+NOW = datetime.now(timezone.utc).replace(hour=9, minute=0, second=0, microsecond=0)
 
 
 @pytest.fixture
