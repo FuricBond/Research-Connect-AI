@@ -94,7 +94,9 @@ export function ApplicantsInbox() {
             </button>
           ))}
         </div>
-        {groups.length > 1 && (
+        {/* Audit PERF-01: this row keeps its place from the first paint, so what is below it never
+            moves. With one posting or none there is nothing to choose, so it says what is shown. */}
+        {groups.length > 1 || query.posting ? (
           <Select label="Posting" className={styles.postingFilter} value={query.posting ?? ""} onChange={(event) => go(inboxHref({ ...query, posting: event.target.value || null }))}>
             <option value="">All postings</option>
             {groups.map(({ posting }) => (
@@ -103,6 +105,11 @@ export function ApplicantsInbox() {
               </option>
             ))}
           </Select>
+        ) : (
+          <div className={styles.postingFixed}>
+            <span className={styles.postingFixedLabel}>Posting</span>
+            <span className={styles.postingFixedValue}>{chosen === null ? "All postings" : groups.length === 1 ? groups[0].posting.title : "None with applications"}</span>
+          </div>
         )}
       </div>
 

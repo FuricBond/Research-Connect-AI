@@ -77,9 +77,35 @@
   color: var(--rc-brand-text);
 }
 
-.postingFilter {
+.postingFilter,
+.postingFixed {
   flex: 0 1 20rem;
   min-width: min(100%, 14rem);
+}
+
+/* The same height as the Posting field above: a label over one line in a control's height. */
+.postingFixed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rc-space-1);
+}
+
+.postingFixedLabel {
+  color: var(--rc-text);
+  font-size: var(--rc-text-small-size);
+  line-height: var(--rc-text-small-lh);
+  font-weight: var(--rc-weight-semibold);
+}
+
+.postingFixedValue {
+  display: flex;
+  align-items: center;
+  min-height: 2.5rem;
+  color: var(--rc-text-secondary);
+  font-size: var(--rc-text-body-size);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 /* ── Lists ── */
@@ -688,4 +714,9 @@
   flex-direction: column;
   gap: var(--rc-space-4);
   max-width: var(--rc-measure);
+}
+
+/* Where the author's controls appear on a posting's page, until their code has loaded. */
+.manageLoading {
+  min-height: 8rem;
 }
