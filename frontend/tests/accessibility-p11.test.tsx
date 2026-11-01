@@ -161,8 +161,8 @@ describe("research preferences", () => {
 
     const removeTopic = await screen.findByRole("button", { name: "Remove Information retrieval" });
     for (const select of screen.getAllByRole("combobox")) expect(select).toHaveAccessibleName();
-    expect(screen.getByRole("combobox", { name: "Academic Level:" })).toBeInTheDocument();
-    expect(screen.getByRole("combobox", { name: "Career Stage:" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Academic level" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Career stage" })).toBeInTheDocument();
     expect(screen.getByRole("combobox", { name: "Prefer or exclude this topic" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Remove ranking" })).toHaveAttribute("type", "button");
     // The three-state rows (neutral, preferred, excluded) are buttons that say their state.

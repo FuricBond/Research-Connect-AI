@@ -31,7 +31,7 @@ test("every signed-in page renders against the live API without contract errors"
     // Opened directly, the paper-based tools explain themselves instead of dead-ending (P5 names).
     ["/similar", /Similar papers/],
     ["/opportunities", /Find venues/],
-    ["/researcher/preferences", /Researcher Preferences Foundation/],
+    ["/researcher/preferences", /^Research preferences$/],
     // P7: the research workflow pages are named as the navigation names them.
     ["/workspace", /^Workspace$/],
     ["/submissions", /^Submissions$/],
@@ -42,7 +42,7 @@ test("every signed-in page renders against the live API without contract errors"
     ["/settings", /^Settings$/],
     ["/settings/notifications", /^Settings$/],
     ["/postings", /Research postings/],
-    ["/postings/applications", /My Applications/],
+    ["/postings/applications", /My applications/],
     ["/peers", /Find peers/],
     // P5: the list's own heading went; the page's h1 names it.
     ["/browse", /Calls for papers/],
