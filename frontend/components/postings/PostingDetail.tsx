@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ExternalLink, Mail, Send } from "lucide-react";
 import { useApiResource } from "../../hooks/useApiResource";
 import { fetchPostingFit, fetchPosting } from "../../services/api";
@@ -37,10 +37,15 @@ import styles from "./Faculty.module.css";
 export function PostingDetail({ postingId }: { postingId: string | null }) {
   const { status: sessionStatus, user, hasRole } = useSession();
   const viewer = sessionStatus === "loading" ? null : (user?.id ?? "visitor");
-  const resource = useApiResource(postingId && viewer ? `posting:${postingId}:${viewer}` : null, (signal) => fetchPosting(postingId!, signal), { scope: "public" });
+  const key = postingId && viewer ? `posting:${postingId}:${viewer}` : null;
+  const resource = useApiResource(key, (signal) => fetchPosting(postingId!, signal), { scope: "public" });
   // The author's latest confirmed change (PostingAuthor), shown unless the server's listing is newer.
   const [answer, setAnswer] = useState<ResearchPosting | null>(null);
-  const listed = resource.data ?? null;
+  // P11: read again (after applying), the posting stays on the page — the same posting for the same
+  // viewer only — so nothing on it, the focus included, is swapped for a loading placeholder.
+  const shown = useRef<{ key: string; posting: ResearchPosting } | null>(null);
+  if (key && resource.data) shown.current = { key, posting: resource.data };
+  const listed = resource.data ?? (resource.status === "loading" && shown.current?.key === key ? shown.current.posting : null);
   const posting = listed ? (answer && answer.id === listed.id && isNewer(answer, listed) ? answer : listed) : null;
 
   if (resource.status === "error") {
@@ -238,39 +243,62 @@ function YourFit({ posting }: { posting: ResearchPosting }) {
   );
 }
 
-/** Applying (Phase 5.11), for anyone but the author, where the opening takes applications here; the form loads when asked for. */
+/**
+ * Applying (Phase 5.11), for anyone but the author, where the opening takes applications here; the
+ * form loads when asked for. P11: focus is never dropped as the parts swap — the form takes it from
+ * "Apply now" (ApplyForm), Cancel gives it back to "Apply now", and after sending the section's
+ * heading takes it while the confirmation is announced.
+ */
 function Apply({ posting, reload }: { posting: ResearchPosting; reload: () => void }) {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const heading = useRef<HTMLHeadingElement>(null);
+  const applyNow = useRef<HTMLButtonElement>(null);
+  const focusNext = useRef<"apply" | "heading" | null>(null);
+
+  useEffect(() => {
+    if (focusNext.current === "apply") applyNow.current?.focus();
+    if (focusNext.current === "heading") heading.current?.focus();
+    focusNext.current = null;
+  });
 
   return (
     <section className={styles.detailSection} aria-labelledby="posting-apply">
-      <h2 id="posting-apply" className={styles.detailTitle}>
+      <h2 id="posting-apply" ref={heading} tabIndex={-1} className={styles.detailTitle}>
         Apply for this opening
       </h2>
-      {posting.viewer_application_status ? (
+      {/* The confirmation is a status message: read out when it appears, without moving focus. It
+          stays after the posting is read again, so it is said once. Empty, it takes no room. */}
+      <div role="status" className={submitted ? undefined : "rc-visually-hidden"}>
+        {submitted && (
+          <p className={styles.facts}>
+            Your application has been submitted. Follow it in <Link href="/postings/applications">My applications</Link>.
+          </p>
+        )}
+      </div>
+      {submitted ? null : posting.viewer_application_status ? (
         <p className={styles.facts}>
           You have applied to this opening. Its status: <strong>{applicationStatusMeta(posting.viewer_application_status).label}</strong>. Follow it in{" "}
           <Link href="/postings/applications">My applications</Link>.
-        </p>
-      ) : submitted ? (
-        <p className={styles.facts}>
-          Your application has been submitted. Follow it in <Link href="/postings/applications">My applications</Link>.
         </p>
       ) : !posting.is_accepting_applications ? (
         <p className={styles.facts}>This opening is no longer accepting applications.</p>
       ) : open ? (
         <ApplyForm
           postingId={posting.id}
-          onCancel={() => setOpen(false)}
+          onCancel={() => {
+            focusNext.current = "apply";
+            setOpen(false);
+          }}
           onSubmitted={() => {
+            focusNext.current = "heading";
             setSubmitted(true);
             setOpen(false);
             reload();
           }}
         />
       ) : (
-        <Button variant="primary" leadingIcon={<Send size={16} aria-hidden="true" />} onClick={() => setOpen(true)}>
+        <Button ref={applyNow} variant="primary" leadingIcon={<Send size={16} aria-hidden="true" />} onClick={() => setOpen(true)}>
           Apply now
         </Button>
       )}

@@ -114,7 +114,7 @@ export function ApplicantsInbox() {
         {unknownPosting !== undefined && (
           <EmptyState
             variant="no-results"
-            headingLevel={3}
+            headingLevel={2}
             title={unknownPosting ? <>“{unknownPosting.title}” is not in this inbox.</> : "That posting is not one of your open postings."}
             description={unknownPosting ? "The inbox gathers your open postings; this one's applications are on its own page." : "Choose one of your postings, or see all applications."}
             actions={
@@ -131,9 +131,11 @@ export function ApplicantsInbox() {
         {loading ? (
           <SkeletonList rows={3} lines={3} label="Loading your applicants" />
         ) : postings === null ? (
-          <ErrorState title="Your postings could not be loaded" kind={mine.error?.kind === "network" ? "offline" : "failed"} headingLevel={3} onRetry={mine.retry} />
+          <ErrorState title="Your postings could not be loaded" kind={mine.error?.kind === "network" ? "offline" : "failed"} headingLevel={2} onRetry={mine.retry} />
         ) : groups.length === 0 ? (
+          // P11: the inbox's own states sit under the page's h1, beside the postings' h2 groups.
           <EmptyState
+            headingLevel={2}
             title="No applications yet."
             description={
               chosen && chosen.closed.length > 0
@@ -145,6 +147,7 @@ export function ApplicantsInbox() {
         ) : shown.length === 0 && unknownPosting === undefined ? (
           <EmptyState
             variant="no-results"
+            headingLevel={2}
             title="No applications with this status."
             actions={
               <Button variant="secondary" onClick={() => go(inboxHref({ status: null, posting: query.posting }))}>

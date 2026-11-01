@@ -1,7 +1,7 @@
 "use client";
 
 import { humanizeEnum } from "../../../utils/date";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -107,6 +107,14 @@ function ResearcherPreferencesPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  // P11: only the first load replaces the page; a change or a reload keeps it, and focus and the
+  // scroll position with it. Removing or adding moves focus to the field beside the list.
+  const loadedOnce = useRef(false);
+  const topicField = useRef<HTMLInputElement>(null);
+  const keywordField = useRef<HTMLInputElement>(null);
+  const institutionField = useRef<HTMLInputElement>(null);
+  const exclusionsHeading = useRef<HTMLHeadingElement>(null);
+  const focusAfterSave = useRef<HTMLElement | null>(null);
 
   // Local state for interactive editing
   const [newTopicInput, setNewTopicInput] = useState("");
@@ -127,7 +135,7 @@ function ResearcherPreferencesPage() {
   const [careerStage, setCareerStage] = useState<string>("");
 
   const loadData = useCallback(async () => {
-    setLoading(true);
+    if (!loadedOnce.current) setLoading(true);
     setError(null);
     try {
       // 1. Fetch the signed-in account's own profile. This previously looked up a
@@ -159,6 +167,7 @@ function ResearcherPreferencesPage() {
       const msg = err instanceof Error ? err.message : "Failed to load preferences";
       setError(msg);
     } finally {
+      loadedOnce.current = true;
       setLoading(false);
     }
   }, [profileId]);
@@ -166,6 +175,13 @@ function ResearcherPreferencesPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // The fields are disabled while saving: focus moves once they are not.
+  useEffect(() => {
+    if (isSaving || !focusAfterSave.current) return;
+    focusAfterSave.current.focus();
+    focusAfterSave.current = null;
+  }, [isSaving]);
 
   // Derive active preferences map
   const rawPreferences = structuredPrefs?.raw_preferences || [];
@@ -306,6 +322,7 @@ function ResearcherPreferencesPage() {
         profile.user_id
       );
       setNewTopicInput("");
+      focusAfterSave.current = topicField.current;
       await loadData();
       setSuccessMessage(`Added "${clean}" as ${newTopicType.toLowerCase()} topic.`);
     } catch (err: unknown) {
@@ -338,6 +355,7 @@ function ResearcherPreferencesPage() {
         profile.user_id
       );
       setNewKeywordInput("");
+      focusAfterSave.current = keywordField.current;
       await loadData();
       setSuccessMessage(`Added keyword "${clean}".`);
     } catch (err: unknown) {
@@ -400,6 +418,7 @@ function ResearcherPreferencesPage() {
         profile.user_id
       );
       setNewInstitutionInput("");
+      focusAfterSave.current = institutionField.current;
       await loadData();
       setSuccessMessage(`Configured institution "${clean}" as ${newInstitutionType.toLowerCase()}.`);
     } catch (err: unknown) {
@@ -501,12 +520,13 @@ function ResearcherPreferencesPage() {
   };
 
   // Delete any preference item
-  const handleDeleteItem = async (id: string) => {
+  const handleDeleteItem = async (id: string, focusAfter: HTMLElement | null) => {
     if (!profile || isSaving) return;
     setIsSaving(true);
     setSuccessMessage(null);
     try {
       await deleteResearcherPreference(profile.id, id, profile.user_id);
+      focusAfterSave.current = focusAfter;
       await loadData();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to delete preference");
@@ -617,8 +637,10 @@ function ResearcherPreferencesPage() {
           )}
 
           <button
-            onClick={loadData}
-            disabled={isSaving}
+            onClick={() => {
+              if (!isSaving) void loadData();
+            }}
+            aria-disabled={isSaving}
             style={{
               display: "flex",
               alignItems: "center",
@@ -640,6 +662,7 @@ function ResearcherPreferencesPage() {
       </div>
 
       {/* Notifications / Alerts */}
+      <div role="status">
       {successMessage && (
         <div
           style={{
@@ -660,7 +683,9 @@ function ResearcherPreferencesPage() {
           <span>{successMessage}</span>
         </div>
       )}
+      </div>
 
+      <div role="alert">
       {error && (
         <div
           style={{
@@ -681,6 +706,7 @@ function ResearcherPreferencesPage() {
           <span>{error}</span>
         </div>
       )}
+      </div>
 
       {/* 3-State Legend */}
       <div
@@ -740,10 +766,15 @@ function ResearcherPreferencesPage() {
             {CANONICAL_OPP_TYPES.map((t) => {
               const state = getOppTypeState(t.value);
               return (
-                <div
+                <button
+                  type="button"
                   key={t.value}
                   onClick={() => handleCycleOppType(t.value, t.label)}
                   style={{
+                    width: "100%",
+                    font: "inherit",
+                    textAlign: "left",
+                    color: "inherit",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
@@ -784,7 +815,7 @@ function ResearcherPreferencesPage() {
                   >
                     {humanizeEnum(state)}
                   </span>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -814,10 +845,15 @@ function ResearcherPreferencesPage() {
             {CANONICAL_DELIVERY_MODES.map((m) => {
               const state = getDeliveryModeState(m.value);
               return (
-                <div
+                <button
+                  type="button"
                   key={m.value}
                   onClick={() => handleCycleDeliveryMode(m.value, m.label)}
                   style={{
+                    width: "100%",
+                    font: "inherit",
+                    textAlign: "left",
+                    color: "inherit",
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
@@ -858,7 +894,7 @@ function ResearcherPreferencesPage() {
                   >
                     {humanizeEnum(state)}
                   </span>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -907,11 +943,15 @@ function ResearcherPreferencesPage() {
                     }}
                   >
                     <span>{isExcl ? `Excluded: ${top.display_label}` : top.display_label}</span>
-                    <X
-                      size={13}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => handleDeleteItem(top.id)}
-                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteItem(top.id, topicField.current)}
+                      aria-label={`Remove ${top.display_label}`}
+                      title={`Remove ${top.display_label}`}
+                      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: "24px", minHeight: "24px", margin: "-6px -6px -6px -2px", padding: 0, border: "none", background: "none", color: "inherit", cursor: "pointer" }}
+                    >
+                      <X size={13} aria-hidden="true" />
+                    </button>
                   </span>
                 );
               })}
@@ -920,6 +960,8 @@ function ResearcherPreferencesPage() {
           {/* Add Topic Input */}
           <form onSubmit={handleAddTopic} style={{ display: "flex", gap: "8px", marginBottom: "12px" }}>
             <input
+              ref={topicField}
+              aria-label="Topic"
               type="text"
               placeholder="e.g. reinforcement-learning"
               value={newTopicInput}
@@ -937,6 +979,7 @@ function ResearcherPreferencesPage() {
               }}
             />
             <select
+              aria-label="Prefer or exclude this topic"
               value={newTopicType}
               onChange={(e) => setNewTopicType(e.target.value as PreferenceType)}
               style={{
@@ -992,16 +1035,22 @@ function ResearcherPreferencesPage() {
                     }}
                   >
                     <span>{kw.preference_value}</span>
-                    <X
-                      size={12}
-                      style={{ cursor: "pointer" }}
-                      onClick={() => handleDeleteItem(kw.id)}
-                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteItem(kw.id, keywordField.current)}
+                      aria-label={`Remove ${kw.preference_value}`}
+                      title={`Remove ${kw.preference_value}`}
+                      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", minWidth: "24px", minHeight: "24px", margin: "-6px -6px -6px -2px", padding: 0, border: "none", background: "none", color: "inherit", cursor: "pointer" }}
+                    >
+                      <X size={12} aria-hidden="true" />
+                    </button>
                   </span>
                 ))}
             </div>
             <form onSubmit={handleAddKeyword} style={{ display: "flex", gap: "8px" }}>
               <input
+                ref={keywordField}
+                aria-label="Keyword"
                 type="text"
                 placeholder="Add keyword (e.g. transformer, graph-nn)"
                 value={newKeywordInput}
@@ -1070,7 +1119,7 @@ function ResearcherPreferencesPage() {
                   key={reg}
                   onClick={() => {
                     if (match) {
-                      handleDeleteItem(match.id);
+                      handleDeleteItem(match.id, null);
                     } else {
                       handleAddRegion(reg, "PREFERRED");
                     }
@@ -1105,6 +1154,8 @@ function ResearcherPreferencesPage() {
           {/* Add Institution */}
           <form onSubmit={handleAddInstitution} style={{ display: "flex", gap: "8px", marginTop: "14px" }}>
             <input
+              ref={institutionField}
+              aria-label="Institution"
               type="text"
               placeholder="Target / Exclude Institution..."
               value={newInstitutionInput}
@@ -1122,6 +1173,7 @@ function ResearcherPreferencesPage() {
               }}
             />
             <select
+              aria-label="Prefer or exclude this institution"
               value={newInstitutionType}
               onChange={(e) => setNewInstitutionType(e.target.value as PreferenceType)}
               style={{
@@ -1193,6 +1245,7 @@ function ResearcherPreferencesPage() {
             {/* Min Funding Amount */}
             <div style={{ display: "flex", gap: "8px" }}>
               <input
+                aria-label="Minimum funding amount"
                 type="number"
                 placeholder="Min Funding Amount"
                 value={minFunding}
@@ -1209,6 +1262,7 @@ function ResearcherPreferencesPage() {
                 }}
               />
               <select
+                aria-label="Currency"
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
                 style={{
@@ -1229,10 +1283,11 @@ function ResearcherPreferencesPage() {
 
             {/* Academic Level */}
             <div>
-              <span style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--text-main)", marginBottom: "4px" }}>
+              <label htmlFor="preference-academic-level" style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--text-main)", marginBottom: "4px" }}>
                 Academic Level:
-              </span>
+              </label>
               <select
+                id="preference-academic-level"
                 value={academicLevel}
                 onChange={(e) => setAcademicLevel(e.target.value)}
                 style={{
@@ -1256,10 +1311,11 @@ function ResearcherPreferencesPage() {
 
             {/* Career Stage */}
             <div>
-              <span style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--text-main)", marginBottom: "4px" }}>
+              <label htmlFor="preference-career-stage" style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--text-main)", marginBottom: "4px" }}>
                 Career Stage:
-              </span>
+              </label>
               <select
+                id="preference-career-stage"
                 value={careerStage}
                 onChange={(e) => setCareerStage(e.target.value)}
                 style={{
@@ -1283,7 +1339,7 @@ function ResearcherPreferencesPage() {
 
             <button
               onClick={handleSaveFundingAndAcademic}
-              disabled={isSaving}
+              aria-disabled={isSaving}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -1318,7 +1374,7 @@ function ResearcherPreferencesPage() {
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
             <ShieldAlert size={18} color="var(--rc-danger)" />
-            <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--text-main)" }}>
+            <h2 ref={exclusionsHeading} tabIndex={-1} style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--text-main)" }}>
               Explicit Exclusions
             </h2>
           </div>
@@ -1349,7 +1405,7 @@ function ResearcherPreferencesPage() {
                       <span style={{ color: "var(--text-main)" }}>{excl.display_label}</span>
                     </div>
                     <button
-                      onClick={() => handleDeleteItem(excl.id)}
+                      onClick={() => handleDeleteItem(excl.id, exclusionsHeading.current)}
                       style={{
                         background: "none",
                         border: "none",

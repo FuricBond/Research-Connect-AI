@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Send } from "lucide-react";
 import { ApiError, applyToPosting } from "../../services/api";
 import { Button } from "../ui/Button/Button";
@@ -19,6 +19,12 @@ export function ApplyForm({ postingId, onCancel, onSubmitted }: { postingId: str
   const [sending, setSending] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const inFlight = useRef(false);
+  const coverNoteRef = useRef<HTMLTextAreaElement>(null);
+
+  // P11: the form replaces "Apply now", so its first field takes the focus that button had.
+  useEffect(() => {
+    coverNoteRef.current?.focus();
+  }, []);
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -47,7 +53,7 @@ export function ApplyForm({ postingId, onCancel, onSubmitted }: { postingId: str
 
   return (
     <form className={styles.applyForm} onSubmit={onSubmit}>
-      <TextArea id="cover-note" label="Statement of interest" hint="What draws you to this work." maxLength={5000} rows={6} value={coverNote} onChange={(event) => setCoverNote(event.target.value)} />
+      <TextArea ref={coverNoteRef} id="cover-note" label="Statement of interest" hint="What draws you to this work." maxLength={5000} rows={6} value={coverNote} onChange={(event) => setCoverNote(event.target.value)} />
       <div className={styles.formGrid}>
         <TextInput id="apply-email" label="Contact email" type="email" autoComplete="email" value={contactEmail} onChange={(event) => setContactEmail(event.target.value)} />
         <TextInput id="apply-portfolio" label="CV or portfolio link" hint="Optional." type="url" value={portfolioUrl} onChange={(event) => setPortfolioUrl(event.target.value)} />

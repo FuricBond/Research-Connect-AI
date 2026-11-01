@@ -229,6 +229,11 @@
   border-color: var(--rc-border);
 }
 
+/* Holds the status menu for focus (StatusMenu) without being a box of its own. */
+.statusHolder {
+  display: contents;
+}
+
 .moreTrigger {
   justify-content: center;
   min-width: var(--rc-target-min);
