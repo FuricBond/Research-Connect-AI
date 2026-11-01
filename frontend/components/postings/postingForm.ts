@@ -8,6 +8,7 @@
  * picker); they are never sent, so they are kept.
  */
 
+import { safeExternalUrl } from "../../utils/safeUrl";
 import type {
   CommitmentType,
   CompensationType,
@@ -20,18 +21,7 @@ import type {
 } from "../../types/posting";
 import { STRUCTURED_OPENING_TYPES } from "../../types/posting";
 
-export const POSTING_TYPES: PostingType[] = ["PROJECT", "THESIS_TOPIC", "COLLABORATION", "LAB_ROTATION", "INTERNSHIP", "RESEARCH_ASSISTANTSHIP", "POSTDOC"];
-export const WORK_MODES: PostingWorkMode[] = ["ONSITE", "REMOTE", "HYBRID"];
-export const COMPENSATION_TYPES: CompensationType[] = ["UNSPECIFIED", "STIPEND", "SALARY", "HOURLY", "SCHOLARSHIP", "GRANT_FUNDED", "UNPAID"];
-export const COMMITMENT_TYPES: CommitmentType[] = ["FULL_TIME", "PART_TIME", "FLEXIBLE"];
-/** backend COMPENSATION_PERIODS */
-export const COMPENSATION_PERIODS: { value: string; label: string }[] = [
-  { value: "HOUR", label: "Hour" },
-  { value: "WEEK", label: "Week" },
-  { value: "MONTH", label: "Month" },
-  { value: "YEAR", label: "Year" },
-  { value: "TOTAL", label: "In total" },
-];
+export { COMMITMENT_TYPES, COMPENSATION_PERIODS, COMPENSATION_TYPES, POSTING_TYPES, WORK_MODES } from "./postingOptions";
 
 export const LIMITS = { titleMin: 5, titleMax: 300, summaryMax: 500, descriptionMin: 20, skillsMax: 25, positionsMax: 100, textMax: 255, hoursMax: 80, durationMax: 120, amountMax: 100_000_000 } as const;
 
@@ -150,14 +140,7 @@ export function parseSkills(value: string): string[] {
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-function isWebAddress(value: string): boolean {
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:";
-  } catch {
-    return false;
-  }
-}
+const isWebAddress = (value: string) => safeExternalUrl(value.trim()) !== null;
 
 function wholeNumber(value: string, min: number, max: number): boolean {
   const n = Number(value);

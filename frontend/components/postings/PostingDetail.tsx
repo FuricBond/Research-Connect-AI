@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ExternalLink, Mail, Send } from "lucide-react";
@@ -7,7 +8,8 @@ import { useApiResource } from "../../hooks/useApiResource";
 import { fetchPostingFit, fetchPosting } from "../../services/api";
 import type { ResearchPosting } from "../../types/posting";
 import { POSTING_TYPE_LABELS, WORK_MODE_LABELS } from "../../types/posting";
-import { isNewer, MY_POSTINGS_HREF, webAddress } from "../../utils/postings";
+import { isNewer, MY_POSTINGS_HREF } from "../../utils/postingLinks";
+import { safeExternalUrl } from "../../utils/safeUrl";
 import { applicationStatusMeta, postingStatusMeta } from "../../utils/postingStatus";
 import { useSession } from "../auth/SessionProvider";
 import { DeadlineCountdown } from "../research/DeadlineCountdown";
@@ -19,9 +21,14 @@ import { PageHeader } from "../ui/PageHeader/PageHeader";
 import { Alert, ErrorState, SkeletonList, SkeletonText } from "../ui/State/State";
 import { shortDate } from "../workspace/workflow";
 import { Applications, ApplyForm } from "./lazy";
-import { ManagePosting } from "./PostingManage";
 import { OpeningTermsPanel } from "./OpeningTermsPanel";
 import styles from "./Faculty.module.css";
+
+// For its author only. As tall as the controls it stands for, so what is below them stays put.
+const ManagePosting = dynamic(() => import("./PostingManage").then((loaded) => loaded.ManagePosting), {
+  ssr: false,
+  loading: () => <div className={styles.manageLoading} aria-hidden="true" />,
+});
 
 /**
  * A posting's own page (`/postings/[id]`). Everyone who may see it reads the same posting; its
@@ -79,7 +86,11 @@ export function PostingDetail({ postingId }: { postingId: string | null }) {
 
 function PostingView({ posting, onChanged, reload, student }: { posting: ResearchPosting; onChanged: (posting: ResearchPosting) => void; reload: () => void; student: boolean }) {
   const place = posting.location || posting.country || null;
-  const official = webAddress(posting.external_url);
+  const official = safeExternalUrl(posting.external_url);
+  // As a call's page does: the tab says which posting this is once it is known (audit FUNC-10).
+  useEffect(() => {
+    document.title = `${posting.title} — ResearchConnect AI`;
+  }, [posting.title]);
   const author = posting.is_owner;
 
   return (

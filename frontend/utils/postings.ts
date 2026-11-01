@@ -7,6 +7,7 @@
  */
 
 import type { ApplicationStatus, PostingApplication, PostingStatus, ResearchPosting } from "../types/posting";
+import { APPLICANTS_HREF } from "./postingLinks";
 
 // ── Applications: the author's review decisions ──────────────────────────────
 
@@ -161,9 +162,8 @@ export function canEdit(posting: Pick<ResearchPosting, "is_owner" | "status">): 
 // ── Addresses ────────────────────────────────────────────────────────────────
 
 export const POSTING_STATUSES: readonly PostingStatus[] = ["DRAFT", "OPEN", "CLOSED", "FILLED", "CANCELLED", "ARCHIVED"];
-export const MY_POSTINGS_HREF = "/postings?view=mine";
-export const APPLICANTS_HREF = "/postings/applicants";
-export const NEW_POSTING_HREF = "/postings/new";
+export { isNewer, MY_POSTINGS_HREF, NEW_POSTING_HREF } from "./postingLinks";
+export { APPLICANTS_HREF };
 export const MINE_PAGE_SIZE = 25;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -240,20 +240,4 @@ export function inboxPostings(postings: readonly ResearchPosting[]): { read: Res
     later: open.slice(INBOX_POSTINGS),
     closed: own.filter((posting) => posting.status !== "OPEN").sort(newestFirst),
   };
-}
-
-/** Only web addresses become links: text someone typed is never a script or another scheme. */
-export function webAddress(value: string | null | undefined): string | null {
-  if (!value) return null;
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
-  } catch {
-    return null;
-  }
-}
-
-/** Whether a server answer is at least as new as another of the same object. */
-export function isNewer(candidate: { updated_at: string }, than: { updated_at: string }): boolean {
-  return (Date.parse(candidate.updated_at) || 0) >= (Date.parse(than.updated_at) || 0);
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { safeExternalUrl } from "../../utils/safeUrl";
 import Link from "next/link";
 import { useState } from "react";
 import { Compass, Download, ExternalLink, Megaphone } from "lucide-react";
@@ -95,7 +96,7 @@ export function PaperPanel({ item, onClose, savedItemId, onSaved, onChoose }: Pa
   const facts = [venue, work.publication_year ? String(work.publication_year) : null, workTypeLabel(work.work_type)].filter(Boolean).join(" · ");
   const reasons = topReasons(explanation, 3);
   const summary = explanation ? plainSummary(explanation, item.rank) : null;
-  const publisher = work.landing_page_url ?? (work.doi ? doiHref(work.doi) : null);
+  const publisher = safeExternalUrl(work.landing_page_url) ?? (work.doi ? doiHref(work.doi) : null);
 
   const exportCitation = async () => {
     if (!savedItemId || exporting) return;

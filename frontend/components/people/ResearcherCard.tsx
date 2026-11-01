@@ -1,5 +1,6 @@
 "use client";
 
+import { safeExternalUrl } from "../../utils/safeUrl";
 import Link from "next/link";
 import { useId } from "react";
 import type { CollaborationStatus, PeerMatchTier, PeerProfile } from "../../types/peer";
@@ -56,7 +57,7 @@ function initials(name: string | null): string {
 
 function paperHref(paper: MatchingPaper): string | null {
   if (paper.doi) return `https://doi.org/${paper.doi}`;
-  return paper.landing_page_url;
+  return safeExternalUrl(paper.landing_page_url);
 }
 
 /** Matching papers shown on the card; the rest are under "How this was scored". */

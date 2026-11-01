@@ -1,5 +1,6 @@
 "use client";
 
+import { safeExternalUrl } from "../../utils/safeUrl";
 import Link from "next/link";
 import { useId, type ReactNode } from "react";
 import { ExternalLink } from "lucide-react";
@@ -53,6 +54,7 @@ export function OpportunityCard({ call, match, saved = false, onSaved, onFollow,
   const generatedTitleId = `call-${useId()}`;
   const titleId = givenTitleId ?? generatedTitleId;
   const deadline = workspaceDeadline(call);
+  const source = safeExternalUrl(call.website_url);
   const facts = [call.organizer || call.publisher, call.location, deliveryModeLabel(call.delivery_mode)].filter(Boolean).join(" · ");
   const indexing = (call.indexing ?? []).filter((name) => typeof name === "string" && name.trim());
   const risk = riskPresentation(call.risk_level, { isPredatory: call.is_predatory_flag });
@@ -113,8 +115,8 @@ export function OpportunityCard({ call, match, saved = false, onSaved, onFollow,
 
       <div className={styles.actions}>
         <SaveCallButton opportunityId={call.id} isSaved={saved} onSaved={onSaved} describedBy={titleId} interactionProfileId={interactionProfileId} />
-        {call.website_url && (
-          <a href={call.website_url} className={styles.action} target="_blank" rel="noopener noreferrer" aria-describedby={titleId}>
+        {source && (
+          <a href={source} className={styles.action} target="_blank" rel="noopener noreferrer" aria-describedby={titleId}>
             <ExternalLink size={16} aria-hidden="true" />
             Source
             <span className="rc-visually-hidden"> (opens in new tab)</span>

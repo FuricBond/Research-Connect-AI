@@ -1,5 +1,6 @@
 "use client";
 
+import { safeExternalUrl } from "../../utils/safeUrl";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Download, Trash2 } from "lucide-react";
@@ -44,7 +45,7 @@ function readingHref(status: ReadingStatus | null, page = 1): string {
 
 function workHref(item: ReadingListItem): string | null {
   if (item.work.doi) return doiHref(item.work.doi);
-  return item.work.landing_page_url;
+  return safeExternalUrl(item.work.landing_page_url);
 }
 
 function authorLine(authors: string[]): string {

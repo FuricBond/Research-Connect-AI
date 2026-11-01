@@ -2,7 +2,7 @@
 
 import type { OpeningTerms } from "../../types/posting";
 import { COMMITMENT_TYPE_LABELS, COMPENSATION_TYPE_LABELS } from "../../types/posting";
-import { COMPENSATION_PERIODS } from "./postingForm";
+import { COMPENSATION_PERIODS } from "./postingOptions";
 import styles from "./Faculty.module.css";
 
 /**

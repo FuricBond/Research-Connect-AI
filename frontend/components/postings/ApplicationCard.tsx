@@ -1,5 +1,7 @@
 "use client";
 
+import { safeExternalUrl } from "../../utils/safeUrl";
+import { Button } from "../ui/Button/Button";
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronDown, ChevronUp, EyeOff, Link2 } from "lucide-react";
@@ -32,6 +34,7 @@ export interface ApplicationCardProps {
  */
 export function ApplicationCard({ application, onTransition, busy = false }: ApplicationCardProps) {
   const [showHistory, setShowHistory] = useState(false);
+  const portfolio = safeExternalUrl(application.portfolio_url);
   const isAuthorView = application.is_posting_author;
 
   return (
@@ -68,10 +71,10 @@ export function ApplicationCard({ application, onTransition, busy = false }: App
             {application.contact_email}
           </a>
         )}
-        {application.portfolio_url && isAuthorView && (
+        {portfolio && isAuthorView && (
           <a
             className="posting-meta-item"
-            href={application.portfolio_url}
+            href={portfolio}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -99,32 +102,30 @@ export function ApplicationCard({ application, onTransition, busy = false }: App
       {application.allowed_transitions.length > 0 && (
         <div className="posting-card-actions">
           {application.allowed_transitions.map((target) => (
-            <button
+            <Button
               key={target}
-              type="button"
-              className={`posting-btn${
-                target === "OFFERED" || target === "ACCEPTED" ? " primary" : ""
-              }${target === "REJECTED" || target === "WITHDRAWN" ? " danger" : ""}`}
+              size="sm"
+              variant={target === "OFFERED" || target === "ACCEPTED" ? "primary" : target === "REJECTED" || target === "WITHDRAWN" ? "danger" : "secondary"}
               disabled={busy}
               onClick={() => onTransition?.(application, target)}
             >
               {APPLICATION_STATUS_LABELS[target]}
-            </button>
+            </Button>
           ))}
         </div>
       )}
 
       {application.status_history.length > 0 && (
         <div>
-          <button
-            type="button"
-            className="posting-btn"
+          <Button
+            size="sm"
+            variant="secondary"
             onClick={() => setShowHistory((open) => !open)}
             aria-expanded={showHistory}
+            leadingIcon={showHistory ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
           >
-            {showHistory ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             History ({application.status_history.length})
-          </button>
+          </Button>
           {showHistory && (
             <ul style={{ margin: "0.5rem 0 0", paddingLeft: "1.1rem", fontSize: "0.8125rem" }}>
               {application.status_history.map((event, index) => (

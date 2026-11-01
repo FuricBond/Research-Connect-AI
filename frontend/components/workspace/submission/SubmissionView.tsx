@@ -1,5 +1,6 @@
 "use client";
 
+import { safeExternalUrl } from "../../../utils/safeUrl";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Check, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { useApiResource } from "../../../hooks/useApiResource";
@@ -41,14 +42,7 @@ const toDraft = (submission: ResearchSubmission): Draft => ({
   notes: submission.notes ?? "",
 });
 
-const isWebAddress = (value: string) => {
-  try {
-    const url = new URL(value);
-    return url.protocol === "http:" || url.protocol === "https:";
-  } catch {
-    return false;
-  }
-};
+const isWebAddress = (value: string) => safeExternalUrl(value) !== null;
 
 /**
  * One submission: where it is in its lifecycle, whether it is ready (the server's readiness
@@ -403,8 +397,8 @@ function SubmissionDetails({ submission, can, onSaved }: { submission: ResearchS
               </div>
             ))}
         </dl>
-        {submission.submission_url && isWebAddress(submission.submission_url) && (
-          <a href={submission.submission_url} target="_blank" rel="noopener noreferrer" className={styles.external}>
+        {safeExternalUrl(submission.submission_url) && (
+          <a href={safeExternalUrl(submission.submission_url) ?? undefined} target="_blank" rel="noopener noreferrer" className={styles.external}>
             Open the submission portal
             <ExternalLink size={14} aria-hidden="true" />
             <span className="rc-visually-hidden"> (opens in a new tab)</span>
