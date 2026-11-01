@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test, type Browser, type BrowserContextOptions, type Page } from "@playwright/test";
 import { API_URL, DEMO, DEMO_PASSWORD, signInThroughTheForm } from "./support";
+import { normalizePostings, normalizeRecommendations, type Ranked } from "./visual-normalize";
 
 /**
  * P12 — the look, locked (FRONTEND_REDESIGN_PLAN.md §24): 15 routes × 1440/768/390 × light/dark, in the
@@ -12,8 +13,12 @@ import { API_URL, DEMO, DEMO_PASSWORD, signInThroughTheForm } from "./support";
  * The demo data's dates are relative to when it was seeded. So the page's clock is fixed, and every
  * date in an API answer is moved by the same distance and set to noon: "in 30 days" and "15 Feb 2030"
  * read the same on any day this runs. Run against a stack seeded within the last few hours. Postings
- * published together and recommendations with equal scores tie, and their order then follows each
- * seed's random ids, so ties are put in title order.
+ * seeded together and recommendations with equal scores tie, and their order then follows each seed's
+ * random ids, so those ties, and only those, are put in title order (visual-normalize.ts): an order
+ * the API actually decides is left as it is, so a change in it is a difference here.
+ *
+ * Any difference fails (audit VIS-01): 1% of a tall page is 20,000 pixels, enough to hide a changed
+ * brand colour or a missing link. Capture is deterministic, so no tolerance is needed.
  *
  * A failed comparison restarts Playwright's worker, and with it this file's setup: the sessions are
  * kept on disk (git-ignored, throwaway accounts on a throwaway stack) or the sign-in limit would stop
@@ -29,7 +34,6 @@ const SESSIONS = path.join(__dirname, "..", "test-results", "visual-sessions.jso
 
 type Role = "visitor" | "student" | "faculty" | "admin";
 type State = Awaited<ReturnType<typeof signedIn>>;
-type Ranked = { rank: number; final_score: number; opportunity: { title: string } };
 
 /** Fixed by name so the address, not a generated id, says which screen it is. */
 const SCREENS: { name: string; role: Role; path: () => string }[] = [
@@ -90,10 +94,10 @@ async function screenPage(browser: Browser, options: BrowserContextOptions, them
     if (route.request().method() !== "GET") return route.continue();
     const response = await route.fetch();
     if (!(response.headers()["content-type"] ?? "").includes("json")) return route.fulfill({ response });
-    const answer = moved(await response.json(), by) as { postings?: { title: string }[]; recommendations?: Ranked[] };
-    answer.postings?.sort((a, b) => a.title.localeCompare(b.title));
-    answer.recommendations?.sort((a, b) => Number((b.final_score - a.final_score).toFixed(6)) || a.opportunity.title.localeCompare(b.opportunity.title));
-    answer.recommendations?.forEach((entry, index) => (entry.rank = index + 1));
+    const original = await response.json();
+    const answer = moved(original, by) as { postings?: unknown[]; recommendations?: unknown[] };
+    if (Array.isArray(original.postings)) answer.postings = normalizePostings(original.postings, answer.postings ?? [], route.request().url());
+    if (Array.isArray(answer.recommendations)) answer.recommendations = normalizeRecommendations(answer.recommendations as Ranked[]);
     return route.fulfill({ response, body: JSON.stringify(answer) });
   });
   const page = await context.newPage();

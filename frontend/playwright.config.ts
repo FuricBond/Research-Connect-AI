@@ -22,7 +22,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   timeout: 120_000,
-  expect: { timeout: 20_000, toHaveScreenshot: { maxDiffPixelRatio: Number(process.env.E2E_VISUAL_RATIO ?? 0.01) } },
+  expect: { timeout: 20_000, toHaveScreenshot: { maxDiffPixelRatio: Number(process.env.E2E_VISUAL_RATIO ?? 0) } },
   outputDir: "test-results",
   use: {
     baseURL: process.env.E2E_WEB_URL ?? "http://localhost:3300",
