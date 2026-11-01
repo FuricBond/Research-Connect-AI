@@ -41,6 +41,43 @@ describe("Button", () => {
     expect(button).toHaveAttribute("aria-busy", "true");
   });
 
+  it("keeps focus when disabled while it has it, and a press does nothing (P11)", () => {
+    const onClick = vi.fn();
+    const onSubmit = vi.fn((event: React.FormEvent) => event.preventDefault());
+    const form = (disabled: boolean) => (
+      <form onSubmit={onSubmit}>
+        <Button type="submit" disabled={disabled} onClick={onClick}>
+          Send
+        </Button>
+      </form>
+    );
+    const { rerender } = render(form(false));
+    const button = screen.getByRole("button", { name: "Send" });
+    button.focus();
+    rerender(form(true));
+    expect(button).toHaveFocus();
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveAttribute("aria-disabled", "true");
+    fireEvent.click(button);
+    expect(onClick).not.toHaveBeenCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
+    rerender(form(false));
+    expect(button).not.toHaveAttribute("aria-disabled");
+    fireEvent.click(button);
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
+  it("holds a working button even without focus; any other disabled button is natively disabled (P11)", () => {
+    const { rerender } = render(
+      <Button loading disabled>
+        Send
+      </Button>
+    );
+    expect(screen.getByRole("button", { name: "Send" })).toHaveAttribute("aria-disabled", "true");
+    rerender(<Button disabled>Send</Button>);
+    expect(screen.getByRole("button", { name: "Send" })).toBeDisabled();
+  });
+
   it("does not act when disabled", () => {
     const onClick = vi.fn();
     render(

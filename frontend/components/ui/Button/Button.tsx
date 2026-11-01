@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import { forwardRef, type ComponentProps, type ReactNode } from "react";
+import { forwardRef, useImperativeHandle, useRef, type ComponentProps, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { cx } from "../../../utils/cx";
 import styles from "./Button.module.css";
@@ -37,16 +39,25 @@ export interface ButtonProps extends Appearance, ComponentProps<"button"> {
 
 /** DESIGN_SYSTEM.md §8.1. A native button; `type` defaults to "button". */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant, size, fullWidth, leadingIcon, trailingIcon, loading = false, className, children, type = "button", disabled, ...rest },
+  { variant, size, fullWidth, leadingIcon, trailingIcon, loading = false, className, children, type = "button", disabled, onClick, ...rest },
   ref
 ) {
+  // P11: natively disabling a button that has focus (the person just pressed it) drops focus to the
+  // page, and a refusal then leaves them nowhere. Held instead, while it works or has focus:
+  // aria-disabled, looks the same, keeps focus, and a press does nothing (a submit's included).
+  const own = useRef<HTMLButtonElement>(null);
+  useImperativeHandle(ref, () => own.current as HTMLButtonElement);
+  const focused = own.current !== null && own.current === own.current.ownerDocument.activeElement;
+  const held = Boolean(disabled) && (loading || focused);
   return (
     <button
-      ref={ref}
+      ref={own}
       type={type}
       className={buttonClass({ variant, size, fullWidth }, className, loading ? styles.loading : undefined)}
-      disabled={disabled}
+      disabled={disabled && !held}
+      aria-disabled={held || undefined}
       aria-busy={loading || undefined}
+      onClick={held ? (event) => event.preventDefault() : onClick}
       {...rest}
     >
       {loading ? <Loader2 className={styles.spinner} aria-hidden="true" /> : leadingIcon}

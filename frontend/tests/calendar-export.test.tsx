@@ -130,7 +130,8 @@ describe("calendar page export button", () => {
     await waitFor(() => expect(button).toBeEnabled());
 
     fireEvent.click(button);
-    expect(await screen.findByRole("button", { name: /Exporting/ })).toBeDisabled();
+    // P11: held while it works, so it keeps focus (aria-disabled; a press does nothing).
+    expect(await screen.findByRole("button", { name: /Exporting/ })).toHaveAttribute("aria-disabled", "true");
 
     answer(new Response(ICS, { status: 200 }));
     expect(await screen.findByRole("button", { name: /Export calendar \(\.ics\)/i })).toBeEnabled();
