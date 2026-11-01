@@ -264,6 +264,16 @@
   list-style: none;
 }
 
+/* A long topic name wraps inside its chip. */
+.chips > li {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.chips button {
+  overflow-wrap: anywhere;
+}
+
 .controls {
   display: flex;
   flex-wrap: wrap;

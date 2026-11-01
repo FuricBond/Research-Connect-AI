@@ -28,6 +28,9 @@ body {
   /* Dates, counts, durations and scores line up; prose that needs proportional figures uses
      .rc-reading. */
   font-variant-numeric: tabular-nums;
+  /* P11: names, titles and links come from people; an unbroken one breaks rather than widen the
+     page (WCAG 1.4.10). It only splits a word that would not otherwise fit on a line. */
+  overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

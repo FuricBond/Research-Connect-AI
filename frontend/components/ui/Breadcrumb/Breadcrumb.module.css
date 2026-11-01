@@ -60,7 +60,10 @@
   display: none;
   align-items: center;
   gap: var(--rc-space-1);
+  max-width: 100%;
   min-height: var(--rc-target-min);
+  /* The way back names its page; a long name wraps. */
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 639px) {

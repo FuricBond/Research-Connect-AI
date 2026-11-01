@@ -140,6 +140,11 @@ a.itemTitle:hover {
   color: var(--rc-text-muted);
 }
 
+/* A long author or institution wraps inside the row. */
+.meta > * {
+  min-width: 0;
+}
+
 .reason {
   display: -webkit-box;
   -webkit-box-orient: vertical;
