@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SimilarResearchPage } from "../../components/pages/SimilarResearch";
 
 export const metadata: Metadata = {
-  title: "Similar Research — ResearchConnect AI",
+  title: "Similar papers — ResearchConnect AI",
   description:
     "Discover academically similar research works using semantic embedding distance and canonical topic DAG proximity.",
 };

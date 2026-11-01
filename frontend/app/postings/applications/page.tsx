@@ -5,6 +5,7 @@ import Link from "next/link";
 import "../../../styles/postings.css";
 import { AlertCircle, ArrowLeft, RefreshCw } from "lucide-react";
 import { ApplicationCard } from "../../../components/postings/ApplicationCard";
+import { Button } from "../../../components/ui/Button/Button";
 import type {
   ApplicationStatus,
   ApplicationSummaryResponse,
@@ -85,17 +86,16 @@ function MyApplicationsPage() {
 
       <header className="postings-header">
         <div className="postings-title-group">
-          <h1>My Applications</h1>
+          <h1>My applications</h1>
           <p className="postings-subtitle">
             Applications you have submitted to funded research openings. You can withdraw at any
             point, and respond once an offer is extended; review decisions rest with the posting’s
             author.
           </p>
         </div>
-        <button type="button" className="posting-btn" onClick={load} disabled={loading}>
-          <RefreshCw size={13} aria-hidden="true" />
+        <Button variant="secondary" size="sm" onClick={load} disabled={loading} leadingIcon={<RefreshCw size={14} aria-hidden="true" />}>
           Refresh
-        </button>
+        </Button>
       </header>
 
       {/* P12: the row keeps its place while the counts load, so what is below it stays put. */}
