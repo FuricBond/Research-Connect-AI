@@ -41,6 +41,7 @@ from app.models.research_posting_application import (
 )
 from app.models.research_profile import ResearchProfileModel
 from app.models.user import UserModel
+from app.services.research_posting_service import ResearchPostingService
 from app.schemas.research_posting_application import (
     ApplicantSummarySchema,
     ApplicationCreate,
@@ -62,6 +63,26 @@ APPLICANT_TRANSITIONS: dict[ApplicationStatus, frozenset[ApplicationStatus]] = {
     ApplicationStatus.OFFERED: frozenset(
         {ApplicationStatus.ACCEPTED, ApplicationStatus.DECLINED, ApplicationStatus.WITHDRAWN}
     ),
+}
+
+# What an applicant reads about their application: the interface's own words for each status
+# (frontend utils/postingStatus.ts), so a notification and the page never disagree.
+APPLICANT_STATUS_WORDS = {
+    ApplicationStatus.SUBMITTED.value: "Submitted",
+    ApplicationStatus.UNDER_REVIEW.value: "Under review",
+    ApplicationStatus.SHORTLISTED.value: "Shortlisted",
+    ApplicationStatus.OFFERED.value: "Offer made",
+    ApplicationStatus.ACCEPTED.value: "Accepted",
+    ApplicationStatus.REJECTED.value: "Not selected",
+    ApplicationStatus.DECLINED.value: "Declined",
+    ApplicationStatus.WITHDRAWN.value: "Withdrawn",
+}
+
+# What an author reads when the applicant acted.
+APPLICANT_ACTION_WORDS = {
+    ApplicationStatus.ACCEPTED.value: "accepted your offer",
+    ApplicationStatus.DECLINED.value: "declined your offer",
+    ApplicationStatus.WITHDRAWN.value: "withdrew their application",
 }
 
 # Transitions the posting's author may perform.
@@ -137,6 +158,12 @@ class ResearchPostingApplicationService:
         if posting.status != PostingStatus.OPEN.value:
             raise ApplicationNotAcceptedError(
                 "This posting is not open, so it cannot receive applications."
+            )
+        # Decision 1 (audit SEC-03): an author who is not verified receives no applications,
+        # however the request got here.
+        if not ResearchPostingService.can_recruit(posting.author_user):
+            raise ApplicationNotAcceptedError(
+                "This posting cannot receive applications at the moment."
             )
         if PostingType(posting.posting_type) not in PostingType.structured_openings():
             raise ApplicationNotAcceptedError(
@@ -339,10 +366,10 @@ class ResearchPostingApplicationService:
                 db,
                 recipient_user_id=application.applicant_user_id,
                 notification_type=NotificationType.SYSTEM,
-                title=f"Application {target_status.value.replace('_', ' ').lower()}",
+                title=f"Application: {APPLICANT_STATUS_WORDS.get(target_status.value, target_status.value)}",
                 body=(
-                    f"Your application to “{application.posting.title}” is now "
-                    f"{target_status.value.replace('_', ' ').lower()}."
+                    f"Your application to “{application.posting.title}”: "
+                    f"{APPLICANT_STATUS_WORDS.get(target_status.value, target_status.value)}."
                     + (f" {decision_reason}" if decision_reason else "")
                 ),
                 source_id=application.posting_id,
@@ -358,10 +385,10 @@ class ResearchPostingApplicationService:
                 db,
                 recipient_user_id=application.posting.author_user_id,
                 notification_type=NotificationType.SYSTEM,
-                title=f"Applicant {target_status.value.lower()} an application",
+                title=f"An applicant {APPLICANT_ACTION_WORDS.get(target_status.value, 'updated their application')}",
                 body=(
-                    f"An applicant to “{application.posting.title}” is now "
-                    f"{target_status.value.replace('_', ' ').lower()}."
+                    f"An applicant to “{application.posting.title}” "
+                    f"{APPLICANT_ACTION_WORDS.get(target_status.value, 'updated their application')}."
                 ),
                 source_id=application.posting_id,
                 metadata={

@@ -17,7 +17,7 @@ import logging
 from typing import Sequence
 import uuid
 
-from sqlalchemy import Select, func, or_, select
+from sqlalchemy import Select, and_, func, or_, select
 from sqlalchemy.orm import Session, joinedload, selectinload
 
 from app.models.research_posting import (
@@ -62,6 +62,12 @@ VALID_TRANSITIONS: dict[PostingStatus, frozenset[PostingStatus]] = {
 SORTABLE_FIELDS = frozenset({"created_at", "updated_at", "application_deadline", "title", "application_count"})
 
 
+UNVERIFIED_FACULTY_MESSAGE = (
+    "Your faculty account has not been verified yet. An administrator needs to verify it before "
+    "you can create or publish research postings."
+)
+
+
 class PostingNotFoundError(Exception):
     pass
 
@@ -81,12 +87,34 @@ class ResearchPostingService:
     # ── Authorization ────────────────────────────────────────────────────────
 
     @staticmethod
-    def assert_can_author(user: UserModel) -> None:
-        """Only faculty and administrators may create postings."""
+    def can_recruit(user: UserModel | None) -> bool:
+        """
+        Decision 1 (audit SEC-03): anyone can register as faculty, so recruiting waits for an
+        administrator's verification. Administrators are not self-registered and need none.
+        """
+        if user is None:
+            return False
+        return user.role == "ADMIN" or (user.role == "FACULTY" and bool(user.is_verified))
+
+    @classmethod
+    def assert_can_author(cls, user: UserModel) -> None:
+        """Only verified faculty and administrators may create postings."""
         if user.role not in AUTHORING_ROLES:
             raise PostingPermissionError(
                 "Only FACULTY and ADMIN accounts may create research postings."
             )
+        if not cls.can_recruit(user):
+            raise PostingPermissionError(UNVERIFIED_FACULTY_MESSAGE)
+
+    @staticmethod
+    def recruiting_authors() -> Select:
+        """The accounts whose open postings the public may see, as a subquery."""
+        return select(UserModel.id).where(
+            or_(
+                UserModel.role == "ADMIN",
+                and_(UserModel.role == "FACULTY", UserModel.is_verified.is_(True)),
+            )
+        )
 
     @staticmethod
     def _is_owner_or_admin(posting: ResearchPostingModel, user: UserModel) -> bool:
@@ -110,6 +138,7 @@ class ResearchPostingService:
     def _base_query() -> Select:
         return select(ResearchPostingModel).options(
             joinedload(ResearchPostingModel.author_profile).joinedload(ResearchProfileModel.user),
+            joinedload(ResearchPostingModel.author_user),
             selectinload(ResearchPostingModel.topic_associations).joinedload(
                 ResearchPostingTopicModel.topic
             ),
@@ -136,7 +165,7 @@ class ResearchPostingService:
         if posting is None:
             raise PostingNotFoundError(f"Research posting '{posting_id}' not found.")
 
-        if posting.status != PostingStatus.OPEN.value:
+        if posting.status != PostingStatus.OPEN.value or not cls.can_recruit(posting.author_user):
             if requesting_user is None or not cls._is_owner_or_admin(posting, requesting_user):
                 raise PostingNotFoundError(f"Research posting '{posting_id}' not found.")
         return posting
@@ -182,15 +211,21 @@ class ResearchPostingService:
             conditions.append(ResearchPostingModel.status == status.value)
             if status != PostingStatus.OPEN and requesting_user is not None:
                 conditions.append(ResearchPostingModel.author_user_id == requesting_user.id)
+            elif not include_own_drafts:
+                conditions.append(ResearchPostingModel.author_user_id.in_(cls.recruiting_authors()))
         elif include_own_drafts and requesting_user is not None:
             conditions.append(
                 or_(
-                    ResearchPostingModel.status == PostingStatus.OPEN.value,
+                    and_(
+                        ResearchPostingModel.status == PostingStatus.OPEN.value,
+                        ResearchPostingModel.author_user_id.in_(cls.recruiting_authors()),
+                    ),
                     ResearchPostingModel.author_user_id == requesting_user.id,
                 )
             )
         else:
             conditions.append(ResearchPostingModel.status == PostingStatus.OPEN.value)
+            conditions.append(ResearchPostingModel.author_user_id.in_(cls.recruiting_authors()))
 
         if author_profile_id is not None:
             conditions.append(ResearchPostingModel.author_profile_id == author_profile_id)
@@ -419,6 +454,11 @@ class ResearchPostingService:
                 f"Allowed transitions: {allowed}."
             )
 
+        # Decision 1 (audit SEC-03): publishing or reopening needs a verified author. Closing or
+        # archiving does not, so a posting can always be wound down.
+        if target_status == PostingStatus.OPEN and not cls.can_recruit(posting.author_user):
+            raise PostingPermissionError(UNVERIFIED_FACULTY_MESSAGE)
+
         now = reference_time or datetime.now(timezone.utc)
         # Phase 5.15: only the first publish alerts students; reopening a closed posting does not.
         first_publish = target_status == PostingStatus.OPEN and posting.published_at is None
@@ -564,7 +604,7 @@ class ResearchPostingService:
             aware_deadline = deadline if deadline.tzinfo is not None else deadline.replace(tzinfo=timezone.utc)
             days_remaining = (aware_deadline - now).days
 
-        is_open = posting.status == PostingStatus.OPEN.value
+        is_open = posting.status == PostingStatus.OPEN.value and cls.can_recruit(posting.author_user)
         accepting = is_open and (
             deadline is None
             or (deadline if deadline.tzinfo else deadline.replace(tzinfo=timezone.utc)) > now

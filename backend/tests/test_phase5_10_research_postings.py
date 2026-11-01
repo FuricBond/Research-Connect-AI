@@ -89,6 +89,7 @@ def _make_account(
         full_name=full_name,
         role=role,
         is_active=True,
+        is_verified=True,
     )
     db.add(user)
     db.flush()
@@ -637,6 +638,7 @@ def test_api_account_without_profile_gets_actionable_error(client: TestClient, d
         full_name="No Profile",
         role="FACULTY",
         is_active=True,
+        is_verified=True,
     )
     db_session.add(user)
     db_session.commit()

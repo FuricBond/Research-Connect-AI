@@ -157,7 +157,8 @@ def unique_email(label: str) -> str:
     return f"e2e.{label}.{uuid.uuid4().hex[:10]}@example.test"
 
 
-def register(role: str = "STUDENT", label: str | None = None, **extra) -> Account:
+def register(role: str = "STUDENT", label: str | None = None, verified: bool = True, **extra) -> Account:
+    """Faculty come out verified (Decision 1, the suite's own database update), unless told not to."""
     email = unique_email(label or role.lower())
     password = new_password()
     body = {"email": email, "password": password, "full_name": extra.pop("full_name", f"E2E {role.title()}"),
@@ -165,6 +166,12 @@ def register(role: str = "STUDENT", label: str | None = None, **extra) -> Accoun
     response = request("POST", "/api/v1/auth/register", json=body)
     assert response.status_code == 201, response.text
     data = response.json()
+    if role == "FACULTY" and verified:
+        engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+        with engine.begin() as connection:
+            connection.execute(text("UPDATE users SET is_verified = true WHERE id = :id"), {"id": data["user"]["id"]})
+        engine.dispose()
+        data["user"]["is_verified"] = True
     return Account(email, password, remember_secret(data["access_token"]), data["user"])
 
 

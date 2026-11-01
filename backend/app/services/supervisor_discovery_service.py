@@ -72,6 +72,7 @@ from app.schemas.supervisor_discovery import (
     SupervisorMatchSignalSchema,
 )
 from app.services.peer_discovery_service import PeerDiscoveryService
+from app.services.research_posting_service import ResearchPostingService
 import os
 import sys
 
@@ -432,6 +433,7 @@ class SupervisorDiscoveryService:
             .where(
                 ResearchPostingModel.author_profile_id.in_(list(candidate_ids)),
                 ResearchPostingModel.status == PostingStatus.OPEN.value,
+                ResearchPostingModel.author_user_id.in_(ResearchPostingService.recruiting_authors()),
                 ResearchPostingModel.posting_type.in_(config.supervision_posting_types),
             )
             .order_by(ResearchPostingModel.author_profile_id, ResearchPostingModel.id)

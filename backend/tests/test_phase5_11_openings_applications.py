@@ -94,6 +94,7 @@ def _make_account(db: Session, email: str, role: str, full_name: str):
         full_name=full_name,
         role=role,
         is_active=True,
+        is_verified=True,
     )
     db.add(user)
     db.flush()

@@ -241,6 +241,7 @@ def get_posting_fit_scores(
             ResearchPostingService._base_query().where(
                 ResearchPostingModel.id.in_(wanted),
                 ResearchPostingModel.status == PostingStatus.OPEN.value,
+                ResearchPostingModel.author_user_id.in_(ResearchPostingService.recruiting_authors()),
             )
         )
         .unique()

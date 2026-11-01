@@ -153,6 +153,7 @@ def _make_researcher(
         full_name=name,
         role=role,
         is_active=is_active,
+        is_verified=True,
     )
     db.add(user)
     db.flush()
@@ -955,7 +956,7 @@ def test_api_requires_ownership_and_authentication(client: TestClient, db_sessio
     assert anonymous.status_code == 401
 
 
-def test_api_unknown_profile_is_404(client: TestClient, db_session: Session):
+def test_api_unknown_profile_answers_as_someone_elses_does(client: TestClient, db_session: Session):
     student_user, _ = _student(db_session)
 
     res = client.get(
@@ -963,4 +964,4 @@ def test_api_unknown_profile_is_404(client: TestClient, db_session: Session):
         headers={"X-User-ID": str(student_user.id)},
     )
 
-    assert res.status_code == 404
+    assert res.status_code == 403  # audit SEC-04

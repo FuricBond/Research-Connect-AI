@@ -99,6 +99,7 @@ def _make_account(
         full_name=full_name,
         role=role,
         is_active=is_active,
+        is_verified=True,
     )
     db.add(user)
     db.flush()
