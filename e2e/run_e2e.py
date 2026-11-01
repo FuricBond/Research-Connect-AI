@@ -218,17 +218,17 @@ def junit_counts(path: Path) -> dict:
     return totals
 
 
-def run_browser(stack: Stack) -> dict:
+def run_browser(stack: Stack, suite: str = "browser", extra: tuple[str, ...] = ()) -> dict:
     frontend = REPO / "frontend"
     npx = shutil.which("npx") or shutil.which("npx.cmd")
     if not npx:
         return {"exit_code": None, "skipped_reason": "npx not found"}
-    env = {**stack.suite_env(), "PLAYWRIGHT_JUNIT_OUTPUT_NAME": str(stack.results / "browser.xml")}
+    env = {**stack.suite_env(), "PLAYWRIGHT_JUNIT_OUTPUT_NAME": str(stack.results / f"{suite}.xml"), "E2E_SUITE": suite}
     started = time.monotonic()
-    completed = run([npx, "playwright", "test", "--reporter=list,junit"], check=False, capture=False,
+    completed = run([npx, "playwright", "test", "--reporter=list,junit", *extra], check=False, capture=False,
                     env=env, cwd=frontend, timeout=3600)
     return {"exit_code": completed.returncode, "seconds": round(time.monotonic() - started, 1),
-            **junit_counts(stack.results / "browser.xml")}
+            **junit_counts(stack.results / f"{suite}.xml")}
 
 
 def snapshot_logs(stack: Stack, label: str) -> None:
@@ -279,7 +279,8 @@ def main() -> int:
     parser.add_argument("--skip-build", action="store_true", help="reuse existing :e2e images")
     parser.add_argument("--skip-browser", action="store_true", help="skip the Playwright suite")
     parser.add_argument("--reuse", type=Path, help="results dir of a --keep run: rerun the suites on that stack")
-    parser.add_argument("--suites", default="api,browser,stack", help="comma-separated subset to run")
+    parser.add_argument("--suites", default="api,browser,stack", help="comma-separated subset to run (also: visual)")
+    parser.add_argument("--update-visual", action="store_true", help="with --suites visual: take new baselines")
     parser.add_argument("pytest_args", nargs="*", help="extra arguments passed to pytest")
     args = parser.parse_args()
 
@@ -315,13 +316,19 @@ def main() -> int:
         snapshot_logs(stack, "1-startup")
         if "api" in suites:
             log("API workflow suite")
-            summary["api_suite"] = run_pytest(stack, "api", "not stack", args.pytest_args)
+            summary["api_suite"] = run_pytest(stack, "api", "not stack and not visual", args.pytest_args)
         auth_window_end = time.monotonic() + 61  # the login limiter's one-minute window
 
         if "browser" in suites:
             time.sleep(max(0.0, auth_window_end - time.monotonic()))
             log("browser suite (Playwright)")
             summary["browser_suite"] = run_browser(stack)
+
+        if "visual" in suites:
+            log("visual suite: the demo data, then the screenshots")
+            summary["visual_seed"] = run_pytest(stack, "visual-seed", "visual", args.pytest_args)
+            time.sleep(61)  # the login limiter's window after the seed's own sign-ins
+            summary["visual_suite"] = run_browser(stack, "visual", ("--update-snapshots=all",) if args.update_visual else ())
 
         snapshot_logs(stack, "2-workflows")
         if "stack" in suites:
@@ -347,11 +354,11 @@ def main() -> int:
         (results / name).write_text(json.dumps(summary, indent=2, default=str), encoding="utf-8")
         log(f"evidence: {results / name}")
 
-    suite_results = [summary.get(k, {}) for k in ("api_suite", "browser_suite", "stack_suite")]
+    suite_results = [summary.get(k, {}) for k in ("api_suite", "browser_suite", "stack_suite", "visual_seed", "visual_suite")]
     ok = (args.reuse or summary.get("startup", {}).get("passed")) and all(
         s.get("exit_code") in (0, None) for s in suite_results
     ) and summary.get("observability", {}).get("passed")
-    for key in ("startup", "api_suite", "browser_suite", "stack_suite"):
+    for key in ("startup", "api_suite", "browser_suite", "stack_suite", "visual_seed", "visual_suite"):
         if key in summary:
             shown = {k: v for k, v in summary[key].items() if k != "states"}
             log(f"{key}: {shown}")

@@ -11,14 +11,18 @@ import { defineConfig } from "@playwright/test";
  * Browser: E2E_BROWSER_CHANNEL=chrome (or msedge) uses an installed browser; otherwise run
  * `npx playwright install chromium` once for Playwright's own build.
  */
+// P12: the screenshots are their own suite (`python e2e/run_e2e.py --suites visual`).
+const visual = process.env.E2E_SUITE === "visual";
+
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: "**/*.spec.ts",
+  testMatch: visual ? "**/visual.spec.ts" : "**/*.spec.ts",
+  testIgnore: visual ? [] : ["**/visual.spec.ts"],
   fullyParallel: false,
   workers: 1,
   retries: 0,
   timeout: 120_000,
-  expect: { timeout: 20_000 },
+  expect: { timeout: 20_000, toHaveScreenshot: { maxDiffPixelRatio: Number(process.env.E2E_VISUAL_RATIO ?? 0.01) } },
   outputDir: "test-results",
   use: {
     baseURL: process.env.E2E_WEB_URL ?? "http://localhost:3300",
