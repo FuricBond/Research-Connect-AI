@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import nextConfig, { buildContentSecurityPolicy, resolvePublicApiUrl, securityHeaders } from "../next.config";
+import nextConfig, { resolvePublicApiUrl, securityHeaders } from "../next.config";
+import { buildContentSecurityPolicy } from "../utils/contentSecurityPolicy";
 
 /**
  * Phase 6.4 — production configuration of the frontend build. NEXT_PUBLIC_API_URL is
@@ -69,12 +70,11 @@ describe("security headers", () => {
     );
   }
 
-  it("sends the four headers on every route", async () => {
+  it("sends the fixed headers on every route", async () => {
     const rules = await nextConfig.headers!();
     expect(rules).toHaveLength(1);
     expect(rules[0].source).toBe("/:path*");
     expect(rules[0].headers.map((header) => header.key)).toEqual([
-      "Content-Security-Policy",
       "X-Content-Type-Options",
       "Referrer-Policy",
       "Permissions-Policy",
@@ -83,14 +83,14 @@ describe("security headers", () => {
     expect(values["X-Content-Type-Options"]).toBe("nosniff");
     expect(values["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
     expect(values["Permissions-Policy"]).toBe("camera=(), microphone=(), geolocation=()");
-    // The test run is not the development server, so no eval.
-    expect(values["Content-Security-Policy"]).toBe(buildContentSecurityPolicy("http://localhost:8000", false));
+    // The policy carries a nonce per response, so middleware.ts sets it.
+    expect(values["Content-Security-Policy"]).toBeUndefined();
   });
 
-  it("allows exactly the app's own origin plus the API for requests", () => {
-    expect(directives(buildContentSecurityPolicy("https://api.example.org", false))).toEqual({
+  it("allows exactly the app's own origin plus the API for requests, and scripts only with the nonce", () => {
+    expect(directives(buildContentSecurityPolicy("https://api.example.org", "abc123", false))).toEqual({
       "default-src": "'self'",
-      "script-src": "'self' 'unsafe-inline'",
+      "script-src": "'self' 'nonce-abc123'",
       "style-src": "'self' 'unsafe-inline'",
       "font-src": "'self' data:",
       "img-src": "'self' data: blob:",
@@ -102,21 +102,23 @@ describe("security headers", () => {
     });
   });
 
+  it("never allows inline scripts by a blanket exception", () => {
+    for (const development of [false, true]) {
+      const scripts = directives(buildContentSecurityPolicy("http://localhost:8000", "abc123", development))["script-src"];
+      expect(scripts).not.toContain("unsafe-inline");
+      expect(scripts).toContain("'nonce-abc123'");
+    }
+  });
+
   it("adds 'unsafe-eval' for the development server only", () => {
-    expect(directives(buildContentSecurityPolicy("http://localhost:8000", true))["script-src"]).toBe(
-      "'self' 'unsafe-inline' 'unsafe-eval'"
-    );
-    expect(buildContentSecurityPolicy("http://localhost:8000", false)).not.toContain("unsafe-eval");
+    expect(directives(buildContentSecurityPolicy("http://localhost:8000", "abc123", true))["script-src"]).toBe("'self' 'nonce-abc123' 'unsafe-eval'");
+    expect(buildContentSecurityPolicy("http://localhost:8000", "abc123", false)).not.toContain("unsafe-eval");
   });
 
   it("uses the API's origin, not its path, and loads no third-party resources", () => {
-    const policy = buildContentSecurityPolicy("https://example.org/research-api", false);
+    const policy = buildContentSecurityPolicy("https://example.org/research-api", "abc123", false);
     expect(directives(policy)["connect-src"]).toBe("'self' https://example.org");
     expect(policy).not.toMatch(/googleapis|gstatic|\*/);
   });
 
-  it("builds the same headers for any valid API address", () => {
-    const headers = securityHeaders(resolvePublicApiUrl("http://localhost:8300/"), false);
-    expect(headers[0].value).toContain("connect-src 'self' http://localhost:8300;");
-  });
 });

@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { join, relative, sep } from "node:path";
 import type { NextConfig } from "next";
 
 const DEFAULT_API_URL = "http://localhost:8000";
@@ -28,39 +30,36 @@ export function resolvePublicApiUrl(raw: string | undefined): string {
   return value.replace(/\/+$/, "");
 }
 
-/**
- * Fix 6/9 — the Content-Security-Policy sent with every page. The app loads nothing from another
- * origin (no web fonts, remote images, frames or third-party scripts; its doi.org, ORCID and
- * OpenAlex links are navigations, which this policy does not restrict), so everything is
- * same-origin except requests to the API. Next.js inlines its bootstrap scripts without a nonce,
- * hence 'unsafe-inline' for scripts and styles; 'unsafe-eval' only for the development server's
- * fast refresh.
- */
-export function buildContentSecurityPolicy(apiUrl: string, isDevelopment: boolean): string {
-  const apiOrigin = new URL(apiUrl).origin;
-  const directives: [string, string[]][] = [
-    ["default-src", ["'self'"]],
-    ["script-src", ["'self'", "'unsafe-inline'", ...(isDevelopment ? ["'unsafe-eval'"] : [])]],
-    ["style-src", ["'self'", "'unsafe-inline'"]],
-    ["font-src", ["'self'", "data:"]],
-    ["img-src", ["'self'", "data:", "blob:"]],
-    ["connect-src", ["'self'", apiOrigin]],
-    ["object-src", ["'none'"]],
-    ["base-uri", ["'self'"]],
-    ["form-action", ["'self'"]],
-    ["frame-ancestors", ["'none'"]],
-  ];
-  return directives.map(([name, sources]) => `${name} ${sources.join(" ")}`).join("; ");
-}
-
-/** The security headers every route answers with. */
-export function securityHeaders(apiUrl: string, isDevelopment: boolean): { key: string; value: string }[] {
+/** The security headers every route answers with. The Content-Security-Policy carries a nonce per response, so it is set in middleware.ts. */
+export function securityHeaders(): { key: string; value: string }[] {
   return [
-    { key: "Content-Security-Policy", value: buildContentSecurityPolicy(apiUrl, isDevelopment) },
     { key: "X-Content-Type-Options", value: "nosniff" },
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
     { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   ];
+}
+
+/**
+ * CSS module class names, in production: a short hash of the file and the name instead of
+ * `Faculty_postingFilter__a1b2c`. Their maps sit in every page's JavaScript, so this is real weight
+ * (audit PERF-04). The hash is of the path from the project root, so a build measures the same
+ * wherever the project is checked out.
+ */
+function shortenCssModuleNames(rules: unknown, root: string): void {
+  const getLocalIdent = (context: { resourcePath: string; resourceQuery?: string }, _name: string, exportName: string) => {
+    const file = relative(root, context.resourcePath).split(sep).join("/");
+    return `c${createHash("md5").update(`${file}${context.resourceQuery ?? ""}:${exportName}`).digest("base64url").slice(0, 6).replace(/-/g, "_")}`;
+  };
+  const visit = (node: unknown): void => {
+    if (Array.isArray(node)) return node.forEach(visit);
+    if (!node || typeof node !== "object") return;
+    const rule = node as { oneOf?: unknown; rules?: unknown; use?: unknown; loader?: string; options?: { modules?: { getLocalIdent?: unknown } } };
+    if (rule.loader?.includes("css-loader") && rule.options?.modules?.getLocalIdent) rule.options.modules.getLocalIdent = getLocalIdent;
+    visit(rule.oneOf);
+    visit(rule.rules);
+    visit(rule.use);
+  };
+  visit(rules);
 }
 
 const PUBLIC_API_URL = resolvePublicApiUrl(process.env.NEXT_PUBLIC_API_URL);
@@ -83,11 +82,20 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_API_URL: PUBLIC_API_URL,
   },
+  // The API client and the design system's primitives only define functions and components. Without
+  // saying so webpack keeps every module of theirs on every page that imports any of them, because
+  // it cannot prove that (`class ApiError extends Error`, forwardRef calls) (audit PERF-04).
+  webpack(config, { dev }) {
+    const root = config.context as string;
+    if (!dev) shortenCssModuleNames(config.module.rules, root);
+    config.module.rules.push({ include: [join(root, "services", "api"), join(root, "services", "api.ts"), join(root, "components", "ui")], test: /\.tsx?$/, sideEffects: false });
+    return config;
+  },
   async headers() {
     return [
       {
         source: "/:path*",
-        headers: securityHeaders(PUBLIC_API_URL, process.env.NODE_ENV === "development"),
+        headers: securityHeaders(),
       },
     ];
   },
