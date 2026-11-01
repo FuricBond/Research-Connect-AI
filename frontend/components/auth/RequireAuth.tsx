@@ -54,12 +54,20 @@ export function RequireAuth({
   useEffect(() => {
     if (status !== "unauthenticated") return;
     // Carry the intended destination so signing in returns the person to it.
-    const next = pathname && pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : "";
+    // The query is part of it (`/postings?view=mine`); it is validated when it is used.
+    const search = typeof window === "undefined" ? "" : window.location.search;
+    const next = pathname && pathname !== "/" ? `?next=${encodeURIComponent(`${pathname}${search}`)}` : "";
     router.replace(`/login${next}`);
   }, [status, pathname, router]);
 
   if (status === "loading") {
     return <AuthPending label="Checking your session…" />;
+  }
+
+  // The session could not be checked (the shell says so, with Try again): nothing is known about
+  // who is here, so the page waits. The person has not been signed out.
+  if (status === "unavailable") {
+    return <AuthPending label="Waiting to check your session" />;
   }
 
   if (status === "unauthenticated" || user === null) {

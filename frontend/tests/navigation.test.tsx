@@ -64,7 +64,9 @@ describe("navigation model", () => {
     // Every signed-in role keeps the destinations it had before P2; an administrator's home is the
     // administration overview (P10), which /dashboard leads to.
     for (const role of ["STUDENT", "FACULTY", "ADMIN"] as const) {
-      for (const label of [role === "ADMIN" ? "Overview" : "Home", "Literature search", "Calls for papers", "Research postings", "Workspace", "Reading list", "Calendar", "Find peers"]) {
+      // Decision 2 (plan Q5): personal research tools are for students and faculty.
+      const personal = role === "ADMIN" ? [] : ["Workspace", "Reading list", "Calendar", "Find peers"];
+      for (const label of [role === "ADMIN" ? "Overview" : "Home", "Literature search", "Calls for papers", "Research postings", ...personal]) {
         expect(labels(role), `${role} ${label}`).toContain(label);
       }
     }
@@ -86,7 +88,8 @@ describe("navigation model", () => {
     // P6: "People" became "For you", with the recommendations first (plan §6).
     expect(navigationFor("STUDENT").map((section) => section.label)).toEqual([undefined, "Discover", "My research", "For you"]);
     // P10: administration is an administrator's main job, so its group follows the overview.
-    expect(navigationFor("ADMIN").map((section) => section.label)).toEqual([undefined, "Administration", "Discover", "My research", "For you"]);
+    // Decision 2 (plan Q5): no personal research tools for administrators.
+    expect(navigationFor("ADMIN").map((section) => section.label)).toEqual([undefined, "Administration", "Discover"]);
     expect(navigationFor("ADMIN")[0].items.map((item) => [item.label, item.href])).toEqual([["Overview", "/admin"]]);
     expect(navigationFor("ADMIN")[1].items.map((item) => [item.label, item.href])).toEqual([
       ["Users", "/admin/users"],
@@ -262,7 +265,7 @@ describe("primary navigation", () => {
     expect(within(nav).queryByRole("link", { name: "Home" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /^Notifications/ })).not.toBeInTheDocument();
     await act(async () => undefined);
-    expect(requestsTo(fetchMock, "/notifications/unread-count")).toBe(0);
+    expect(requestsTo(fetchMock, "/notifications?limit=3")).toBe(0);
   });
 
   it("renders one primary navigation and the skip link's target", async () => {
@@ -292,7 +295,7 @@ describe("navigation drawer (below 1024px)", () => {
     menu.focus();
     fireEvent.click(menu);
     expect(menu).toHaveAttribute("aria-expanded", "true");
-    const drawer = screen.getByRole("dialog", { name: "Menu" });
+    const drawer = await screen.findByRole("dialog", { name: "Menu" });
     const drawerNav = within(drawer).getByRole("navigation", { name: "Primary" });
     expect(within(drawerNav).getByRole("link", { name: "Workspace" })).toHaveAttribute("aria-current", "page");
     expect(within(drawerNav).getByRole("link", { name: "Find a supervisor" })).toBeInTheDocument();
@@ -300,7 +303,7 @@ describe("navigation drawer (below 1024px)", () => {
     // Escape is the dialog's "cancel".
     fireEvent(drawer, new Event("cancel", { cancelable: true }));
     expect(menu).toHaveAttribute("aria-expanded", "false");
-    expect(drawer).not.toHaveAttribute("open");
+    await waitFor(() => expect(drawer).not.toBeInTheDocument());
     expect(menu).toHaveFocus();
   });
 

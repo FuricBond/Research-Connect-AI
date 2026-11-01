@@ -100,7 +100,7 @@ describe("restoration", () => {
   it("does not trust a stored token on its own", async () => {
     // A token present but no longer valid must not read as authenticated.
     storeSession(makeTokenResponse());
-    fetchMock.mockRejectedValue(new TypeError("network down"));
+    fetchMock.mockResolvedValue(jsonResponse({ detail: "Invalid token" }, 401));
 
     renderProbe();
 
@@ -145,14 +145,14 @@ describe("leaving the page during the session check (P4)", () => {
     expect(screen.getByTestId("status")).toHaveTextContent("loading");
   });
 
-  it("still signs out when the check fails while staying on the page", async () => {
+  it("keeps the session when the check fails while staying on the page (audit FUNC-03)", async () => {
     const settle = pendingCheck();
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
 
     await act(async () => settle().reject(new TypeError("Failed to fetch")));
 
-    await waitFor(() => expect(screen.getByTestId("status")).toHaveTextContent("unauthenticated"));
-    expect(getAccessToken()).toBeNull();
+    await waitFor(() => expect(screen.getByTestId("status")).toHaveTextContent("unavailable"));
+    expect(getAccessToken()).not.toBeNull();
   });
 
   it("still signs out on an answered rejection, even while leaving", async () => {

@@ -9,7 +9,7 @@
  * provider owns the in-memory state derived from it.
  *
  * The backend stays authoritative: a stored token is never assumed valid. On startup the
- * provider verifies it against `/auth/me` and clears it if the answer is no.
+ * provider verifies it against `/auth/me` and clears it if the answer is no (a 401).
  */
 
 import React, {
@@ -41,13 +41,19 @@ import {
   storeAuthenticatedUser,
   storeSession,
 } from "../../services/auth";
-import { clearSelectedWork } from "../../hooks/useSelectedWork";
+import { clearSelectedWork } from "../../utils/selectedWorkKeys";
 
 /**
  * `loading` lasts until the stored credentials have been checked. Route guards must not
  * render protected content during it, otherwise a page flashes before we know who is there.
+ * `unavailable` (audit FUNC-03): the check got no usable answer (a 5xx, no network, no answer in
+ * time). That says nothing about the session, so the stored token stays and the shell offers
+ * another try. Only a genuine 401 ends a session.
  */
-export type SessionStatus = "loading" | "unauthenticated" | "authenticated";
+export type SessionStatus = "loading" | "unauthenticated" | "authenticated" | "unavailable";
+
+/** How long a session check may take before the person is told and offered another try. */
+export const SESSION_CHECK_TIMEOUT_MS = 10_000;
 
 export interface SessionContextValue {
   status: SessionStatus;
@@ -62,6 +68,8 @@ export interface SessionContextValue {
   logout: () => void;
   /** Re-reads the account from the backend, e.g. after an administrator changes a role. */
   refresh: () => Promise<void>;
+  /** Checks the session again after it could not be checked. */
+  retryCheck: () => void;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -72,6 +80,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 
   // While a sign-in is in flight its own 401 must not be mistaken for a lost session.
   const authenticatingRef = useRef(false);
+  // Bumped by retryCheck: runs the restoration again.
+  const [attempt, setAttempt] = useState(0);
 
   const applyUser = useCallback((nextUser: AuthenticatedUser) => {
     storeAuthenticatedUser(nextUser);
@@ -111,34 +121,38 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       // P4: a check the browser cancels because this page is being left (a reload, a typed
       // address) never got an answer, so it says nothing about the session: the next page checks
       // again. Leaving is noticed by `beforeunload`, which comes before the cancelled request's
-      // rejection, and only while the check is in flight. Every answered failure, and every
-      // failure while staying on the page, still clears the session as before (the rest of the
-      // P2 audit's F10 stays deferred).
+      // rejection, and only while the check is in flight.
       let leaving = false;
       const onLeave = () => {
         leaving = true;
       };
       window.addEventListener("beforeunload", onLeave);
+      // An answer that never comes must not leave the page checking for ever.
+      const timeout = new AbortController();
+      const timer = window.setTimeout(() => timeout.abort(), SESSION_CHECK_TIMEOUT_MS);
       try {
         // With no token but a stored user id this still resolves when the backend runs
         // with AUTH_DEV_IDENTITY_ENABLED=true, preserving the existing developer
         // fallback. In production it answers 401 and the session is cleared.
-        const verified = await getCurrentUser();
+        const verified = await getCurrentUser(timeout.signal);
         if (!cancelled) applyUser(verified);
       } catch (error) {
         if (cancelled) return;
         if (leaving && !(error instanceof ApiError)) return;
-        clearSession();
+        if (error instanceof ApiError && error.status === 401) clearSession();
+        else setStatus("unavailable");
       } finally {
+        window.clearTimeout(timer);
         window.removeEventListener("beforeunload", onLeave);
       }
     }
 
-    restore();
+    setStatus("loading");
+    void restore();
     return () => {
       cancelled = true;
     };
-  }, [applyUser, clearSession]);
+  }, [applyUser, clearSession, attempt]);
 
   // ── Centralised 401 handling ──────────────────────────────────────────────
   //
@@ -192,10 +206,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       applyUser(await getCurrentUser());
-    } catch {
-      clearSession();
+    } catch (error) {
+      // A failed re-read changes nothing: the account stays as it was unless the server said 401.
+      if (error instanceof ApiError && error.status === 401) clearSession();
     }
   }, [applyUser, clearSession]);
+
+  const retryCheck = useCallback(() => setAttempt((count) => count + 1), []);
 
   const value = useMemo<SessionContextValue>(
     () => ({
@@ -208,8 +225,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       register,
       logout,
       refresh,
+      retryCheck,
     }),
-    [status, user, login, register, logout, refresh]
+    [status, user, login, register, logout, refresh, retryCheck]
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

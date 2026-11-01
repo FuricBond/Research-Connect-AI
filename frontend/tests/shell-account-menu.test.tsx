@@ -62,6 +62,7 @@ describe("signed in", () => {
     expect(trigger).toHaveAttribute("aria-expanded", "true");
     expect(panel).toBeVisible();
     // P3: Settings (account and password, then the notification settings) as in the plan's menu.
+    await screen.findByRole("link", { name: "Researcher profile" });
     for (const label of ["Researcher profile", "Research preferences", "Settings"]) {
       expect(within(panel).getByRole("link", { name: label })).toBeInTheDocument();
     }
@@ -78,7 +79,7 @@ describe("signed in", () => {
     const trigger = await screen.findByRole("button", { name: /account menu/ });
 
     fireEvent.click(trigger);
-    const profile = screen.getByRole("link", { name: "Researcher profile" });
+    const profile = await screen.findByRole("link", { name: "Researcher profile" });
     profile.focus();
     fireEvent.keyDown(profile, { key: "Escape" });
 
@@ -97,7 +98,7 @@ describe("signed in", () => {
     expect(trigger).toHaveAttribute("aria-expanded", "false");
 
     fireEvent.click(trigger);
-    const signOut = screen.getByRole("button", { name: "Sign out" });
+    const signOut = await screen.findByRole("button", { name: "Sign out" });
     fireEvent.blur(signOut, { relatedTarget: elsewhere });
     expect(trigger).toHaveAttribute("aria-expanded", "false");
   });
@@ -132,7 +133,7 @@ describe("signed in", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: /account menu/ }));
     expect(screen.getByRole("link", { name: "Research preferences" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Researcher profile" })).not.toHaveAttribute("aria-current");
+    expect(await screen.findByRole("link", { name: "Researcher profile" })).not.toHaveAttribute("aria-current");
   });
 
   it("changes the colour theme from the menu and remembers it", async () => {
@@ -140,7 +141,7 @@ describe("signed in", () => {
     const view = renderMenu();
 
     fireEvent.click(await screen.findByRole("button", { name: /account menu/ }));
-    fireEvent.click(screen.getByRole("radio", { name: "Dark theme" }));
+    fireEvent.click(await screen.findByRole("radio", { name: "Dark theme" }));
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
 
@@ -148,7 +149,7 @@ describe("signed in", () => {
     view.unmount();
     renderMenu();
     fireEvent.click(await screen.findByRole("button", { name: /account menu/ }));
-    expect(screen.getByRole("radio", { name: "Dark theme" })).toBeChecked();
+    expect(await screen.findByRole("radio", { name: "Dark theme" })).toBeChecked();
   });
 
   it("is the only theme control in the shell", async () => {
@@ -161,7 +162,8 @@ describe("signed in", () => {
       </SessionProvider>
     );
     await screen.findByRole("button", { name: /account menu/ });
-    expect(document.querySelectorAll("fieldset")).toHaveLength(1);
+    // The panel's code loads when it is about to be used, so nothing of it is there yet.
+    expect(document.querySelectorAll("fieldset")).toHaveLength(0);
     expect(screen.queryByRole("group", { name: "Colour theme" })).not.toBeInTheDocument(); // closed
   });
 });
@@ -173,7 +175,7 @@ describe("focus after signing out (P2 audit)", () => {
     const trigger = await screen.findByRole("button", { name: /account menu/ });
     trigger.focus();
     fireEvent.click(trigger);
-    const signOut = screen.getByRole("button", { name: "Sign out" });
+    const signOut = await screen.findByRole("button", { name: "Sign out" });
     signOut.focus();
     fireEvent.click(signOut);
     return signOut;
@@ -219,7 +221,7 @@ describe("signed out", () => {
     const appearance = screen.getByRole("button", { name: "Appearance" });
     fireEvent.click(appearance);
     expect(appearance).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByRole("group", { name: "Colour theme" })).toBeInTheDocument();
+    expect(await screen.findByRole("group", { name: "Colour theme" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Researcher profile" })).not.toBeInTheDocument();
   });
 });

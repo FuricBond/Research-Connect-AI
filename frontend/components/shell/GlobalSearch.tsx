@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import { Button, IconButton } from "../ui/Button/Button";
-import { Dialog } from "../ui/Dialog/Dialog";
-import { SearchInput } from "../ui/Field/Field";
+import { IconButton } from "../ui/Button/Button";
+import { SearchInput } from "../ui/Field/SearchInput";
 import { requestSearchFocus, searchHref } from "../../utils/search";
 import styles from "./GlobalSearch.module.css";
+
+const loadSheet = () => import("./SearchSheet");
+const SearchSheet = lazy(() => loadSheet().then((module) => ({ default: module.SearchSheet })));
 
 /**
  * The global paper search. It searches nothing itself: it opens the literature search page with
@@ -91,38 +93,16 @@ export function GlobalSearch() {
         icon={<Search size={20} aria-hidden="true" />}
         aria-haspopup="dialog"
         aria-expanded={sheetOpen}
+        // The sheet's code loads as soon as the button is about to be used.
+        onPointerEnter={loadSheet}
+        onFocus={loadSheet}
         onClick={() => setSheetOpen(true)}
       />
-      <Dialog
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        title="Search papers"
-        initialFocusRef={sheetField}
-        // The sheet holds only a field and a button: no extra Tab stop for its body.
-        focusableBody={false}
-        className={styles.sheet}
-      >
-        <form role="search" aria-label="Papers" className={styles.sheetForm} onSubmit={submit}>
-          <SearchInput
-            ref={sheetField}
-            label="Search papers"
-            hideLabel
-            name="q"
-            placeholder="Topic, method or author"
-            autoComplete="off"
-            enterKeyHint="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onClear={() => {
-              setQuery("");
-              sheetField.current?.focus();
-            }}
-          />
-          <Button type="submit" variant="primary" fullWidth>
-            Search
-          </Button>
-        </form>
-      </Dialog>
+      {sheetOpen && (
+        <Suspense fallback={null}>
+          <SearchSheet query={query} setQuery={setQuery} onClose={() => setSheetOpen(false)} onSubmit={submit} fieldRef={sheetField} />
+        </Suspense>
+      )}
     </>
   );
 }

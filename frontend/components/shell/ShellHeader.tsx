@@ -17,7 +17,7 @@ import styles from "./ShellHeader.module.css";
  * layout follows its own width in rem, so with enlarged text it switches to the compact
  * controls and, if they still do not fit, wraps onto a second row instead of overflowing.
  */
-export function ShellHeader({ navOpen, onOpenNav }: { navOpen: boolean; onOpenNav: () => void }) {
+export function ShellHeader({ navOpen, onOpenNav, onPrepareNav }: { navOpen: boolean; onOpenNav: () => void; onPrepareNav?: () => void }) {
   const pathname = usePathname() ?? "/";
   const { status } = useSession();
   const home = status === "authenticated" ? "/dashboard" : "/";
@@ -34,6 +34,9 @@ export function ShellHeader({ navOpen, onOpenNav }: { navOpen: boolean; onOpenNa
             aria-haspopup="dialog"
             aria-expanded={navOpen}
             onClick={onOpenNav}
+            // The drawer's code loads as soon as the button is about to be used.
+            onPointerEnter={onPrepareNav}
+            onFocus={onPrepareNav}
           />
           <Link href={home} className={styles.brand} aria-label="ResearchConnect AI home">
             <span className={styles.mark} aria-hidden="true">

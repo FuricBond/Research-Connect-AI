@@ -1,9 +1,8 @@
 "use client";
 
 import { forwardRef, useId, type ComponentProps, type ReactNode } from "react";
-import { AlertCircle, Search, X } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { cx } from "../../../utils/cx";
-import { IconButton } from "../Button/Button";
 import styles from "./Field.module.css";
 
 /** What a field passes to the control it labels. */
@@ -103,37 +102,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   );
 });
 
-type SearchInputProps = Omit<ComponentProps<"input">, "className" | "type"> & {
-  /** The accessible name; shown as a visible label unless `hideLabel`. */
-  label: string;
-  hideLabel?: boolean;
-  /** Shows one clear button while there is text. */
-  onClear?: () => void;
-  className?: string;
-};
-
-export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(function SearchInput(
-  { label, hideLabel, onClear, className, id, value, ...rest },
-  ref
-) {
-  const generated = useId();
-  const inputId = id ?? `search-${generated}`;
-  const hasText = typeof value === "string" ? value.length > 0 : false;
-  return (
-    <div className={cx(styles.field, className)}>
-      <label className={cx(styles.label, hideLabel && "rc-visually-hidden")} htmlFor={inputId}>
-        {label}
-      </label>
-      <div className={styles.search}>
-        <Search size={16} className={styles.searchIcon} aria-hidden="true" />
-        <input ref={ref} id={inputId} type="search" className={cx(styles.control, styles.searchControl)} value={value} {...rest} />
-        {onClear && hasText && (
-          <IconButton className={styles.clear} size="sm" label="Clear search" icon={<X size={16} aria-hidden="true" />} onClick={onClear} />
-        )}
-      </div>
-    </div>
-  );
-});
+export { SearchInput } from "./SearchInput";
 
 type CheckboxProps = Omit<ComponentProps<"input">, "type" | "className"> & { label: ReactNode; hint?: ReactNode; className?: string };
 

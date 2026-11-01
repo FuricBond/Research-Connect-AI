@@ -15,10 +15,9 @@
 
 import type { ResearchWorkRead } from "../types/discovery";
 import { isUuid } from "../utils/ids";
+import { KNOWN_KEY, ORIGIN_KEY, SESSION_KEY } from "../utils/selectedWorkKeys";
 
-const SESSION_KEY = "rc_selected_work";
-const KNOWN_KEY = "rc_known_papers";
-const ORIGIN_KEY = "rc_paper_origin";
+export { clearSelectedWork } from "../utils/selectedWorkKeys";
 /** How many chosen papers a tab remembers. */
 const KNOWN_LIMIT = 30;
 
@@ -80,13 +79,3 @@ export function getPaperOrigin(): string | null {
   }
 }
 
-export function clearSelectedWork(): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.sessionStorage.removeItem(SESSION_KEY);
-    window.sessionStorage.removeItem(KNOWN_KEY);
-    window.sessionStorage.removeItem(ORIGIN_KEY);
-  } catch {
-    // ignore
-  }
-}

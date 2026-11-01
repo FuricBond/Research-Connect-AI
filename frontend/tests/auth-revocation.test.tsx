@@ -56,7 +56,7 @@ describe("sign out", () => {
   // P2.5: Sign out is in the account menu.
   async function clickSignOut() {
     fireEvent.click(await screen.findByRole("button", { name: /account menu/ }));
-    fireEvent.click(screen.getByRole("button", { name: /Sign out/ }));
+    fireEvent.click(await screen.findByRole("button", { name: /Sign out/ }));
   }
 
   it("revokes the token on the backend, then clears the session", async () => {

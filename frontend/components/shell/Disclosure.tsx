@@ -15,6 +15,7 @@ export function Disclosure({
   panelClassName,
   label,
   title,
+  onPrepare,
   children,
 }: {
   button: ReactNode;
@@ -26,6 +27,8 @@ export function Disclosure({
   /** The button's accessible name. */
   label: string;
   title?: string;
+  /** Called when the button is about to be used: its panel's code can load now. */
+  onPrepare?: () => void;
   /** A function also gets whether the panel is open, to render what it loads only while open. */
   children: ReactNode | ((close: () => void, current: string | null, open: boolean) => ReactNode);
 }) {
@@ -66,7 +69,7 @@ export function Disclosure({
 
   return (
     <div ref={area} className={className} onBlur={onBlur}>
-      <button
+      <button onPointerEnter={onPrepare} onFocus={onPrepare}
         ref={trigger}
         type="button"
         className={buttonClassName}

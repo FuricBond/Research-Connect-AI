@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
-import { ChevronDown, LogIn, LogOut, SunMoon, UserPlus } from "lucide-react";
-import { logout as revokeTokens } from "../../services/api";
-import { ROLE_LABELS } from "../../types/auth";
+import { lazy, Suspense, useCallback, useRef } from "react";
+import { ChevronDown, LogIn, SunMoon, UserPlus } from "lucide-react";
 import { useSession } from "../auth/SessionProvider";
-import { ThemeSwitcher } from "../ui/ThemeSwitcher/ThemeSwitcher";
-import { accountItemsFor } from "../../utils/navigation";
 import { Disclosure } from "./Disclosure";
 import styles from "./AccountMenu.module.css";
+
+const loadPanel = () => import("./AccountPanel");
+const AccountPanel = lazy(() => loadPanel().then((module) => ({ default: module.AccountPanel })));
+const ThemeRow = lazy(() => loadPanel().then((module) => ({ default: module.ThemeRow })));
 
 /** Up to two initials for the avatar: "Ada Lovelace" → "AL". */
 export function initials(name: string): string {
@@ -28,12 +28,11 @@ export function initials(name: string): string {
  *
  * The panel is a disclosure, not an ARIA menu: it holds links, a radio group and a button,
  * reached with Tab. Escape closes it and returns focus to its button; so does a click outside
- * or moving focus out of it. It stays mounted while closed (hidden), so the theme control keeps
- * following the operating system while "Match system theme" is chosen.
+ * or moving focus out of it. Its code loads when the button is about to be used; following the
+ * operating system while "Match system theme" is chosen is the shell's (AppShell.tsx).
  */
 export function AccountMenu() {
   const { status, user, logout } = useSession();
-  const [signingOut, setSigningOut] = useState(false);
   // Set when this browser has just signed out: the Sign in link takes focus as it appears, so
   // keyboard focus is not lost with the Sign out button (P2 audit).
   const focusSignIn = useRef(false);
@@ -59,26 +58,18 @@ export function AccountMenu() {
           <UserPlus size={16} aria-hidden="true" />
           Create account
         </Link>
-        <Disclosure className={styles.disclosure} panelClassName={styles.panel} buttonClassName={styles.iconTrigger} label="Appearance" title="Appearance" button={<SunMoon size={20} aria-hidden="true" />}>
-          <ThemeRow />
+        <Disclosure onPrepare={loadPanel} className={styles.disclosure} panelClassName={styles.panel} buttonClassName={styles.iconTrigger} label="Appearance" title="Appearance" button={<SunMoon size={20} aria-hidden="true" />}>
+          {(_close, _current, open) =>
+            open ? (
+              <Suspense fallback={null}>
+                <ThemeRow />
+              </Suspense>
+            ) : null
+          }
         </Disclosure>
       </div>
     );
   }
-
-  const handleSignOut = async () => {
-    setSigningOut(true);
-    try {
-      await revokeTokens();
-    } catch {
-      // Offline or already revoked: this browser is signed out either way.
-    } finally {
-      setSigningOut(false);
-      // Whether or not the server answered, this browser is now signed out (as before).
-      focusSignIn.current = true;
-      logout();
-    }
-  };
 
   return (
     <div key="account" className={styles.account}>
@@ -86,6 +77,7 @@ export function AccountMenu() {
         className={styles.disclosure}
         panelClassName={styles.panel}
         buttonClassName={styles.trigger}
+        onPrepare={loadPanel}
         // Starts with the name shown on the button (WCAG 2.5.3), then says what it opens.
         label={`${user.full_name}, account menu`}
         button={
@@ -98,46 +90,22 @@ export function AccountMenu() {
           </>
         }
       >
-        {(close, current) => (
-          <>
-            <div className={styles.identity}>
-              <p className={styles.identityName}>{user.full_name}</p>
-              <p className={styles.identityRole}>{ROLE_LABELS[user.role]} account</p>
-            </div>
-            <ul className={styles.links}>
-              {accountItemsFor(user.role).map((item) => {
-                const Icon = item.icon;
-                return (
-                  <li key={item.href}>
-                    <Link href={item.href} className={styles.link} aria-current={item.href === current ? "page" : undefined} onClick={close}>
-                      <Icon size={16} aria-hidden="true" />
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-            <ThemeRow />
-            <div className={styles.footer}>
-              <button type="button" className={styles.signOut} onClick={handleSignOut} disabled={signingOut} aria-busy={signingOut || undefined}>
-                <LogOut size={16} aria-hidden="true" />
-                {signingOut ? "Signing out…" : "Sign out"}
-              </button>
-            </div>
-          </>
-        )}
+        {(close, current, open) =>
+          open ? (
+            <Suspense fallback={null}>
+              <AccountPanel
+                user={user}
+                close={close}
+                current={current}
+                onSignedOut={() => {
+                  focusSignIn.current = true;
+                  logout();
+                }}
+              />
+            </Suspense>
+          ) : null
+        }
       </Disclosure>
-    </div>
-  );
-}
-
-function ThemeRow() {
-  return (
-    <div className={styles.theme}>
-      <span className={styles.themeLabel} aria-hidden="true">
-        Theme
-      </span>
-      <ThemeSwitcher />
     </div>
   );
 }

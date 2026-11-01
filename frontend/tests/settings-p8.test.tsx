@@ -202,14 +202,14 @@ describe("appearance", () => {
     expect(document.documentElement.dataset.theme).toBe("dark");
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("dark");
     expect(appearance.getByText("Dark theme.")).toHaveAttribute("role", "status");
-    // The account menu's switch (mounted, closed) follows.
+    // The account menu's switch follows.
     fireEvent.click(await screen.findByRole("button", { name: /account menu/ }));
-    expect(screen.getByRole("radio", { name: "Dark theme" })).toBeChecked();
+    await waitFor(async () => expect(await screen.findByRole("radio", { name: "Dark theme" })).toBeChecked());
 
     fireEvent.click(within(group).getByRole("radio", { name: "Light" }));
     expect(document.documentElement.dataset.theme).toBe("light");
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
-    expect(screen.getByRole("radio", { name: "Light theme" })).toBeChecked();
+    await waitFor(() => expect(screen.getByRole("radio", { name: "Light theme" })).toBeChecked());
   });
 
   it("starts from the stored choice", async () => {

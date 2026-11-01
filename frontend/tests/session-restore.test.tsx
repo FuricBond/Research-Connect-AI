@@ -109,7 +109,7 @@ describe("once the session is restored", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Saved (1)" })).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "All (4)" })).toHaveAttribute("aria-pressed", "true");
     expect(requestsTo(fetchMock, "/api/v1/auth/me")).toBe(1);
-    expect(requestsTo(fetchMock, "/notifications/unread-count")).toBe(1);
+    expect(requestsTo(fetchMock, "/notifications?limit=3")).toBe(1);
   });
 });
 

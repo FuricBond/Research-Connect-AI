@@ -38,11 +38,12 @@ export function serveShell(role: PlatformRole | null, routes: ShellRoutes = {}) 
       if (routes.pendingSession) return new Promise<Response>(() => {});
       return Promise.resolve(jsonResponse(makeUser({ role: role ?? "STUDENT" })));
     }
-    if (url.endsWith("/api/v1/notifications/unread-count")) {
-      return Promise.resolve(jsonResponse({ profile_id: PROFILE_ID, unread_count: routes.unread ? routes.unread() : 0 }));
+    if (url.endsWith("/api/v1/notifications?limit=3")) {
+      return Promise.resolve(jsonResponse({ notifications: [], total: 0, unread_count: routes.unread ? routes.unread() : 0 }));
     }
     const other = routes.other?.(url, init);
     if (other) return other;
+    if (url.endsWith("/api/v1/workspace-invitations/mine")) return Promise.resolve(jsonResponse({ invitations: [], shared_workspaces: [] }));
     return Promise.resolve(jsonResponse({ detail: `unexpected request ${url}` }, 404));
   });
   vi.stubGlobal("fetch", fetchMock);

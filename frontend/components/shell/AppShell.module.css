@@ -46,3 +46,35 @@
   margin: 0 auto;
   padding: var(--rc-space-6) var(--rc-page-padding) var(--rc-space-16);
 }
+
+/* The session could not be checked (audit FUNC-03): in the page's flow, above its content. */
+.sessionUnavailable {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rc-space-2) var(--rc-space-4);
+  margin-bottom: var(--rc-space-4);
+  padding: var(--rc-space-3) var(--rc-space-4);
+  border: var(--rc-border-width) solid var(--rc-warning-border);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-warning-subtle);
+  color: var(--rc-text);
+  font-size: var(--rc-text-body-size);
+}
+
+.sessionUnavailable p {
+  margin: 0;
+}
+
+.sessionRetry {
+  min-height: var(--rc-target-min);
+  padding: var(--rc-space-1) var(--rc-space-3);
+  border: var(--rc-border-width) solid var(--rc-border-control);
+  border-radius: var(--rc-radius-md);
+  background: var(--rc-surface);
+  color: var(--rc-text);
+  font: inherit;
+  font-weight: var(--rc-weight-medium);
+  cursor: pointer;
+}

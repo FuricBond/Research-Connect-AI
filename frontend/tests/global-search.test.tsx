@@ -126,7 +126,7 @@ describe("header search", () => {
     expect(notes).toHaveFocus();
   });
 
-  it("opens a search sheet on a phone, with the field focused", () => {
+  it("opens a search sheet on a phone, with the field focused", async () => {
     serveSearch();
     renderShell();
 
@@ -134,7 +134,7 @@ describe("header search", () => {
     expect(open).toHaveAttribute("aria-haspopup", "dialog");
     fireEvent.click(open);
     expect(open).toHaveAttribute("aria-expanded", "true");
-    const sheet = screen.getByRole("dialog", { name: "Search papers" });
+    const sheet = await screen.findByRole("dialog", { name: "Search papers" });
     const field = within(sheet).getByRole("searchbox", { name: "Search papers" });
     expect(field).toHaveFocus();
 
