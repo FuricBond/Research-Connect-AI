@@ -527,6 +527,8 @@ describe("users page", () => {
     serve();
     renderPage(<AdminUsersPage />, "/admin/users?q=old");
     await screen.findByText("Loading the accounts");
+    // The page's effects run before anyone can type (the field follows the address in one of them).
+    await act(async () => undefined);
     fireEvent.change(screen.getByRole("searchbox", { name: "Search by name or email" }), { target: { value: "grace" } });
     fireEvent.submit(screen.getByRole("search", { name: "Accounts" }));
     await screen.findByText("Grace Hopper");

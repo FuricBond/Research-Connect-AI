@@ -14,6 +14,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
+    // Above vitest.setup.ts's five-second wait for an element, so that wait is what reports a failure.
+    testTimeout: 20_000,
     include: ["tests/**/*.test.{ts,tsx}"],
     restoreMocks: true,
   },

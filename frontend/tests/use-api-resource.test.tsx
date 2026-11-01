@@ -349,8 +349,9 @@ describe("useApiResource with scope: public (P5)", () => {
       );
     }
     await signedIn(<Toggle />);
-    // Same key, two identities: one public request and one for the account.
-    expect(load).toHaveBeenCalledTimes(2);
+    // Same key, two identities: one public request and one for the account (asked for once the
+    // signed-in consumer's effects have run, which can be just after the session is shown).
+    await waitFor(() => expect(load).toHaveBeenCalledTimes(2));
     expect(heldApiResources()).toBe(2);
     fireEvent.click(screen.getByText("hide"));
     await act(async () => undefined);
