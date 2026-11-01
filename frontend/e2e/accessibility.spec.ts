@@ -163,7 +163,8 @@ type AxeRun = { passes: unknown[]; incomplete: unknown[]; inapplicable: unknown[
  * evaluated — so a scan that did not run is never read as a clean one.
  */
 async function axe(page: Page): Promise<{ serious: string[]; rules: number }> {
-  await page.addScriptTag({ content: AXE_SOURCE });
+  // Not a script tag: the Content-Security-Policy rightly refuses an inline script without its nonce.
+  await page.evaluate(AXE_SOURCE);
   return page.evaluate(async (tags) => {
     const run = await (window as unknown as { axe: { run: (context: Document, options: object) => Promise<AxeRun> } }).axe.run(document, {
       runOnly: { type: "tag", values: tags },
@@ -311,7 +312,7 @@ test.beforeAll(async ({ request }) => {
 
 test("a theme chosen on the page paints it exactly as a page loaded in that theme, focus ring included", async ({ browser }) => {
   // Colours come only from the tokens, which follow data-theme: nothing may keep the old theme's.
-  const SAMPLES = ["body", "header", "main", "main h1", ".opportunity-card", ".opportunity-card a", ".opportunity-card [class*='badge'], .opportunity-card [class*='Badge']", "main button", "main select, main input"];
+  const SAMPLES = ["body", "header", "main", "main h1", ".opportunity-card", ".opportunity-card a", ".opportunity-card span", "main button", "main select, main input"];
   const paint = (page: Page) =>
     page.evaluate((selectors) => {
       return selectors.map((selector) => {

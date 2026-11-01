@@ -247,6 +247,7 @@ test("after a header search, keyboard focus is in the search page's box", async 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/browse");
   await page.getByRole("button", { name: "Search papers", exact: true }).click();
+  await expect(page.getByRole("dialog", { name: "Search papers" }).getByRole("searchbox")).toBeFocused();
   await page.keyboard.type("graph neural networks");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/\?q=graph(%20|\+)neural/);

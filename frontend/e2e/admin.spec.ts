@@ -33,7 +33,7 @@ async function requestsDuring(page: Page, act: () => Promise<unknown>): Promise<
   return { list, bodies };
 }
 
-const own = (list: string[]) => list.filter((entry) => !/\/auth\/me$|\/notifications\/unread-count$/.test(entry));
+const own = (list: string[]) => list.filter((entry) => !/\/auth\/me$|\/notifications\?limit=3|\/notifications\/unread-count$/.test(entry));
 
 test("a visitor asking for an administration page is sent to sign in", async ({ page }) => {
   await page.goto("/admin/users");

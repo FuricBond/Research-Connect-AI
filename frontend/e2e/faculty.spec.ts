@@ -66,7 +66,7 @@ test("a faculty member reviews applicants in the inbox and writes, edits and can
       await expect(page.getByRole("heading", { level: 1, name: "Applicants" })).toBeVisible();
       await expect(page.locator('main [aria-busy="true"]')).toHaveCount(0);
     });
-    const own = made.list.filter((r) => !r.endsWith("/auth/me") && !r.endsWith("/notifications/unread-count"));
+    const own = made.list.filter((r) => !r.endsWith("/auth/me") && !r.includes("/notifications?limit=3") && !r.endsWith("/api/v1/notifications"));
     expect(own.filter((r) => r === "GET /api/v1/postings/mine"), own.join("\n")).toHaveLength(1);
     expect(own.filter((r) => /\/applications$/.test(r)).length, own.join("\n")).toBeLessThanOrEqual(10);
     expect(own.length, own.join("\n")).toBeLessThanOrEqual(11);

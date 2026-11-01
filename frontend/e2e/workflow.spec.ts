@@ -88,7 +88,7 @@ test("a researcher discovers, saves, applies and is notified of the decision", a
     // notifications, grouped, with "View all".
     const bell = page.getByRole("banner").getByRole("button", { name: /^Notifications, \d+ unread/ });
     await bell.click();
-    await expect(page.getByRole("banner").getByRole("link", { name: /^Application shortlisted/ }).first()).toBeVisible();
+    await expect(page.getByRole("banner").getByRole("link", { name: /^Application: Shortlisted/ }).first()).toBeVisible();
     await page.getByRole("link", { name: "View all notifications" }).click();
     await expect(page).toHaveURL(/\/notifications$/);
     await expect(page.getByRole("heading", { level: 1, name: "Notifications" })).toBeVisible();

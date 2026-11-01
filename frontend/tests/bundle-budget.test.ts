@@ -1,8 +1,9 @@
 /**
  * P12 — the budget check (scripts/check-bundle-budget.mjs) as CI runs it, on small made-up builds:
- * it fails when a route, the typical route or the shared code is over budget, names what is, measures
- * gzipped size, leaves the layouts out of First Load JS as `next build` does, and refuses to pass
- * when there is no build to measure.
+ * it fails when a route (with or without its layouts), the typical route or the shared code is over
+ * budget, names what is, measures gzipped size, leaves the layouts out of First Load JS as `next
+ * build` does and counts them in the second figure, and refuses to pass when there is no build to
+ * measure.
  */
 import { spawnSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
@@ -38,9 +39,9 @@ afterEach(() => {
 
 describe("the bundle budget check", () => {
   it("passes a build within every budget and reports each route", () => {
-    const { code, out } = check(build({ ...LAYOUT, "/calendar/page": ["shared.js", "page.js", "page.css"] }, { "shared.js": 100, "shell.js": 20, "shell.css": 10, "page.js": 30, "page.css": 5 }));
+    const { code, out } = check(build({ ...LAYOUT, "/calendar/page": ["shared.js", "page.js", "page.css"] }, { "shared.js": 100, "shell.js": 5, "shell.css": 10, "page.js": 30, "page.css": 5 }));
     expect(code).toBe(0);
-    expect(out).toMatch(/\/calendar\s+130\.\d\s+150\.\d\s+15\.\d/);
+    expect(out).toMatch(/\/calendar\s+130\.\d\s+135\.\d\s+15\.\d/);
     expect(out).toContain("Within budget");
   });
 
@@ -48,6 +49,17 @@ describe("the bundle budget check", () => {
     const { code, err } = check(build({ ...LAYOUT, "/workspace/[id]/page": ["shared.js", "page.js"], "/page": ["shared.js"] }, { "shared.js": 100, "shell.js": 1, "shell.css": 1, "page.js": 41 }));
     expect(code).toBe(1);
     expect(err).toMatch(/\/workspace\/\[id\]: First Load JS 141\.\d kB is over 140 kB/);
+  });
+
+  it("fails when a route with its layouts is over 140 kB though First Load JS is within it, and counts a chunk once", () => {
+    const pages = { "/layout": ["shared.js", "shell.js"], "/a/page": ["shared.js", "page.js"] };
+    const over = check(build(pages, { "shared.js": 100, "shell.js": 15, "page.js": 30 }));
+    expect(over.code).toBe(1);
+    expect(over.err).toMatch(/\/a: JS with layouts 145\.\d kB is over 140 kB/);
+    expect(over.err).not.toContain("First Load JS");
+
+    const shared = { "/layout": ["shared.js", "shell.js"], "/a/page": ["shared.js", "shell.js"] };
+    expect(check(build(shared, { "shared.js": 100, "shell.js": 30 })).code).toBe(0);
   });
 
   it("does not round a route over the limit down to it", () => {

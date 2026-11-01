@@ -6,11 +6,15 @@
  *   npm run build && npm run check:bundle
  *
  * What is measured, gzip level 9, 1 kB = 1000 bytes, from .next/app-build-manifest.json:
- *  - First Load JS (budgeted): the JavaScript listed for a route's page. This is the figure `next
- *    build` prints in its route table and the one the budgets were set against.
- *  - With layouts (reported, not budgeted): the page's list plus the chunks of the layouts above it.
- *    A real visit downloads these too; `next build` leaves them out of its figure for app routes.
+ *  - First Load JS (budget 140): the JavaScript listed for a route's page. This is the figure `next
+ *    build` prints in its route table.
+ *  - With layouts (budget 140, Decision 5 of the audit): the page's list plus the chunks of the
+ *    layouts above it, counted once each. A real visit downloads these too; `next build` leaves them
+ *    out of its figure for app routes, so this is the one that says what a page needs to start.
  *  - CSS (budgeted): the stylesheets of the page and of the layouts above it.
+ *
+ * Neither figure counts what a page loads on demand (next/dynamic, React.lazy) or what the browser
+ * prefetches. What a visit actually transfers is measured in the browser: e2e/performance.spec.ts.
  *
  * Exit codes: 0 within budget, 1 over budget, 2 no build to measure.
  */
@@ -19,8 +23,10 @@ import { join, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
 
 const BUDGETS = {
-  /** Largest route, First Load JS. */
+  /** Largest route, First Load JS as `next build` prints it. */
   routeJs: 140,
+  /** Largest route with the chunks of the layouts above it. */
+  routeJsWithLayouts: 140,
   /** Typical route: the median of First Load JS. */
   typicalJs: 135,
   /** First Load JS shared by all. */
@@ -73,8 +79,9 @@ function measure(buildDir) {
 
 function failures({ routes, shared, typical }, budgets = BUDGETS) {
   const over = [];
-  for (const { route, js, css } of routes) {
+  for (const { route, js, jsWithLayouts, css } of routes) {
     if (kB(js) > budgets.routeJs) over.push(`${route}: First Load JS ${kB(js)} kB is over ${budgets.routeJs} kB`);
+    if (kB(jsWithLayouts) > budgets.routeJsWithLayouts) over.push(`${route}: JS with layouts ${kB(jsWithLayouts)} kB is over ${budgets.routeJsWithLayouts} kB`);
     if (kB(css) > budgets.routeCss) over.push(`${route}: CSS ${kB(css)} kB is over ${budgets.routeCss} kB`);
   }
   if (kB(typical) > budgets.typicalJs) over.push(`typical route: First Load JS ${kB(typical)} kB is over ${budgets.typicalJs} kB`);
@@ -100,7 +107,7 @@ function main() {
     console.error(`\nOver budget:\n${over.map((line) => `  ${line}`).join("\n")}`);
     return 1;
   }
-  console.log(`Within budget: every route's First Load JS at most ${BUDGETS.routeJs} kB, CSS at most ${BUDGETS.routeCss} kB.`);
+  console.log(`Within budget: every route's First Load JS at most ${BUDGETS.routeJs} kB, with layouts at most ${BUDGETS.routeJsWithLayouts} kB, CSS at most ${BUDGETS.routeCss} kB.`);
   return 0;
 }
 
