@@ -108,8 +108,8 @@ function serve(role: PlatformRole | null, routes: Routes = {}) {
   if (role !== null) storeSession(makeTokenResponse({ user: makeUser({ role }) }));
   fetchMock.mockImplementation((url: string, init?: RequestInit) => {
     if (url.endsWith("/api/v1/auth/me")) return Promise.resolve(jsonResponse(makeUser({ role: role ?? "STUDENT" })));
-    if (url.endsWith("/api/v1/notifications/unread-count")) {
-      return Promise.resolve(jsonResponse({ profile_id: PROFILE_ID, unread_count: routes.unread ? routes.unread() : 0 }));
+    if (url.endsWith("/api/v1/notifications?limit=3")) {
+      return Promise.resolve(jsonResponse({ notifications: [], total: 0, unread_count: routes.unread ? routes.unread() : 0 }));
     }
     if (url.endsWith("/api/v1/notifications/delivery-status")) {
       return Promise.resolve(jsonResponse(routes.status ?? IN_APP_ONLY));
@@ -175,7 +175,7 @@ describe("notification bell", () => {
     expect(within(bell).getByText("3")).toHaveAttribute("aria-hidden", "true");
     expect(bell).toHaveAttribute("aria-expanded", "false");
     // Nothing but the count is asked for until the bell is opened.
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/v1/notifications?"))).toBe(false);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/v1/notifications?limit=5"))).toBe(false);
 
     fireEvent.click(bell);
     expect(bell).toHaveAttribute("aria-expanded", "true");
@@ -196,7 +196,7 @@ describe("notification bell", () => {
     serve("STUDENT", { unread: () => unread });
     renderShell();
 
-    await waitFor(() => expect(requests("/notifications/unread-count")).toBe(1));
+    await waitFor(() => expect(requests("/notifications?limit=3")).toBe(1));
     const bell = await screen.findByRole("button", { name: "Notifications" });
     expect(bell.textContent).toBe("");
 
@@ -219,7 +219,7 @@ describe("notification bell", () => {
     await screen.findByRole("button", { name: "Notifications, 2 unread" });
     // Header, sidebar and the (closed) drawer are all mounted: still one request.
     await settle();
-    expect(requests("/notifications/unread-count")).toBe(1);
+    expect(requests("/notifications?limit=3")).toBe(1);
     expect(screen.getAllByRole("button", { name: /^Notifications/ })).toHaveLength(1);
   });
 
@@ -229,7 +229,7 @@ describe("notification bell", () => {
 
     expect(await screen.findByRole("link", { name: "Literature search" })).toBeInTheDocument();
     await settle();
-    expect(requests("/notifications/unread-count")).toBe(0);
+    expect(requests("/notifications?limit=3")).toBe(0);
     expect(screen.queryByRole("button", { name: /^Notifications/ })).not.toBeInTheDocument();
   });
 });
@@ -245,22 +245,22 @@ describe("useUnreadNotificationCount", () => {
 
     await settle();
     expect(result.current).toBe(1);
-    expect(requests("/notifications/unread-count")).toBe(1);
+    expect(requests("/notifications?limit=3")).toBe(1);
 
     // Just short of the interval nothing happens; at 30 s it asks again.
     unread = 4;
     act(() => vi.advanceTimersByTime(UNREAD_POLL_MS - 1));
-    expect(requests("/notifications/unread-count")).toBe(1);
+    expect(requests("/notifications?limit=3")).toBe(1);
     act(() => vi.advanceTimersByTime(1));
     await settle();
     expect(result.current).toBe(4);
-    expect(requests("/notifications/unread-count")).toBe(2);
+    expect(requests("/notifications?limit=3")).toBe(2);
 
     // A hidden tab makes no requests.
     setVisibility("hidden");
     act(() => vi.advanceTimersByTime(UNREAD_POLL_MS * 3));
     await settle();
-    expect(requests("/notifications/unread-count")).toBe(2);
+    expect(requests("/notifications?limit=3")).toBe(2);
 
     // Coming back asks at once.
     unread = 6;
@@ -270,21 +270,21 @@ describe("useUnreadNotificationCount", () => {
     });
     await settle();
     expect(result.current).toBe(6);
-    expect(requests("/notifications/unread-count")).toBe(3);
+    expect(requests("/notifications?limit=3")).toBe(3);
 
     // So does a page announcing a change.
     unread = 0;
     act(() => notifyNotificationsChanged());
     await settle();
     expect(result.current).toBe(0);
-    expect(requests("/notifications/unread-count")).toBe(4);
+    expect(requests("/notifications?limit=3")).toBe(4);
 
     // Switched off: no count and no more requests.
     rerender({ enabled: false });
     expect(result.current).toBeNull();
     act(() => vi.advanceTimersByTime(UNREAD_POLL_MS * 2));
     await settle();
-    expect(requests("/notifications/unread-count")).toBe(4);
+    expect(requests("/notifications?limit=3")).toBe(4);
 
     unmount();
   });
@@ -343,12 +343,12 @@ describe("notifications page", () => {
     renderPage();
 
     const markRead = await screen.findByRole("button", { name: "Mark as read" });
-    await waitFor(() => expect(requests("/notifications/unread-count")).toBeGreaterThanOrEqual(1));
-    const before = requests("/notifications/unread-count");
+    await waitFor(() => expect(requests("/notifications?limit=3")).toBeGreaterThanOrEqual(1));
+    const before = requests("/notifications?limit=3");
 
     fireEvent.click(markRead);
 
-    await waitFor(() => expect(requests("/notifications/unread-count")).toBe(before + 1));
+    await waitFor(() => expect(requests("/notifications?limit=3")).toBe(before + 1));
   });
 
   it("refreshes the list quietly while the page stays open", async () => {

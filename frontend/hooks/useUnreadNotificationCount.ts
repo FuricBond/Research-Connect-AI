@@ -7,13 +7,46 @@
  * view or regains focus, and whenever a page announces a change with
  * `notifyNotificationsChanged()` (for example after marking notifications read). A hidden tab
  * makes no requests. A failed request keeps the last count; the next tick tries again.
+ *
+ * Audit FUNC-11: one request answers both the count and the latest three notifications, which the
+ * dashboard's "Notifications" module reads from here (plan §8: "shared with the bell").
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchNotificationUnreadCount } from "../services/api";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { fetchNotifications } from "../services/api";
+import type { NotificationItem } from "../types/notification";
 
 export const NOTIFICATIONS_CHANGED_EVENT = "notifications:changed";
 export const UNREAD_POLL_MS = 30_000;
+
+const LATEST_SHOWN = 3;
+
+export interface LatestNotificationsAnswer {
+  unread: number;
+  items: NotificationItem[];
+  /** The request failed and no answer has come yet. */
+  failed?: boolean;
+}
+
+let latest: LatestNotificationsAnswer | null = null;
+const listeners = new Set<() => void>();
+
+export function publishLatest(answer: LatestNotificationsAnswer | null): void {
+  latest = answer;
+  listeners.forEach((listener) => listener());
+}
+
+/** What the shell's last request said: null until it answers. Makes no request of its own. */
+export function useLatestNotifications(): LatestNotificationsAnswer | null {
+  return useSyncExternalStore(
+    (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    () => latest,
+    () => null
+  );
+}
 
 /** Tells every listener (the shell's notification bell, the notifications page) to refresh now. */
 export function notifyNotificationsChanged(): void {
@@ -32,16 +65,20 @@ export function useUnreadNotificationCount(enabled: boolean): number | null {
     const controller = new AbortController();
     inFlight.current = controller;
     try {
-      const response = await fetchNotificationUnreadCount(undefined, controller.signal);
-      if (!controller.signal.aborted) setCount(response.unread_count);
+      const response = await fetchNotifications({ limit: LATEST_SHOWN }, undefined, controller.signal);
+      if (controller.signal.aborted) return;
+      setCount(response.unread_count);
+      publishLatest({ unread: response.unread_count, items: response.notifications });
     } catch {
       // Keep the last count; the next tick tries again.
+      if (!controller.signal.aborted && latest === null) publishLatest({ unread: 0, items: [], failed: true });
     }
   }, []);
 
   useEffect(() => {
     if (!enabled) {
       setCount(null);
+      publishLatest(null);
       return;
     }
     void refresh();
@@ -59,6 +96,7 @@ export function useUnreadNotificationCount(enabled: boolean): number | null {
       window.removeEventListener("focus", onRefresh);
       window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, onRefresh);
       inFlight.current?.abort();
+      publishLatest(null);
     };
   }, [enabled, refresh]);
 

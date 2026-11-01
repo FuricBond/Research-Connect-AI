@@ -4,14 +4,15 @@ import { API_URL, DEMO, DEMO_PASSWORD, signInThroughTheForm, watch } from "./sup
 /**
  * P4 — the signed-in home against the live API (FRONTEND_REDESIGN_PLAN.md §8): signing in lands
  * on /dashboard; each role's modules render without a failure; a page load makes at most seven
- * of the dashboard's own requests (the shell's session check and unread count are not the
+ * of the dashboard's own requests (the shell's session check and notifications are not the
  * dashboard's); a reload makes the same ones; nothing scrolls sideways on a phone.
  *
  * Two sign-ins (the backend allows 10 a minute per address; this file runs early, well before
  * the workflow test's sign-ins).
  */
 
-const SHELL_REQUESTS = ["/api/v1/auth/me", "/api/v1/notifications/unread-count"];
+// The bell's one request also answers the "Notifications" module (hooks/useUnreadNotificationCount.ts).
+const SHELL_REQUESTS = ["/api/v1/auth/me", "/api/v1/notifications"];
 
 /** Loads /dashboard afresh and returns the API requests it made, without the shell's. */
 async function dashboardRequests(page: Page, load: () => Promise<unknown>): Promise<string[]> {

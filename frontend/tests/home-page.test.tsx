@@ -34,6 +34,7 @@ import type { ApplicationStatus, PostingStatus, ResearchPosting } from "../types
 import type { UnifiedResearcherContext } from "../types/research_intelligence";
 import type { WorkspaceItem, WorkspaceStatus } from "../types/workspace";
 import { upcomingDeadlines } from "../utils/workspace";
+import { publishLatest } from "../hooks/useUnreadNotificationCount";
 import { PROFILE_ID, USER_ID, jsonResponse, makeTokenResponse, makeUser } from "./factories";
 import { installDialogPolyfill } from "./shell-support";
 
@@ -292,7 +293,9 @@ const ENDPOINTS: [string, RegExp][] = [
 type Answer = (path: string, init?: RequestInit) => Response | Promise<Response>;
 let requests: { name: string; path: string; init?: RequestInit }[] = [];
 
-function serve(role: PlatformRole, answers: Partial<Record<string, Answer>> = {}, user = makeUser({ role, full_name: "Priya Raghavan" })) {
+function serve(role: PlatformRole, answers: Partial<Record<string, Answer>> = {}, user = makeUser({ role, full_name: "Priya Raghavan", is_verified: true })) {
+  // The dashboard's notifications module reads what the shell's bell asked; this suite has no shell.
+  publishLatest({ unread: 0, items: [] });
   requests = [];
   storeSession(makeTokenResponse({ user }));
   const defaults: Record<string, Answer> = {
@@ -358,6 +361,7 @@ describe("student home", () => {
     renderHome();
 
     expect(await screen.findByRole("heading", { level: 1, name: "Welcome back, Priya Raghavan" })).toBeInTheDocument();
+    await screen.findByRole("region", { name: "Needs attention" });
     for (const name of ["Needs attention", "Upcoming (next 30 days)", "Recommended for you", "Postings that fit you", "Reading progress"]) {
       expect(region(name)).toBeInTheDocument();
     }

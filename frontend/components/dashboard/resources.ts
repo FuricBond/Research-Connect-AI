@@ -12,7 +12,8 @@
  * Student: workspace, application summary, calendar, recommendations, open postings → fit
  * scores, reading list = 7. Faculty: workspace, own postings → up to 3 application lists,
  * newest paper → related papers = at most 7. The shell's session check and unread count are
- * not the dashboard's (every signed-in page makes them).
+ * not the dashboard's (every signed-in page makes them); the "Notifications" module reads the
+ * shell's own answer, so it adds no request (hooks/useUnreadNotificationCount.ts).
  */
 
 import { useState } from "react";
