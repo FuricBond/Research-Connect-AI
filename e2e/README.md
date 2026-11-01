@@ -60,6 +60,7 @@ The E2E project never touches a developer's stack or data:
    | `test_07` | Peer consent |
    | `test_08` | Notifications |
    | `test_09` | Authorization matrix |
+   | `test_10` | The independent audit's API findings on PostgreSQL: invitations, the token hash, first-read races, verification, links, existence of ids |
 
 3. **Browser suite** (`frontend/e2e`, Playwright) against the production build:
    - the sign-in lifecycle;

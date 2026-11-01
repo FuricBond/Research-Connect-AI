@@ -178,7 +178,7 @@ The migration is non-destructive and backward-compatible:
   - Integrated tabbed navigation: `Overview`, `Submissions`, `Tasks`, `Members`, `Invitations`, `Activity & Notes`.
   - Role-aware UI components: action buttons (e.g., Invite Member, Change Role, Add Task) reflect server-side authorization.
   - Strict TypeScript types (`frontend/types/collaboration.ts`).
-  - Fully responsive styling with high-contrast accessibility (`frontend/styles/collaboration.css`).
+  - Fully responsive styling with high-contrast accessibility (originally `frontend/styles/collaboration.css`; since the redesign (P7), CSS modules in `frontend/components/workspace/item/`).
 
 ---
 

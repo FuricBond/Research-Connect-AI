@@ -271,7 +271,8 @@ Answers, in order: *what needs my attention, what is new for me, what is coming 
 | Reading progress | To read / reading / done counts | `GET /reading-list?limit=1` (counts) |
 | Notifications | Unread count + latest 3 (shared with the bell) | shell context |
 
-Request budget: **≤ 7 parallel requests**, nothing sequential. Empty account: a three-step
+Request budget: **≤ 7 route-specific requests**, plus the shell's two, reported separately; sequential ones
+reported apart (`audit/performance-baseline.md` §5). Empty account: a three-step
 "Get started" checklist (add interests, save a call, save a paper).
 
 **Faculty**: Needs your decision (applications submitted/under review across your postings),
@@ -796,7 +797,9 @@ Contradictions found and fixed while writing: (1) "no new dependencies" vs a cha
    `GET /discovery/research/{id}` (shareable paper page, single-paper BibTeX), an applicant
    aggregate for faculty, automatic calendar projection of workspace deadlines, plainer
    notification templates?
-5. **Q5** Should admins see personal research tools (workspace, reading list, calendar)?
+5. **Q5** Should admins see personal research tools (workspace, reading list, calendar)? **Decided: no.**
+   They are left out of the navigation and the account menu, and their pages say they are for student and
+   faculty accounts. The APIs behind them are unchanged.
 6. **Q6** Ship the dark theme in P11, or stay light-only?
 7. **Q7** Confirm terminology: "Call" for ingested calls for papers, "Posting" for faculty
    openings; show subfield names instead of ids (needs a name lookup).

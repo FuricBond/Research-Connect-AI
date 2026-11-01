@@ -143,7 +143,7 @@ bearer token. The backend is a modular monolith. Its main modules:
 | Machine learning | sentence-transformers (`all-MiniLM-L6-v2`), deterministic scoring engines |
 | Data sources | WikiCFP (scraped), OpenAlex and Crossref APIs |
 | Security | JWT (HS256) bearer tokens, bcrypt password hashing |
-| Testing | pytest (1,857 tests, 15 of them `perf` budgets), Vitest (241 tests), end-to-end with pytest and Playwright (79 tests), GitHub Actions CI |
+| Testing | pytest (2,078 tests, 15 of them `perf` budgets), Vitest (795 tests), end-to-end with pytest and Playwright (188 tests, plus 30 visual), GitHub Actions CI |
 | Deployment | Docker Compose, hardened non-root images |
 
 ## Quick Start
@@ -346,7 +346,7 @@ marked `perf` and excluded from `pytest`; run them on their own with `pytest -m 
 
 ```bash
 cd frontend
-npm test                      # 241 Vitest tests
+npm test                      # 795 Vitest tests
 npm run type-check
 npm run lint
 npm run build
@@ -378,7 +378,7 @@ See [e2e/README.md](e2e/README.md) and the
   which emails are registered, and login rate limiting. Signing out, changing the password or
   deactivating an account revokes every token issued before it
 - **Browser:** every page is served with a Content-Security-Policy that allows no third-party
-  origins, plus `nosniff`, a strict referrer policy and a permissions policy
+  origins and runs inline scripts only with a nonce fresh for that response, plus `nosniff`, a strict referrer policy and a permissions policy
 - **Authorization:** role-based access control plus ownership checks on every request; roles and
   deactivation take effect immediately
 - **Fail-closed production:** the API refuses to start with a weak or missing secret, developer

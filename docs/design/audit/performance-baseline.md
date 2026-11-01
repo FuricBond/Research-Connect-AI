@@ -90,14 +90,58 @@ on the not-found page.
 
 ## 5. Budgets for the redesign (P12 acceptance)
 
-| Metric | Baseline | Budget |
-|---|---|---|
-| Shared first-load JS | 103 kB | ≤ 110 kB (+7 kB for the UI primitives) |
-| Largest route first-load JS | 167 kB (`/researcher`) | ≤ 140 kB |
-| Typical route first-load JS | 112–129 kB | ≤ 135 kB |
-| CSS (gzip) | 24.4 kB | ≤ 28 kB, then lower as legacy CSS is deleted |
-| Fonts (WOFF2) | 0 | ≤ 100 kB, 1 preloaded file |
-| CLS (any route, local) | ≤ 0.067 | ≤ 0.02 |
-| API requests on load | ≤ 25 | ≤ 8 per route (dashboard ≤ 7, profile ≤ 6) |
-| Duplicate requests | unread-count ×2 | 0 |
-| Lighthouse (DevTools, mobile preset) | not measured | Performance ≥ 90, Accessibility ≥ 95, Best practices ≥ 95 |
+Amended by the independent audit's decisions: each budget says exactly what is measured.
+
+| Metric | Baseline | Budget | Checked by |
+|---|---|---|---|
+| Shared first-load JS | 103 kB | ≤ 110 kB | `check:bundle` |
+| Route JS, Next build metric | 167 kB (`/researcher`) | ≤ 140 kB | `check:bundle` |
+| Route JS, layout-inclusive | not measured | ≤ 140 kB | `check:bundle` |
+| Typical route JS (Next build metric) | 112–129 kB | ≤ 135 kB | `check:bundle` |
+| CSS (gzip), page and layouts | 24.4 kB | ≤ 28 kB | `check:bundle` |
+| Fonts actually downloaded by a page | 0 | ≤ 100 kB, 1 preloaded file | `performance.spec.ts` |
+| CLS, any route and tested width, real-data states included | ≤ 0.067 | ≤ 0.02 | `performance.spec.ts`, `remediation.spec.ts` |
+| Route-specific API requests on load | ≤ 25 | ≤ 8 (dashboard ≤ 7, profile ≤ 6) | `performance.spec.ts`, `dashboard.spec.ts` |
+| Duplicate requests | unread-count ×2 | 0 | `performance.spec.ts` |
+| Lighthouse (DevTools, mobile preset) | not measured | Performance ≥ 90, Accessibility ≥ 95, Best practices ≥ 95 | by hand, [MANUAL_VERIFICATION.md](../MANUAL_VERIFICATION.md) |
+
+**JavaScript: two build metrics and one measurement** (gzip level 9, 1 kB = 1000 bytes, from
+`.next/app-build-manifest.json`):
+
+- *Next build metric*: the JavaScript listed for a route's page, the figure `next build` prints.
+- *Layout-inclusive*: the same plus the chunks of the layouts above the page, each counted once. This is what
+  a page needs before it can start, and `next build` leaves it out for app routes.
+- *Actual browser transfer*: every script file a visit downloads, including parts loaded on demand, in bytes
+  on the wire. Not a budget. `performance.spec.ts` reports it, because the two build metrics do not count code
+  loaded with `next/dynamic` or `React.lazy`. Budgets are met partly by moving code out of the first load, so
+  this figure is what shows how much a visit still downloads.
+
+**Requests**: *route-specific* requests are the ones a page makes itself. The shell makes two on every
+signed-in page (`GET /auth/me`, `GET /notifications?limit=3`), reported separately and as a total, never
+dropped from the report. *Sequential* requests started only after another of the route's requests answered
+(fit scores after the postings; a faculty member's application lists after their postings). They are reported
+separately and are not budgeted.
+
+**Fonts**: the WOFF2 files a page's browser actually downloads, in bytes on the wire, including Latin-Ext and
+italic files when the page uses them. Files on disk that a page never asks for do not count. A typical Latin
+page downloads about 50 kB, and `/recommendations`, which has an italic heading, about 72 kB. **A page with
+text needing Latin-Ext (Erdős, Łukasz) is over budget: about 129 kB, or 169 kB with italics.** That is the
+files as published: `performance.spec.ts` records it as a known failure. Meeting the budget needs smaller
+Latin-Ext files, which means re-subsetting them with a tool not in this project and renaming them, since the
+licence reserves the font name for unmodified files.
+
+**CLS**: measured on real-data states, not only the demo seed: `remediation.spec.ts` builds a faculty account
+with two postings with applications, one with one, one with none, and failing and slow requests, at 1440,
+1280, 768 and 390 px.
+
+### What keeps pages small
+
+- `services/api/` holds one module per area of the API. `services/api.ts` is a barrel. Webpack keeps, per
+  module, every export any route uses, so a single file put every function on every page.
+- `next.config.ts` marks `services/api` and `components/ui` as side-effect free, so a barrel import pulls only
+  what is used; and it shortens CSS module class names in production, whose maps sit in every page's JavaScript.
+- The shell's rarely used parts load when about to be used: the navigation drawer, the search sheet, the
+  bell's panel, the account panel.
+- A page only an account can see loads behind its guard (`utils/preloadForSession.ts` starts it with the
+  session check, so nobody waits for one and then the other). A dashboard loads per role.
+

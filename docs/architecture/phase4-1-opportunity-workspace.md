@@ -181,7 +181,7 @@ Researcher isolation is strictly enforced at every layer:
 
 - **Route**: `frontend/app/workspace/page.tsx`
 - **Framework**: Next.js 15+ App Router with React 19 and TypeScript.
-- **Styling**: `frontend/styles/workspace.css` utilizing system CSS variables and modern card aesthetics.
+- **Styling**: originally `frontend/styles/workspace.css`; since the redesign (P7), CSS modules in `frontend/components/workspace/` on the design tokens.
 - **Navigation**: Integrated into `DiscoveryNavbar.tsx` with a dedicated "Opportunity Workspace" link.
 
 ### Key UI Capabilities

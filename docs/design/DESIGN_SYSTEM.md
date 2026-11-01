@@ -1275,8 +1275,9 @@ The administrator's side (plan §15). Administrators get **Overview** (`/admin`)
 an **Administration** group — Users (`/admin/users`), Research data (`/admin/research-data`) —
 straight after it; other roles do not see them (navigation only: the pages check the role, and every
 endpoint behind them is ADMIN only on the server). `/dashboard`, where signing in lands, replaces
-itself with the overview for an administrator. Personal research tools stay in their navigation
-(plan Q5 is still open).
+itself with the overview for an administrator. Personal research tools are not offered to
+administrators (plan Q5, decided): not in the navigation or the account menu, not as Save buttons, and
+their pages say they are for student and faculty accounts.
 
 **Overview** (`/admin`): the title first, then five modules in two columns from 1280px, each a section
 with an h2 and one card that keeps a typical answer's height from its first paint (sized for the
@@ -1336,8 +1337,7 @@ server's role and says why in plain words; the backend refuses to demote or deac
 active administrator (409). Changing one's own account reads the session again.
 
 **Activation and verification**: from "Actions for …": Deactivate / Reactivate account, Mark as
-verified / not verified, applied at once with an **Undo** in the page's notice (there is no toast
-primitive; the notice stays until dismissed or replaced). Deactivating one's own account asks first
+verified / not verified, applied at once with an **Undo** in a toast (`components/ui/Toast`). Deactivating one's own account asks first
 (one is signed out at once). Rows compare `updated_at`, so an older answer never puts old values back.
 
 | Part | Where |
@@ -1483,3 +1483,47 @@ the suite puts ties in title order. `E2E_VISUAL_RATIO=0` compares pixel for pixe
 | Visual suite | `frontend/e2e/visual.spec.ts`, `frontend/e2e/visual.spec.ts-snapshots/`, `e2e/run_e2e.py` (`--suites visual`), `e2e/api/test_visual_seed.py` |
 | Runtime budgets | `frontend/e2e/performance.spec.ts`: layout shift ≤ 0.02, no repeated request, no page error, per role at 1440/768/390; deferred parts load only when asked for |
 | Tests | `paper-context` (the part without a paper arrives just after the title), `recommendations-page` (the lazy confirmation takes and returns focus; Technical details arrives just after the page), `ui-primitives` (imports follow the moved controls) |
+
+## 25. After the independent audit
+
+What the audit's remediation added, and what it settled.
+
+**Faculty verification** (Decision 1): anyone can register as faculty; an administrator verifies them
+(`/admin/users?status=unverified`). Until then the API refuses creating or publishing a posting, a posting of
+theirs is not public and receives no applications, and `components/postings/VerificationNotice` says what is
+waiting. Closing or archiving a posting is always allowed. Existing unverified faculty accounts need verifying
+for their open postings to be visible again. `python -m scripts.report_unsafe_urls` is unrelated but similar in
+spirit: read-only, it lists stored links that are not web addresses.
+
+**Workspace invitations**: answered in `components/notifications/PendingInvitations` on `/notifications#invitations`,
+by the signed-in account (`/api/v1/workspace-invitations/...`), with no token in the browser. Only a SHA-256 of a
+token is stored, and it is redacted from access logs. The token is returned once, to the inviting owner, for API
+clients. An invitation is answered once. Someone invited before having an account finds it when they sign up with
+that address. **Workspaces joined** are listed on `/workspace` under "Shared with you".
+
+**Links**: `utils/safeUrl.ts` and `app/core/url_safety.py` apply one rule: an absolute http(s) address with a host,
+no credentials, no stray characters. The API refuses anything else on create and update and ingestion drops it.
+Rows stored earlier keep their value (nothing is deleted behind a person's back); the UI never links them.
+
+**Content-Security-Policy**: `middleware.ts` sends a fresh nonce per response, so scripts run only from this origin or
+with that nonce; there is no `'unsafe-inline'` for scripts. Every page is therefore rendered per request. **Still
+open:** the session token stays in `localStorage`, so an XSS that got past the policy could read it. Moving it to an
+httpOnly cookie needs the API to set cookies, CSRF protection on every write, and a cross-origin cookie policy
+between the web and API origins, which is an authentication redesign. The policy reduces this risk; it does not
+remove it.
+
+**Session checks**: only a 401 ends a session. A 5xx, no network, or no answer within 10 seconds leaves the token in
+place, and the shell says so with Try again (`status: "unavailable"`).
+
+**Dialogs**: one `components/ui/Dialog/ConfirmDialog`, which sends once and cannot be dismissed while sending. **Toast**:
+`components/ui/Toast`, as §8.3 specifies; used for the user list's Undo.
+
+**Primitives in plan §22 P1 that do not exist as components**, on purpose: no current page needs them. Tooltip (native
+`title`), Chip (each page's own CSS module class), Table and DataList (tables styled per page), StatCard, Avatar (the
+account menu's initials), Progress, Popover (`shell/Disclosure` and `ui/Menu`), VisuallyHidden (`.rc-visually-hidden`),
+SkipLink (`.rc-skip-link`). Build one when a second page needs it.
+
+**Visual suite**: any differing pixel fails (`E2E_VISUAL_RATIO` defaults to 0), and only true ties are normalized
+(`e2e/visual-normalize.ts`).
+
+**Budgets**: `audit/performance-baseline.md` §5. **By hand, still to do**: [MANUAL_VERIFICATION.md](MANUAL_VERIFICATION.md).
