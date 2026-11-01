@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useAddressSearch } from "../../hooks/useAddressSearch";
 import type { ApplicationStatus, PostingApplication, ResearchPosting } from "../../types/posting";
 import { APPLICATION_STATUSES, INBOX_POSTINGS, inboxHref, inboxPostings, MY_POSTINGS_HREF, readInboxQuery } from "../../utils/postings";
-import { applicationStatusMeta, postingStatusMeta } from "../../utils/status";
+import { applicationStatusMeta, postingStatusMeta } from "../../utils/postingStatus";
 import { DeadlineCountdown } from "../research/DeadlineCountdown";
 import { StatusBadge } from "../ui/Badge/Badge";
 import { Button, ButtonLink } from "../ui/Button/Button";

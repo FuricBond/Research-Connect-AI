@@ -8,7 +8,7 @@ import { fetchPostingFit, fetchPosting } from "../../services/api";
 import type { ResearchPosting } from "../../types/posting";
 import { POSTING_TYPE_LABELS, WORK_MODE_LABELS } from "../../types/posting";
 import { isNewer, MY_POSTINGS_HREF, webAddress } from "../../utils/postings";
-import { applicationStatusMeta, postingStatusMeta } from "../../utils/status";
+import { applicationStatusMeta, postingStatusMeta } from "../../utils/postingStatus";
 import { useSession } from "../auth/SessionProvider";
 import { DeadlineCountdown } from "../research/DeadlineCountdown";
 import { TopicTags } from "../research/TopicTags";

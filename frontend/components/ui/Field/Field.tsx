@@ -1,7 +1,7 @@
 "use client";
 
-import { forwardRef, useId, useState, type ComponentProps, type ReactNode } from "react";
-import { AlertCircle, Eye, EyeOff, Search, X } from "lucide-react";
+import { forwardRef, useId, type ComponentProps, type ReactNode } from "react";
+import { AlertCircle, Search, X } from "lucide-react";
 import { cx } from "../../../utils/cx";
 import { IconButton } from "../Button/Button";
 import styles from "./Field.module.css";
@@ -14,7 +14,7 @@ export interface ControlProps {
   required?: boolean;
 }
 
-interface FieldChrome {
+export interface FieldChrome {
   /** Always visible: placeholder text is never the only label. */
   label: ReactNode;
   hint?: ReactNode;
@@ -68,36 +68,6 @@ export const TextInput = forwardRef<HTMLInputElement, InputProps>(function TextI
   return (
     <Field id={id} label={label} hint={hint} error={error} required={required} className={className}>
       {(control) => <input ref={ref} type={type} className={cx(styles.control, inputClassName)} {...control} {...rest} />}
-    </Field>
-  );
-});
-
-type PasswordInputProps = Omit<InputProps, "type"> & {
-  /** The toggle's name; name the field when a form has several ("Show new password"). */
-  revealLabel?: string;
-};
-
-/**
- * A password field with a toggle that shows what was typed (DESIGN_SYSTEM.md §8.2). The toggle
- * is named by its own (visually hidden) text, not aria-label, so it never doubles as a label
- * for the field, and `aria-pressed` says whether the password is shown.
- */
-export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(function PasswordInput(
-  { label, hint, error, required, className, inputClassName, id, revealLabel = "Show password", ...rest },
-  ref
-) {
-  const [shown, setShown] = useState(false);
-  return (
-    <Field id={id} label={label} hint={hint} error={error} required={required} className={className}>
-      {(control) => (
-        <div className={styles.password}>
-          <input ref={ref} type={shown ? "text" : "password"} className={cx(styles.control, styles.passwordControl, inputClassName)} {...control} {...rest} />
-          <button type="button" className={styles.reveal} aria-pressed={shown} aria-controls={control.id} onClick={() => setShown((value) => !value)}>
-            {shown ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
-            <span className="rc-visually-hidden">{revealLabel}</span>
-          </button>
-        </div>
-      )}
     </Field>
   );
 });
@@ -184,94 +154,3 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Che
     </label>
   );
 });
-
-export interface RadioOption {
-  value: string;
-  label: ReactNode;
-  hint?: ReactNode;
-  disabled?: boolean;
-}
-
-interface RadioGroupProps {
-  legend: ReactNode;
-  name: string;
-  options: RadioOption[];
-  value: string;
-  onChange: (value: string) => void;
-  className?: string;
-}
-
-/** Radios grouped under a visible legend; arrow keys move between them natively. */
-export function RadioGroup({ legend, name, options, value, onChange, className }: RadioGroupProps) {
-  const generated = useId();
-  return (
-    <fieldset className={cx(styles.group, className)}>
-      <legend className={cx(styles.label, styles.legend)}>{legend}</legend>
-      {options.map((option) => {
-        const id = `${name}-${generated}-${option.value}`;
-        return (
-          <label key={option.value} className={styles.check} htmlFor={id}>
-            <input
-              id={id}
-              type="radio"
-              name={name}
-              value={option.value}
-              checked={value === option.value}
-              disabled={option.disabled}
-              onChange={() => onChange(option.value)}
-            />
-            <span className={styles.checkLabel}>{option.label}</span>
-            {option.hint && <span className={cx(styles.hint, styles.checkHint)}>{option.hint}</span>}
-          </label>
-        );
-      })}
-    </fieldset>
-  );
-}
-
-interface SwitchProps {
-  label: ReactNode;
-  description?: ReactNode;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  disabled?: boolean;
-  /** Words for the state shown next to the switch. */
-  stateLabels?: [on: string, off: string];
-  className?: string;
-}
-
-/** For settings that apply immediately (not inside a form that needs Save). */
-export function Switch({ label, description, checked, onChange, disabled, stateLabels = ["On", "Off"], className }: SwitchProps) {
-  const generated = useId();
-  const labelId = `switch-${generated}-label`;
-  const descriptionId = description ? `switch-${generated}-description` : undefined;
-  return (
-    <div className={cx(styles.switchRow, className)}>
-      <div className={styles.switchText}>
-        <span id={labelId} className={styles.label}>
-          {label}
-        </span>
-        {description && (
-          <span id={descriptionId} className={styles.hint}>
-            {description}
-          </span>
-        )}
-      </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-labelledby={labelId}
-        aria-describedby={descriptionId}
-        disabled={disabled}
-        className={styles.switch}
-        onClick={() => onChange(!checked)}
-      >
-        <span className={styles.track} aria-hidden="true">
-          <span className={styles.thumb} />
-        </span>
-        <span aria-hidden="true">{checked ? stateLabels[0] : stateLabels[1]}</span>
-      </button>
-    </div>
-  );
-}

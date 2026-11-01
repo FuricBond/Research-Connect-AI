@@ -281,7 +281,7 @@
   gap: var(--rc-space-2);
 }
 
-.moreTrigger {
+button.moreTrigger {
   justify-content: center;
   min-width: var(--rc-target-min);
   padding: var(--rc-space-1);

@@ -7,7 +7,7 @@ import { COLLABORATION_INTEREST_LABELS, COLLABORATION_STATUS_LABELS } from "../.
 import { POSTING_TYPE_LABELS } from "../../types/posting";
 import type { MatchingPaper, OpenPostingRef } from "../../types/supervisor";
 import { humanizeEnum } from "../../utils/date";
-import { academicStatusLabel } from "../../utils/personalization";
+import { academicStatusLabel } from "../../utils/academicStatus";
 import { FitScore } from "../research/FitScore";
 import { TopicTags } from "../research/TopicTags";
 import { Badge } from "../ui/Badge/Badge";

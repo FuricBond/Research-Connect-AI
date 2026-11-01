@@ -8,7 +8,7 @@ import { getSimilarResearch, lookupReadingList } from "../../services/api";
 import { setSelectedWork } from "../../hooks/useSelectedWork";
 import type { ResearchWorkRead } from "../../types/discovery";
 import { useSession } from "../auth/SessionProvider";
-import { PaperContextRequired } from "../discovery/PaperContextRequired";
+import { PaperContextRequired } from "../discovery/lazyPaperContext";
 import { SourcePaper } from "../discovery/SourcePaper";
 import { usePaperContext } from "../discovery/paperContext";
 import { PaperCard } from "../research/PaperCard";

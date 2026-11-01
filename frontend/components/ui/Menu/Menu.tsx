@@ -22,7 +22,10 @@ interface MenuProps {
   /** Which edge of the trigger the menu lines up with. */
   align?: "start" | "end";
   disabled?: boolean;
-  /** Extra class for the trigger (the status menu looks like its badge). */
+  /**
+   * Extra class for the trigger (the status menu looks like its badge). Write its rule as
+   * `button.name`: at the same specificity, the winner would depend on stylesheet load order.
+   */
   triggerClassName?: string;
   /** Describes the trigger with the object it acts on (the row's title). */
   describedBy?: string;

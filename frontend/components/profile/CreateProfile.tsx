@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { createResearcherProfile } from "../../services/api";
 import type { AcademicStatus, ResearcherProfile } from "../../types/researcher";
-import { academicStatusLabel } from "../../utils/personalization";
+import { academicStatusLabel } from "../../utils/academicStatus";
 import { Button } from "../ui/Button/Button";
 import { Select, TextInput } from "../ui/Field/Field";
 import { Alert } from "../ui/State/State";

@@ -5,7 +5,7 @@ import { MoreHorizontal, Plus } from "lucide-react";
 import { useApiResource, type ApiResource } from "../../../hooks/useApiResource";
 import { createSubmissionDocument, deleteSubmissionDocument, fetchDocumentVersions, updateSubmissionDocument } from "../../../services/api";
 import type { DocumentStatus, DocumentType, SubmissionDocument, SubmissionDocumentListResponse } from "../../../types/submission";
-import { documentStatusMeta } from "../../../utils/status";
+import { documentStatusMeta } from "../../../utils/workflowStatus";
 import { Badge, StatusBadge } from "../../ui/Badge/Badge";
 import { Button } from "../../ui/Button/Button";
 import { Dialog } from "../../ui/Dialog/Dialog";

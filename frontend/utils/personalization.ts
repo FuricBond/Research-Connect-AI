@@ -136,18 +136,4 @@ export function preferenceMatchLabel(state: string | null | undefined): string {
   return (state && MATCH_STATE[state]) || humanizeEnum(state);
 }
 
-const ACADEMIC_STATUS: Record<string, string> = {
-  UNDERGRADUATE: "Undergraduate",
-  POSTGRADUATE: "Postgraduate",
-  PHD: "PhD",
-  POSTDOC: "Postdoctoral researcher",
-  FACULTY: "Faculty",
-  RESEARCHER: "Researcher",
-  OTHER: "Other",
-};
-
-/** A career stage in words ("PhD", not "Phd"); an unset stage is null, never shown as "Unknown". */
-export function academicStatusLabel(status: string | null | undefined): string | null {
-  if (!status || status === "UNKNOWN") return null;
-  return ACADEMIC_STATUS[status] ?? humanizeEnum(status);
-}
+export { academicStatusLabel } from "./academicStatus";

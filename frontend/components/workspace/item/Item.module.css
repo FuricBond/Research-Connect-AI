@@ -286,3 +286,8 @@
   color: var(--rc-text-muted);
   font-variant-numeric: tabular-nums;
 }
+
+/* The notes form's height while its code loads (P12). */
+.notesLoading {
+  min-height: 21rem;
+}

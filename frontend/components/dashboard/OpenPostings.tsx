@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ApiResource } from "../../hooks/useApiResource";
 import type { ResearchPostingListResponse } from "../../types/posting";
 import { MY_POSTINGS_HREF, mineHref } from "../../utils/postings";
-import { postingStatusMeta } from "../../utils/status";
+import { postingStatusMeta } from "../../utils/postingStatus";
 import { DeadlineCountdown } from "../research/DeadlineCountdown";
 import { StatusBadge } from "../ui/Badge/Badge";
 import { EmptyState } from "../ui/State/State";

@@ -5,7 +5,7 @@ import { ExternalLink, Save } from "lucide-react";
 import { updateResearcherProfile } from "../../services/api";
 import type { AcademicStatus, ResearcherProfile, ResearcherProfileUpdatePayload } from "../../types/researcher";
 import { humanizeEnum } from "../../utils/date";
-import { academicStatusLabel } from "../../utils/personalization";
+import { academicStatusLabel } from "../../utils/academicStatus";
 import { TopicTags } from "../research/TopicTags";
 import { Button } from "../ui/Button/Button";
 import { Select, TextArea, TextInput } from "../ui/Field/Field";

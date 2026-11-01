@@ -17,7 +17,7 @@ import {
   type CallSort,
   type CallsState,
 } from "../utils/callsState";
-import { CALL_TYPES, DELIVERY_MODES, callTypeLabel, deliveryModeLabel } from "../utils/research";
+import { CALL_TYPES, DELIVERY_MODES, callTypeLabel, deliveryModeLabel } from "../utils/callLabels";
 import { OpportunityCard } from "./research/OpportunityCard";
 import { useTrackedCalls } from "./research/trackedCalls";
 import { Button } from "./ui/Button/Button";

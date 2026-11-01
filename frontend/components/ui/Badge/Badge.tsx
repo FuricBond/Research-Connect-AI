@@ -1,6 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 import { cx } from "../../../utils/cx";
-import { priorityMeta, type StatusMeta, type StatusTone } from "../../../utils/status";
+import { priorityMeta } from "../../../utils/priority";
+import { type StatusMeta, type StatusTone } from "../../../utils/statusMeta";
 import styles from "./Badge.module.css";
 
 const TONE_CLASS: Record<StatusTone, string> = {

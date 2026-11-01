@@ -568,7 +568,7 @@ a.square:hover {
   color: var(--rc-text-secondary);
 }
 
-.roleTrigger {
+button.roleTrigger {
   font-weight: var(--rc-weight-semibold);
 }
 

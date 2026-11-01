@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { updatePersonalizationSettings } from "../../services/api";
 import type { ResearcherPersonalizationSettings, ResearcherPersonalizationSettingsUpdate } from "../../types/personalization";
-import { Switch } from "../ui/Field/Field";
+import { Switch } from "../ui/Field/Switch";
 import styles from "./Recommendations.module.css";
 
 type SettingKey = keyof ResearcherPersonalizationSettingsUpdate;

@@ -84,7 +84,8 @@ describe("Similar papers without a selected paper", () => {
     renderWithSession(<SimilarResearchPage />);
 
     expect(await screen.findByRole("heading", { level: 1, name: "Similar papers" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Choose a paper to start" })).toBeInTheDocument();
+    // P12: this part loads only when there is no paper in hand, so it arrives just after the title.
+    expect(await screen.findByRole("heading", { name: "Choose a paper to start" })).toBeInTheDocument();
     // P5: the action is "Find similar" on a paper's card and panel.
     expect(screen.getByText("Find similar", { selector: "strong" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Find a paper in Literature Search" })).toHaveAttribute("href", "/");

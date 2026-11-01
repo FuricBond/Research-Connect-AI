@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { transitionApplication } from "../../services/api";
 import type { ApplicationStatus, PostingApplication } from "../../types/posting";
-import { applicationStatusMeta } from "../../utils/status";
+import { applicationStatusMeta } from "../../utils/postingStatus";
 import { decisionFailed, isNewer } from "../../utils/postings";
 import { changeError } from "./errors";
 

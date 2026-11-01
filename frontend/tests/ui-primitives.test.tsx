@@ -7,7 +7,9 @@ import React, { useState } from "react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { Button, IconButton } from "../components/ui/Button/Button";
-import { Checkbox, RadioGroup, Select, Switch, TextArea, TextInput } from "../components/ui/Field/Field";
+import { Checkbox, Select, TextArea, TextInput } from "../components/ui/Field/Field";
+import { RadioGroup } from "../components/ui/Field/RadioGroup";
+import { Switch } from "../components/ui/Field/Switch";
 import { Dialog, Drawer } from "../components/ui/Dialog/Dialog";
 import { Alert, EmptyState, ErrorState, SkeletonList } from "../components/ui/State/State";
 import { PriorityLabel, StatusBadge } from "../components/ui/Badge/Badge";
@@ -15,7 +17,8 @@ import { PageHeader } from "../components/ui/PageHeader/PageHeader";
 import { Menu } from "../components/ui/Menu/Menu";
 import { TabPanel, Tabs } from "../components/ui/Tabs/Tabs";
 import { MatchScore, matchBand } from "../components/research/MatchScore";
-import { applicationStatusMeta, postingStatusMeta, workspaceStatusMeta } from "../utils/status";
+import { applicationStatusMeta, postingStatusMeta } from "../utils/postingStatus";
+import { workspaceStatusMeta } from "../utils/status";
 
 // jsdom has <dialog> but not showModal()/close(): give it the browser's behaviour.
 beforeAll(() => {

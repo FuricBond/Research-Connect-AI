@@ -4,11 +4,10 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { WorkspaceItem, WorkspaceItemUpdatePayload } from "../../../types/workspace";
 import { DeadlineMilestones } from "../../research/DeadlineMilestones";
-import { callHref } from "../../research/OpportunityCard";
-import { ItemNotesForm } from "../ItemNotesForm";
-import { nextStep } from "../WorkspaceRow";
-import { shortDate, type Abilities } from "../workflow";
+import { callHref } from "../../../utils/callHref";
+import { nextStep, shortDate, type Abilities } from "../workflow";
 import type { ItemTab } from "./ItemPage";
+import { ItemNotesForm } from "./lazyTabs";
 import styles from "./Item.module.css";
 import workspaceStyles from "../Workspace.module.css";
 

@@ -6,7 +6,7 @@ import { useApiResource } from "../../../hooks/useApiResource";
 import { createSubmission, fetchWorkspaceSubmissions } from "../../../services/api";
 import type { ResearchSubmission, SubmissionType } from "../../../types/submission";
 import type { WorkspaceItem } from "../../../types/workspace";
-import { submissionStatusMeta } from "../../../utils/status";
+import { submissionStatusMeta } from "../../../utils/workflowStatus";
 import { StatusBadge } from "../../ui/Badge/Badge";
 import { Button } from "../../ui/Button/Button";
 import { Select, TextInput } from "../../ui/Field/Field";

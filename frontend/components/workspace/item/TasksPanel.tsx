@@ -5,7 +5,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useApiResource, type ApiResource } from "../../../hooks/useApiResource";
 import { completeWorkspaceTask, createWorkspaceTask, deleteWorkspaceTask, getWorkspaceTasks, reopenWorkspaceTask } from "../../../services/api";
 import type { TaskPriority, TaskStatus, WorkspaceMemberListResponse, WorkspaceTask } from "../../../types/collaboration";
-import { taskStatusMeta } from "../../../utils/status";
+import { taskStatusMeta } from "../../../utils/workflowStatus";
 import { PriorityLabel, StatusBadge } from "../../ui/Badge/Badge";
 import { Button, IconButton } from "../../ui/Button/Button";
 import { Dialog } from "../../ui/Dialog/Dialog";

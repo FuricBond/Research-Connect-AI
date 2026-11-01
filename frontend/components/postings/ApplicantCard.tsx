@@ -3,9 +3,9 @@
 import { useId, useRef, useState } from "react";
 import { ExternalLink, Mail } from "lucide-react";
 import type { ApplicationStatus, PostingApplication } from "../../types/posting";
-import { academicStatusLabel } from "../../utils/personalization";
+import { academicStatusLabel } from "../../utils/academicStatus";
 import { applicationOutcome, decisionsFor, NOT_SELECTED, webAddress } from "../../utils/postings";
-import { applicationStatusMeta } from "../../utils/status";
+import { applicationStatusMeta } from "../../utils/postingStatus";
 import { StatusBadge } from "../ui/Badge/Badge";
 import { Button } from "../ui/Button/Button";
 import { Alert } from "../ui/State/State";

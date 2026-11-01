@@ -16,7 +16,7 @@ import { changePassword } from "../../services/api";
 import { storeSession } from "../../services/auth";
 import { MIN_PASSWORD_LENGTH } from "../../types/auth";
 import { Button } from "../ui/Button/Button";
-import { PasswordInput } from "../ui/Field/Field";
+import { PasswordInput } from "../ui/Field/PasswordInput";
 import { Alert } from "../ui/State/State";
 import { describeChangePasswordError } from "./authMessages";
 import { confirmationProblem, firstInvalid, newPasswordProblem, withoutField, type FieldErrors } from "./formRules";

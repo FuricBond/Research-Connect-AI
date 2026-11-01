@@ -5,7 +5,7 @@ import { useId } from "react";
 import { Trash2 } from "lucide-react";
 import type { PostingFit, PostingStatus, ResearchPosting } from "../../types/posting";
 import { POSTING_STATUS_LABELS, POSTING_TYPE_LABELS, WORK_MODE_LABELS } from "../../types/posting";
-import { postingStatusMeta } from "../../utils/status";
+import { postingStatusMeta } from "../../utils/postingStatus";
 import { DeadlineCountdown } from "../research/DeadlineCountdown";
 import { FitScore } from "../research/FitScore";
 import { TopicTags } from "../research/TopicTags";

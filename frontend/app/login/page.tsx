@@ -21,7 +21,8 @@ import { AuthPending } from "../../components/auth/RequireAuth";
 import { describeLoginError, resolveRedirectTarget } from "../../components/auth/authMessages";
 import { firstInvalid, withoutField, type FieldErrors } from "../../components/auth/formRules";
 import { Button } from "../../components/ui/Button/Button";
-import { PasswordInput, TextInput } from "../../components/ui/Field/Field";
+import { TextInput } from "../../components/ui/Field/Field";
+import { PasswordInput } from "../../components/ui/Field/PasswordInput";
 import { Alert, SkeletonList } from "../../components/ui/State/State";
 
 type LoginField = "email" | "password";

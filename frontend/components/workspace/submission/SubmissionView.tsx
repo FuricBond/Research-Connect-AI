@@ -5,7 +5,7 @@ import { Check, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { useApiResource } from "../../../hooks/useApiResource";
 import { deleteSubmission, fetchSubmissionDocuments, fetchSubmissionReadiness, transitionSubmissionStatus, updateSubmission } from "../../../services/api";
 import type { ResearchSubmission, ResearchSubmissionUpdate, SubmissionStatus, SubmissionType } from "../../../types/submission";
-import { readinessMeta, submissionStatusMeta } from "../../../utils/status";
+import { readinessMeta, submissionStatusMeta } from "../../../utils/workflowStatus";
 import { cx } from "../../../utils/cx";
 import { StatusBadge } from "../../ui/Badge/Badge";
 import { Button } from "../../ui/Button/Button";

@@ -34,7 +34,8 @@ import {
   type FieldErrors,
 } from "../../components/auth/formRules";
 import { Button } from "../../components/ui/Button/Button";
-import { PasswordInput, Select, TextInput } from "../../components/ui/Field/Field";
+import { Select, TextInput } from "../../components/ui/Field/Field";
+import { PasswordInput } from "../../components/ui/Field/PasswordInput";
 import { Alert, SkeletonList } from "../../components/ui/State/State";
 
 const ROLE_CHOICES: { value: SelfServiceRole; label: string; hint: string }[] = [

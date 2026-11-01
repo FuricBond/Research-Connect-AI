@@ -6,7 +6,9 @@ import { ExternalLink } from "lucide-react";
 import type { ExplanationSchema } from "../../types/discovery";
 import type { OpportunityListItem } from "../../types/opportunity";
 import type { WorkspaceItem } from "../../types/workspace";
-import { callTypeLabel, deliveryModeLabel, topReasons } from "../../utils/research";
+import { callHref } from "../../utils/callHref";
+import { callTypeLabel, deliveryModeLabel } from "../../utils/callLabels";
+import { topReasons } from "../../utils/research";
 import { riskPresentation } from "../../utils/risk";
 import { workspaceDeadline } from "../../utils/workspace";
 import { Badge } from "../ui/Badge/Badge";
@@ -16,10 +18,6 @@ import { RiskIndicator } from "./RiskIndicator";
 import { SaveCallButton } from "./SaveCallButton";
 import type { EvidenceSection } from "./EvidencePanel";
 import styles from "./OpportunityCard.module.css";
-
-export function callHref(id: string): string {
-  return `/calls/${encodeURIComponent(id)}`;
-}
 
 interface OpportunityCardProps {
   call: OpportunityListItem;

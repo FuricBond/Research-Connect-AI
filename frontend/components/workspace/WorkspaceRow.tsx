@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useId } from "react";
 import { ArrowRight, MoreHorizontal } from "lucide-react";
 import type { WorkspaceItem, WorkspaceItemUpdatePayload, WorkspaceStatus } from "../../types/workspace";
-import { callTypeLabel, deliveryModeLabel } from "../../utils/research";
+import { callTypeLabel, deliveryModeLabel } from "../../utils/callLabels";
 import { workspaceDeadline } from "../../utils/workspace";
 import { DeadlineCountdown } from "../research/DeadlineCountdown";
 import { RiskIndicator } from "../research/RiskIndicator";
@@ -13,16 +13,8 @@ import { PriorityLabel } from "../ui/Badge/Badge";
 import { Menu } from "../ui/Menu/Menu";
 import { ItemNotesForm } from "./ItemNotesForm";
 import { StatusMenu } from "./StatusMenu";
+import { itemHref, nextStep } from "./workflow";
 import styles from "./Workspace.module.css";
-
-export const itemHref = (id: string, tab?: string) => `/workspace/${encodeURIComponent(id)}${tab ? `?tab=${tab}` : ""}`;
-
-/** The next step for an item, by its status: where the work continues. */
-export function nextStep(status: WorkspaceStatus): string | null {
-  if (status === "SAVED" || status === "CONSIDERING" || status === "PLANNING") return "Draft submission";
-  if (status === "APPLIED" || status === "ACCEPTED" || status === "REJECTED") return "Open submission";
-  return null;
-}
 
 interface WorkspaceRowProps {
   item: WorkspaceItem;

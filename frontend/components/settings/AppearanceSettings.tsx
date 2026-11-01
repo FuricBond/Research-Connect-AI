@@ -10,7 +10,7 @@ import {
   watchThemePreference,
   type ThemePreference,
 } from "../../utils/theme";
-import { RadioGroup } from "../ui/Field/Field";
+import { RadioGroup } from "../ui/Field/RadioGroup";
 import styles from "./SettingsPage.module.css";
 
 const WORDS = { light: "light", dark: "dark" } as const;

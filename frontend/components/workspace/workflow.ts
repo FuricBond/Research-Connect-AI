@@ -1,6 +1,16 @@
 import { ApiError } from "../../services/api";
 import type { WorkspaceRole } from "../../types/collaboration";
-import type { WorkspaceItem } from "../../types/workspace";
+import type { WorkspaceItem, WorkspaceStatus } from "../../types/workspace";
+
+/** P12: here rather than with the row, so an item's page does not load the row to link to itself. */
+export const itemHref = (id: string, tab?: string) => `/workspace/${encodeURIComponent(id)}${tab ? `?tab=${tab}` : ""}`;
+
+/** The next step for an item, by its status: where the work continues. */
+export function nextStep(status: WorkspaceStatus): string | null {
+  if (status === "SAVED" || status === "CONSIDERING" || status === "PLANNING") return "Draft submission";
+  if (status === "APPLIED" || status === "ACCEPTED" || status === "REJECTED") return "Open submission";
+  return null;
+}
 
 /** "12 Oct 2026", in the reader's time zone; null when there is no date. */
 export function shortDate(iso: string | null | undefined): string | null {

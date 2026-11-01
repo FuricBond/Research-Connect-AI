@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import type { PostingStatus, ResearchPosting } from "../../types/posting";
 import { canEdit, MY_POSTINGS_HREF, postingActionsFor, postingVisibility } from "../../utils/postings";
-import { postingStatusMeta } from "../../utils/status";
+import { postingStatusMeta } from "../../utils/postingStatus";
 import { Button, ButtonLink } from "../ui/Button/Button";
 import { Alert } from "../ui/State/State";
 import { CancelPostingDialog, DeleteDraftDialog } from "./lazy";

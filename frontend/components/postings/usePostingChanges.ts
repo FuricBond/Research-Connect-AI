@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from "react";
 import { deletePosting, transitionPosting } from "../../services/api";
 import type { PostingStatus, ResearchPosting } from "../../types/posting";
 import { isNewer } from "../../utils/postings";
-import { postingStatusMeta } from "../../utils/status";
+import { postingStatusMeta } from "../../utils/postingStatus";
 import { changeError } from "./errors";
 
 export interface PostingFailure {

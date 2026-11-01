@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Pencil } from "lucide-react";
 import type { ResearcherProfile } from "../../types/researcher";
-import { academicStatusLabel } from "../../utils/personalization";
+import { academicStatusLabel } from "../../utils/academicStatus";
 import { useSession } from "../auth/SessionProvider";
 import { usePreferenceIntelligence, useResearcherProfile, useResearcherWorks, useResearchTopics } from "../recommendations/resources";
 import { Button } from "../ui/Button/Button";

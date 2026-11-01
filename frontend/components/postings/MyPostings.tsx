@@ -8,7 +8,7 @@ import type { ApiResource } from "../../hooks/useApiResource";
 import type { ApplicationListResponse, PostingStatus, ResearchPosting } from "../../types/posting";
 import { POSTING_TYPE_LABELS } from "../../types/posting";
 import { canEdit, INBOX_POSTINGS, inboxHref, inboxPostings, mineHref, MINE_PAGE_SIZE, NEW_POSTING_HREF, POSTING_STATUSES, postingActionsFor, readMineQuery } from "../../utils/postings";
-import { postingStatusMeta } from "../../utils/status";
+import { postingStatusMeta } from "../../utils/postingStatus";
 import { DeadlineCountdown } from "../research/DeadlineCountdown";
 import { StatusBadge } from "../ui/Badge/Badge";
 import { Button, ButtonLink } from "../ui/Button/Button";

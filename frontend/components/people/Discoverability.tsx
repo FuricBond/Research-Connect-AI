@@ -5,7 +5,8 @@ import { updateDiscoverySettings } from "../../services/api";
 import type { CollaborationInterest, CollaborationStatus, DiscoverySettings, DiscoverySettingsUpdate } from "../../types/peer";
 import { ALL_COLLABORATION_INTERESTS, ALL_COLLABORATION_STATUSES, COLLABORATION_INTEREST_LABELS, COLLABORATION_STATUS_LABELS } from "../../types/peer";
 import { Button } from "../ui/Button/Button";
-import { Checkbox, Select, Switch, TextInput } from "../ui/Field/Field";
+import { Checkbox, Select, TextInput } from "../ui/Field/Field";
+import { Switch } from "../ui/Field/Switch";
 import styles from "./People.module.css";
 
 /**

@@ -225,7 +225,8 @@
   color: var(--rc-text-muted);
 }
 
-.statusTrigger {
+/* `button.` so these win over Menu's .trigger whatever order the stylesheets load in (P12). */
+button.statusTrigger {
   border-color: var(--rc-border);
 }
 
@@ -234,7 +235,7 @@
   display: contents;
 }
 
-.moreTrigger {
+button.moreTrigger {
   justify-content: center;
   min-width: var(--rc-target-min);
   padding: var(--rc-space-1);

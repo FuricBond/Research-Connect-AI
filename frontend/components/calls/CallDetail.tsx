@@ -9,7 +9,7 @@ import { fetchDefaultCalendar, fetchOpportunity, fetchOpportunityRiskExplanation
 import type { WorkspaceItem } from "../../types/workspace";
 import { callsOrigin } from "../../utils/callsState";
 import { formatDeadlineDate } from "../../utils/date";
-import { callStatusLabel, callTypeLabel, deliveryModeLabel, feeLabel } from "../../utils/research";
+import { callStatusLabel, callTypeLabel, deliveryModeLabel, feeLabel } from "../../utils/callLabels";
 import { workspaceStatusMeta } from "../../utils/status";
 import { workspaceDeadline } from "../../utils/workspace";
 import { useSession } from "../auth/SessionProvider";
