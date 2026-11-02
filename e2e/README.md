@@ -32,7 +32,7 @@ Chromium (`cd frontend && npx playwright install chromium`).
 
 The E2E project never touches a developer's stack or data:
 
-- **Own identity.** The project name, published ports (`3300`, `8300`, `5436`), image tags
+- **Own identity.** The project name, published ports (`3300`, `8300`, `5436`, `8325`), image tags
   (`:e2e`) and PostgreSQL container name are all separate.
 - **Fresh secrets.** `POSTGRES_PASSWORD`, `AUTH_SECRET_KEY` and the demo password are
   generated for each run. The env file holding them is deleted at teardown, and the project
@@ -40,6 +40,9 @@ The E2E project never touches a developer's stack or data:
 - **Production settings.** The services run with `APP_ENV=production`, so there is no
   developer identity. Rate limits and every other control are unchanged; the suite paces its
   own sign-ins instead of raising the limit.
+- **No mail leaves.** `EMAIL_PROVIDER=smtp` talks real SMTP to `e2e/mailsink.py`, a sink inside the
+  project that sends nothing on. `GET http://localhost:8325/messages?to=<address>` shows what reached
+  a mailbox, which is how the suites, and a person testing by hand, read a confirmation link.
 
 ## What runs
 

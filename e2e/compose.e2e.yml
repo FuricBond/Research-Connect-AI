@@ -4,8 +4,17 @@
 # (set by run_e2e.py), the published ports, the image tags and the PostgreSQL container name.
 # The data volume belongs to the project, so the run starts from an empty database and
 # `down -v` removes it. No application setting is changed here: the services run exactly
-# as in production, with the secrets run_e2e.py generates for each run.
+# as in production, with the secrets run_e2e.py generates for each run, and that includes
+# EMAIL_PROVIDER=smtp: mail goes to the sink below, which sends nothing on (e2e/mailsink.py).
 services:
+  mailsink:
+    image: researchconnect-backend:e2e
+    entrypoint: ["python", "-u", "/sink/mailsink.py"]
+    volumes:
+      - ./e2e/mailsink.py:/sink/mailsink.py:ro
+    ports:
+      - "127.0.0.1:${E2E_MAIL_PORT:-8325}:8025"
+
   postgres:
     container_name: rce2e-postgres
     ports: !override

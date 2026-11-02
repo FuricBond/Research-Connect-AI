@@ -6,12 +6,14 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 import hashlib
+import secrets
 import uuid
 
 import httpx
 import pytest
+from sqlalchemy import create_engine, text
 
-from conftest import API_URL, Account, opportunity_by_title, register, request, scalar
+from conftest import API_URL, DATABASE_URL, Account, confirm_email, opportunity_by_title, register, request, scalar
 
 
 POSTING = {
@@ -42,10 +44,17 @@ def _workspace(owner: Account) -> str:
 
 def test_an_invitation_is_answered_by_its_invitee_and_only_a_hash_is_stored(db):
     owner, invitee, other = register(label="inv-owner"), register(label="inv-invitee"), register(label="inv-other")
+    confirm_email(owner)
+    confirm_email(invitee)
+    confirm_email(other)
     workspace = _workspace(owner)
     made = owner.post(f"/api/v1/workspaces/{workspace}/invitations", json={"invitee_email": invitee.email, "role": "EDITOR"})
     assert made.status_code == 201, made.text
-    invitation, token = made.json()["invitation"], made.json()["token"]
+    invitation = made.json()["invitation"]
+    # The API hands out no token now: this stands for one handed out before that.
+    token = secrets.token_urlsafe(32)
+    with create_engine(DATABASE_URL).begin() as connection:
+        connection.execute(text("UPDATE workspace_invitations SET token_hash = :hash WHERE id = :id"), {"hash": hashlib.sha256(token.encode()).hexdigest(), "id": invitation["id"]})
 
     stored = scalar(db, "SELECT token_hash FROM workspace_invitations WHERE id = :id", id=invitation["id"])
     assert stored == hashlib.sha256(token.encode()).hexdigest()
@@ -66,6 +75,7 @@ def test_an_invitation_is_answered_by_its_invitee_and_only_a_hash_is_stored(db):
 
 def test_two_accepts_at_once_join_once(db):
     owner, invitee = register(label="inv-race-owner"), register(label="inv-race")
+    confirm_email(invitee)
     workspace = _workspace(owner)
     invitation = owner.post(f"/api/v1/workspaces/{workspace}/invitations", json={"invitee_email": invitee.email, "role": "VIEWER"}).json()["invitation"]
     with ThreadPoolExecutor(max_workers=4) as pool:
@@ -79,6 +89,7 @@ def test_an_expired_invitation_is_refused_on_the_real_database(db):
     from sqlalchemy import text
 
     owner, invitee = register(label="inv-exp-owner"), register(label="inv-exp")
+    confirm_email(invitee)
     workspace = _workspace(owner)
     invitation = owner.post(f"/api/v1/workspaces/{workspace}/invitations", json={"invitee_email": invitee.email, "role": "VIEWER"}).json()["invitation"]
     with db.begin() as connection:

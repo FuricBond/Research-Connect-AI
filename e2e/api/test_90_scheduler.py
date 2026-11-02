@@ -96,7 +96,8 @@ def test_scheduled_jobs_do_their_work_once_without_overlap(prepared, db):
         compose("up", "-d", "--wait", "backend")  # back to the production default: scheduler off
         wait_ready()
 
-    assert "Scheduler started with 4 job(s)" in logs, logs[-2000:]
+    # The four below, and email_dispatch: this stack sends mail over SMTP, to its sink.
+    assert "Scheduler started with 5 job(s)" in logs, logs[-2000:]
     by_job = {job: [r for r in runs if r[0] == job] for job in JOBS}
     assert all(len(v) >= 2 for v in by_job.values()), {j: len(v) for j, v in by_job.items()}
     statuses = {r[2] for r in runs}

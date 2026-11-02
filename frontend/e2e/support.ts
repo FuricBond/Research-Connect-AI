@@ -3,6 +3,8 @@ import { expect, type APIRequestContext, type Page } from "@playwright/test";
 /** Shared helpers for the Phase 6.6 browser suite. */
 
 export const API_URL = process.env.E2E_BROWSER_API_URL ?? "http://localhost:8300";
+/** The stack's mail sink (e2e/mailsink.py): what reached a mailbox, as its recipient would read it. */
+export const MAIL_URL = process.env.E2E_MAIL_URL ?? "http://127.0.0.1:8325";
 export const DEMO_PASSWORD = process.env.E2E_DEMO_PASSWORD ?? "";
 export const DEMO = {
   faculty: "demo.faculty@researchconnect.test",

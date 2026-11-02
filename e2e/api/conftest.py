@@ -8,7 +8,7 @@ development identity is used: the stack runs with APP_ENV=production.
 
 Configuration comes from the environment run_e2e.py sets:
     E2E_API_URL, E2E_WEB_URL, E2E_DATABASE_URL, E2E_DEMO_PASSWORD, E2E_COMPOSE,
-    E2E_COMPOSE_SCHEDULER_FILE, E2E_RESULTS_DIR
+    E2E_COMPOSE_SCHEDULER_FILE, E2E_RESULTS_DIR, E2E_MAIL_URL
 """
 from __future__ import annotations
 
@@ -45,6 +45,7 @@ DEMO_PASSWORD = os.environ["E2E_DEMO_PASSWORD"]
 COMPOSE = json.loads(os.environ["E2E_COMPOSE"])
 SCHEDULER_FILE = os.environ.get("E2E_COMPOSE_SCHEDULER_FILE", "")
 RESULTS_DIR = Path(os.environ.get("E2E_RESULTS_DIR", "."))
+MAIL_URL = os.environ.get("E2E_MAIL_URL", "http://127.0.0.1:8325")
 REPO = Path(__file__).resolve().parents[2]
 
 DEMO_EMAILS = {
@@ -173,6 +174,31 @@ def register(role: str = "STUDENT", label: str | None = None, verified: bool = T
         engine.dispose()
         data["user"]["is_verified"] = True
     return Account(email, password, remember_secret(data["access_token"]), data["user"])
+
+
+def mail_to(email: str) -> list[dict]:
+    """What reached this mailbox, in the stack's mail sink."""
+    return httpx.get(f"{MAIL_URL}/messages", params={"to": email}, timeout=10).json()
+
+
+def confirmation_token(email: str) -> str:
+    """The newest confirmation link's token, read out of the email as its recipient would."""
+    for _ in range(50):
+        links = [m["text"] for m in mail_to(email) if m["subject"] == "Confirm your email address"]
+        if links:
+            return remember_secret(links[-1].split("#token=", 1)[1].split()[0])
+        time.sleep(0.2)
+    raise AssertionError(f"no confirmation email reached {email}")
+
+
+def confirm_email(account: Account) -> None:
+    """Decision C: the whole round trip, through real SMTP."""
+    asked = account.post("/api/v1/auth/email-verification")
+    assert asked.status_code == 202, asked.text
+    confirmed = account.post("/api/v1/auth/email-verification/confirm", json={"token": confirmation_token(account.email)})
+    assert confirmed.status_code == 200, confirmed.text
+    assert confirmed.json()["email_verified"] is True
+    account.user["email_verified"] = True
 
 
 def login(email: str, password: str) -> httpx.Response:

@@ -1,5 +1,5 @@
 import { expect, test, type APIRequestContext, type Browser, type BrowserContext, type Page } from "@playwright/test";
-import { API_URL, DEMO, DEMO_PASSWORD, newPassword, uniqueEmail } from "./support";
+import { API_URL, DEMO, DEMO_PASSWORD, MAIL_URL, newPassword, uniqueEmail } from "./support";
 
 /**
  * The independent audit's findings, end to end in the browser against the live API. Sessions are
@@ -29,6 +29,23 @@ async function signIn(request: APIRequestContext, email: string): Promise<Sessio
 }
 
 const bearer = (session: Session) => ({ Authorization: `Bearer ${session.access_token}` });
+
+/** Decision C: an invitation waits for a confirmed address, so these invitees follow the emailed link. */
+async function confirmAddress(request: APIRequestContext, session: Session) {
+  expect((await request.post(`${API_URL}/api/v1/auth/email-verification`, { headers: bearer(session) })).status()).toBe(202);
+  for (let tries = 0; tries < 50; tries += 1) {
+    const mail = (await (await request.get(`${MAIL_URL}/messages?to=${encodeURIComponent(session.user.email)}`)).json()) as { subject: string; text: string }[];
+    const link = mail.find((message) => message.subject === "Confirm your email address");
+    if (link) {
+      const token = /#token=(\S+)/.exec(link.text)![1];
+      const confirmed = await request.post(`${API_URL}/api/v1/auth/email-verification/confirm`, { headers: bearer(session), data: { token } });
+      expect(confirmed.status(), await confirmed.text()).toBe(200);
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  throw new Error("no confirmation email arrived");
+}
 
 /** A browser context already signed in as `session`. */
 async function contextFor(browser: Browser, session: Session, options: Parameters<Browser["newContext"]>[0] = {}): Promise<BrowserContext> {
@@ -105,7 +122,10 @@ test.describe("FUNC-01: a workspace invitation, end to end", () => {
     test.setTimeout(240_000);
     const owner = await register(request, "inviter");
     const invitee = await register(request, "invitee");
+    await confirmAddress(request, invitee);
     const stranger = await register(request, "stranger");
+    await confirmAddress(request, stranger);
+    await confirmAddress(request, owner);
     const workspace = await ownedWorkspace(request, owner);
 
     await test.step("the owner invites from the Members tab, and is told the truth", async () => {
@@ -584,6 +604,7 @@ test.describe("PERF-01: the applicant inbox does not move as it loads", () => {
     test.setTimeout(240_000);
     const owner = await register(request, "cls-owner");
     const invitee = await register(request, "cls-invitee");
+    await confirmAddress(request, invitee);
     const workspace = await ownedWorkspace(request, owner);
     await invite(request, owner, workspace, invitee.user.email);
     for (const size of SIZES) {

@@ -544,7 +544,8 @@ describe("Decision 1: faculty verification", () => {
   it("decides who may recruit as the API does", () => {
     expect(canRecruit(makeUser({ role: "FACULTY", is_verified: true }))).toBe(true);
     expect(canRecruit(makeUser({ role: "FACULTY", is_verified: false }))).toBe(false);
-    expect(canRecruit(makeUser({ role: "ADMIN", is_verified: false }))).toBe(true);
+    expect(canRecruit(makeUser({ role: "ADMIN", is_verified: false }))).toBe(false);
+    expect(canRecruit(makeUser({ role: "ADMIN", is_verified: true }))).toBe(false);
     expect(canRecruit(makeUser({ role: "STUDENT", is_verified: true }))).toBe(false);
     expect(canRecruit(null)).toBe(false);
     expect(awaitingVerification(makeUser({ role: "FACULTY", is_verified: false }))).toBe(true);

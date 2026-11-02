@@ -45,8 +45,8 @@ import urllib.request
 REPO = Path(__file__).resolve().parents[1]
 E2E = REPO / "e2e"
 PROJECT = "rce2e"
-PORTS = {"E2E_WEB_PORT": 3300, "E2E_API_PORT": 8300, "E2E_POSTGRES_PORT": 5436}
-SERVICES = ("postgres", "migrate", "backend", "frontend")
+PORTS = {"E2E_WEB_PORT": 3300, "E2E_API_PORT": 8300, "E2E_POSTGRES_PORT": 5436, "E2E_MAIL_PORT": 8325}
+SERVICES = ("postgres", "migrate", "backend", "frontend", "mailsink")
 IMAGES = ("researchconnect-backend:e2e", "researchconnect-frontend:e2e")
 
 
@@ -105,6 +105,14 @@ class Stack:
             "APP_ENV": "production",
             "CORS_ORIGINS": json.dumps([f"http://localhost:{web}", f"http://127.0.0.1:{web}"]),
             "NEXT_PUBLIC_API_URL": f"http://localhost:{api}",
+            # Decision C: confirmation links travel by real SMTP, to the sink in compose.e2e.yml.
+            "EMAIL_PROVIDER": "smtp",
+            "SMTP_HOST": "mailsink",
+            "SMTP_PORT": "1025",
+            "SMTP_SECURITY": "none",
+            "EMAIL_FROM_ADDRESS": "noreply@researchconnect.test",
+            "EMAIL_RECIPIENT_ALLOWLIST": "*",
+            "APP_PUBLIC_URL": f"http://localhost:{web}",
             **{k: str(v) for k, v in PORTS.items()},
         }
         self.env_file.write_text("".join(f"{k}={v}\n" for k, v in lines.items()), encoding="utf-8")
@@ -129,6 +137,7 @@ class Stack:
             "E2E_COMPOSE": json.dumps(self.base),
             "E2E_COMPOSE_SCHEDULER_FILE": str(E2E / "compose.e2e-scheduler.yml"),
             "E2E_RESULTS_DIR": str(self.results),
+            "E2E_MAIL_URL": f"http://127.0.0.1:{PORTS['E2E_MAIL_PORT']}",
         }
 
     def inspect(self) -> dict[str, dict]:

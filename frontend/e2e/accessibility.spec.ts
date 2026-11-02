@@ -131,7 +131,7 @@ function checks(role: Role, ids: Ids): Check[] {
         { path: "/recommendations" }, { path: "/researcher" }, { path: "/researcher/preferences" }, { path: "/supervisors" }, { path: "/peers" },
         { path: "/workspace" }, { path: "/workspace", state: "status menu", act: statusMenu }, { path: "/workspace", state: "failed", act: failing("**/api/v1/workspace?*") },
         ...["", "?tab=tasks", "?tab=submission", "?tab=members", "?tab=activity"].map((tab) => ({ path: `/workspace/${ids.item}${tab}` })),
-        { path: "/submissions" }, { path: "/reading-list" }, { path: "/calendar" }, { path: "/notifications" }, { path: "/settings" },
+        { path: "/submissions" }, { path: "/reading-list" }, { path: "/calendar" }, { path: "/notifications" }, { path: "/settings" }, { path: "/verify-email" },
         { path: "/postings" }, { path: `/postings/${ids.posting}` }, { path: "/postings/applications" }, { path: "/browse" }, { path: `/calls/${ids.call}` },
         { path: "/admin" },
       ];
