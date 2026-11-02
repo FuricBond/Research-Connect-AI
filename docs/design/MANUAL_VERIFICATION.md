@@ -4,6 +4,9 @@ Two checks in the redesign's acceptance need a person and cannot be replaced by 
 screen readers (P11) and Lighthouse (P12). A keyboard walk, an accessibility-tree inspection or axe is not
 a screen-reader check. Until someone has done these and filled in the tables, both stay **not verified**.
 
+**Status, 2026-11-02: NVDA not verified. VoiceOver not verified. Lighthouse not verified.** None has been run:
+no human operator or macOS was available, and Lighthouse is neither installed nor allowed to be downloaded here.
+
 ## Getting a stack to test
 
 ```bash
@@ -15,6 +18,9 @@ accounts are `demo.student@researchconnect.test`, `demo.faculty@researchconnect.
 `demo.admin@researchconnect.test`. Their password is `E2E_DEMO_PASSWORD` in the run's `stack.env`
 (`e2e/results/<run>/stack.env`). Sign-in allows 10 attempts a minute per address. Remove the stack
 afterwards with `docker compose -p rce2e down -v`.
+
+The stack sends no real email. What reached a mailbox is at `http://localhost:8325/messages?to=<address>`: that is
+where a confirmation link comes from in the workflows below. The demo accounts are already confirmed.
 
 To see a failure on purpose: browser DevTools, Network tab, right-click the request, **Block request URL**,
 then repeat the step.
@@ -69,6 +75,38 @@ Failure: block the transition request; the dialog stays open and reads the reaso
 Listen for: the menu; the dialog naming the person and the consequence; the toast with **Undo**, read once
 politely and staying while focus is in it; focus returning.
 Failure: changing the last administrator is refused and the dialog reads why.
+
+**6. Sign-in and session recovery** (`demo.student`). Open `/postings?view=mine` signed out. Sign in; submit the form
+empty first.
+Listen for: each field's error, and focus moving to the first; the page you are taken to after signing in.
+Failure: block `GET /api/v1/auth/me` and reload; listen for the message that your session could not be checked, that
+you were not signed out, and for **Try again**.
+
+**7. Workspace invitation, from unconfirmed to accepted** (a new account, plus `demo.student` to invite). As
+`demo.student`, on a workspace's **Members** tab, invite a new address. Register that address in another browser.
+Open `/notifications`, press **Send the confirmation email**. Open the link from the mailbox above, then return to
+`/notifications` and accept.
+Listen for: the section saying invitations appear once you confirm the address, and naming no workspace or person; "We
+sent a link to …", read once, with focus staying on the button; "Your email address is confirmed." with its link; the
+invitation's workspace, inviter and role; "You joined …" with focus on the section's heading.
+Failure: open the link while signed in to a different account; listen for the refusal, which says the link does not
+confirm this account's address, and for the offer of a new email.
+
+**8. Recruiting workflow** (`demo.faculty`). Open `/postings/new`, submit it empty, then complete it and publish. Open
+`/postings?view=mine`, then the posting's **Edit**.
+Listen for: the form's errors and where focus goes; the status after publishing; the status menu's items.
+Failure: as `demo.admin`, open `/postings/new` and `/postings/applicants` by address; listen for "This page is for Faculty
+accounts." and the way home.
+
+**9. Notifications and settings** (`demo.student`). Open the bell, then `/notifications`; mark one read. Open `/settings`,
+turn an email alert off and on, change the theme.
+Listen for: the unread count changing; each switch's name and state; the password form's errors.
+Failure: block the preferences request; listen for the failure and that the switch went back.
+
+**10. Administration** (`demo.admin`). On `/admin` read the health and the counts. On `/admin/users`, filter by status,
+search, then verify an unverified faculty account and press **Undo** on the toast. Open `/admin/research-data`.
+Listen for: results counts as filters change; the toast read once; tables read with their headers.
+Failure: block `GET /api/v1/admin/users`; listen for the failure and **Try again**.
 
 ### Record
 

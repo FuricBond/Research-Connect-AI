@@ -45,7 +45,7 @@ Research Workspace (SavedOpportunityModel)
 - `invitee_email` (VARCHAR 255)
 - `invitee_user_id` (UUID, FK -> `users.id` ON DELETE SET NULL, nullable)
 - `role` (VARCHAR 50, default `CONTRIBUTOR`)
-- `token` (VARCHAR 255, unique, secret URL-safe token)
+- `token_hash` (VARCHAR 64, unique: the SHA-256 of the token; the token itself is never stored or returned)
 - `status` (VARCHAR 50: `PENDING`, `ACCEPTED`, `DECLINED`, `EXPIRED`, `REVOKED`)
 - `created_at`, `expires_at`, `accepted_at`, `revoked_at` (TIMESTAMPTZ)
 
@@ -120,18 +120,47 @@ Permit / Reject (403 Forbidden / 404 Not Found)
    - Generates a cryptographically random, URL-safe 32-byte secret token.
    - Sets expiration (default: 7 days).
    - Enforces uniqueness: cannot create duplicate pending invitations for the same email in the same workspace.
-   - Triggers `WORKSPACE_INVITATION` notification if the recipient has an account.
-2. **Acceptance (`accept_invitation`)**:
-   - Public token-based endpoint or authenticated member onboarding.
-   - Validates token, status (`PENDING`), and `expires_at > now`.
-   - Idempotent: re-accepting an already accepted invitation returns the active membership record.
+   - Tells the recipient: a `WORKSPACE_INVITATION` notification if an account has **confirmed** that address, otherwise a generic email to the address, which only its owner can read (at most 20 such emails per inviter per hour; the invitation is created regardless).
+   - Records no account: an invitation belongs to an address until it is answered, and the response never says whether the address has an account.
+2. **Confirming the address (Decision C)**: see §4.1. Nothing below works without it.
+3. **Acceptance (`accept_my_invitation`, from the notifications page)**:
+   - Needs a signed-in account whose confirmed address matches the invitation's (trimmed, lower case). A token alone is never enough.
+   - Validates status (`PENDING`) and `expires_at > now`, holding a row lock until the commit, so racing answers cannot both win.
+   - An invitation is answered once: a second answer is refused with the reason.
+   - `POST /workspaces/invitations/{token}/accept` still exists for tokens handed out before the API stopped returning them, under the same rules.
    - Creates or reactivates `WorkspaceMemberModel` in `ACTIVE` status.
    - Emits `INVITATION_ACCEPTED` and `MEMBER_JOINED` activity events.
    - Notifies inviter via Phase 4.5 notification pipeline.
-3. **Revocation & Decline**:
+4. **Revocation & Decline**:
    - Owner can revoke pending invitations (`status = REVOKED`).
-   - Invitee can decline (`status = DECLINED`).
+   - Invitee can decline (`status = DECLINED`), also only with a confirmed address.
    - Revoked, declined, or expired invitations cannot be accepted.
+
+### 4.1 Confirming an email address (Decision C)
+
+Registering with an address proves nothing about it. `is_verified` is unrelated: it is an administrator's
+confirmation that a faculty account is genuine. Ownership is proved like this:
+
+1. The signed-in account asks: `POST /auth/email-verification` (5 attempts per account per 15 minutes).
+2. A one-time token (256 random bits, 24 hours, replacing any earlier link) goes to the account's address.
+   `email_verification_tokens` stores only its SHA-256 and the address it proves. The link is
+   `/verify-email#token=…`: the token sits after the `#`, so it reaches no server log and no Referer, and the
+   page removes it from the address bar at once.
+3. Confirming, `POST /auth/email-verification/confirm`, needs the token **and** the account that asked. Someone
+   who registers another person's address gains nothing if that person clicks the link: they cannot sign in to
+   that account. The token is claimed by one conditional update, so it works once. Unknown, expired, replaced,
+   used and other accounts' tokens all get the same answer.
+4. `users.email_verified_address` then holds the address itself, not a flag, with a unique index: an account
+   whose email later differs is no longer confirmed, and no two accounts can hold one confirmed address. Pending
+   invitations for the address are announced now, and not before.
+
+An unconfirmed account gets the same answer from every invitation endpoint whether or not the invitation, id or
+token exists, and `GET /workspace-invitations/mine` lists nothing for it.
+
+**This needs real email.** With `EMAIL_PROVIDER=mock` (the default), or an address outside
+`EMAIL_RECIPIENT_ALLOWLIST`, the request answers 503 and says so: nothing can be confirmed, so invitations cannot
+be answered. This fails closed on purpose. The demo seeder marks its own accounts confirmed, as an operator's act
+on addresses that receive no mail.
 
 ---
 
@@ -202,7 +231,7 @@ All 20 Phase 4.6 invariants are covered by dedicated automated tests:
 2. Viewers cannot mutate tasks, documents, or submissions.
 3. Contributors cannot escalate privileges to Editor or Owner.
 4. Cross-workspace IDOR access is strictly rejected with 403.
-5. Invitation acceptance is strictly idempotent.
+5. An invitation is answered once; a second answer is refused with the reason.
 6. Expired invitations cannot be accepted.
 7. Revoked invitations cannot be accepted.
 8. Duplicate active memberships are impossible (409 Conflict).

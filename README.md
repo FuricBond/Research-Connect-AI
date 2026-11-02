@@ -319,7 +319,7 @@ Docker Compose reads the root `.env` (template: `.env.example`). A backend run o
 | `SCHEDULER_RESEARCH_REFRESH_INTERVAL_SECONDS` | `28800` | Seconds between research refreshes (8 h) |
 | `RESEARCH_REFRESH_MAX_WORKS` | `100000` | Corpus cap: at this many papers the refresh stops adding new ones and only updates known ones |
 | `OPENALEX_API_KEY` | empty | Optional free OpenAlex key: ten times the keyless daily budget. A secret: never commit it |
-| `EMAIL_PROVIDER` | `mock` | `smtp` emails new notifications once a minute (needs `SCHEDULER_ENABLED=true`); `mock` sends nothing |
+| `EMAIL_PROVIDER` | `mock` | `smtp` emails new notifications once a minute (needs `SCHEDULER_ENABLED=true`) and sends the links that confirm an address, which answering a workspace invitation needs; `mock` sends nothing, so no address can be confirmed |
 | `SMTP_HOST` / `SMTP_PORT` | empty / `587` | Mail server used when `EMAIL_PROVIDER=smtp` (the host is then required) |
 | `SMTP_USERNAME` / `SMTP_PASSWORD` | empty | SMTP login, skipped when the username is empty. The password is a secret: never commit it |
 | `SMTP_SECURITY` | `starttls` | `starttls` (587), `ssl` (465) or `none` (a local relay; refused with a login in production) |

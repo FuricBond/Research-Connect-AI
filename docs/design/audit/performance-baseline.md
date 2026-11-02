@@ -134,6 +134,22 @@ licence reserves the font name for unmodified files.
 with two postings with applications, one with one, one with none, and failing and slow requests, at 1440,
 1280, 768 and 390 px.
 
+### Font transfer: over budget on some pages, deferred by decision
+
+Optimizing the fonts is **deferred by the owner's explicit decision (2026-11-02)**. It was not overlooked, and
+this budget is **not met**. No font file, family name or `@font-face` declaration was changed for it.
+
+| Page | Measured transfer | Budget | State |
+|---|---|---|---|
+| A typical page in Latin | about 50.3 kB | ≤ 100 kB | within budget |
+| A page with italic recommendations | about 71.9 kB | ≤ 100 kB | within budget |
+| A page that needs Latin-Ext (names like "Erdős") | about 128.7 kB | ≤ 100 kB | **over by about 29 kB** |
+| A Latin-Ext page with italics | about 169 kB | ≤ 100 kB | **over by about 69 kB** |
+
+The overage is accepted for now. Clearing it means smaller Latin-Ext files, which means re-subsetting them with a
+new tool. `performance.spec.ts` keeps it visible with `test.fail`: that test fails loudly the day the budget is
+met, so this record cannot go stale unnoticed.
+
 ### What keeps pages small
 
 - `services/api/` holds one module per area of the API. `services/api.ts` is a barrel. Webpack keeps, per
