@@ -75,6 +75,7 @@ The normalization layer supports all standard academic date representations:
 
 - **Coordinated Universal Time**: `UTC`, `GMT`, `Z`, `+00:00`
 - **Numeric Offsets**: Parses explicit numeric offsets with positive/negative signs: `+05:30` (IST), `-04:00` (EDT), `+02:00` (CEST), `-08:00` (PST), etc.
+- **Written UTC and GMT Offsets**: `UTC+5:30`, `UTC-5`, `GMT+1`, `GMT-04:00`, `UTC +05:30`, `utc+0530`, in any case and with spaces around the sign. Offsets outside UTC-12:00 to UTC+14:00, and anything after the sign that cannot be read as an offset (`UTC+5.5`, `UTC+5:99`, `GMT+`), are `INVALID` with no instant: an offset is never dropped.
 - **Anywhere on Earth (AoE)**: Explicit tokens `AoE`, `Anywhere on Earth`, `UTC-12`, `GMT-12` mapped directly to fixed offset `-12:00`.
 - **Standard Abbreviations**: Recognizes `EST`, `EDT`, `CST`, `CDT`, `MST`, `MDT`, `PST`, `PDT`, `CET`, `CEST`, `BST`, `JST`, `KST`, `IST`, `AEST`, `SAST`.
 - **IANA Timezones & Daylight Saving Time (DST)**: Uses standard library `zoneinfo.ZoneInfo` (e.g. `America/New_York`, `Europe/London`, `Asia/Tokyo`). Calculates exact seasonal offsets at the specified local date and time:

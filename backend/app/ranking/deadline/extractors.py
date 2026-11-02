@@ -35,7 +35,15 @@ logger = logging.getLogger(__name__)
 # ── Pattern matching for date & timezone attributes ───────────────────────────
 
 _AOE_PATTERN = re.compile(
-    r"\b(aoe|anywhere\s+on\s+earth|utc\s*-\s*12(?::00)?)\b", re.IGNORECASE
+    r"\b(aoe|anywhere\s+on\s+earth|utc\s*-\s*12(?::00)?(?![:\d.]))\b", re.IGNORECASE
+)
+# "UTC+5:30", "gmt -04:00", "UTC + 5", "UTC+0530". A year after the sign is a date range, not an offset.
+_WRITTEN_OFFSET_RE = re.compile(
+    r"\b(?:utc|gmt)\s*([+-])\s*(?!\d{4}-)(\d{1,2}:\d{2}|\d{4}|\d{1,2})(?![\d:.])", re.IGNORECASE
+)
+# A sign right after UTC or GMT that cannot be read as an offset: "UTC+5.5", "GMT+", "UTC+abc".
+_MALFORMED_WRITTEN_OFFSET_RE = re.compile(
+    r"\b(?:utc|gmt)\s*[+-](?:\s*(?!\d{4}-)\d|[^\s\d]|$)", re.IGNORECASE
 )
 _UTC_PATTERN = re.compile(
     r"(?:\b(?:utc|gmt)\b|(?<=\d)z\b|\bz\b)", re.IGNORECASE
@@ -91,6 +99,21 @@ _SLASH_RE = re.compile(
 )
 
 
+def find_written_offset(text: str | None) -> tuple[str | None, bool]:
+    """
+    Find a written UTC or GMT offset. Returns (offset such as "+05:30", is_malformed).
+
+    It must be read or refused, never dropped: treated as plain UTC, the deadline would be wrong
+    by the whole offset and still look certain.
+    """
+    if not text:
+        return None, False
+    match = _WRITTEN_OFFSET_RE.search(text)
+    if match:
+        return f"{match.group(1)}{match.group(2)}", False
+    return None, bool(_MALFORMED_WRITTEN_OFFSET_RE.search(text))
+
+
 def parse_raw_date_components(
     raw: str | None,
 ) -> tuple[
@@ -121,6 +144,8 @@ def parse_raw_date_components(
     tz_ind = TimezoneIndicator.UNSPECIFIED
     if _AOE_PATTERN.search(clean_raw):
         tz_ind = TimezoneIndicator.EXPLICIT_AOE
+    elif any(find_written_offset(clean_raw)):
+        tz_ind = TimezoneIndicator.EXPLICIT_OFFSET
     elif _UTC_PATTERN.search(clean_raw):
         tz_ind = TimezoneIndicator.EXPLICIT_UTC
     elif _OFFSET_PATTERN.search(clean_raw):
@@ -129,7 +154,7 @@ def parse_raw_date_components(
         tz_ind = TimezoneIndicator.LOCAL_NAMED
 
     # Extract time component if present
-    time_match = _TIME_PATTERN.search(clean_raw)
+    time_match = _TIME_PATTERN.search(_WRITTEN_OFFSET_RE.sub(" ", clean_raw))
     time_str = time_match.group(1).strip() if time_match else None
     precision = DeadlinePrecision.EXACT_TIME if time_str else DeadlinePrecision.DATE_ONLY
 

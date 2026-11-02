@@ -27,6 +27,7 @@ import zoneinfo
 
 from app.ranking.deadline.extractors import (
     DeadlineEvidenceExtractor,
+    find_written_offset,
     parse_raw_date_components,
 )
 from app.ranking.deadline.models import (
@@ -103,13 +104,22 @@ def parse_numeric_offset(raw_offset: str | None) -> tuple[timedelta | None, str 
     hours = int(hours_str)
     mins = int(mins_str) if mins_str else 0
 
-    if hours > 14 or mins >= 60:
+    if mins >= 60:
         return None, None
 
     total_seconds = (hours * 3600 + mins * 60) * (-1 if sign_str == "-" else 1)
     td = timedelta(seconds=total_seconds)
+    # Real offsets run from UTC-12:00 to UTC+14:00.
+    if not timedelta(hours=-12) <= td <= timedelta(hours=14):
+        return None, None
     formatted = f"{sign_str}{hours:02d}:{mins:02d}"
     return td, formatted
+
+
+def _format_offset(offset: timedelta) -> str:
+    """"+05:30" or "-03:30": built from the size and the sign, since floor division rounds negative hours down."""
+    total_minutes = int(abs(offset.total_seconds()) // 60)
+    return f"{'-' if offset < timedelta(0) else '+'}{total_minutes // 60:02d}:{total_minutes % 60:02d}"
 
 
 def resolve_timezone(
@@ -125,6 +135,17 @@ def resolve_timezone(
     """
     if tz_indicator == TimezoneIndicator.EXPLICIT_AOE:
         return AOE_TIMEZONE, "AoE", "-12:00", True
+
+    written_offset, written_malformed = find_written_offset(raw_snippet)
+    if written_malformed:
+        return None, raw_snippet.strip(), None, False
+    if written_offset is not None:
+        td, formatted = parse_numeric_offset(written_offset)
+        if td is None:
+            return None, raw_snippet.strip(), None, False
+        if td == AOE_OFFSET:
+            return AOE_TIMEZONE, "AoE", "-12:00", True
+        return timezone(td, name=formatted), formatted, formatted, True
 
     if tz_indicator == TimezoneIndicator.EXPLICIT_UTC:
         return timezone.utc, "UTC", "+00:00", True
@@ -152,6 +173,9 @@ def resolve_timezone(
         if td is not None:
             tz = timezone(td, name=formatted)
             return tz, formatted, formatted, True
+        # Clearly an offset, and out of range. (Without a colon it may be a date range: "Aug 22 -25".)
+        if ":" in offset_match.group(1):
+            return None, raw_snippet.strip(), None, False
 
     # 3. Check known abbreviation
     # Look for individual words matching known timezone codes
@@ -160,10 +184,7 @@ def resolve_timezone(
         w_lower = word.lower()
         if w_lower in _NAMED_TIMEZONE_OFFSETS:
             td = _NAMED_TIMEZONE_OFFSETS[w_lower]
-            hours = int(td.total_seconds() // 3600)
-            mins = int((abs(td.total_seconds()) % 3600) // 60)
-            sign = "+" if hours >= 0 else "-"
-            formatted = f"{sign}{abs(hours):02d}:{mins:02d}"
+            formatted = _format_offset(td)
             code_upper = word.upper()
             return timezone(td, name=code_upper), code_upper, formatted, True
 
@@ -180,11 +201,7 @@ def resolve_timezone(
             )
             utcoffset = zi.utcoffset(ref_dt)
             if utcoffset is not None:
-                h = int(utcoffset.total_seconds() // 3600)
-                m = int((abs(utcoffset.total_seconds()) % 3600) // 60)
-                sign = "+" if h >= 0 else "-"
-                formatted = f"{sign}{abs(h):02d}:{m:02d}"
-                return zi, iana_name, formatted, True
+                return zi, iana_name, _format_offset(utcoffset), True
             return zi, iana_name, None, True
         except Exception:
             return None, iana_name, None, False
