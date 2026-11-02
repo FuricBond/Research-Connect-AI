@@ -779,6 +779,11 @@ def test_i_a_stuck_job_keeps_its_lock_until_it_returns_so_runs_never_overlap(ses
         gate.release.set()
         await asyncio.to_thread(join_scheduler_threads)
         released = not locks.is_held("stuck")
+        # A finished worker reports through the event loop, so the scheduler can learn of it a moment later.
+        for _ in range(1000):
+            if not here.active_worker_count():
+                break
+            await asyncio.sleep(0.01)
         recovered = await here.run_job_now("stuck")
         return timed_out, still_held, again_here, from_elsewhere, released, recovered
 
