@@ -98,6 +98,9 @@
 }
 
 .posting-card-title {
+  /* A title with one very long word wraps instead of widening the page at 320px. */
+  min-width: 0;
+  overflow-wrap: anywhere;
   margin: 0;
   font-size: 1.0625rem;
   font-weight: 650;
