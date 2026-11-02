@@ -434,7 +434,8 @@ def test_e_a_chosen_password_is_used_but_never_logged(monkeypatch, caplog):
     chosen = secrets.token_urlsafe(16)
     monkeypatch.setattr(settings, "app_env", "production")
     monkeypatch.setattr(seed_demo_data, "SessionLocal", factory)
-    monkeypatch.setattr(sys, "argv", ["seed_demo_data", "--password", chosen])
+    # "=" because about 1 random password in 64 starts with "-", which argparse would read as an option.
+    monkeypatch.setattr(sys, "argv", ["seed_demo_data", f"--password={chosen}"])
     caplog.set_level(logging.DEBUG)
 
     assert seed_demo_data.main() == 0
