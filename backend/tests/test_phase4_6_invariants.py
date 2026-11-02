@@ -243,7 +243,7 @@ def test_invariant_5_invitation_cannot_be_reused(db_session: Session, test_data)
             role=WorkspaceRole.CONTRIBUTOR,
         ),
     )
-    new_user = UserModel(id=uuid.uuid4(), email="newbie@univ.edu", full_name="Newbie", hashed_password="pw")
+    new_user = UserModel(id=uuid.uuid4(), email="newbie@univ.edu", full_name="Newbie", hashed_password="pw", email_verified_address="newbie@univ.edu")
     db_session.add(new_user)
     db_session.commit()
 
@@ -274,7 +274,7 @@ def test_invariant_6_expired_invitation_cannot_be_accepted(db_session: Session, 
             expires_in_days=-2,
         ),
     )
-    u_exp = UserModel(id=uuid.uuid4(), email="exp@univ.edu", full_name="Exp", hashed_password="pw")
+    u_exp = UserModel(id=uuid.uuid4(), email="exp@univ.edu", full_name="Exp", hashed_password="pw", email_verified_address="exp@univ.edu")
     db_session.add(u_exp)
     db_session.commit()
 
@@ -306,7 +306,7 @@ def test_invariant_7_revoked_invitation_cannot_be_accepted(db_session: Session, 
         actor_id=d["owner"].id,
         invitation_id=inv.id,
     )
-    u_rev = UserModel(id=uuid.uuid4(), email="rev@univ.edu", full_name="Rev", hashed_password="pw")
+    u_rev = UserModel(id=uuid.uuid4(), email="rev@univ.edu", full_name="Rev", hashed_password="pw", email_verified_address="rev@univ.edu")
     db_session.add(u_rev)
     db_session.commit()
 

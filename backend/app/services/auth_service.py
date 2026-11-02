@@ -22,6 +22,7 @@ from app.schemas.auth import (
     SelfServiceRole,
 )
 from app.schemas.researcher import ResearcherProfileCreate
+from app.services.email_verification_service import has_verified_email
 from app.services.researcher_profile_service import ResearcherProfileService
 
 logger = logging.getLogger(__name__)
@@ -83,10 +84,6 @@ class AuthService:
             db.rollback()
             raise
         db.refresh(user)
-        # An invitation sent before the account existed is waiting for it.
-        from app.services.workspace_collaboration_service import WorkspaceCollaborationService
-
-        WorkspaceCollaborationService.link_invitations_to_new_account(db, user)
         logger.info("Registered account", extra={"registered_user_id": str(user.id), "role": user.role})
         return user
 
@@ -140,6 +137,7 @@ class AuthService:
             role=PlatformRole(user.role),
             is_active=user.is_active,
             is_verified=user.is_verified,
+            email_verified=has_verified_email(user),
             profile_id=profile_id,
             created_at=user.created_at,
         )

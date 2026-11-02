@@ -168,8 +168,9 @@ describe("navigation model", () => {
     })(appDir);
     expect(routes.length).toBeGreaterThan(20);
 
-    // Sign-in and registration are reached from the header's account controls.
-    const reachedFromAccountControls = ["/login", "/register"];
+    // Sign-in and registration are reached from the header's account controls; confirming an
+    // address from the link in its email.
+    const reachedFromAccountControls = ["/login", "/register", "/verify-email"];
     for (const route of routes) {
       if (reachedFromAccountControls.includes(route)) continue;
       expect(currentHref(route.replace(/\[[^\]]+\]/g, "x")), route).not.toBeNull();

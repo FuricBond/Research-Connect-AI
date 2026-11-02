@@ -93,7 +93,6 @@ export interface WorkspaceInvitationCreatePayload {
 
 export interface WorkspaceInvitationCreateResponse {
   invitation: WorkspaceInvitation;
-  token: string;
 }
 
 export interface WorkspaceInvitationListResponse {
@@ -208,4 +207,6 @@ export interface SharedWorkspace {
 export interface MyWorkspaceInvitationsResponse {
   invitations: MyWorkspaceInvitation[];
   shared_workspaces: SharedWorkspace[];
+  /** Decision C: false means `invitations` is empty whether or not any exist for this address. */
+  email_verified: boolean;
 }

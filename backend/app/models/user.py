@@ -1,7 +1,8 @@
+from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 import uuid
 
-from sqlalchemy import Boolean, CheckConstraint, Integer, String, false, true
+from sqlalchemy import Boolean, CheckConstraint, DateTime, Integer, String, false, true
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -60,6 +61,18 @@ class UserModel(Base, TimestampMixin):
         default=False,
         server_default=false(),
         nullable=False,
+    )
+    # Decision C: the address this account proved it receives mail at, normalized. `is_verified` is
+    # something else: an administrator's confirmation that a faculty account is genuine.
+    email_verified_address: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        unique=True,
+        index=True,
+        nullable=True,
+    )
+    email_verified_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
     )
     # Phase 6.7: access tokens carry the version they were issued under ("ver") and are
     # refused once it moves on. Sign-out, a password change and deactivation increment it.

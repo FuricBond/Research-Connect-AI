@@ -1,0 +1,11 @@
+.prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--rc-space-3);
+}
+
+.why {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

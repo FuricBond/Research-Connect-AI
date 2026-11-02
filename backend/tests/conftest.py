@@ -16,7 +16,12 @@ import pytest
 from app.core.cache import discovery_cache
 from app.core.config import settings
 from app.core.logging_config import configure_logging
-from app.core.rate_limiter import login_rate_limiter, rate_limiter
+from app.core.rate_limiter import (
+    email_verification_rate_limiter,
+    invitation_email_rate_limiter,
+    login_rate_limiter,
+    rate_limiter,
+)
 from app.models.user import UserModel
 
 
@@ -39,10 +44,14 @@ def reset_discovery_middleware_state():
     """
     rate_limiter.reset()
     login_rate_limiter.reset()
+    email_verification_rate_limiter.reset()
+    invitation_email_rate_limiter.reset()
     discovery_cache.clear()
     yield
     rate_limiter.reset()
     login_rate_limiter.reset()
+    email_verification_rate_limiter.reset()
+    invitation_email_rate_limiter.reset()
     discovery_cache.clear()
 
 

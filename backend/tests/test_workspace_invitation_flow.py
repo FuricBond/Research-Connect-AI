@@ -4,6 +4,10 @@ Audit FUNC-01 and SEC-05 — an invitee answers an invitation from their own acc
 The notifications page lists what the signed-in account was invited to; accepting or declining
 needs no token. Every refusal says why, the invitation belongs to one account only, and the
 database holds only a hash of the token, which never appears in a list or a log.
+
+Accounts here have confirmed their addresses: what happens without that is Decision C,
+test_invitation_email_ownership.py. The API no longer hands out tokens, so a test that needs one
+asks the service, as if it had been handed out before that.
 """
 from __future__ import annotations
 
@@ -37,6 +41,9 @@ from app.models.workspace_collaboration import (
     WorkspaceMemberModel,
     WorkspaceRole,
 )
+from app.schemas.workspace_collaboration import WorkspaceInvitationCreate
+from app.services.reminder_scheduler_service import MockEmailProvider, get_email_provider, set_email_provider
+from app.services.workspace_collaboration_service import WorkspaceCollaborationService
 
 compiles(JSONB, "sqlite")(lambda type_, compiler, **kw: "JSON")
 compiles(Vector, "sqlite")(lambda type_, compiler, **kw: "TEXT")
@@ -70,7 +77,14 @@ def client(db_session: Session) -> TestClient:
 
 
 def _account(db: Session, email: str, name: str) -> UserModel:
-    user = UserModel(id=uuid.uuid4(), email=email, full_name=name, hashed_password="pw", is_active=True)
+    user = UserModel(
+        id=uuid.uuid4(),
+        email=email,
+        full_name=name,
+        hashed_password="pw",
+        is_active=True,
+        email_verified_address=email.lower(),
+    )
     db.add(user)
     db.flush()
     db.add(ResearchProfileModel(id=uuid.uuid4(), user_id=user.id, academic_status="POSTGRADUATE"))
@@ -114,6 +128,12 @@ def _invite(client: TestClient, owner: UserModel, workspace, email: str = "invit
     return res.json()
 
 
+def _with_token(db: Session, owner: UserModel, workspace, email: str = "invitee@univ.edu") -> tuple[WorkspaceInvitationModel, str]:
+    return WorkspaceCollaborationService.create_invitation(
+        db, workspace.id, owner.id, WorkspaceInvitationCreate(invitee_email=email, role=WorkspaceRole.EDITOR)
+    )
+
+
 def test_the_invitee_sees_accepts_and_joins_with_the_invited_role(client: TestClient, db_session: Session, people):
     owner, invitee, _, workspace = people
     invitation = _invite(client, owner, workspace)["invitation"]
@@ -144,7 +164,7 @@ def test_the_invitee_sees_accepts_and_joins_with_the_invited_role(client: TestCl
 
 def test_the_notification_says_what_can_be_done_and_carries_no_token(client: TestClient, db_session: Session, people):
     owner, invitee, _, workspace = people
-    token = _invite(client, owner, workspace)["token"]
+    _row, token = _with_token(db_session, owner, workspace)
     profile = db_session.execute(select(ResearchProfileModel).where(ResearchProfileModel.user_id == invitee.id)).scalar_one()
     note = db_session.execute(select(NotificationModel).where(NotificationModel.profile_id == profile.id)).scalar_one()
     assert note.notification_type == "WORKSPACE_INVITATION"
@@ -155,8 +175,8 @@ def test_the_notification_says_what_can_be_done_and_carries_no_token(client: Tes
 
 def test_nobody_can_answer_someone_elses_invitation(client: TestClient, db_session: Session, people):
     owner, invitee, other, workspace = people
-    created = _invite(client, owner, workspace)
-    invitation_id, token = created["invitation"]["id"], created["token"]
+    row, token = _with_token(db_session, owner, workspace)
+    invitation_id = str(row.id)
 
     assert client.get("/api/v1/workspace-invitations/mine", headers=_h(other)).json()["invitations"] == []
     # The owner who sent it, and a stranger, hear what an id that does not exist hears.
@@ -229,10 +249,10 @@ def test_an_invitation_is_answered_once(client: TestClient, people, first, secon
     assert word in res.json()["detail"]
 
 
-def test_a_removed_member_cannot_come_back_on_an_old_invitation(client: TestClient, people):
+def test_a_removed_member_cannot_come_back_on_an_old_invitation(client: TestClient, db_session: Session, people):
     owner, invitee, _, workspace = people
-    created = _invite(client, owner, workspace)
-    invitation_id, token = created["invitation"]["id"], created["token"]
+    row, token = _with_token(db_session, owner, workspace)
+    invitation_id = str(row.id)
     assert client.post(f"/api/v1/workspace-invitations/{invitation_id}/accept", headers=_h(invitee)).status_code == 200
     assert client.delete(f"/api/v1/workspaces/{workspace.id}/members/{invitee.id}", headers=_h(owner)).status_code == 204
 
@@ -241,10 +261,10 @@ def test_a_removed_member_cannot_come_back_on_an_old_invitation(client: TestClie
     assert client.get(f"/api/v1/workspace/{workspace.id}", headers=_h(invitee)).status_code == 403
 
 
-def test_a_revoked_invitation_cannot_be_answered_or_revoked_again(client: TestClient, people):
+def test_a_revoked_invitation_cannot_be_answered_or_revoked_again(client: TestClient, db_session: Session, people):
     owner, invitee, _, workspace = people
-    created = _invite(client, owner, workspace)
-    invitation_id, token = created["invitation"]["id"], created["token"]
+    row, token = _with_token(db_session, owner, workspace)
+    invitation_id = str(row.id)
     revoke = f"/api/v1/workspaces/{workspace.id}/invitations/{invitation_id}"
     assert client.delete(revoke, headers=_h(owner)).status_code == 204
 
@@ -281,7 +301,12 @@ def test_a_viewer_who_accepted_stays_a_viewer(client: TestClient, people):
     assert client.post(f"/api/v1/workspaces/{workspace.id}/invitations", headers=_h(invitee), json={"invitee_email": "z@univ.edu", "role": "VIEWER"}).status_code == 403
 
 
-def test_someone_invited_before_signing_up_finds_it_on_their_new_account(client: TestClient, db_session: Session, people):
+def test_someone_invited_before_signing_up_finds_it_once_they_confirm_the_address(client: TestClient, db_session: Session, people):
+    class Mailbox(MockEmailProvider):
+        delivers_mail = True
+
+    before, mailbox = get_email_provider(), Mailbox()
+    set_email_provider(mailbox)
     owner, _, _, workspace = people
     invitation_id = _invite(client, owner, workspace, email="Newcomer@Univ.edu")["invitation"]["id"]
 
@@ -292,6 +317,13 @@ def test_someone_invited_before_signing_up_finds_it_on_their_new_account(client:
     assert registered.status_code == 201, registered.text
     token = registered.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
+    assert client.get("/api/v1/workspace-invitations/mine", headers=headers).json()["invitations"] == []
+
+    assert client.post("/api/v1/auth/email-verification", headers=headers).status_code == 202
+    link = next(m["body_text"] for m in mailbox.sent_emails if m["subject"] == "Confirm your email address")
+    set_email_provider(before)
+    confirm = link.split("#token=")[1].split()[0]
+    assert client.post("/api/v1/auth/email-verification/confirm", headers=headers, json={"token": confirm}).status_code == 200
 
     mine = client.get("/api/v1/workspace-invitations/mine", headers=headers).json()["invitations"]
     assert [i["id"] for i in mine] == [invitation_id]
@@ -307,9 +339,7 @@ def test_someone_invited_before_signing_up_finds_it_on_their_new_account(client:
 
 def test_only_a_hash_of_the_token_is_stored(client: TestClient, db_session: Session, people):
     owner, invitee, _, workspace = people
-    created = _invite(client, owner, workspace)
-    token = created["token"]
-    row = db_session.get(WorkspaceInvitationModel, uuid.UUID(created["invitation"]["id"]))
+    row, token = _with_token(db_session, owner, workspace)
     assert row.token_hash == hashlib.sha256(token.encode()).hexdigest()
     assert token not in row.token_hash
     assert not hasattr(row, "token")
@@ -319,9 +349,9 @@ def test_only_a_hash_of_the_token_is_stored(client: TestClient, db_session: Sess
     assert client.post(f"/api/v1/workspaces/invitations/{token}/accept", headers=_h(invitee)).status_code == 200
 
 
-def test_no_list_carries_a_token(client: TestClient, people):
+def test_no_list_carries_a_token(client: TestClient, db_session: Session, people):
     owner, invitee, _, workspace = people
-    token = _invite(client, owner, workspace)["token"]
+    _row, token = _with_token(db_session, owner, workspace)
     for res in (
         client.get(f"/api/v1/workspaces/{workspace.id}/invitations", headers=_h(owner)),
         client.get("/api/v1/workspace-invitations/mine", headers=_h(invitee)),
@@ -330,9 +360,9 @@ def test_no_list_carries_a_token(client: TestClient, people):
         assert token not in res.text and "token" not in res.text
 
 
-def test_a_token_in_a_path_never_reaches_a_log_line(client: TestClient, people, caplog):
+def test_a_token_in_a_path_never_reaches_a_log_line(client: TestClient, db_session: Session, people, caplog):
     owner, invitee, _, workspace = people
-    token = _invite(client, owner, workspace)["token"]
+    _row, token = _with_token(db_session, owner, workspace)
     with caplog.at_level(logging.INFO, logger="app.access"):
         client.post(f"/api/v1/workspaces/invitations/{token}/accept", headers=_h(invitee))
     assert "/invitations/[redacted]/accept" in caplog.text

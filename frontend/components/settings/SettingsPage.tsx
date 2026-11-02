@@ -1,6 +1,7 @@
 "use client";
 
 import { ROLE_LABELS } from "../../types/auth";
+import { EmailConfirmationPrompt } from "../auth/EmailConfirmationPrompt";
 import { RequireAuth } from "../auth/RequireAuth";
 import { ChangePasswordForm } from "../auth/ChangePasswordForm";
 import { useSession } from "../auth/SessionProvider";
@@ -62,6 +63,11 @@ function Settings() {
             )}
           </dl>
           <p className={styles.note}>Only an administrator can change the account type.</p>
+          {!user.email_verified && (
+            <div className={styles.rule}>
+              <EmailConfirmationPrompt why="Your email address is not confirmed yet. Confirm it to see and answer workspace invitations." />
+            </div>
+          )}
           <div className={styles.rule}>
             <ChangePasswordForm />
           </div>

@@ -95,6 +95,7 @@ from app.models.saved_opportunity import (
 )
 from app.models.source import SourceModel
 from app.models.topic import TopicAliasModel, TopicModel
+from app.models.email_verification import EmailVerificationTokenModel
 from app.models.user import UserModel
 
 from app.models.calendar import (
@@ -130,6 +131,7 @@ __all__ = [
     "Base",
     "TimestampMixin",
     "UserModel",
+    "EmailVerificationTokenModel",
     "AcademicStatus",
     "ResearchProfileModel",
     "ResearcherInterestModel",

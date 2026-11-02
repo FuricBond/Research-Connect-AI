@@ -91,9 +91,12 @@ class WorkspaceInvitationCreate(BaseModel):
 
 
 class WorkspaceInvitationCreateResponse(BaseModel):
-    """Response returned when an invitation is generated."""
+    """
+    Response returned when an invitation is created. The token is not in it: the invitee answers
+    from their own confirmed account, so nothing needs handing over, and an inviter holding it
+    would hold something that belongs to the invitee.
+    """
     invitation: WorkspaceInvitationRead
-    token: str
 
 
 class MyWorkspaceInvitationRead(BaseModel):
@@ -120,6 +123,9 @@ class MyWorkspaceInvitationsResponse(BaseModel):
     """What an invitee can act on: pending invitations, and the workspaces already joined."""
     invitations: list[MyWorkspaceInvitationRead]
     shared_workspaces: list[SharedWorkspaceRead]
+    # Decision C: false means `invitations` is empty because the address is unconfirmed, whether or
+    # not any invitation exists for it. An unconfirmed account cannot tell the difference.
+    email_verified: bool = True
 
 
 class WorkspaceInvitationListResponse(BaseModel):

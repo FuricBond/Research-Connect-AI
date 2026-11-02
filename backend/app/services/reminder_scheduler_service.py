@@ -58,6 +58,10 @@ class DeliveryResult:
 class EmailProvider(ABC):
     """Abstract injectable interface for dispatching email notifications."""
 
+    # Decision C: whether a message reaches a mailbox. What proves an address cannot rest on a
+    # provider that only keeps it in memory.
+    delivers_mail: bool = True
+
     def accepts_recipient(self, to_email: str) -> bool:
         """Phase 5.16: whether this provider may mail the address at all."""
         return True
@@ -76,6 +80,8 @@ class EmailProvider(ABC):
 
 class MockEmailProvider(EmailProvider):
     """In-memory safe email provider for development, testing, and CI."""
+
+    delivers_mail = False
 
     def __init__(self) -> None:
         self.sent_emails: list[dict[str, Any]] = []

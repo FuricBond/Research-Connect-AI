@@ -4,6 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 import re
+from typing import Literal
 import uuid
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -109,8 +110,21 @@ class AuthenticatedUser(BaseModel):
     role: PlatformRole
     is_active: bool
     is_verified: bool
+    # Decision C: whether the account proved it receives mail at this address. Not `is_verified`,
+    # which is an administrator's confirmation that a faculty account is genuine.
+    email_verified: bool = False
     profile_id: uuid.UUID | None = None
     created_at: datetime
+
+
+class EmailVerificationRequestResponse(BaseModel):
+    """SENT: a link is on its way. ALREADY_VERIFIED: nothing was sent, none is needed."""
+
+    status: Literal["SENT", "ALREADY_VERIFIED"]
+
+
+class EmailVerificationConfirm(BaseModel):
+    token: str = Field(min_length=1, max_length=256)
 
 
 class TokenResponse(BaseModel):

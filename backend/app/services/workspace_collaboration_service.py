@@ -19,7 +19,7 @@ from typing import Any, Sequence
 import uuid
 
 from fastapi import HTTPException, status
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.notification import (
@@ -56,6 +56,7 @@ from app.schemas.workspace_collaboration import (
     WorkspaceTaskUpdate,
 )
 from app.services.notification_service import NotificationService
+from app.services.email_verification_service import has_verified_email, normalize_email
 from app.services.workspace_authorization_service import (
     WorkspaceAuthorizationService,
 )
@@ -417,7 +418,7 @@ class WorkspaceCollaborationService:
         ).scalar_one_or_none()
 
         if target_user is not None:
-            # Check if already an active member
+            # Check if already an active member (the owner can see that already)
             member = db.execute(
                 select(WorkspaceMemberModel).where(
                     WorkspaceMemberModel.workspace_id == workspace_id,
@@ -461,7 +462,9 @@ class WorkspaceCollaborationService:
             workspace_id=workspace_id,
             inviter_id=inviter_id,
             invitee_email=email,
-            invitee_user_id=target_user.id if target_user else None,
+            # Set when it is answered. Until then an invitation belongs to an address: an account
+            # with that address has proved nothing, and the inviter is not told one exists.
+            invitee_user_id=None,
             role=payload.role.value,
             token_hash=cls.hash_invitation_token(raw_token),
             status=InvitationStatus.PENDING.value,
@@ -481,12 +484,25 @@ class WorkspaceCollaborationService:
             new_state={"role": payload.role.value, "expires_at": expires_at.isoformat()},
         )
 
-        if target_user is not None:
+        if target_user is not None and has_verified_email(target_user):
             cls._notify_invitee(db, invitation, target_user.id)
 
         db.commit()
         db.refresh(invitation)
         return invitation, raw_token
+
+    @classmethod
+    def invitee_needs_email(cls, db: Session, invitation: WorkspaceInvitationModel) -> bool:
+        """
+        Whether to tell the invited mailbox directly: a confirmed account hears through its
+        notification (and its email copy), anyone else has no other way to hear.
+        """
+        return (
+            db.execute(
+                select(UserModel.id).where(UserModel.email_verified_address == normalize_email(invitation.invitee_email))
+            ).scalar_one_or_none()
+            is None
+        )
 
     @staticmethod
     def hash_invitation_token(token: str) -> str:
@@ -512,11 +528,22 @@ class WorkspaceCollaborationService:
         return invitation
 
     @staticmethod
+    def _require_verified_email(user: UserModel) -> None:
+        """
+        Decision C: registering with an address proves nothing about it, so answering any invitation
+        waits for proof. Asked before any invitation is looked at, so an unconfirmed account gets
+        the same answer whether or not the invitation, id or token exists.
+        """
+        if not has_verified_email(user):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Confirm your email address before answering workspace invitations.",
+            )
+
+    @staticmethod
     def _is_invitee(invitation: WorkspaceInvitationModel, user: UserModel) -> bool:
-        """An invitation belongs to the account it names, or to the address it was sent to."""
-        if invitation.invitee_user_id is not None:
-            return invitation.invitee_user_id == user.id
-        return user.email.lower() == invitation.invitee_email.lower()
+        """An invitation belongs to the address it was sent to, once an account has proved that address."""
+        return has_verified_email(user) and user.email_verified_address == normalize_email(invitation.invitee_email)
 
     @classmethod
     def _invitation_of(cls, db: Session, invitation_id: uuid.UUID, user: UserModel) -> WorkspaceInvitationModel:
@@ -579,23 +606,22 @@ class WorkspaceCollaborationService:
         user = cls._account(db, user_id)
         now = datetime.now(timezone.utc)
 
-        rows = db.execute(
-            select(WorkspaceInvitationModel, OpportunityModel.title)
-            .join(SavedOpportunityModel, SavedOpportunityModel.id == WorkspaceInvitationModel.workspace_id)
-            .join(OpportunityModel, OpportunityModel.id == SavedOpportunityModel.opportunity_id)
-            .where(
-                WorkspaceInvitationModel.status == InvitationStatus.PENDING.value,
-                or_(
-                    WorkspaceInvitationModel.invitee_user_id == user.id,
-                    and_(
-                        WorkspaceInvitationModel.invitee_user_id.is_(None),
-                        func.lower(WorkspaceInvitationModel.invitee_email) == user.email.lower(),
-                    ),
-                ),
-            )
-            .options(joinedload(WorkspaceInvitationModel.inviter))
-            .order_by(WorkspaceInvitationModel.created_at.desc(), WorkspaceInvitationModel.id.asc())
-        ).all()
+        # Decision C: nothing about an invitation reaches an account that has not proved the address.
+        rows = (
+            db.execute(
+                select(WorkspaceInvitationModel, OpportunityModel.title)
+                .join(SavedOpportunityModel, SavedOpportunityModel.id == WorkspaceInvitationModel.workspace_id)
+                .join(OpportunityModel, OpportunityModel.id == SavedOpportunityModel.opportunity_id)
+                .where(
+                    WorkspaceInvitationModel.status == InvitationStatus.PENDING.value,
+                    func.lower(WorkspaceInvitationModel.invitee_email) == user.email_verified_address,
+                )
+                .options(joinedload(WorkspaceInvitationModel.inviter))
+                .order_by(WorkspaceInvitationModel.created_at.desc(), WorkspaceInvitationModel.id.asc())
+            ).all()
+            if has_verified_email(user)
+            else []
+        )
 
         def still_valid(invitation: WorkspaceInvitationModel) -> bool:
             expires = invitation.expires_at
@@ -618,26 +644,28 @@ class WorkspaceCollaborationService:
         return invitations, [(member, title, owner) for member, title, owner in shared]
 
     @classmethod
-    def link_invitations_to_new_account(cls, db: Session, user: UserModel) -> int:
+    def notify_invitations_after_confirmation(cls, db: Session, user: UserModel) -> int:
         """
-        Someone invited before they had an account finds the invitation when they sign up with
-        that address: it is bound to the new account and they are told about it.
+        Someone invited before they could prove the address finds out once they have proved it. The
+        caller commits, with the confirmation itself.
         """
+        now = datetime.now(timezone.utc)
         invitations = db.execute(
             select(WorkspaceInvitationModel)
             .where(
                 WorkspaceInvitationModel.status == InvitationStatus.PENDING.value,
-                WorkspaceInvitationModel.invitee_user_id.is_(None),
-                func.lower(WorkspaceInvitationModel.invitee_email) == user.email.lower(),
+                func.lower(WorkspaceInvitationModel.invitee_email) == user.email_verified_address,
             )
             .options(joinedload(WorkspaceInvitationModel.inviter))
         ).scalars().all()
-        for invitation in invitations:
-            invitation.invitee_user_id = user.id
+        waiting = [
+            invitation
+            for invitation in invitations
+            if (invitation.expires_at if invitation.expires_at.tzinfo else invitation.expires_at.replace(tzinfo=timezone.utc)) > now
+        ]
+        for invitation in waiting:
             cls._notify_invitee(db, invitation, user.id)
-        if invitations:
-            db.commit()
-        return len(invitations)
+        return len(waiting)
 
     @classmethod
     def _notify_invitee(cls, db: Session, invitation: WorkspaceInvitationModel, recipient_user_id: uuid.UUID) -> None:
@@ -757,9 +785,10 @@ class WorkspaceCollaborationService:
         token: str,
         user_id: uuid.UUID,
     ) -> WorkspaceMemberModel:
-        """Accepts by token, for its invitee only. A token works once."""
-        invitation = cls._invitation_by_token(db, token)
+        """Accepts by token, for its invitee only, with a confirmed address. A token works once."""
         user = cls._account(db, user_id)
+        cls._require_verified_email(user)
+        invitation = cls._invitation_by_token(db, token)
         cls._assert_token_holder_is_invitee(invitation, user)
         return cls._accept(db, invitation, user)
 
@@ -770,9 +799,10 @@ class WorkspaceCollaborationService:
         token: str,
         user_id: uuid.UUID,
     ) -> None:
-        """Declines by token, for its invitee only."""
-        invitation = cls._invitation_by_token(db, token)
+        """Declines by token, for its invitee only, with a confirmed address."""
         user = cls._account(db, user_id)
+        cls._require_verified_email(user)
+        invitation = cls._invitation_by_token(db, token)
         cls._assert_token_holder_is_invitee(invitation, user)
         cls._decline(db, invitation, user)
 
@@ -783,8 +813,9 @@ class WorkspaceCollaborationService:
         invitation_id: uuid.UUID,
         user_id: uuid.UUID,
     ) -> WorkspaceMemberModel:
-        """Accepts from the notifications page: the signed-in account is the proof, no token."""
+        """Accepts from the notifications page: the account's confirmed address is the proof, no token."""
         user = cls._account(db, user_id)
+        cls._require_verified_email(user)
         return cls._accept(db, cls._invitation_of(db, invitation_id, user), user)
 
     @classmethod
@@ -794,8 +825,9 @@ class WorkspaceCollaborationService:
         invitation_id: uuid.UUID,
         user_id: uuid.UUID,
     ) -> None:
-        """Declines from the notifications page."""
+        """Declines from the notifications page, with a confirmed address."""
         user = cls._account(db, user_id)
+        cls._require_verified_email(user)
         cls._decline(db, cls._invitation_of(db, invitation_id, user), user)
 
     @classmethod

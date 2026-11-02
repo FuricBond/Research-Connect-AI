@@ -123,6 +123,12 @@ login_rate_limiter = SlidingWindowRateLimiter(
 )
 
 
+# Decision C: how often one account may ask for or try a confirmation link, and how many invitation
+# emails one inviter may cause. Both reach someone else's mailbox, so they are kept low.
+email_verification_rate_limiter = SlidingWindowRateLimiter(requests_per_window=5, window_seconds=900)
+invitation_email_rate_limiter = SlidingWindowRateLimiter(requests_per_window=20, window_seconds=3600)
+
+
 def get_client_ip(request: Request) -> str:
     """
     Extract the client IP. Forwarding headers are client-controlled, so they are only

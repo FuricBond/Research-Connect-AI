@@ -29,7 +29,10 @@ export interface AuthenticatedUser {
   full_name: string;
   role: PlatformRole;
   is_active: boolean;
+  /** An administrator confirmed this faculty account is genuine. Not about the email address. */
   is_verified: boolean;
+  /** Decision C: the account proved it receives mail at its address. */
+  email_verified: boolean;
   /** The researcher profile created alongside the account; null only for legacy accounts. */
   profile_id: string | null;
   created_at: string;

@@ -269,7 +269,7 @@ export function MembersPanel({ workspaceId, can, userId, members, onChanged }: M
         open={inviting}
         onClose={() => setInviting(false)}
         title="Invite someone to this call"
-        description="They get a notification and answer it on their notifications page. Someone without an account finds the invitation when they sign up with this address."
+        description="They answer it on their notifications page, after signing in with this address and confirming that it is theirs."
         initialFocusRef={emailRef}
         footer={
           <>
@@ -285,7 +285,7 @@ export function MembersPanel({ workspaceId, can, userId, members, onChanged }: M
         <form id="item-invite-form" className={styles.form} onSubmit={invite} noValidate>
           {sent && (
             <Alert tone="success" announce title={`Invitation sent to ${sent}.`}>
-              They can accept or decline it on their notifications page. It stays open for 7 days, and you can withdraw it below until they answer.
+              They can accept or decline it on their notifications page once they have confirmed this address. It stays open for 7 days, and you can withdraw it below until they answer.
             </Alert>
           )}
           {inviteError && (

@@ -18,6 +18,7 @@ export function makeUser(overrides: Partial<AuthenticatedUser> = {}): Authentica
     role: "STUDENT" as PlatformRole,
     is_active: true,
     is_verified: false,
+    email_verified: true,
     profile_id: PROFILE_ID,
     created_at: "2026-01-01T00:00:00+00:00",
     ...overrides,

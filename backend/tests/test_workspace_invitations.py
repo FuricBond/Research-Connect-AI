@@ -84,7 +84,13 @@ def client(db_session: Session) -> TestClient:
 def sample_workspace(db_session: Session) -> tuple[UserModel, UserModel, UserModel, SavedOpportunityModel]:
     u_owner = UserModel(id=uuid.uuid4(), email="owner@univ.edu", full_name="Owner Prof", hashed_password="pw")
     u_editor = UserModel(id=uuid.uuid4(), email="editor@univ.edu", full_name="Editor Researcher", hashed_password="pw")
-    u_invitee = UserModel(id=uuid.uuid4(), email="collab@univ.edu", full_name="Collab Scholar", hashed_password="pw")
+    u_invitee = UserModel(
+        id=uuid.uuid4(),
+        email="collab@univ.edu",
+        full_name="Collab Scholar",
+        hashed_password="pw",
+        email_verified_address="collab@univ.edu",
+    )
     db_session.add_all([u_owner, u_editor, u_invitee])
     db_session.flush()
 
@@ -323,8 +329,8 @@ def test_api_invitations_workflow(client: TestClient, sample_workspace):
     )
     assert res.status_code == 201
     inv_data = res.json()
-    token = inv_data["token"]
-    assert token is not None
+    # Decision C: the invitee answers from their confirmed account; the inviter holds no token.
+    assert "token" not in inv_data
 
     # 2. List invitations
     res = client.get(
@@ -336,7 +342,7 @@ def test_api_invitations_workflow(client: TestClient, sample_workspace):
 
     # 3. Accept invitation
     res = client.post(
-        f"/api/v1/workspaces/invitations/{token}/accept",
+        f"/api/v1/workspace-invitations/{inv_data['invitation']['id']}/accept",
         headers={"X-User-ID": str(u_invitee.id)},
     )
     assert res.status_code == 200

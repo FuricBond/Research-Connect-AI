@@ -448,6 +448,9 @@ def _seed_accounts(db: Session, password: str, dry_run: bool) -> dict[str, Resea
                 role=account["role"],
                 is_active=True,
                 is_verified=True,
+                # Demo addresses receive no mail: the operator running the seeder vouches for them.
+                email_verified_address=account["email"].lower(),
+                email_verified_at=datetime.now(timezone.utc),
             )
             db.add(user)
             db.flush()
@@ -463,6 +466,8 @@ def _seed_accounts(db: Session, password: str, dry_run: bool) -> dict[str, Resea
             user.role = account["role"]
             user.is_active = True
             user.is_verified = True
+            user.email_verified_address = account["email"].lower()
+            user.email_verified_at = user.email_verified_at or datetime.now(timezone.utc)
 
         profile = db.execute(
             select(ResearchProfileModel).where(ResearchProfileModel.user_id == user.id)

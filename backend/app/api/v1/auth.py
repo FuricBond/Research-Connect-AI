@@ -8,6 +8,10 @@ Phase 6 — Authentication API.
   POST /auth/change-password
                        Replace the caller's password, revoke their tokens and return a new one
                        (Phase 6.7, rate limited)
+  POST /auth/email-verification
+                       Email the caller a link that confirms their address (Decision C, rate limited)
+  POST /auth/email-verification/confirm
+                       Confirm the caller's address with that link's token (rate limited)
 """
 from __future__ import annotations
 
@@ -17,12 +21,14 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import CurrentUser
-from app.core.rate_limiter import get_client_ip, login_rate_limiter
+from app.core.rate_limiter import email_verification_rate_limiter, get_client_ip, login_rate_limiter
 from app.core.security import create_access_token
 from app.db.session import get_db
 from app.schemas.auth import (
     AuthenticatedUser,
     ChangePasswordRequest,
+    EmailVerificationConfirm,
+    EmailVerificationRequestResponse,
     LoginRequest,
     RegisterRequest,
     TokenResponse,
@@ -31,6 +37,12 @@ from app.services.auth_service import (
     AuthService,
     EmailAlreadyRegisteredError,
     InvalidCredentialsError,
+)
+from app.services.email_verification_service import (
+    EmailDeliveryFailedError,
+    EmailDeliveryUnavailableError,
+    EmailVerificationService,
+    InvalidEmailConfirmationError,
 )
 
 logger = logging.getLogger(__name__)
@@ -44,6 +56,17 @@ def enforce_login_rate_limit(request: Request) -> None:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Too many authentication attempts. Please wait and try again.",
+            headers={"Retry-After": str(status_info.reset_after_seconds)},
+        )
+
+
+def _enforce_email_verification_rate_limit(user: CurrentUser) -> None:
+    """Per account: each attempt can put a message in someone's mailbox."""
+    status_info = email_verification_rate_limiter.check(f"account:{user.id}")
+    if not status_info.allowed:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many confirmation attempts. Please wait a few minutes and try again.",
             headers={"Retry-After": str(status_info.reset_after_seconds)},
         )
 
@@ -122,6 +145,59 @@ def get_me(user: CurrentUser, db: Session = Depends(get_db)) -> AuthenticatedUse
 def logout(user: CurrentUser, db: Session = Depends(get_db)) -> Response:
     AuthService.revoke_tokens(db, user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/email-verification",
+    response_model=EmailVerificationRequestResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Email a link that confirms the caller's address",
+    description=(
+        "Decision C: sends a one-time link, valid for 24 hours, to the account's own address. A new "
+        "request replaces the earlier link. Answers 503 when this server cannot mail the address."
+    ),
+    dependencies=[Depends(_enforce_email_verification_rate_limit)],
+)
+def request_email_verification(user: CurrentUser, db: Session = Depends(get_db)) -> EmailVerificationRequestResponse:
+    try:
+        sent = EmailVerificationService.request_confirmation(db, user)
+    except EmailDeliveryUnavailableError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="This server cannot send email to your address, so it cannot be confirmed yet. Please contact an administrator.",
+        )
+    except EmailDeliveryFailedError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The confirmation email could not be sent just now. Try again in a few minutes.",
+        )
+    return EmailVerificationRequestResponse(status="SENT" if sent else "ALREADY_VERIFIED")
+
+
+@router.post(
+    "/email-verification/confirm",
+    response_model=AuthenticatedUser,
+    status_code=status.HTTP_200_OK,
+    summary="Confirm the caller's address",
+    description=(
+        "Decision C: needs the link's token and the signed-in account that asked for it. Any other "
+        "token (unknown, expired, used, another account's) gets the same answer."
+    ),
+    dependencies=[Depends(_enforce_email_verification_rate_limit)],
+)
+def confirm_email_verification(
+    payload: EmailVerificationConfirm,
+    user: CurrentUser,
+    db: Session = Depends(get_db),
+) -> AuthenticatedUser:
+    try:
+        confirmed = EmailVerificationService.confirm(db, user, payload.token)
+    except InvalidEmailConfirmationError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This link does not confirm this account's address: it may have expired, been replaced or already been used, or belong to another account.",
+        )
+    return AuthService.build_authenticated_user(db, confirmed)
 
 
 @router.post(

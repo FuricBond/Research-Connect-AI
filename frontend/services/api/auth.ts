@@ -49,6 +49,20 @@ export async function logout(signal?: AbortSignal): Promise<void> {
   await fetchJson<void>("/api/v1/auth/logout", { method: "POST", signal });
 }
 
+/** Decision C: emails the signed-in account a link. 503 when this server cannot mail its address. */
+export async function requestEmailConfirmation(signal?: AbortSignal): Promise<{ status: "SENT" | "ALREADY_VERIFIED" }> {
+  return fetchJson<{ status: "SENT" | "ALREADY_VERIFIED" }>("/api/v1/auth/email-verification", { method: "POST", signal });
+}
+
+/** Decision C: confirms the signed-in account's address with a link's token. 400 for any bad token. */
+export async function confirmEmail(token: string, signal?: AbortSignal): Promise<AuthenticatedUser> {
+  return fetchJson<AuthenticatedUser>("/api/v1/auth/email-verification/confirm", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+    signal,
+  });
+}
+
 /**
  * Phase 6.7: replaces the password and returns a fresh token; every earlier token, this
  * browser's included, stops working. 400 means the current password was wrong.

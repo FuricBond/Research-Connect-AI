@@ -13,11 +13,13 @@ import logging
 from typing import Annotated
 import uuid
 
-from fastapi import APIRouter, Depends, Query, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import OptionalUserId, require_user_id
+from app.core.rate_limiter import invitation_email_rate_limiter
 from app.db.session import get_db
+from app.models.user import UserModel
 from app.models.workspace_collaboration import (
     ActivityType,
     InvitationStatus,
@@ -28,6 +30,7 @@ from app.models.workspace_collaboration import (
     WorkspaceRole,
     WorkspaceTaskModel,
 )
+from app.services.email_verification_service import EmailVerificationService, has_verified_email
 from app.schemas.workspace_collaboration import (
     MyWorkspaceInvitationRead,
     MyWorkspaceInvitationsResponse,
@@ -218,6 +221,24 @@ def remove_workspace_member(
 # Invitations Endpoints
 # ──────────────────────────────────────────────────────────────────────────────
 
+def _invitation_read(invitation) -> WorkspaceInvitationRead:
+    return WorkspaceInvitationRead(
+        id=invitation.id,
+        workspace_id=invitation.workspace_id,
+        inviter_id=invitation.inviter_id,
+        inviter_name=invitation.inviter.full_name if invitation.inviter else None,
+        invitee_email=invitation.invitee_email,
+        # Whether an address has an account is not the inviter's to learn. Older rows may hold one.
+        invitee_user_id=None if invitation.status == InvitationStatus.PENDING.value else invitation.invitee_user_id,
+        role=WorkspaceRole(invitation.role),
+        status=InvitationStatus(invitation.status),
+        created_at=invitation.created_at,
+        expires_at=invitation.expires_at,
+        accepted_at=invitation.accepted_at,
+        revoked_at=invitation.revoked_at,
+    )
+
+
 @router.get(
     "/workspaces/{workspace_id}/invitations",
     response_model=WorkspaceInvitationListResponse,
@@ -237,23 +258,7 @@ def list_workspace_invitations(
     user_id = require_user_id(current_user_id)
     invitations, total = WorkspaceCollaborationService.list_invitations(db, workspace_id, user_id)
     return WorkspaceInvitationListResponse(
-        items=[
-            WorkspaceInvitationRead(
-                id=inv.id,
-                workspace_id=inv.workspace_id,
-                inviter_id=inv.inviter_id,
-                inviter_name=inv.inviter.full_name if inv.inviter else None,
-                invitee_email=inv.invitee_email,
-                invitee_user_id=inv.invitee_user_id,
-                role=WorkspaceRole(inv.role),
-                status=InvitationStatus(inv.status),
-                created_at=inv.created_at,
-                expires_at=inv.expires_at,
-                accepted_at=inv.accepted_at,
-                revoked_at=inv.revoked_at,
-            )
-            for inv in invitations
-        ],
+        items=[_invitation_read(inv) for inv in invitations],
         total_count=total,
     )
 
@@ -272,30 +277,24 @@ def list_workspace_invitations(
 def create_workspace_invitation(
     workspace_id: uuid.UUID,
     payload: WorkspaceInvitationCreate,
+    background_tasks: BackgroundTasks,
     current_user_id: OptionalUserId = None,
     db: Session = Depends(get_db),
 ) -> WorkspaceInvitationCreateResponse:
     user_id = require_user_id(current_user_id)
-    invitation, token = WorkspaceCollaborationService.create_invitation(
+    invitation, _token = WorkspaceCollaborationService.create_invitation(
         db, workspace_id, user_id, payload
     )
-    return WorkspaceInvitationCreateResponse(
-        invitation=WorkspaceInvitationRead(
-            id=invitation.id,
-            workspace_id=invitation.workspace_id,
-            inviter_id=invitation.inviter_id,
-            inviter_name=invitation.inviter.full_name if invitation.inviter else None,
-            invitee_email=invitation.invitee_email,
-            invitee_user_id=invitation.invitee_user_id,
-            role=WorkspaceRole(invitation.role),
-            status=InvitationStatus(invitation.status),
-            created_at=invitation.created_at,
-            expires_at=invitation.expires_at,
-            accepted_at=invitation.accepted_at,
-            revoked_at=invitation.revoked_at,
-        ),
-        token=token,
-    )
+    response = WorkspaceInvitationCreateResponse(invitation=_invitation_read(invitation))
+    # After the response, so its timing and content say nothing about the address. An inviter past
+    # the limit still creates the invitation; only the extra emails stop.
+    if WorkspaceCollaborationService.invitee_needs_email(db, invitation) and invitation_email_rate_limiter.check(f"inviter:{user_id}").allowed:
+        background_tasks.add_task(
+            EmailVerificationService.send_invitation_email,
+            invitation.invitee_email,
+            invitation.inviter.full_name if invitation.inviter else None,
+        )
+    return response
 
 
 @router.delete(
@@ -354,6 +353,7 @@ def list_my_workspace_invitations(
             )
             for member, title, owner in shared
         ],
+        email_verified=has_verified_email(db.get(UserModel, user_id)),
     )
 
 
