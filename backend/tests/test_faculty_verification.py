@@ -3,7 +3,8 @@ Decision 1 (audit SEC-03) — anyone can register as faculty, but recruiting wai
 administrator's verification, and the API enforces it whatever the frontend shows.
 
 Unverified faculty cannot create or publish a posting; a posting of theirs is not public and
-receives no applications. Verified faculty, administrators and students keep what they had.
+receives no applications. Verified faculty and students keep what they had; administrators do not
+recruit at all (Decision B, test_recruiting_faculty_only.py).
 """
 from __future__ import annotations
 
@@ -126,10 +127,10 @@ def test_verified_faculty_keep_working(client: TestClient, db_session: Session):
     assert [p["id"] for p in client.get("/api/v1/postings").json()["postings"]] == [posting_id]
 
 
-def test_an_administrator_needs_no_verification(client: TestClient, db_session: Session):
-    admin = _account(db_session, "ADMIN")
-    posting_id = _open_posting(client, db_session, admin)
-    assert client.get(f"/api/v1/postings/{posting_id}").status_code == 200
+def test_an_administrator_does_not_recruit_verified_or_not(client: TestClient, db_session: Session):
+    for verified in (False, True):
+        admin = _account(db_session, "ADMIN", verified=verified)
+        assert client.post("/api/v1/postings", headers=_h(admin), json=BODY).status_code == 403
 
 
 def test_verification_by_an_administrator_opens_recruiting(client: TestClient, db_session: Session):
@@ -212,7 +213,7 @@ def test_students_are_refused_for_their_role_and_keep_what_they_had(client: Test
     faculty = _account(db_session, "FACULTY", verified=True)
     student = _account(db_session, "STUDENT")
     posting_id = _open_posting(client, db_session, faculty)
-    assert "FACULTY and ADMIN" in client.post("/api/v1/postings", headers=_h(student), json=BODY).json()["detail"]
+    assert "Only faculty accounts" in client.post("/api/v1/postings", headers=_h(student), json=BODY).json()["detail"]
     assert client.get(f"/api/v1/postings/{posting_id}", headers=_h(student)).status_code == 200
     assert client.post(f"/api/v1/postings/{posting_id}/applications", headers=_h(student), json={"cover_note": "Hello"}).status_code == 201
 

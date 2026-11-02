@@ -653,13 +653,13 @@ describe("authorization", () => {
   it("refuses the inbox, My postings and the editor to a student before asking for anything", async () => {
     serve("STUDENT");
     const { unmount } = renderPage(<ApplicantsPage />, "/postings/applicants");
-    expect(await screen.findByRole("heading", { level: 1, name: "This page is for Faculty or Administrator accounts." })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "This page is for Faculty accounts." })).toBeInTheDocument();
     unmount();
     const second = renderPage(<PostingsRoute />, "/postings?view=mine");
-    expect(await screen.findByRole("heading", { level: 1, name: "This page is for Faculty or Administrator accounts." })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "This page is for Faculty accounts." })).toBeInTheDocument();
     second.unmount();
     renderPage(<NewPostingPage />, "/postings/new");
-    expect(await screen.findByRole("heading", { level: 1, name: "This page is for Faculty or Administrator accounts." })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { level: 1, name: "This page is for Faculty accounts." })).toBeInTheDocument();
     expect(calls("GET", "/api/v1/postings/")).toHaveLength(0);
   });
 

@@ -6,8 +6,10 @@ Owns the posting lifecycle, authorship authorization, and taxonomy-aware discove
 Guarantees:
   - Deterministic state machine: every transition is explicitly enumerated, so a posting can
     never reach a state by accident and the set of legal next states is inspectable.
-  - Authorship enforcement: writes require the owning account, or an administrator.
-  - Visibility: only OPEN postings are publicly discoverable; an author always sees their own.
+  - Authorship enforcement: writes require the owning faculty account. Recruiting is not a
+    platform-administration power: an administrator manages accounts, not postings.
+  - Visibility: only OPEN postings are publicly discoverable; an author always sees their own, and
+    an administrator can read any posting (read only, for oversight).
   - Zero N+1: list and summary paths eagerly load authors and topics in bounded queries.
 """
 from __future__ import annotations
@@ -42,8 +44,9 @@ from app.schemas.research_posting import (
 
 logger = logging.getLogger(__name__)
 
-# Roles permitted to author postings. Students discover and apply; they do not supervise.
-AUTHORING_ROLES = frozenset({"FACULTY", "ADMIN"})
+# The role permitted to author postings. Students discover and apply; they do not supervise.
+# Administrators do not recruit either: being one grants nothing here.
+AUTHORING_ROLE = "FACULTY"
 
 # Deterministic lifecycle. DRAFT and OPEN are reversible while an author is still deciding;
 # FILLED and CANCELLED are outcomes that only lead to ARCHIVED, so a closed search cannot be
@@ -89,40 +92,34 @@ class ResearchPostingService:
     @staticmethod
     def can_recruit(user: UserModel | None) -> bool:
         """
-        Decision 1 (audit SEC-03): anyone can register as faculty, so recruiting waits for an
-        administrator's verification. Administrators are not self-registered and need none.
+        Recruiting is for verified faculty. Anyone can register as faculty, so it waits for an
+        administrator's verification (audit SEC-03); an administrator verifies but does not recruit.
         """
         if user is None:
             return False
-        return user.role == "ADMIN" or (user.role == "FACULTY" and bool(user.is_verified))
+        return user.role == AUTHORING_ROLE and bool(user.is_verified)
 
     @classmethod
     def assert_can_author(cls, user: UserModel) -> None:
-        """Only verified faculty and administrators may create postings."""
-        if user.role not in AUTHORING_ROLES:
-            raise PostingPermissionError(
-                "Only FACULTY and ADMIN accounts may create research postings."
-            )
+        """Only verified faculty may create postings."""
+        if user.role != AUTHORING_ROLE:
+            raise PostingPermissionError("Only faculty accounts may create research postings.")
         if not cls.can_recruit(user):
             raise PostingPermissionError(UNVERIFIED_FACULTY_MESSAGE)
 
     @staticmethod
     def recruiting_authors() -> Select:
         """The accounts whose open postings the public may see, as a subquery."""
-        return select(UserModel.id).where(
-            or_(
-                UserModel.role == "ADMIN",
-                and_(UserModel.role == "FACULTY", UserModel.is_verified.is_(True)),
-            )
-        )
+        return select(UserModel.id).where(UserModel.role == AUTHORING_ROLE, UserModel.is_verified.is_(True))
 
     @staticmethod
-    def _is_owner_or_admin(posting: ResearchPostingModel, user: UserModel) -> bool:
-        return posting.author_user_id == user.id or user.role == "ADMIN"
+    def is_author(posting: ResearchPostingModel, user: UserModel) -> bool:
+        """The faculty account that owns the posting. A role change away from faculty ends this."""
+        return posting.author_user_id == user.id and user.role == AUTHORING_ROLE
 
     @classmethod
     def _assert_can_modify(cls, posting: ResearchPostingModel, user: UserModel) -> None:
-        if not cls._is_owner_or_admin(posting, user):
+        if not cls.is_author(posting, user):
             raise PostingPermissionError("Only the posting's author may modify it.")
 
     # ── Lifecycle ────────────────────────────────────────────────────────────
@@ -155,7 +152,8 @@ class ResearchPostingService:
         """
         Loads a posting, enforcing visibility.
 
-        A posting that is not OPEN is visible only to its author or an administrator. The same
+        A posting that is not OPEN is readable only by whoever wrote it or an administrator, who
+        can read but not change it. The same
         `PostingNotFoundError` is raised for "does not exist" and "not visible to you" so the
         existence of an unpublished draft is not disclosed.
         """
@@ -166,7 +164,9 @@ class ResearchPostingService:
             raise PostingNotFoundError(f"Research posting '{posting_id}' not found.")
 
         if posting.status != PostingStatus.OPEN.value or not cls.can_recruit(posting.author_user):
-            if requesting_user is None or not cls._is_owner_or_admin(posting, requesting_user):
+            if requesting_user is None or not (
+                posting.author_user_id == requesting_user.id or requesting_user.role == "ADMIN"
+            ):
                 raise PostingNotFoundError(f"Research posting '{posting_id}' not found.")
         return posting
 
@@ -683,7 +683,7 @@ class ResearchPostingService:
             is_accepting_applications=accepting,
             days_until_deadline=days_remaining,
             allowed_transitions=cls.get_allowed_transitions(posting.status),
-            is_owner=bool(requesting_user is not None and posting.author_user_id == requesting_user.id),
+            is_owner=bool(requesting_user is not None and cls.is_author(posting, requesting_user)),
             viewer_application_id=viewer_application_id,
             viewer_application_status=viewer_application_status,
         )

@@ -69,7 +69,7 @@ const fieldId = (field: FieldName) => `posting-${field}`;
 function saveError(error: unknown, creating: boolean): string {
   const kept = "Nothing you entered was lost.";
   if (error instanceof ApiError) {
-    if (error.status === 403) return `${creating ? "Only faculty and administrator accounts can write postings." : "Only the posting’s author can edit it."} ${kept}`;
+    if (error.status === 403) return `${creating ? "Only faculty accounts can write postings." : "Only the posting’s author can edit it."} ${kept}`;
     if (error.status === 409) return creating ? `Create your researcher profile before writing postings. ${kept}` : `An archived posting can no longer be edited. ${kept}`;
     if (error.status === 404) return `This posting no longer exists, or it is no longer visible to you. ${kept}`;
     if (error.status === 400 || error.status === 422) return `Some of the fields were not accepted. Check them and try again. ${kept}`;

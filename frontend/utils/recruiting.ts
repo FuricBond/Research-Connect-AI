@@ -6,7 +6,7 @@ import type { AuthenticatedUser } from "../types/auth";
  */
 export function canRecruit(user: Pick<AuthenticatedUser, "role" | "is_verified"> | null): boolean {
   if (user === null) return false;
-  return user.role === "ADMIN" || (user.role === "FACULTY" && user.is_verified);
+  return user.role === "FACULTY" && user.is_verified;
 }
 
 /** A faculty account an administrator has not verified yet. */

@@ -13,7 +13,7 @@ const ApplicantsInbox = dynamic(() => load().then((loaded) => loaded.ApplicantsI
 /** P9 — the applicant inbox across a faculty member's postings (plan §14). */
 export default function ApplicantsPage() {
   return (
-    <RequireAuth roles={["FACULTY", "ADMIN"]}>
+    <RequireAuth roles={["FACULTY"]}>
       <Suspense fallback={<SkeletonList rows={3} lines={3} label="Loading your applicants" />}>
         <ApplicantsInbox />
       </Suspense>

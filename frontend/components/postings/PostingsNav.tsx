@@ -9,14 +9,14 @@ export type PostingsView = "discover" | "mine" | "applicants";
 
 /**
  * The research postings' own pages, as links with `aria-current` (they are pages, not tabs):
- * Discover for everyone; My postings and Applicants for the accounts that may author postings
- * (FACULTY, ADMIN — the server's rule); My applications for every signed-in account, as before.
+ * Discover for everyone; My postings and Applicants for faculty accounts, the only ones that may
+ * author postings (the server's rule); My applications for every signed-in account, as before.
  * A visitor sees none (Discover is the only page open to them).
  */
 export function PostingsNav({ current }: { current: PostingsView }) {
   const { status, hasRole } = useSession();
   if (status !== "authenticated") return null;
-  const author = hasRole("FACULTY", "ADMIN");
+  const author = hasRole("FACULTY");
   const links: { view: PostingsView | "applications"; href: string; label: string }[] = [
     { view: "discover", href: "/postings", label: "Discover" },
     ...(author

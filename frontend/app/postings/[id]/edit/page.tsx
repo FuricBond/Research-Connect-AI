@@ -14,7 +14,7 @@ const EditPosting = dynamic(() => load().then((loaded) => loaded.EditPosting), {
 export default function EditPostingPage() {
   const params = useParams<{ id: string }>();
   return (
-    <RequireAuth roles={["FACULTY", "ADMIN"]}>
+    <RequireAuth roles={["FACULTY"]}>
       <EditPosting postingId={params?.id ?? null} />
     </RequireAuth>
   );

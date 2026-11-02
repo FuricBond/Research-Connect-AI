@@ -300,7 +300,7 @@ class ResearchPostingApplicationService:
 
         if application.applicant_user_id == user.id:
             return application, "APPLICANT"
-        if application.posting.author_user_id == user.id or user.role == "ADMIN":
+        if ResearchPostingService.is_author(application.posting, user):
             return application, "AUTHOR"
         raise ApplicationNotFoundError(f"Application '{application_id}' not found.")
 
@@ -429,7 +429,7 @@ class ResearchPostingApplicationService:
         posting = db.get(ResearchPostingModel, posting_id)
         if posting is None:
             raise ApplicationNotFoundError(f"Research posting '{posting_id}' not found.")
-        if posting.author_user_id != user.id and user.role != "ADMIN":
+        if not ResearchPostingService.is_author(posting, user):
             raise ApplicationPermissionError(
                 "Only the posting's author may review its applications."
             )

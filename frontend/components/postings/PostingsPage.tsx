@@ -21,15 +21,14 @@ import { POSTING_TYPES, WORK_MODES } from "./postingOptions";
 import discover from "./PostingsPage.module.css";
 
 /**
- * `/postings`: Discover for everyone (P6); `/postings?view=mine` is My postings, for the accounts
- * that may author postings (P9). Hiding the view from other roles is a convenience: the API only
- * ever returns a person's own postings there.
+ * `/postings`: Discover for everyone (P6); `/postings?view=mine` is My postings, for faculty accounts
+ * (P9). Hiding the view from other roles is a convenience: the API refuses them anyway.
  */
 export function PostingsPage() {
   const [params] = useAddressSearch();
   if (params.get("view") === "mine") {
     return (
-      <RequireAuth roles={["FACULTY", "ADMIN"]}>
+      <RequireAuth roles={["FACULTY"]}>
         <MyPostings />
       </RequireAuth>
     );
@@ -54,7 +53,7 @@ function Discover() {
   const [workModeFilter, setWorkModeFilter] = useState<PostingWorkMode | "">("");
   const [acceptingOnly, setAcceptingOnly] = useState(false);
 
-  // Authoring is a faculty/admin capability. The server enforces this regardless; the UI only
+  // Authoring is for verified faculty. The server enforces this regardless; the UI only
   // avoids offering an action that would certainly be refused.
   const isSignedIn = status === "authenticated";
   const canAuthor = isSignedIn && canRecruit(user);

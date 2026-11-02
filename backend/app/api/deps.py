@@ -158,5 +158,6 @@ def require_roles(*roles: str) -> Callable[[UserModel], UserModel]:
 OptionalUserId = Annotated[uuid.UUID | None, Depends(get_optional_current_user_id)]
 CurrentUser = Annotated[UserModel, Depends(get_current_user)]
 AdminUser = Annotated[UserModel, Depends(require_roles("ADMIN"))]
+FacultyUser = Annotated[UserModel, Depends(require_roles("FACULTY"))]
 FacultyOrAdminUser = Annotated[UserModel, Depends(require_roles("FACULTY", "ADMIN"))]
 StudentUser = Annotated[UserModel, Depends(require_roles("STUDENT"))]

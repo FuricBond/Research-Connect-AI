@@ -4,8 +4,8 @@ FastAPI Router for Phase 5.10 Faculty Research Postings.
   GET    /postings                      Discover OPEN postings (public)
   GET    /postings/mine                 The author's own postings, drafts included
   GET    /postings/mine/summary         Aggregated counts for the author
-  POST   /postings                      Author a posting as DRAFT (FACULTY / ADMIN)
-  GET    /postings/{id}                 Read one (drafts visible only to their author)
+  POST   /postings                      Author a posting as DRAFT (verified FACULTY)
+  GET    /postings/{id}                 Read one (drafts: their author; administrators read only)
   PATCH  /postings/{id}                 Edit (author only)
   POST   /postings/{id}/transition      Lifecycle transition (author only)
   DELETE /postings/{id}                 Delete a DRAFT (author only)
@@ -35,7 +35,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser, OptionalUserId, StudentUser, get_optional_current_user
+from app.api.deps import CurrentUser, FacultyUser, OptionalUserId, StudentUser, get_optional_current_user
 from app.db.session import get_db
 from app.models.research_posting import (
     PostingStatus,
@@ -150,7 +150,7 @@ def list_postings(
     description="Lists every posting authored by the caller, including DRAFT and ARCHIVED entries.",
 )
 def list_my_postings(
-    current_user: CurrentUser,
+    current_user: FacultyUser,
     posting_status: Annotated[PostingStatus | None, Query(alias="status", description="Filter by lifecycle state")] = None,
     posting_type: Annotated[PostingType | None, Query(description="Filter by posting category")] = None,
     sort_by: Annotated[str, Query()] = "updated_at",
@@ -181,7 +181,7 @@ def list_my_postings(
     summary="Summarize the authenticated author's postings",
 )
 def get_my_posting_summary(
-    current_user: CurrentUser,
+    current_user: FacultyUser,
     db: Session = Depends(get_db),
 ) -> PostingSummaryResponse:
     profile = _resolve_researcher_profile(db, current_user)
@@ -194,7 +194,7 @@ def get_my_posting_summary(
     status_code=status.HTTP_201_CREATED,
     summary="Author a research posting",
     description=(
-        "Creates a posting as a DRAFT. Requires a FACULTY or ADMIN account; publishing is a "
+        "Creates a posting as a DRAFT. Requires a verified FACULTY account; publishing is a "
         "separate lifecycle transition."
     ),
 )
@@ -203,8 +203,10 @@ def create_posting(
     current_user: CurrentUser,
     db: Session = Depends(get_db),
 ) -> ResearchPostingRead:
-    profile = _resolve_researcher_profile(db, current_user)
     try:
+        # Before the profile: who may author is answered first, whatever the account has set up.
+        ResearchPostingService.assert_can_author(current_user)
+        profile = _resolve_researcher_profile(db, current_user)
         posting = ResearchPostingService.create_posting(db, profile, current_user, payload)
     except PostingPermissionError as err:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(err))

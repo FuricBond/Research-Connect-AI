@@ -3,8 +3,8 @@ Phase 5.10 — Faculty Research Opportunities & Project Postings.
 
 Covers the invariants that make a posting trustworthy to the researchers reading it:
 
-  Authorship    Only FACULTY and ADMIN accounts may author postings; only the author (or an
-                administrator) may modify one.
+  Authorship    Only verified FACULTY accounts may author postings; only the author may modify
+                one (Decision B: administrators do not recruit).
   Visibility    Only OPEN postings are publicly discoverable. An unpublished draft is not
                 merely hidden — its existence is not disclosed, so probing an id cannot
                 distinguish "no such posting" from "someone else's draft".
@@ -159,14 +159,15 @@ def test_faculty_can_author_posting(db_session: Session, faculty):
     assert posting.department == "Computer Science"
 
 
-def test_admin_can_author_posting(db_session: Session, admin):
-    posting = _create_posting(db_session, admin)
-    assert posting.status == PostingStatus.DRAFT.value
+def test_admin_cannot_author_posting(db_session: Session, admin):
+    user, profile = admin
+    with pytest.raises(PostingPermissionError, match="Only faculty accounts"):
+        ResearchPostingService.create_posting(db_session, profile, user, _create_payload())
 
 
 def test_student_cannot_author_posting(db_session: Session, student):
     user, profile = student
-    with pytest.raises(PostingPermissionError, match="FACULTY and ADMIN"):
+    with pytest.raises(PostingPermissionError, match="Only faculty accounts"):
         ResearchPostingService.create_posting(db_session, profile, user, _create_payload())
 
 
@@ -178,13 +179,11 @@ def test_non_author_cannot_modify_posting(db_session: Session, faculty, other_fa
         )
 
 
-def test_administrator_may_moderate_another_authors_posting(db_session: Session, faculty, admin):
-    """Administrators need to be able to take down a posting they did not write."""
+def test_administrator_may_not_edit_another_authors_posting(db_session: Session, faculty, admin):
+    """Decision B: an administrator takes a posting down by withdrawing the author's verification."""
     posting = _create_posting(db_session, faculty)
-    updated = ResearchPostingService.update_posting(
-        db_session, posting.id, admin[0], ResearchPostingUpdate(summary="Moderated by administrator")
-    )
-    assert updated.summary == "Moderated by administrator"
+    with pytest.raises(PostingPermissionError, match="author"):
+        ResearchPostingService.update_posting(db_session, posting.id, admin[0], ResearchPostingUpdate(summary="Changed"))
 
 
 # ===========================================================================

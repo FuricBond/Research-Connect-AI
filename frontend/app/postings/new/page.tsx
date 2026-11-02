@@ -9,10 +9,10 @@ const load = () => import("../../../components/postings/PostingEditor");
 preloadForSession(load);
 const PostingEditor = dynamic(() => load().then((loaded) => loaded.PostingEditor), { ssr: false, loading: () => <SkeletonList rows={4} lines={2} label="Loading the editor" /> });
 
-/** P9 — writing a posting (FACULTY and ADMIN accounts may author; the server enforces it). */
+/** P9 — writing a posting (verified FACULTY accounts may author; the server enforces it). */
 export default function NewPostingPage() {
   return (
-    <RequireAuth roles={["FACULTY", "ADMIN"]}>
+    <RequireAuth roles={["FACULTY"]}>
       <PostingEditor />
     </RequireAuth>
   );
