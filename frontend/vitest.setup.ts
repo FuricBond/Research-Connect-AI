@@ -21,6 +21,15 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 // on a tree without the change under test. A real failure still fails, a few seconds later.
 configure({ asyncUtilTimeout: 5000 });
 
+// Pages format dates in the reader's locale, so the tests fix one: they failed on CI (en-US, "Oct 20,
+// 2026") and passed here (day first) for no other reason. A locale a call names is left alone.
+for (const method of ["toLocaleDateString", "toLocaleString", "toLocaleTimeString"] as const) {
+  const original = Date.prototype[method] as (locale?: Intl.LocalesArgument, options?: Intl.DateTimeFormatOptions) => string;
+  Date.prototype[method] = function (this: Date, locale?: Intl.LocalesArgument, options?: Intl.DateTimeFormatOptions) {
+    return original.call(this, locale ?? "en-GB", options);
+  };
+}
+
 beforeEach(() => {
   // Each test starts with no stored identity, so one test's session cannot leak
   // into the next and make a later assertion pass for the wrong reason.
