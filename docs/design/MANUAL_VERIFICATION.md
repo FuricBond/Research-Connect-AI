@@ -4,8 +4,8 @@ Two checks in the redesign's acceptance need a person and cannot be replaced by 
 screen readers (P11) and Lighthouse (P12). A keyboard walk, an accessibility-tree inspection or axe is not
 a screen-reader check. Until someone has done these and filled in the tables, both stay **not verified**.
 
-**Status, 2026-11-02: NVDA not verified. VoiceOver not verified. Lighthouse not verified.** None has been run:
-no human operator or macOS was available, and Lighthouse is neither installed nor allowed to be downloaded here.
+**Status, 2026-11-02: Lighthouse verified by hand (table below). NVDA not verified: the owner stopped before any workflow was run. VoiceOver not verified:
+skipped by the owner's decision, because no Apple device is available.**
 
 ## Getting a stack to test
 
@@ -129,11 +129,15 @@ installing.
 
 | Page | Account | Performance ≥ 90 | Accessibility ≥ 95 | Best practices ≥ 95 |
 |---|---|---|---|---|
-| `/` | none | | | |
-| `/dashboard` | `demo.student` | | | |
-| `/recommendations` | `demo.student` | | | |
-| `/researcher` | `demo.student` | | | |
-| `/postings/applicants` | a verified faculty account with **at least two postings that have applications** | | | |
+| `/` | none | 100 | 100 | 100 |
+| `/dashboard` | `demo.student` | 100 | 100 | 100 |
+| `/recommendations` | `demo.student` | 100 | 100 | 100 |
+| `/researcher` | `demo.student` | 100 | 100 | 100 |
+| `/postings/applicants` | a verified faculty account with **at least two postings that have applications** | 100 | 100 | 100 |
+
+Measured 2026-11-02 by the project owner, in Chrome 156, mobile preset with simulated throttling, on the
+local stack. Local serving makes these best-case: a deployed site can score lower. The Accessibility score covers only
+what a tool can check, so it does not replace the screen-reader workflows above. Reports were kept as screenshots, not JSON.
 
 The demo faculty has one such posting, so the last row needs a second one. As `demo.faculty`, publish another
 assistantship from `/postings/new`; then, as `demo.student`, apply to it.

@@ -3,7 +3,7 @@
 Measured on 2026-10-06, commit `bd34264`, Windows 11 laptop, `next build` (Next.js 15.5.25)
 and the production server in the Compose `frontend` container, API on localhost.
 **Network was local, so timings are best-case; use them only to compare before/after on the
-same machine.** Lighthouse was not run (it is not installed and the audit adds no tools); P12
+same machine.** Lighthouse was not run for this baseline (it is not installed and the audit adds no tools); P12
 runs it from Chrome DevTools on the same routes.
 
 ## 1. Build output (first-load JavaScript)
@@ -103,7 +103,7 @@ Amended by the independent audit's decisions: each budget says exactly what is m
 | CLS, any route and tested width, real-data states included | ≤ 0.067 | ≤ 0.02 | `performance.spec.ts`, `remediation.spec.ts` |
 | Route-specific API requests on load | ≤ 25 | ≤ 8 (dashboard ≤ 7, profile ≤ 6) | `performance.spec.ts`, `dashboard.spec.ts` |
 | Duplicate requests | unread-count ×2 | 0 | `performance.spec.ts` |
-| Lighthouse (DevTools, mobile preset) | not measured | Performance ≥ 90, Accessibility ≥ 95, Best practices ≥ 95 | by hand, [MANUAL_VERIFICATION.md](../MANUAL_VERIFICATION.md) |
+| Lighthouse (DevTools, mobile preset) | 100 / 100 / 100 on all 5 pages, local stack, by hand on 2026-11-02 | Performance ≥ 90, Accessibility ≥ 95, Best practices ≥ 95 | met, [MANUAL_VERIFICATION.md](../MANUAL_VERIFICATION.md) |
 
 **JavaScript: two build metrics and one measurement** (gzip level 9, 1 kB = 1000 bytes, from
 `.next/app-build-manifest.json`):
