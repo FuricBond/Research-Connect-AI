@@ -3,6 +3,17 @@
  * API leaves to each seed's random ids. Everything the API actually ranks stays where it put it, so
  * a sorting or ranking regression shows up as a difference in the screenshots.
  */
+const DAY = 86_400_000;
+
+/**
+ * How far to move an API answer's dates, in whole days. With the time of day in the distance, a date
+ * stored at midnight landed on the day before when the suite ran after 12:00 UTC, so the same screen
+ * differed by the clock alone.
+ */
+export function wholeDaysBetween(from: number, to: number): number {
+  return (Math.floor(to / DAY) - Math.floor(from / DAY)) * DAY;
+}
+
 export type Ranked = { rank: number; final_score: number; opportunity: { title: string } };
 
 type Posting = { title: string; created_at?: string; updated_at?: string };

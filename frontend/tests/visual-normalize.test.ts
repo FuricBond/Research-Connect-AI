@@ -3,7 +3,7 @@
  * decides reaches the screenshots.
  */
 import { describe, expect, it } from "vitest";
-import { normalizePostings, normalizeRecommendations } from "../e2e/visual-normalize";
+import { normalizePostings, normalizeRecommendations, wholeDaysBetween } from "../e2e/visual-normalize";
 
 const posting = (title: string, created_at: string) => ({ title, created_at, updated_at: created_at });
 const titles = (items: { title: string }[]) => items.map((item) => item.title);
@@ -56,5 +56,21 @@ describe("recommendations", () => {
   it("shows a ranking regression: a lower score placed first stays first", () => {
     const wrong = [ranked("Low", 0.1, 1), ranked("High", 0.9, 2)];
     expect(normalizeRecommendations(wrong).map((item) => item.opportunity.title)).toEqual(["Low", "High"]);
+  });
+});
+
+describe("the distance dates are moved", () => {
+  const FIXED = Date.UTC(2030, 0, 15, 12);
+
+  it("does not depend on the time of day the suite runs at", () => {
+    const morning = wholeDaysBetween(Date.UTC(2026, 10, 2, 5, 30), FIXED);
+    const evening = wholeDaysBetween(Date.UTC(2026, 10, 2, 19, 45), FIXED);
+    expect(evening).toBe(morning);
+    const stored = Date.UTC(2026, 10, 2);
+    expect(new Date(stored + morning).toISOString().slice(0, 10)).toBe("2030-01-15");
+  });
+
+  it("is always a whole number of days", () => {
+    expect(wholeDaysBetween(Date.UTC(2026, 10, 2, 23, 59), FIXED) % 86_400_000).toBe(0);
   });
 });

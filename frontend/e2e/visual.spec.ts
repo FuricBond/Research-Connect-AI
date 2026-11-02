@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { expect, test, type Browser, type BrowserContextOptions, type Page } from "@playwright/test";
 import { API_URL, DEMO, DEMO_PASSWORD, signInThroughTheForm } from "./support";
-import { normalizePostings, normalizeRecommendations, type Ranked } from "./visual-normalize";
+import { normalizePostings, normalizeRecommendations, wholeDaysBetween, type Ranked } from "./visual-normalize";
 
 /**
  * P12 — the look, locked (FRONTEND_REDESIGN_PLAN.md §24): 15 routes × 1440/768/390 × light/dark, in the
@@ -89,7 +89,7 @@ async function screenPage(browser: Browser, options: BrowserContextOptions, them
     },
     { value: theme, expires: new Date(NOW.getTime() + 30 * DAY).toISOString() }
   );
-  const by = NOW.getTime() - Date.now();
+  const by = wholeDaysBetween(Date.now(), NOW.getTime());
   await context.route(`${API_URL}/**`, async (route) => {
     if (route.request().method() !== "GET") return route.continue();
     const response = await route.fetch();
