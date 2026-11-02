@@ -1,0 +1,36 @@
+# The demonstration environment: an override of the production docker-compose.yml, run by demo/demo.py.
+#
+# Everything that could touch a developer's stack is different: the Compose project name (rcdemo), so its
+# data volume is rcdemo_postgres_data; the published ports; the image tags; the PostgreSQL container name.
+# The services run exactly as in production, except that email goes to a sink inside the project,
+# which sends nothing on (e2e/mailsink.py).
+services:
+  mailsink:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: researchconnect-backend:demo
+    entrypoint: ["python", "-u", "/sink/mailsink.py"]
+    volumes:
+      - ./e2e/mailsink.py:/sink/mailsink.py:ro
+    ports:
+      - "127.0.0.1:${DEMO_MAIL_PORT:-8425}:8025"
+    restart: unless-stopped
+
+  postgres:
+    container_name: rcdemo-postgres
+    ports: !override
+      - "127.0.0.1:${DEMO_POSTGRES_PORT:-5446}:5432"
+
+  migrate:
+    image: researchconnect-backend:demo
+
+  backend:
+    image: researchconnect-backend:demo
+    ports: !override
+      - "127.0.0.1:${DEMO_API_PORT:-8400}:8000"
+
+  frontend:
+    image: researchconnect-frontend:demo
+    ports: !override
+      - "127.0.0.1:${DEMO_WEB_PORT:-3400}:3000"

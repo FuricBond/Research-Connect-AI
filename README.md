@@ -217,6 +217,7 @@ venues are made up, so they carry no website links.
 | Logs | `docker compose logs backend` (or `frontend`, `postgres`, `migrate`) |
 | Stop, keeping data | `docker compose down` |
 | Rebuild after code changes | `docker compose up --build -d --wait` |
+| A separate demonstration stack, leaving this one alone | `python demo/demo.py up` ([demo/README.md](demo/README.md)) |
 | Reset the demo data | `docker compose exec backend python -m scripts.seed_demo_data --reset --password '<password>'` |
 | Database shell | `docker compose exec postgres psql -U researchconnect -d researchconnect` |
 | Delete all data | `docker compose down -v` |
@@ -380,7 +381,11 @@ See [e2e/README.md](e2e/README.md) and the
 - **Browser:** every page is served with a Content-Security-Policy that allows no third-party
   origins and runs inline scripts only with a nonce fresh for that response, plus `nosniff`, a strict referrer policy and a permissions policy
 - **Authorization:** role-based access control plus ownership checks on every request; roles and
-  deactivation take effect immediately
+  deactivation take effect immediately. Administrators run the platform: the API refuses them personal
+  research workflows (reading list, workspace, submissions, calendar, researcher profile, applying) and
+  recruiting, whatever the interface shows
+- **Optional reranking:** only the server's `RERANKER_ENABLED` setting runs the cross-encoder. A request
+  cannot: `rerank=true` is accepted and ignored
 - **Fail-closed production:** the API refuses to start with a weak or missing secret, developer
   shortcuts, low hashing cost or default database credentials, and hides its API docs and
   server banners
