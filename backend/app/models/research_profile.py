@@ -78,7 +78,6 @@ class ResearchProfileModel(Base, TimestampMixin):
         UUID(as_uuid=True),
         ForeignKey("institutions.id", ondelete="SET NULL"),
         nullable=True,
-        index=True,
     )
     institution: Mapped[str | None] = mapped_column(
         String(255),
@@ -113,20 +112,17 @@ class ResearchProfileModel(Base, TimestampMixin):
         UUID(as_uuid=True),
         ForeignKey("researchers.id", ondelete="SET NULL"),
         nullable=True,
-        index=True,
     )
 
     # Normalized external identifiers
     orcid: Mapped[str | None] = mapped_column(
         String(50),
         nullable=True,
-        index=True,
         comment="Normalized ORCID identifier, e.g. '0000-0003-1613-5981'",
     )
     openalex_id: Mapped[str | None] = mapped_column(
         String(50),
         nullable=True,
-        index=True,
         comment="Compact OpenAlex author ID, e.g. 'A5048491430'",
     )
     external_identifiers: Mapped[dict | None] = mapped_column(

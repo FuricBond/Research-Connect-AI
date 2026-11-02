@@ -132,7 +132,8 @@ class PersonalizationControlEventModel(Base):
 
     __tablename__ = "personalization_control_events"
     __table_args__ = (
-        Index("idx_pers_control_events_profile_id", "profile_id"),
+        Index("idx_pers_control_events_profile_type", "profile_id", "event_type"),
+        Index("idx_pers_control_events_profile_created", "profile_id", "created_at"),
         Index("idx_pers_control_events_created_at", "created_at"),
         Index("idx_pers_control_events_type", "event_type"),
     )

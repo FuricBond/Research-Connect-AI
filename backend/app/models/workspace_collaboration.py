@@ -130,14 +130,12 @@ class WorkspaceMemberModel(Base):
         UUID(as_uuid=True),
         ForeignKey("saved_opportunities.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated workspace (saved opportunity) ID",
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Member user ID",
     )
     role: Mapped[str] = mapped_column(
@@ -220,7 +218,6 @@ class WorkspaceInvitationModel(Base):
         UUID(as_uuid=True),
         ForeignKey("saved_opportunities.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated workspace (saved opportunity) ID",
     )
     inviter_id: Mapped[uuid.UUID] = mapped_column(
@@ -233,7 +230,6 @@ class WorkspaceInvitationModel(Base):
     invitee_email: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        index=True,
         comment="Email address of invitee",
     )
     invitee_user_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -324,7 +320,6 @@ class WorkspaceTaskModel(Base):
         UUID(as_uuid=True),
         ForeignKey("saved_opportunities.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated workspace (saved opportunity) ID",
     )
     title: Mapped[str] = mapped_column(
@@ -348,7 +343,6 @@ class WorkspaceTaskModel(Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
-        index=True,
         comment="Assigned member user ID",
     )
     status: Mapped[str] = mapped_column(
@@ -370,7 +364,6 @@ class WorkspaceTaskModel(Base):
     due_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
-        index=True,
         comment="Task deadline / due date",
     )
     submission_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -444,20 +437,17 @@ class WorkspaceActivityModel(Base):
         UUID(as_uuid=True),
         ForeignKey("saved_opportunities.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated workspace (saved opportunity) ID",
     )
     actor_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="User who performed the activity",
     )
     activity_type: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
-        index=True,
         comment="Activity type: MEMBER_JOINED, TASK_CREATED, etc.",
     )
     target_type: Mapped[str | None] = mapped_column(

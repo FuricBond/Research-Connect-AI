@@ -57,7 +57,6 @@ class ResearcherPreferenceModel(Base, TimestampMixin):
         UUID(as_uuid=True),
         ForeignKey("research_profiles.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated ResearchProfileModel ID",
     )
 
@@ -65,7 +64,6 @@ class ResearcherPreferenceModel(Base, TimestampMixin):
     category: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
-        index=True,
         comment="Taxonomy category of the preference",
     )
 
@@ -75,7 +73,6 @@ class ResearcherPreferenceModel(Base, TimestampMixin):
         default="PREFERRED",
         server_default="PREFERRED",
         nullable=False,
-        index=True,
         comment="Preference type: PREFERRED or EXCLUDED (Phase 5.1)",
     )
 
@@ -128,7 +125,6 @@ class ResearcherPreferenceModel(Base, TimestampMixin):
         String(50),
         default="EXPLICIT",
         nullable=False,
-        index=True,
         comment="Evidence origin: EXPLICIT, INFERRED, DERIVED_FROM_EXPERTISE",
     )
 
@@ -137,7 +133,6 @@ class ResearcherPreferenceModel(Base, TimestampMixin):
         Boolean,
         default=True,
         nullable=False,
-        index=True,
         comment="Whether the preference is currently active",
     )
 

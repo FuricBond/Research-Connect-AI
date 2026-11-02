@@ -115,7 +115,6 @@ class NotificationPreferenceModel(Base):
         ForeignKey("research_profiles.id", ondelete="CASCADE"),
         unique=True,
         nullable=False,
-        index=True,
         comment="Associated researcher profile ID",
     )
     email_enabled: Mapped[bool] = mapped_column(
@@ -243,7 +242,6 @@ class ReminderRuleModel(Base):
         UUID(as_uuid=True),
         ForeignKey("research_profiles.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated researcher profile ID",
     )
     event_type: Mapped[str | None] = mapped_column(
@@ -328,10 +326,6 @@ class NotificationModel(Base):
             "email_status IS NULL OR email_status IN ('SENT', 'RETRY', 'FAILED', 'SKIPPED')",
             name="chk_notifications_email_status",
         ),
-        UniqueConstraint(
-            "deduplication_key",
-            name="uq_notifications_deduplication_key",
-        ),
         Index("idx_notifications_profile_status", "profile_id", "delivery_status"),
         Index("idx_notifications_profile_read", "profile_id", "read_at"),
         Index("idx_notifications_scheduled_status", "scheduled_for", "delivery_status"),
@@ -349,7 +343,6 @@ class NotificationModel(Base):
         UUID(as_uuid=True),
         ForeignKey("research_profiles.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Recipient researcher profile ID",
     )
     notification_type: Mapped[str] = mapped_column(
@@ -384,14 +377,12 @@ class NotificationModel(Base):
         UUID(as_uuid=True),
         ForeignKey("opportunities.id", ondelete="CASCADE"),
         nullable=True,
-        index=True,
         comment="Associated opportunity ID if applicable",
     )
     calendar_event_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("research_calendar_events.id", ondelete="CASCADE"),
         nullable=True,
-        index=True,
         comment="Associated calendar event ID if applicable",
     )
     submission_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -409,7 +400,6 @@ class NotificationModel(Base):
     scheduled_for: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
-        index=True,
         comment="Target instant when this notification was scheduled for delivery",
     )
     delivered_at: Mapped[datetime | None] = mapped_column(
@@ -526,7 +516,6 @@ class NotificationDeliveryAttemptModel(Base):
         UUID(as_uuid=True),
         ForeignKey("notifications.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated notification ID",
     )
     channel: Mapped[str] = mapped_column(

@@ -98,7 +98,6 @@ class PersonalizationCalibrationModel(Base):
         UUID(as_uuid=True),
         ForeignKey("research_profiles.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated ResearchProfileModel ID",
     )
 
@@ -263,7 +262,6 @@ class RecommendationFeedbackAttributionModel(Base):
         UUID(as_uuid=True),
         ForeignKey("research_profiles.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated ResearchProfileModel ID",
     )
 

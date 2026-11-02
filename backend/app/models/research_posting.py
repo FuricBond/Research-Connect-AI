@@ -33,7 +33,6 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
-    UniqueConstraint,
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -320,7 +319,6 @@ class ResearchPostingTopicModel(Base):
 
     __tablename__ = "research_posting_topics"
     __table_args__ = (
-        UniqueConstraint("posting_id", "topic_id", name="uq_research_posting_topics"),
         Index("idx_research_posting_topics_topic", "topic_id"),
     )
 

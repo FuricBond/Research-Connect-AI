@@ -278,3 +278,70 @@ def test_token_version_migration_starts_existing_accounts_at_version_0() -> None
                 assert connection.execute(text("SELECT count(*) FROM users")).scalar_one() == 1
         finally:
             engine.dispose()
+
+
+@pytest.mark.filterwarnings("ignore:Computed default on .*fts_vector cannot be modified:UserWarning")
+def test_alembic_check_finds_nothing_after_a_fresh_upgrade() -> None:
+    """Indexes and comments too, unlike the test above: nothing is left for autogenerate to propose."""
+    with isolated_database() as url:
+        assert alembic(url, "upgrade", "head").returncode == 0
+        checked = alembic(url, "check")
+        assert checked.returncode == 0, (checked.stdout + checked.stderr)[-2000:]
+
+
+def test_the_search_indexes_exist_with_their_real_methods() -> None:
+    with isolated_database() as url:
+        assert alembic(url, "upgrade", "head").returncode == 0
+        engine = create_engine(url)
+        try:
+            with engine.connect() as connection:
+                definitions = dict(
+                    connection.execute(text("SELECT indexname, indexdef FROM pg_indexes WHERE schemaname = 'public'")).all()
+                )
+                unindexed = connection.execute(
+                    text(
+                        "SELECT c.conrelid::regclass::text FROM pg_constraint c WHERE c.contype = 'f' "
+                        "AND array_length(c.conkey, 1) = 1 AND NOT EXISTS (SELECT 1 FROM pg_index i "
+                        "WHERE i.indrelid = c.conrelid AND i.indkey[0] = c.conkey[1])"
+                    )
+                ).all()
+            for table in ("research_works", "opportunities"):
+                assert "USING hnsw (embedding vector_cosine_ops)" in definitions[f"idx_{table}_embedding_hnsw"]
+                assert "USING gin (fts_vector)" in definitions[f"idx_{table}_fts_gin"]
+            assert unindexed == [], "every single-column foreign key has an index"
+        finally:
+            engine.dispose()
+
+
+def test_the_agreement_migration_keeps_every_row_and_can_be_undone() -> None:
+    """0035 only adds indexes and comments: rows are untouched in both directions."""
+    with isolated_database() as url:
+        assert alembic(url, "upgrade", "0034_email_verification").returncode == 0
+        engine = create_engine(url)
+        try:
+            user_id = uuid.uuid4()
+            with engine.begin() as connection:
+                connection.execute(
+                    text(
+                        "INSERT INTO users (id, email, hashed_password, full_name) "
+                        "VALUES (:id, 'existing@example.test', 'x', 'Existing Account')"
+                    ),
+                    {"id": user_id},
+                )
+
+            up = alembic(url, "upgrade", "head")
+            assert up.returncode == 0, up.stderr
+            names = {index["name"] for index in inspect(engine).get_indexes("workspace_invitations")}
+            assert "ix_workspace_invitations_invitee_user_id" in names
+
+            down = alembic(url, "downgrade", "0034_email_verification")
+            assert down.returncode == 0, down.stderr
+            names = {index["name"] for index in inspect(engine).get_indexes("workspace_invitations")}
+            assert "ix_workspace_invitations_invitee_user_id" not in names
+
+            again = alembic(url, "upgrade", "head")
+            assert again.returncode == 0, again.stderr
+            with engine.connect() as connection:
+                assert connection.execute(text("SELECT email FROM users WHERE id = :id"), {"id": user_id}).scalar_one() == "existing@example.test"
+        finally:
+            engine.dispose()

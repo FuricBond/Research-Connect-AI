@@ -72,6 +72,8 @@ class ResearcherDiscoverySettingsModel(Base, TimestampMixin):
             name="chk_discovery_settings_collaboration_status",
         ),
         Index("idx_discovery_settings_profile", "profile_id", unique=True),
+        # Redundant with the two above, and harmless. The database has it, so it is declared, not dropped.
+        Index("ix_researcher_discovery_settings_profile_id", "profile_id", unique=True),
         # Peer searches filter on discoverability first, so it leads the composite index.
         Index("idx_discovery_settings_discoverable", "is_discoverable", "collaboration_status"),
     )
@@ -86,7 +88,6 @@ class ResearcherDiscoverySettingsModel(Base, TimestampMixin):
         ForeignKey("research_profiles.id", ondelete="CASCADE"),
         nullable=False,
         unique=True,
-        index=True,
     )
 
     is_discoverable: Mapped[bool] = mapped_column(

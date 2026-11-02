@@ -54,7 +54,6 @@ class ResearcherInterestModel(Base, TimestampMixin):
         UUID(as_uuid=True),
         ForeignKey("research_profiles.id", ondelete="CASCADE"),
         nullable=True,
-        index=True,
         comment="Associated platform ResearchProfileModel ID if registered",
     )
 
@@ -63,7 +62,6 @@ class ResearcherInterestModel(Base, TimestampMixin):
         UUID(as_uuid=True),
         ForeignKey("researchers.id", ondelete="SET NULL"),
         nullable=True,
-        index=True,
         comment="Associated canonical ResearcherModel ID from academic knowledge graph",
     )
 
@@ -72,7 +70,6 @@ class ResearcherInterestModel(Base, TimestampMixin):
         UUID(as_uuid=True),
         ForeignKey("topics.id", ondelete="SET NULL"),
         nullable=True,
-        index=True,
         comment="Canonical TopicModel ID if matched to taxonomy",
     )
     topic_name: Mapped[str] = mapped_column(

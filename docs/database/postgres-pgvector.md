@@ -54,6 +54,14 @@ The schema itself comes only from Alembic migrations (`backend/alembic/versions`
 | 0017–0023 | 5.1–5.9 | Personalization: preferences, interactions, adaptive signals, calibration, quality, governance, transparency controls |
 | 0024–0025 | 6 | Feedback and recommendation-history tables; the personalization reset cutoff |
 | 0026–0028 | 5.10–5.12 | Research postings, applications, peer discovery |
+| 0029–0034 | 5.13–6 | Later phases and the audit: see `backend/alembic/versions` |
+| 0035 | Final | The 39 single-column indexes the models declared and the database lacked, and the models' column comments. Adds only; drops nothing |
+
+`alembic check` is clean: the models and the migrated schema agree, including the HNSW and GIN search indexes, which
+the models declare so that `alembic revision --autogenerate` cannot propose dropping them. A few indexes are redundant
+(`researcher_discovery_settings.profile_id` has three unique ones, for example) and are declared rather than dropped.
+Review anything autogenerate proposes before using it. `RUN_POSTGRES_MIGRATION_TESTS=1 pytest` runs the real
+migration tests on an isolated database; the default run, and so CI, skips them.
 
 ## Tables
 

@@ -103,7 +103,6 @@ class ResearchSubmissionModel(Base):
         default=SubmissionStatus.DRAFT.value,
         server_default=SubmissionStatus.DRAFT.value,
         nullable=False,
-        index=True,
         comment="Status: DRAFT, READY, SUBMITTED, UNDER_REVIEW, ACCEPTED, REJECTED, WITHDRAWN",
     )
 

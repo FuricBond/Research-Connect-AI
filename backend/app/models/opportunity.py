@@ -33,6 +33,9 @@ class OpportunityModel(Base, TimestampMixin):
 
     __tablename__ = "opportunities"
     __table_args__ = (
+        Index("idx_opportunities_embedding_hnsw", "embedding", postgresql_using="hnsw", postgresql_ops={"embedding": "vector_cosine_ops"}),
+        Index("idx_opportunities_fts_gin", "fts_vector", postgresql_using="gin"),
+        Index("idx_opportunities_content_hash", "content_hash"),
         UniqueConstraint("source_id", "raw_source_id", name="uq_opportunities_source_raw_id"),
         CheckConstraint(
             "opportunity_type IN ('CONFERENCE', 'JOURNAL', 'WORKSHOP', 'CALL_FOR_PAPERS', 'SPECIAL_ISSUE')",
@@ -48,7 +51,7 @@ class OpportunityModel(Base, TimestampMixin):
         ),
         Index("idx_opportunities_type_status", "opportunity_type", "status"),
         Index("idx_opportunities_deadline", "submission_deadline"),
-        Index("idx_opportunities_last_seen", "last_seen_at"),
+        Index("ix_opportunities_last_seen", "last_seen_at"),
     )
 
     # Primary Key
@@ -121,7 +124,6 @@ class OpportunityModel(Base, TimestampMixin):
     content_hash: Mapped[str | None] = mapped_column(
         String(64),
         nullable=True,
-        index=True,
         comment="SHA-256 of the semantic text used to generate this embedding",
     )
     embedding_model: Mapped[str | None] = mapped_column(

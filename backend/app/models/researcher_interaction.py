@@ -142,7 +142,6 @@ class ResearcherInteractionModel(Base):
         UUID(as_uuid=True),
         ForeignKey("research_profiles.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated ResearchProfileModel ID",
     )
 
@@ -151,7 +150,6 @@ class ResearcherInteractionModel(Base):
         UUID(as_uuid=True),
         ForeignKey("opportunities.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated OpportunityModel ID",
     )
 

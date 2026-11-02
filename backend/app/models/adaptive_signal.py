@@ -83,7 +83,6 @@ class AdaptivePreferenceSignalModel(Base):
         UUID(as_uuid=True),
         ForeignKey("research_profiles.id", ondelete="CASCADE"),
         nullable=False,
-        index=True,
         comment="Associated ResearchProfileModel ID",
     )
 

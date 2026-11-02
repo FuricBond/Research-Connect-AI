@@ -67,7 +67,7 @@ class ResearcherModel(Base, TimestampMixin):
     __tablename__ = "researchers"
     __table_args__ = (
         UniqueConstraint("openalex_id", name="uq_researchers_openalex_id"),
-        Index("idx_researchers_openalex_id", "openalex_id"),
+        Index("idx_researchers_openalex_id", "openalex_id", unique=True),
         Index("idx_researchers_orcid", "orcid"),
         Index("idx_researchers_last_seen", "last_seen_at"),
     )
@@ -132,7 +132,7 @@ class ResearchSourceModel(Base, TimestampMixin):
             "'book series','metadata','other')",
             name="chk_research_sources_type",
         ),
-        Index("idx_research_sources_openalex_id", "openalex_id"),
+        Index("idx_research_sources_openalex_id", "openalex_id", unique=True),
         Index("idx_research_sources_issn_l", "issn_l"),
         Index("idx_research_sources_last_seen", "last_seen_at"),
     )
@@ -213,7 +213,7 @@ class InstitutionModel(Base, TimestampMixin):
     __tablename__ = "institutions"
     __table_args__ = (
         UniqueConstraint("openalex_id", name="uq_institutions_openalex_id"),
-        Index("idx_institutions_openalex_id", "openalex_id"),
+        Index("idx_institutions_openalex_id", "openalex_id", unique=True),
         Index("idx_institutions_ror", "ror"),
         Index("idx_institutions_country_code", "country_code"),
         Index("idx_institutions_last_seen", "last_seen_at"),
@@ -280,12 +280,15 @@ class ResearchWorkModel(Base, TimestampMixin):
 
     __tablename__ = "research_works"
     __table_args__ = (
+        Index("idx_research_works_embedding_hnsw", "embedding", postgresql_using="hnsw", postgresql_ops={"embedding": "vector_cosine_ops"}),
+        Index("idx_research_works_fts_gin", "fts_vector", postgresql_using="gin"),
+        Index("idx_research_works_content_hash", "content_hash"),
         UniqueConstraint("openalex_id", name="uq_research_works_openalex_id"),
         CheckConstraint(
             "publication_year >= 1000 AND publication_year <= 2100",
             name="chk_research_works_year",
         ),
-        Index("idx_research_works_openalex_id", "openalex_id"),
+        Index("idx_research_works_openalex_id", "openalex_id", unique=True),
         Index("idx_research_works_doi", "doi"),
         Index("idx_research_works_year", "publication_year"),
         Index("idx_research_works_type", "work_type"),
@@ -369,6 +372,7 @@ class ResearchWorkModel(Base, TimestampMixin):
         UUID(as_uuid=True),
         ForeignKey("sources.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
         comment="Points to the origin entry in the sources table",
     )
 
@@ -392,7 +396,6 @@ class ResearchWorkModel(Base, TimestampMixin):
     content_hash: Mapped[str | None] = mapped_column(
         String(64),
         nullable=True,
-        index=True,
         comment="SHA-256 of the semantic text used to generate this embedding",
     )
     # Name of the model that generated the embedding.

@@ -281,6 +281,7 @@ class ResearchSubmissionEventModel(Base):
         UUID(as_uuid=True),
         ForeignKey("research_submission_documents.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
     old_state: Mapped[dict[str, Any] | None] = mapped_column(
         JSONB,
