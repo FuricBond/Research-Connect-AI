@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.api.deps import OptionalUserId
+from app.api.deps import OptionalUserId, reject_administrator
 from app.core.config import settings
 from app.db.session import get_db
 from app.models.calendar import CalendarEventType
@@ -173,7 +173,7 @@ from app.schemas.researcher_interaction import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/researchers", tags=["researchers"])
+router = APIRouter(prefix="/researchers", tags=["researchers"], dependencies=[Depends(reject_administrator)])
 
 
 @router.post(

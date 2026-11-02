@@ -17,7 +17,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import OptionalUserId, require_user_id
+from app.api.deps import OptionalUserId, reject_administrator, require_user_id
 from app.db.session import get_db
 from app.models.reading_list import ReadingStatus
 from app.schemas.reading_list import (
@@ -29,7 +29,7 @@ from app.schemas.reading_list import (
 )
 from app.services.reading_list_service import ReadingListService
 
-router = APIRouter(prefix="/reading-list", tags=["reading-list"])
+router = APIRouter(prefix="/reading-list", tags=["reading-list"], dependencies=[Depends(reject_administrator)])
 
 # A GET URL carrying more ids than this risks the server's request-line limit.
 EXPORT_SELECTION_LIMIT = 200

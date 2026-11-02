@@ -119,12 +119,13 @@ export function DiscoverySearch() {
   const resultsHeading = useRef<HTMLHeadingElement>(null);
 
   // Reading list: which visible works the signed-in user has already saved (work id -> item id).
-  const { status: sessionStatus } = useSession();
+  const { status: sessionStatus, hasRole } = useSession();
+  const isAdmin = hasRole("ADMIN");
   const [savedWorks, setSavedWorks] = useState<Record<string, string>>({});
   const items = useMemo(() => (response?.items ?? []).map(fromSearchResult), [response]);
 
   useEffect(() => {
-    if (sessionStatus !== "authenticated" || items.length === 0) {
+    if (sessionStatus !== "authenticated" || isAdmin || items.length === 0) {
       setSavedWorks({});
       return;
     }
@@ -138,7 +139,7 @@ export function DiscoverySearch() {
         // Saving still works without the lookup; the buttons just start unmarked.
       });
     return () => controller.abort();
-  }, [items, sessionStatus]);
+  }, [items, sessionStatus, isAdmin]);
 
   const handleSaved = (workId: string, itemId: string) => {
     setSavedWorks((previous) => ({ ...previous, [workId]: itemId }));

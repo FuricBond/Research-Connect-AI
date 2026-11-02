@@ -9,6 +9,7 @@ import { VerifyEmailPage } from "../components/auth/VerifyEmailPage";
 import { PendingInvitations } from "../components/notifications/PendingInvitations";
 import { PostingsNav } from "../components/postings/PostingsNav";
 import { PostingsPage } from "../components/postings/PostingsPage";
+import { useTrackedCalls } from "../components/research/trackedCalls";
 import { storeSession } from "../services/auth";
 import type { AuthenticatedUser } from "../types/auth";
 import { canRecruit } from "../utils/recruiting";
@@ -59,7 +60,7 @@ describe("Decision B: who is offered recruiting", () => {
     }
   });
 
-  it("gives an administrator Discover and My applications, not My postings or Applicants", async () => {
+  it("gives an administrator Discover only: no My postings, Applicants or My applications", async () => {
     const user = makeUser({ role: "ADMIN", is_verified: true });
     signedInAs(user);
     server(user);
@@ -67,6 +68,32 @@ describe("Decision B: who is offered recruiting", () => {
     expect(await screen.findByRole("link", { name: "Discover" })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "My postings" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Applicants" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "My applications" })).not.toBeInTheDocument();
+  });
+
+  it("does not ask for an administrator's invitations, which the server would refuse", async () => {
+    const user = makeUser({ role: "ADMIN", is_verified: true, email_verified: false });
+    signedInAs(user);
+    const calls = server(user);
+    const { container } = render(<SessionProvider><PendingInvitations /></SessionProvider>);
+    await waitFor(() => expect(calls.some((call) => call.url.endsWith("/auth/me"))).toBe(true));
+    expect(calls.filter((call) => call.url.includes("workspace-invitations"))).toEqual([]);
+    expect(container.querySelector("#invitations")).toBeNull();
+  });
+
+  it("does not look up an administrator's workspace on a list of calls", async () => {
+    const user = makeUser({ role: "ADMIN", is_verified: true });
+    signedInAs(user);
+    const calls = server(user);
+    const seen = vi.fn();
+    function Tracked() {
+      seen(useTrackedCalls().status);
+      return null;
+    }
+    render(<SessionProvider><Tracked /></SessionProvider>);
+    await waitFor(() => expect(calls.some((call) => call.url.endsWith("/auth/me"))).toBe(true));
+    await waitFor(() => expect(seen).toHaveBeenCalled());
+    expect(calls.filter((call) => call.url.includes("/workspace"))).toEqual([]);
   });
 
   it("still gives faculty My postings and Applicants", async () => {

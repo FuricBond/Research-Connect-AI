@@ -94,13 +94,13 @@ export function NotificationsPage() {
 
   // An invitation appears above the list: the list starts once that is known, so it never moves
   // (audit PERF-01's rule, for every page). Not for long if the answer is slow.
-  const invitations = useApiResource("workspace-invitations:mine", (signal) => fetchMyWorkspaceInvitations(signal));
+  const invitations = useApiResource(isAdmin ? null : "workspace-invitations:mine", (signal) => fetchMyWorkspaceInvitations(signal));
   const [stoppedWaiting, setStoppedWaiting] = useState(false);
   useEffect(() => {
     const timer = window.setTimeout(() => setStoppedWaiting(true), 1500);
     return () => window.clearTimeout(timer);
   }, []);
-  const waitingForInvitations = !stoppedWaiting && (invitations.status === "idle" || invitations.status === "loading");
+  const waitingForInvitations = !isAdmin && !stoppedWaiting && (invitations.status === "idle" || invitations.status === "loading");
   const filterKey = `${unreadOnly}:${type ?? "all"}`;
   const seenFilter = useRef(filterKey);
   if (seenFilter.current !== filterKey) {

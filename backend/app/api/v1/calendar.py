@@ -7,7 +7,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import OptionalUserId, require_user_id
+from app.api.deps import OptionalUserId, reject_administrator, require_user_id
 from app.db.session import get_db
 from app.models.calendar import CalendarEventType
 from app.schemas.calendar import (
@@ -25,7 +25,7 @@ from app.services.research_calendar_service import ResearchCalendarService
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/calendar", tags=["calendar"])
+router = APIRouter(prefix="/calendar", tags=["calendar"], dependencies=[Depends(reject_administrator)])
 
 
 # ============================================================================

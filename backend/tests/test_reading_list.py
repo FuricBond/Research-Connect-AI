@@ -137,12 +137,14 @@ def test_every_route_requires_authentication(client: TestClient, method, path, b
     assert res.status_code == 401, res.text
 
 
-def test_any_role_may_use_the_reading_list(client: TestClient, db_session: Session):
+def test_students_and_faculty_may_use_the_reading_list_and_administrators_may_not(client: TestClient, db_session: Session):
     work = _work(db_session, "Dense retrieval")
-    for role in ("STUDENT", "FACULTY", "ADMIN"):
+    for role in ("STUDENT", "FACULTY"):
         user = _user(db_session, f"{role.title()} User", role=role)
         res = client.post(BASE, json={"work_id": str(work.id)}, headers=_headers(user))
         assert res.status_code == 201, (role, res.text)
+    admin = _user(db_session, "Admin User", role="ADMIN")
+    assert client.post(BASE, json={"work_id": str(work.id)}, headers=_headers(admin)).status_code == 403
 
 
 # ===========================================================================

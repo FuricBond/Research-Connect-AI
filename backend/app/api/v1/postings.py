@@ -35,7 +35,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import CurrentUser, FacultyUser, OptionalUserId, StudentUser, get_optional_current_user
+from app.api.deps import CurrentUser, FacultyUser, OptionalUserId, ResearcherUser, StudentUser, get_optional_current_user
 from app.db.session import get_db
 from app.models.research_posting import (
     PostingStatus,
@@ -421,7 +421,7 @@ def delete_posting(
 def apply_to_posting(
     posting_id: uuid.UUID,
     payload: ApplicationCreate,
-    current_user: CurrentUser,
+    current_user: ResearcherUser,
     db: Session = Depends(get_db),
 ) -> ApplicationRead:
     profile = _resolve_researcher_profile(db, current_user)
@@ -476,7 +476,7 @@ def list_posting_applications(
     summary="List the authenticated researcher's applications",
 )
 def list_my_applications(
-    current_user: CurrentUser,
+    current_user: ResearcherUser,
     application_status: Annotated[
         ApplicationStatus | None, Query(alias="status", description="Filter by application status")
     ] = None,
@@ -497,7 +497,7 @@ def list_my_applications(
     summary="Summarize the authenticated researcher's applications",
 )
 def get_my_application_summary(
-    current_user: CurrentUser,
+    current_user: ResearcherUser,
     db: Session = Depends(get_db),
 ) -> ApplicationSummaryResponse:
     profile = _resolve_researcher_profile(db, current_user)
@@ -516,7 +516,7 @@ def get_my_application_summary(
 )
 def get_application(
     application_id: uuid.UUID,
-    current_user: CurrentUser,
+    current_user: ResearcherUser,
     db: Session = Depends(get_db),
 ) -> ApplicationRead:
     try:
@@ -543,7 +543,7 @@ def get_application(
 def transition_application(
     application_id: uuid.UUID,
     payload: ApplicationDecision,
-    current_user: CurrentUser,
+    current_user: ResearcherUser,
     db: Session = Depends(get_db),
 ) -> ApplicationRead:
     try:

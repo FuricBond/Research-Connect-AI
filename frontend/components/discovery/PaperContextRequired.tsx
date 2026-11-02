@@ -32,18 +32,19 @@ interface PaperContextRequiredProps {
  * (`paper-context-search` and `paper-context-saved-item` stay as stable hooks for tests.)
  */
 export function PaperContextRequired({ actionLabel, onChoose }: PaperContextRequiredProps) {
-  const { status } = useSession();
+  const { status, hasRole } = useSession();
+  const isAdmin = hasRole("ADMIN");
   const [saved, setSaved] = useState<ReadingListWorkSummary[]>([]);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (status !== "authenticated" || isAdmin) return;
     const controller = new AbortController();
     fetchReadingList({ limit: SAVED_PAPERS_SHOWN }, controller.signal)
       .then((response) => setSaved(response.items.map((item) => item.work)))
       // The reading list is a shortcut; without it the search path still works.
       .catch(() => setSaved([]));
     return () => controller.abort();
-  }, [status]);
+  }, [status, isAdmin]);
 
   return (
     <section className={styles.panel} aria-labelledby="paper-context-heading">

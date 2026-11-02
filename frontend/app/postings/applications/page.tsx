@@ -167,7 +167,7 @@ function MyApplicationsPage() {
 
 export default function MyApplicationsPageRoute() {
   return (
-    <RequireAuth>
+    <RequireAuth roles={["STUDENT", "FACULTY"]}>
       <MyApplicationsPage  />
     </RequireAuth>
   );

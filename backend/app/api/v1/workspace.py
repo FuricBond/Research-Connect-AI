@@ -20,7 +20,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import OptionalUserId, require_user_id
+from app.api.deps import OptionalUserId, reject_administrator, require_user_id
 from app.db.session import get_db
 from app.schemas.research_submission import ResearchSubmissionListResponse
 from app.schemas.workspace import (
@@ -38,7 +38,7 @@ from app.services.workspace_service import InvalidTransitionError, WorkspaceServ
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/workspace", tags=["workspace"])
+router = APIRouter(prefix="/workspace", tags=["workspace"], dependencies=[Depends(reject_administrator)])
 
 
 @router.post(

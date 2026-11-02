@@ -74,7 +74,7 @@ function PageSkeleton() {
  */
 export function CallDetail({ id }: { id: string }) {
   const valid = isUuid(id);
-  const { status: sessionStatus } = useSession();
+  const { status: sessionStatus, hasRole } = useSession();
   const call = useApiResource(valid ? `call:${id}` : null, (signal) => fetchOpportunity(id, signal), { scope: "public" });
   const risk = useApiResource(valid ? `call-risk:${id}` : null, (signal) => fetchOpportunityRiskExplanation(id, signal), { scope: "public" });
   const tracked = useTrackedCalls();
@@ -173,7 +173,7 @@ export function CallDetail({ id }: { id: string }) {
                 </ButtonLink>
               )
             )}
-            {signedIn && (
+            {signedIn && !hasRole("ADMIN") && (
               <Button onClick={addToCalendar} loading={calendar.state === "working"} leadingIcon={<CalendarPlus size={16} aria-hidden="true" />}>
                 Add dates to calendar
               </Button>

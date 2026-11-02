@@ -25,7 +25,8 @@ export function PostingsNav({ current }: { current: PostingsView }) {
           { view: "applicants" as const, href: APPLICANTS_HREF, label: "Applicants" },
         ]
       : []),
-    { view: "applications", href: "/postings/applications", label: "My applications" },
+    // Applying is for people doing research: an administrator has no applications of their own.
+    ...(hasRole("ADMIN") ? [] : [{ view: "applications" as const, href: "/postings/applications", label: "My applications" }]),
   ];
   return (
     <nav aria-label="Research postings" className={styles.localNav}>

@@ -113,6 +113,38 @@ test.describe("Decision B: recruiting is for faculty", () => {
     await request.delete(`${API_URL}/api/v1/postings/${posting.id}`, { headers: bearer(faculty) });
   });
 
+  test("an administrator has no personal research pages, and the pages they do have ask for none of it", async ({ page, request }) => {
+    const admin = await signIn(request, DEMO.admin);
+    await place(page, admin);
+
+    for (const path of ["/postings/applications", "/supervisors", "/reading-list", "/submissions", "/workspace", "/calendar", "/researcher"]) {
+      await test.step(path, async () => {
+        await page.goto(path);
+        await expect(page.getByRole("heading", { name: /^This page is for/ })).toBeVisible();
+      });
+    }
+
+    const refused: string[] = [];
+    page.on("response", (response) => {
+      if (response.status() >= 400 && response.url().includes("/api/")) refused.push(`${response.status()} ${response.url()}`);
+    });
+    const calls = await (await request.get(`${API_URL}/api/opportunities?limit=1`)).json();
+    for (const path of ["/notifications", "/settings", "/postings", "/admin", "/admin/users", "/", "/?q=retrieval", "/browse", "/similar", "/opportunities", `/calls/${calls.items[0].id}`]) {
+      await page.goto(path);
+      await page.waitForLoadState("networkidle");
+    }
+    expect(refused).toEqual([]);
+
+    await expect(page.getByRole("button", { name: "Add dates to calendar" })).toHaveCount(0);
+
+    await page.goto("/postings");
+    await expect(page.getByRole("navigation", { name: "Research postings" }).getByRole("link", { name: "My applications" })).toHaveCount(0);
+
+    for (const path of ["reading-list", "submissions", "workspace", "postings/applications/mine"]) {
+      expect((await request.get(`${API_URL}/api/v1/${path}`, { headers: bearer(admin) })).status(), path).toBe(403);
+    }
+  });
+
   test("verified faculty still get every recruiting page", async ({ page, request }) => {
     await place(page, await signIn(request, DEMO.faculty));
     await page.goto("/postings");
@@ -216,6 +248,8 @@ test.describe("Decision C: an invitation waits for a confirmed address", () => {
       await expect(fresh.getByRole("alert").filter({ hasText: "Your email address is confirmed." })).toBeVisible();
       expect(fresh.url()).not.toContain("token");
       expect(await fresh.evaluate(() => window.sessionStorage.getItem("researchconnect_email_confirmation"))).toBeNull();
+      // Next swaps the title during a client navigation, leaving it empty for a few milliseconds.
+      await expect(fresh).toHaveTitle("Confirm your email address — ResearchConnect AI");
       expect(await seriousAxe(fresh)).toEqual([]);
       await context.close();
     });

@@ -32,8 +32,9 @@ function refusal(error: unknown, fallback: string): { text: string; final: boole
  * to answer, so a page without invitations does not change.
  */
 export function PendingInvitations() {
-  const { user } = useSession();
-  const resource = useApiResource("workspace-invitations:mine", (signal) => fetchMyWorkspaceInvitations(signal));
+  const { user, hasRole } = useSession();
+  // Workspaces are personal research: an administrator is not invited to them.
+  const resource = useApiResource(hasRole("ADMIN") ? null : "workspace-invitations:mine", (signal) => fetchMyWorkspaceInvitations(signal));
   const [busy, setBusy] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [outcome, setOutcome] = useState<{ text: string; href?: string; tone: "success" | "info" } | null>(null);
@@ -68,6 +69,8 @@ export function PendingInvitations() {
       setBusy(null);
     }
   };
+
+  if (hasRole("ADMIN")) return null;
 
   if (user?.email_verified === false || resource.data?.email_verified === false) {
     return (

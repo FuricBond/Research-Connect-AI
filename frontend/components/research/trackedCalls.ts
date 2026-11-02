@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useApiResource } from "../../hooks/useApiResource";
+import { useSession } from "../auth/SessionProvider";
 import { fetchWorkspaceItems } from "../../services/api";
 import type { WorkspaceItem } from "../../types/workspace";
 
@@ -11,13 +12,15 @@ const LOOKUP_LIMIT = 100;
 /**
  * P5 — which calls the signed-in account already tracks, so a list or a call's page can say
  * "Saved" and show the workspace status. One request, shared by everything on the page that
- * asks (the browse list and its cards; a call's page). A visitor asks nothing ("idle").
+ * asks (the browse list and its cards; a call's page). A visitor asks nothing ("idle"), and
+ * neither does an administrator, who has no workspace.
  * The most recently updated 100 tracked calls (archived included) are looked up; saving is
  * idempotent on the server, so a call beyond them that reads "Save" is saved without harm and
  * then shows its status.
  */
 export function useTrackedCalls() {
-  const resource = useApiResource("workspace:tracked-calls", (signal) =>
+  const { hasRole } = useSession();
+  const resource = useApiResource(hasRole("ADMIN") ? null : "workspace:tracked-calls", (signal) =>
     fetchWorkspaceItems({ include_archived: true, limit: LOOKUP_LIMIT }, undefined, signal)
   );
   const byCall = useMemo(() => {

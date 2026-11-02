@@ -6,7 +6,7 @@ import { SupervisorsPage } from "../../components/people/SupervisorsPage";
 /** /supervisors (P6): suggested supervisors for student accounts; the backend enforces the role. */
 export default function SupervisorDiscoveryPageRoute() {
   return (
-    <RequireAuth>
+    <RequireAuth roles={["STUDENT", "FACULTY"]}>
       <SupervisorsPage />
     </RequireAuth>
   );

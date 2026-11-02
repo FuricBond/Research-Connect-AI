@@ -19,7 +19,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import OptionalUserId, require_user_id
+from app.api.deps import OptionalUserId, reject_administrator, require_user_id
 from app.db.session import get_db
 from app.models.research_submission import SubmissionStatus, SubmissionType
 from app.models.submission_document import DocumentStatus, DocumentType
@@ -48,7 +48,7 @@ from app.services.research_submission_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/submissions", tags=["submissions"])
+router = APIRouter(prefix="/submissions", tags=["submissions"], dependencies=[Depends(reject_administrator)])
 
 
 @router.post(

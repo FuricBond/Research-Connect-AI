@@ -158,6 +158,19 @@ def require_roles(*roles: str) -> Callable[[UserModel], UserModel]:
 OptionalUserId = Annotated[uuid.UUID | None, Depends(get_optional_current_user_id)]
 CurrentUser = Annotated[UserModel, Depends(get_current_user)]
 AdminUser = Annotated[UserModel, Depends(require_roles("ADMIN"))]
+# Personal research workflows (reading list, workspace, submissions, calendar, profile, applying)
+# belong to people doing research. An administrator runs the platform and has none of them.
+ResearcherUser = Annotated[UserModel, Depends(require_roles("STUDENT", "FACULTY"))]
+
+
+def reject_administrator(user: Annotated[UserModel | None, Depends(get_optional_current_user)]) -> None:
+    """For a whole router of personal workflows. It runs before any record is looked up, so the answer
+    says nothing about what exists; everyone else goes on to the route's own identity and ownership checks."""
+    if user is not None and user.role == "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This action requires one of the roles: FACULTY, STUDENT.",
+        )
 FacultyUser = Annotated[UserModel, Depends(require_roles("FACULTY"))]
 FacultyOrAdminUser = Annotated[UserModel, Depends(require_roles("FACULTY", "ADMIN"))]
 StudentUser = Annotated[UserModel, Depends(require_roles("STUDENT"))]

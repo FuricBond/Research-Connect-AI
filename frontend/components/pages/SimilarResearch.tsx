@@ -49,10 +49,11 @@ function SimilarPapers() {
   const items = useMemo(() => (similar.data?.items ?? []).map(fromSimilarItem), [similar.data]);
 
   // Which of these the signed-in researcher has saved (for the Save buttons and the citation export).
-  const { status: sessionStatus } = useSession();
+  const { status: sessionStatus, hasRole } = useSession();
+  const isAdmin = hasRole("ADMIN");
   const [savedWorks, setSavedWorks] = useState<Record<string, string>>({});
   useEffect(() => {
-    if (sessionStatus !== "authenticated" || items.length === 0) {
+    if (sessionStatus !== "authenticated" || isAdmin || items.length === 0) {
       setSavedWorks({});
       return;
     }
@@ -64,7 +65,7 @@ function SimilarPapers() {
       .then((result) => setSavedWorks(result.saved))
       .catch(() => undefined);
     return () => controller.abort();
-  }, [items, sessionStatus]);
+  }, [items, sessionStatus, isAdmin]);
   const handleSaved = (workId: string, itemId: string) => setSavedWorks((previous) => ({ ...previous, [workId]: itemId }));
 
   if (!paperId) {

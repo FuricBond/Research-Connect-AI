@@ -16,7 +16,7 @@ import uuid
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Response, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import OptionalUserId, require_user_id
+from app.api.deps import OptionalUserId, reject_administrator, require_user_id
 from app.core.rate_limiter import invitation_email_rate_limiter
 from app.db.session import get_db
 from app.models.user import UserModel
@@ -59,7 +59,7 @@ from app.services.workspace_collaboration_service import (
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["workspace_collaboration"])
+router = APIRouter(tags=["workspace_collaboration"], dependencies=[Depends(reject_administrator)])
 
 
 def build_member_read(member: WorkspaceMemberModel) -> WorkspaceMemberRead:
