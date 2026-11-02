@@ -240,7 +240,7 @@ def search_research_works_route(
     ] = False,
     rerank: Annotated[
         bool,
-        Query(description="Apply optional lightweight cross-encoder reranking on top candidates"),
+        Query(description="Accepted and ignored: only the server's RERANKER_ENABLED setting turns reranking on"),
     ] = False,
     diversity: Annotated[
         bool,
@@ -275,11 +275,13 @@ def search_research_works_route(
         )
 
         # Optional Cross-Encoder Reranking
-        if rerank or getattr(settings, "reranker_enabled", False):
+        # The server decides, never the request: this endpoint is public, and loading and running
+        # the model is too costly to leave to a query parameter.
+        if getattr(settings, "reranker_enabled", False):
             ranked = cross_encoder_reranker.rerank(
                 query=q,
                 candidates=ranked,
-                force_enabled=rerank,
+                force_enabled=True,
             )
 
         # Optional Diversity & Novelty Reranking (Phase 2.5E)

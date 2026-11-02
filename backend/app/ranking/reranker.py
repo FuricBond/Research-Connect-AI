@@ -123,7 +123,9 @@ class CrossEncoderReranker:
         weight:
             Override reranker weight (strictly clamped to <= 0.15 to preserve 85% dominance).
         force_enabled:
-            If True, attempt reranking even if global self.enabled is False.
+            If True, attempt reranking even if global self.enabled is False. For callers that
+            have already checked the server's setting, and for offline evaluation; never set it
+            from request input.
 
         Returns
         -------

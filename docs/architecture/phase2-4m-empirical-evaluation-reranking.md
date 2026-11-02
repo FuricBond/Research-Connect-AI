@@ -24,7 +24,7 @@
    - Optional, lazy-loaded neural reranking layer utilizing `BAAI/bge-reranker-base` (`reranker.py`).
    - **Relevance Dominance Guarantee ($\ge 85\%$)**: Reranking weight $w \in [0.0, 0.15]$ (default $w = 0.10$), strictly bounded such that primary hybrid signals retain $\ge 85\%$ weight.
    - **Resilient Threadpool Execution**: Bounded 200ms latency budget per request with automatic timeout fallback; zero client exceptions on model failure.
-   - **Strict Opt-In Configuration**: Disabled by default (`reranker_enabled: bool = False`), fully testable and accessible via runtime API flag (`?rerank=true`).
+   - **Strict Opt-In Configuration**: Disabled by default (`reranker_enabled: bool = False`), and only that server setting runs it. A request cannot: `?rerank=true` is accepted and ignored, because loading the model is too costly to leave to a public query parameter.
 
 5. **5-Way Ablation Benchmark Suite**:
    - Systematic evaluation across (A) Lexical-only, (B) Vector-only, (C) Hybrid Baseline, (D) Hybrid + Query Intelligence, and (E) Hybrid + Cross-Encoder Reranking.
