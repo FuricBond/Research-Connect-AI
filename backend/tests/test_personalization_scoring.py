@@ -416,6 +416,7 @@ def test_strict_determinism_across_100_runs(sample_opportunity: OpportunityModel
         assert run.explanation.summary == baseline.explanation.summary
 
 
+@pytest.mark.perf
 def test_batch_scoring_performance_and_zero_n_plus_one(sample_opportunity: OpportunityModel):
     """Invariant 10 & 11: Batch scoring executes in memory with zero N+1 queries."""
     profile_id = uuid.uuid4()

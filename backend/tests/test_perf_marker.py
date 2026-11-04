@@ -24,6 +24,19 @@ PERF_TESTS = [
     ("tests.test_risk_evidence_extraction", "TestDeterminismAndPerformance.test_batch_performance_zero_queries"),
     ("tests.test_personalization_quality", "test_scaling_benchmarks"),
     ("tests.test_suspicious_graph_intelligence", "TestGraphPerformanceAndScaling.test_graph_batch_scaling_performance"),
+    ("tests.test_risk_scoring_engine", "TestDeterminismAndPerformance.test_batch_scoring_performance"),
+    ("tests.test_risk_scoring_engine", "TestDeterminismAndPerformance.test_candidate_scaling_benchmarks"),
+    ("tests.test_academic_features", "TestAcademicFeaturesAndExtractor.test_feature_extraction_performance_budget"),
+    ("tests.test_adaptive_preference_signals", "TestPerformanceAndScale.test_aggregation_performance_benchmarks"),
+    ("tests.test_collaboration_performance", "test_workspace_membership_scalability"),
+    ("tests.test_personalization_scoring", "test_batch_scoring_performance_and_zero_n_plus_one"),
+    ("tests.test_personalization_transparency", "test_transparency_performance_and_query_count"),
+    ("tests.test_risk_explainability", "TestApiAndPerformance.test_scenario_v_performance_benchmarks"),
+    ("tests.test_venue_publisher_intelligence", "TestBatchPerformanceAndZeroQueries.test_batch_resolution_scaling"),
+    ("tests.test_venue_publisher_intelligence", "TestBatchPerformanceAndZeroQueries.test_end_to_end_extractor_batch_performance"),
+    # Their correctness checks run by default, in separate tests; only the time budgets are here.
+    ("tests.test_calendar_performance", "test_calendar_scaling_and_ical_latency"),
+    ("tests.test_reminder_performance", "test_reminder_scheduler_scaling_and_latency"),
 ]
 
 

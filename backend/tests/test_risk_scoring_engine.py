@@ -427,6 +427,7 @@ class TestDeterminismAndPerformance:
             current = assess_opportunity_risk(opp).to_dict()
             assert current == baseline, "Scoring varied across identical runs!"
 
+    @pytest.mark.perf
     def test_batch_scoring_performance(self) -> None:
         """1,000 synthetic collections scored in < 150ms in-memory."""
         collections = []
@@ -466,6 +467,7 @@ class TestDeterminismAndPerformance:
         assert len(results) == 1000
         assert elapsed < 0.25, f"Scoring batch took {elapsed:.4f}s for 1000 items (expected < 0.25s)"
 
+    @pytest.mark.perf
     def test_candidate_scaling_benchmarks(self) -> None:
         """Benchmark scoring engine across candidate batch sizes: 10, 50, 100, 200, 1000."""
         sizes = [10, 50, 100, 200, 1000]

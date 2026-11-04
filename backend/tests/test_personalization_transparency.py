@@ -734,6 +734,7 @@ def test_safety_invariants_during_controls(db_session: Session, sample_transpare
 # 7. PERFORMANCE & QUERY COUNT BENCHMARK
 # =============================================================================
 
+@pytest.mark.perf
 def test_transparency_performance_and_query_count(db_session: Session, sample_transparency_context):
     """
     Verify that explaining a recommendation executes in bounded time (< 50ms)

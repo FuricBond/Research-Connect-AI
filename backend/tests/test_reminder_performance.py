@@ -87,16 +87,13 @@ def db_session() -> Session:
     session.close()
 
 
-@pytest.mark.parametrize("researcher_count", [10, 50, 100, 500, 1000])
-def test_reminder_scheduler_scaling_and_latency(
-    db_session: Session,
-    researcher_count: int,
-):
+def _run_reminders_twice(db_session: Session, researcher_count: int) -> tuple[float, float]:
     """
-    Measures scheduling evaluation latency, notification creation throughput,
-    and duplicate detection performance for 10, 50, 100, 500, and 1,000 researchers.
+    Schedules reminders for `researcher_count` researchers twice and checks the results: the first
+    run notifies each researcher once and the second creates no duplicates. Returns how long each
+    run took, in milliseconds.
     """
-    now = datetime(2026, 10, 1, 12, 0, 0, tzinfo=timezone.utc)
+    now =datetime(2026, 10, 1, 12, 0, 0, tzinfo=timezone.utc)
     deadline_utc = now + timedelta(days=7)
     eval_time = now + timedelta(days=6)  # 1 day before deadline (well within 3-day reminder window)
 
@@ -177,13 +174,36 @@ def test_reminder_scheduler_scaling_and_latency(
     assert summary2.created_notifications == 0
     assert summary2.skipped_duplicates == researcher_count
 
-    # Latency budgets:
-    # 1,000 researchers scheduling should complete within 3.5 seconds in in-memory SQLite
-    assert run1_ms < 3500.0, f"Run 1 took {run1_ms:.2f}ms for {researcher_count} researchers (exceeds budget)"
-    assert run2_ms < 2500.0, f"Run 2 (duplicate check) took {run2_ms:.2f}ms for {researcher_count} researchers"
-
     print(
         f"\n[BENCHMARK] {researcher_count:4d} researchers -> "
         f"Run 1 (Evaluation + Creation): {run1_ms:.2f}ms ({run1_ms/researcher_count:.3f}ms/user) | "
         f"Run 2 (Deduplication): {run2_ms:.2f}ms ({run2_ms/researcher_count:.3f}ms/user)"
     )
+    return run1_ms, run2_ms
+
+
+@pytest.mark.parametrize("researcher_count", [10, 50, 100, 500, 1000])
+def test_reminder_scheduler_notifies_each_researcher_once_at_every_scale(
+    db_session: Session,
+    researcher_count: int,
+):
+    """Notification creation and duplicate detection are correct for 10 to 1,000 researchers."""
+    _run_reminders_twice(db_session, researcher_count)
+
+
+@pytest.mark.perf
+@pytest.mark.parametrize("researcher_count", [10, 50, 100, 500, 1000])
+def test_reminder_scheduler_scaling_and_latency(
+    db_session: Session,
+    researcher_count: int,
+):
+    """
+    Measures scheduling evaluation latency, notification creation throughput,
+    and duplicate detection performance for 10, 50, 100, 500, and 1,000 researchers.
+    """
+    run1_ms, run2_ms = _run_reminders_twice(db_session, researcher_count)
+
+    # Latency budgets:
+    # 1,000 researchers scheduling should complete within 3.5 seconds in in-memory SQLite
+    assert run1_ms < 3500.0, f"Run 1 took {run1_ms:.2f}ms for {researcher_count} researchers (exceeds budget)"
+    assert run2_ms < 2500.0, f"Run 2 (duplicate check) took {run2_ms:.2f}ms for {researcher_count} researchers"

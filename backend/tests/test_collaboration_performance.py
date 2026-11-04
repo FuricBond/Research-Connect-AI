@@ -59,6 +59,7 @@ def db_session() -> Session:
         session.close()
 
 
+@pytest.mark.perf
 @pytest.mark.parametrize("member_count", [10, 50, 100, 500, 1000])
 def test_workspace_membership_scalability(db_session: Session, member_count: int):
     # Setup owner and workspace

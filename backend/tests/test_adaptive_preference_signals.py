@@ -851,6 +851,7 @@ class TestAdaptiveSignalAPI:
 # =============================================================================
 
 class TestPerformanceAndScale:
+    @pytest.mark.perf
     @pytest.mark.parametrize("interaction_count", [10, 100, 1000, 10000])
     def test_aggregation_performance_benchmarks(self, interaction_count: int):
         """Benchmark aggregation latency across 10, 100, 1,000, and 10,000 interactions."""

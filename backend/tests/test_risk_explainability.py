@@ -667,6 +667,7 @@ class TestApiAndPerformance:
             assert data["risk_score"] <= 0.15
             assert len(data["positive_trust_signals"]) >= 1
 
+    @pytest.mark.perf
     def test_scenario_v_performance_benchmarks(self) -> None:
         """Benchmark in-memory explanation generation overhead for N=10, 50, 100, 200, 1000 items."""
         sample_opps = [

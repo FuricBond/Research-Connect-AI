@@ -352,6 +352,7 @@ class TestAcademicFeaturesAndExtractor:
                         assert not math.isinf(v)
                         assert 0.0 <= v <= 1.0
 
+    @pytest.mark.perf
     def test_feature_extraction_performance_budget(self):
         """Measure extraction latency over 1,000 iterations and assert execution is within < 0.3 ms budget."""
         import time

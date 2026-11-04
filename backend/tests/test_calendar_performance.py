@@ -90,18 +90,12 @@ def benchmark_user(db_session: Session) -> UserModel:
     return user
 
 
-@pytest.mark.parametrize("event_count", [10, 50, 100, 500, 1000])
-def test_calendar_scaling_and_ical_latency(
-    db_session: Session,
-    benchmark_user: UserModel,
-    event_count: int,
-):
+def _list_and_export_calendar(db_session: Session, benchmark_user: UserModel, event_count: int) -> float:
     """
-    Measures query execution latency and iCal serialization throughput for
-    10, 50, 100, 500, and 1,000 calendar events.
-    Verifies that listing operations do NOT execute per-row N+1 queries.
+    Lists a calendar of `event_count` events and exports it as an iCal feed, checking that listing
+    runs no per-row (N+1) queries and the feed holds every event. Returns the export time in ms.
     """
-    cal = ResearchCalendarService.create_calendar(
+    cal =ResearchCalendarService.create_calendar(
         db_session,
         user_id=benchmark_user.id,
         payload=type("Payload", (), {
@@ -172,12 +166,37 @@ def test_calendar_scaling_and_ical_latency(
 
         assert "BEGIN:VCALENDAR" in feed
         assert feed.count("BEGIN:VEVENT") == event_count
-        # Ensure 1,000 events serialization completes well under 100ms
-        assert ical_ms < 200.0, f"iCal generation took {ical_ms:.2f}ms for {event_count} events (exceeds budget)"
 
         print(
             f"\n[BENCHMARK] {event_count:4d} events -> Retrieval: {retrieval_ms:.2f}ms "
             f"({query_count} queries, 0 N+1) | iCal generation: {ical_ms:.2f}ms"
         )
+        return ical_ms
     finally:
         event.remove(engine, "before_cursor_execute", query_listener)
+
+
+@pytest.mark.parametrize("event_count", [10, 50, 100, 500, 1000])
+def test_calendar_listing_has_no_n_plus_one_and_the_feed_is_complete(
+    db_session: Session,
+    benchmark_user: UserModel,
+    event_count: int,
+):
+    """Listing runs a bounded number of queries and the iCal feed holds every event, 10 to 1,000."""
+    _list_and_export_calendar(db_session, benchmark_user, event_count)
+
+
+@pytest.mark.perf
+@pytest.mark.parametrize("event_count", [10, 50, 100, 500, 1000])
+def test_calendar_scaling_and_ical_latency(
+    db_session: Session,
+    benchmark_user: UserModel,
+    event_count: int,
+):
+    """
+    Measures query execution latency and iCal serialization throughput for
+    10, 50, 100, 500, and 1,000 calendar events.
+    """
+    ical_ms = _list_and_export_calendar(db_session, benchmark_user, event_count)
+    # Ensure 1,000 events serialization completes well under 100ms
+    assert ical_ms < 200.0, f"iCal generation took {ical_ms:.2f}ms for {event_count} events (exceeds budget)"

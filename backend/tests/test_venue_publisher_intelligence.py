@@ -565,6 +565,7 @@ class TestEvidenceDeduplication:
 class TestBatchPerformanceAndZeroQueries:
     """Verifies zero N+1 database queries and sub-150ms resolution for 1,000 candidates."""
 
+    @pytest.mark.perf
     @pytest.mark.parametrize("n_candidates", [10, 50, 100, 200, 1000])
     def test_batch_resolution_scaling(self, n_candidates: int) -> None:
         # Generate N synthetic opportunities
@@ -598,6 +599,7 @@ class TestBatchPerformanceAndZeroQueries:
         if n_candidates == 1000:
             assert elapsed_ms < 150.0, f"Batch resolution took {elapsed_ms:.2f}ms (expected < 150ms)"
 
+    @pytest.mark.perf
     def test_end_to_end_extractor_batch_performance(self) -> None:
         candidates = [
             {
