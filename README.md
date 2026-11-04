@@ -525,22 +525,26 @@ backups, and [Database startup](docs/architecture/phase6-5-database-startup.md) 
 Docker Compose reads the root `.env` ([template](.env.example)); a backend run on the host reads `backend/.env`
 ([template](backend/.env.example)). The main settings:
 
-| Variable | Required | Purpose |
+| Variable | Default | Purpose |
 |---|---|---|
-| `POSTGRES_PASSWORD` | Yes | Database password (letters, digits and `- _ . ~` only) |
-| `AUTH_SECRET_KEY` | Yes | Token signing secret, at least 32 characters |
-| `APP_ENV` | No (`production` in Compose) | `development`, `test` or `production`; production refuses insecure settings at startup |
-| `CORS_ORIGINS` | No | Exact browser origins allowed to call the API |
-| `NEXT_PUBLIC_API_URL` | No (`http://localhost:8000`) | API address as the browser sees it; fixed at frontend build time |
-| `API_DOCS_ENABLED` | No | Serve `/docs` and `/openapi.json` (off in production by default) |
-| `SCHEDULER_ENABLED` | No (`false`) | Run the background jobs, in one backend process only |
-| `SCHEDULER_RESEARCH_REFRESH_ENABLED` | No (`false`) | Also fetch new OpenAlex papers on a schedule |
-| `OPENALEX_EMAIL`, `OPENALEX_API_KEY` | No | OpenAlex contact address and optional key (a secret) |
-| `EMAIL_PROVIDER` | No (`mock`) | `smtp` sends notifications and email-confirmation links; `mock` sends nothing |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `SMTP_SECURITY` | With `smtp` | Mail server; the password is a secret |
-| `EMAIL_FROM_ADDRESS`, `EMAIL_RECIPIENT_ALLOWLIST` | With `smtp` | Sender, and the addresses or `@domains` that may receive mail (empty means nobody) |
-| `APP_PUBLIC_URL` | No | Base of the links inside emails |
-| `RERANKER_ENABLED` | No (`false`) | Run the optional cross-encoder on literature search |
+| `POSTGRES_PASSWORD` | *required* | Database password (letters, digits and `- _ . ~` only) |
+| `AUTH_SECRET_KEY` | *required* | Token signing secret, at least 32 characters |
+| `APP_ENV` | `production` in Compose | `development`, `test` or `production`; production refuses insecure settings at startup |
+| `CORS_ORIGINS` | localhost:3000 | Exact browser origins allowed to call the API |
+| `NEXT_PUBLIC_API_URL` | `http://localhost:8000` | API address as the browser sees it; fixed at frontend build time |
+| `API_DOCS_ENABLED` | off in production | Serve `/docs` and `/openapi.json` |
+| `SCHEDULER_ENABLED` | `false` | Run the background jobs, in one backend process only |
+| `SCHEDULER_RESEARCH_REFRESH_ENABLED` | `false` | Also fetch new OpenAlex papers on a schedule (outbound requests) |
+| `RESEARCH_REFRESH_MAX_WORKS` | `100000` | Corpus cap: at this many papers the refresh stops adding new ones and only updates known ones |
+| `OPENALEX_EMAIL` / `OPENALEX_API_KEY` | empty | OpenAlex contact address, and an optional key (a secret: never commit it) |
+| `EMAIL_PROVIDER` | `mock` | `smtp` sends notifications (needs `SCHEDULER_ENABLED=true`) and email-confirmation links; `mock` sends nothing, so no address can be confirmed |
+| `SMTP_HOST` / `SMTP_PORT` | empty / `587` | Mail server used when `EMAIL_PROVIDER=smtp` (the host is then required) |
+| `SMTP_USERNAME` / `SMTP_PASSWORD` | empty | SMTP login, skipped when the username is empty; the password is a secret |
+| `SMTP_SECURITY` | `starttls` | `starttls` (587), `ssl` (465) or `none` (a local relay; refused with a login in production) |
+| `EMAIL_FROM_ADDRESS` / `EMAIL_FROM_NAME` | empty / `ResearchConnect AI` | Sender of emails (the address is required with `smtp`) |
+| `EMAIL_RECIPIENT_ALLOWLIST` | empty (nobody) | Addresses and `@domains` that may receive email, or `*` for everyone |
+| `APP_PUBLIC_URL` | `http://localhost:3000` | Base of the links inside emails |
+| `RERANKER_ENABLED` | `false` | Run the optional cross-encoder on literature search |
 
 Every setting, every production rule and a deployment checklist are in
 [Production configuration](docs/architecture/phase6-4-production-configuration.md).
