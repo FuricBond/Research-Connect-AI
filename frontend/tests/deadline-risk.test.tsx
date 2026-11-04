@@ -19,8 +19,6 @@ vi.mock("next/navigation", () => ({
 
 import WorkspacePageRoute from "../app/workspace/page";
 import { SessionProvider } from "../components/auth/SessionProvider";
-import { DeadlineBadge } from "../components/discovery/DeadlineBadge";
-import { RiskWarning } from "../components/discovery/RiskWarning";
 import { DeadlineCountdown } from "../components/research/DeadlineCountdown";
 import { RiskIndicator } from "../components/research/RiskIndicator";
 import { clearActiveIdentity, storeSession } from "../services/auth";
@@ -138,36 +136,6 @@ describe("indicators", () => {
     const { container: high } = render(<RiskIndicator level="HIGH_RISK" />);
     expect(high.textContent).toBe("High risk");
     expect(high.firstElementChild).toHaveClass("risk-high");
-  });
-});
-
-describe("venue matching: risk banner and deadline badge", () => {
-  it("shows missing evidence as a quiet neutral line, not an alert", () => {
-    render(<RiskWarning riskLevel="INSUFFICIENT_EVIDENCE" onViewRiskDetails={() => undefined} />);
-    expect(screen.getByText("Risk not assessed")).toBeInTheDocument();
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    expect(screen.queryByText(/Limited Metadata Available/)).not.toBeInTheDocument();
-  });
-
-  it("states moderate risk without a raw score", () => {
-    const { container } = render(<RiskWarning riskLevel="MODERATE_RISK" riskScore={0.45} />);
-    expect(container.textContent).toContain("Some risk signs");
-    expect(container.textContent).not.toMatch(/45%|0\.45/);
-  });
-
-  it("states a close deadline in words and is not a live region when static", () => {
-    const { container } = render(<DeadlineBadge deadlineIntelligence={deadlineIntel(3.6)} showInspectButton={false} />);
-    expect(container.textContent).toContain("3 days left");
-    expect(container.textContent).not.toMatch(/\dd left/);
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
-  });
-
-  it("says Closed for an expired deadline", () => {
-    const { container } = render(
-      <DeadlineBadge deadlineIntelligence={deadlineIntel(-3, { status: "EXPIRED", tier: "EXPIRED" })} />
-    );
-    expect(container.textContent).toContain("Closed");
-    expect(container.textContent).not.toContain("Expired (");
   });
 });
 

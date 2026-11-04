@@ -8,7 +8,7 @@ lists everything under `docs/`.
 | Document | What it covers |
 |---|---|
 | [Development Roadmap](architecture/project-roadmap.md) | What each phase delivered, current status, and what remains |
-| [Methodology](METHODOLOGY.md) ([Word export](METHODOLOGY.docx)) | Research methodology, design principles, known limitations |
+| [Methodology](METHODOLOGY.md) | Research methodology, design principles, known limitations |
 | [PostgreSQL and pgvector](database/postgres-pgvector.md) | Database setup, migrations, tables, search indexes, backup |
 | [Phase 6.6 — End-to-End Verification](../PHASE_6_6_E2E_VERIFICATION_REPORT.md) | The running platform verified as one system: API, browser, scheduler and restart suites, results, findings ([how to run](../e2e/README.md)) |
 | [Phase 6.5 — Database and Migration Startup](architecture/phase6-5-database-startup.md) | Fresh-database startup order, readiness endpoint, production schema gate, migration lock and verification |

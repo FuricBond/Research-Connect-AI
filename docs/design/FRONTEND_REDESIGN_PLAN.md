@@ -2,7 +2,7 @@
 
 > Status: **audit and specification for review. No application code has been changed.**
 > Branch: `design/frontend-redesign-plan`. Companion documents:
-> [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) · [tokens.draft.css](tokens.draft.css) (not imported) ·
+> [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) ·
 > [audit/](audit/README.md) (106 screenshots, axe, performance, inventories).
 
 Implementation starts only after this plan is approved. Every decision below cites the audit
@@ -511,7 +511,7 @@ can be reordered by priority; P11–P12 close out.
 ### P1 — Design foundations
 
 - **Objective**: tokens, fonts, base styles, primitives, and the guards that keep them honest.
-- **Files**: `styles/tokens.css` (from `tokens.draft.css`), `styles/base.css` (box-sizing,
+- **Files**: `styles/tokens.css`, `styles/base.css` (box-sizing,
   body type, links, `:focus-visible`, reduced motion, `color-scheme`), `app/fonts/*.woff2`
   + `OFL.txt`, `app/layout.tsx` (next/font/local variables, `data-theme="light"`),
   `tailwind.config.ts` (theme colours/spacing/radii mapped to `--rc-*`; legacy palette kept
