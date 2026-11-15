@@ -468,6 +468,7 @@ class TestDeterminismAndPerformance:
             run = DeadlineIntelligence.assess_deadline(norm, reference_time=ref).to_dict()
             assert run == baseline
 
+    @pytest.mark.perf
     @pytest.mark.parametrize("candidate_count", [10, 50, 100, 200, 1000])
     def test_batch_assessment_performance(self, candidate_count):
         ref = datetime(2026, 8, 20, 12, 0, 0, tzinfo=timezone.utc)

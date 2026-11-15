@@ -37,6 +37,11 @@ PERF_TESTS = [
     # Their correctness checks run by default, in separate tests; only the time budgets are here.
     ("tests.test_calendar_performance", "test_calendar_scaling_and_ical_latency"),
     ("tests.test_reminder_performance", "test_reminder_scheduler_scaling_and_latency"),
+    # Budgets on timings an evaluation report or a batch run measured, not the test itself.
+    ("tests.test_deadline_conflict_resolution", "TestBatchBenchmarkPerformance.test_batch_resolution_scaling"),
+    ("tests.test_deadline_intelligence", "TestDeterminismAndPerformance.test_batch_assessment_performance"),
+    ("tests.test_phase2_6g_risk_evaluation", "TestDeterminismAndPerformance.test_batch_performance_scaling"),
+    ("tests.test_phase2_7g_deadline_evaluation", "TestDeterminismAndPerformance.test_performance_scalability_under_budget"),
 ]
 
 

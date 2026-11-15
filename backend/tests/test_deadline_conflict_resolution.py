@@ -547,6 +547,7 @@ class TestSafetyInvariants:
 class TestBatchBenchmarkPerformance:
     """Benchmark in-memory conflict resolution and revision scaling."""
 
+    @pytest.mark.perf
     @pytest.mark.parametrize("candidate_count", [10, 50, 100, 200, 1000])
     def test_batch_resolution_scaling(self, candidate_count):
         ref = datetime(2026, 8, 1, 12, 0, 0, tzinfo=timezone.utc)

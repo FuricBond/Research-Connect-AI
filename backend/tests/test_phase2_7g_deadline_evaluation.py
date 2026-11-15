@@ -268,6 +268,7 @@ class TestDeterminismAndPerformance:
         assert det["determinism_percentage"] == 100.0
         assert det["is_fully_deterministic"] is True
 
+    @pytest.mark.perf
     def test_performance_scalability_under_budget(self, full_report: DeadlineEvaluationReport):
         perf = full_report.performance
         for n_str in ["N=10", "N=50", "N=100", "N=200", "N=1000"]:

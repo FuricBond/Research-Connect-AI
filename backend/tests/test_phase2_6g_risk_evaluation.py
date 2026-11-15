@@ -290,6 +290,7 @@ class TestDeterminismAndPerformance:
         assert det["pass_rate"] == 1.00
         assert det["strictly_deterministic"] is True
 
+    @pytest.mark.perf
     def test_batch_performance_scaling(self, full_report):
         perf = full_report.performance
         assert "batch_10" in perf
