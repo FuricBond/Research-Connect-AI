@@ -13,7 +13,8 @@ deadline in your own time zone, and keep your research work in one place.
 ![Next.js 15](https://img.shields.io/badge/Next.js-15.5-000000?logo=nextdotjs&logoColor=white)
 ![PostgreSQL 16 + pgvector](https://img.shields.io/badge/PostgreSQL-16%20%2B%20pgvector-4169E1?logo=postgresql&logoColor=white)
 
-[Getting started](#getting-started) · [Architecture](#system-architecture) · [How it works](#how-it-works) ·
+[Live showcase](https://research-connect-ai-abcd-bcd6.vercel.app) · [Getting started](#getting-started) ·
+[Architecture](#system-architecture) · [How it works](#how-it-works) · [Deployment](#deployment) ·
 [Testing](#testing-and-quality-assurance) · [Known limitations](#known-limitations)
 
 </div>
@@ -38,6 +39,7 @@ deadline in your own time zone, and keep your research work in one place.
 - [Getting started](#getting-started)
 - [Local development](#local-development)
 - [Database and migrations](#database-and-migrations)
+- [Deployment](#deployment)
 - [Configuration](#configuration)
 - [Testing and quality assurance](#testing-and-quality-assurance)
 - [Security and permissions](#security-and-permissions)
@@ -231,7 +233,7 @@ backend is a modular monolith on one PostgreSQL database.
 | Ingestion | requests, Beautiful Soup (WikiCFP); OpenAlex and Crossref REST APIs | Academic metadata |
 | Authentication | PyJWT (HS256 bearer tokens), bcrypt | Sign-in and token revocation |
 | Testing | pytest, Vitest, Playwright, axe-core | Unit, integration, browser, accessibility and visual tests |
-| Delivery | Docker Compose with hardened non-root images; GitHub Actions | Local and production-style runs; CI |
+| Delivery | Docker Compose with hardened non-root images; GitHub Actions; Vercel (frontend) and Railway (backend, database) for the public showcase | Local and production-style runs; CI; hosting |
 
 ## How it works
 
@@ -520,6 +522,36 @@ database relies on, including the search indexes. Review anything `alembic revis
 before using it. See [PostgreSQL and pgvector](docs/database/postgres-pgvector.md) for the schema, indexes and
 backups, and [Database startup](docs/architecture/phase6-5-database-startup.md) for the startup gate.
 
+## Deployment
+
+The Compose stack from [Getting started](#getting-started) is the production path on a single server: `APP_ENV=production`,
+TLS at a reverse proxy, and the [deployment checklist](docs/architecture/phase6-4-production-configuration.md#4-deployment-checklist).
+The public showcase splits the stack instead: the frontend on Vercel, the backend and database on Railway.
+
+**Live showcase:** [research-connect-ai-abcd-bcd6.vercel.app](https://research-connect-ai-abcd-bcd6.vercel.app). It holds a
+20,000-paper subset of the corpus because its database runs on a 0.5 GB free tier (see [Known limitations](#known-limitations)).
+
+| Part | Host | Setup |
+|---|---|---|
+| Frontend | Vercel | Next.js project with root directory `frontend/` and `NEXT_PUBLIC_API_URL` set to the API's public address. Every push to `main` deploys. Preview deployments cannot call the API, because `CORS_ORIGINS` takes exact origins. |
+| Backend | Railway | `backend/Dockerfile` built from the repository root (`RAILWAY_DOCKERFILE_PATH=backend/Dockerfile`), pre-deploy command `alembic upgrade head`, healthcheck `/api/health/ready`, `PORT=8000`. |
+| Database | Railway | `pgvector/pgvector:0.8.6-pg16` as a Docker-image service, a volume at `/var/lib/postgresql/data` and `PGDATA=/var/lib/postgresql/data/pgdata` (PostgreSQL refuses a volume root that is not empty). |
+
+The backend does not fit a serverless platform: its image is about 2 GB with the embedding model, it uses about 600 MB of
+memory, and the scheduler needs one process that stays up. The frontend sends a bearer token over HTTPS, so the two can
+live on different domains.
+
+Besides the table in [Configuration](#configuration), the backend needs `DATABASE_URL` (the database's private address, scheme
+`postgresql+psycopg://`), `CORS_ORIGINS` and `APP_PUBLIC_URL` set to the site's origin, `TRUST_PROXY_HEADERS=true` behind the host's
+proxy (otherwise every visitor shares one rate limit) and `EMBEDDING_WARMUP_ON_STARTUP=true`, so the first search after a start
+does not wait for the model. Deploy the backend first, since its address is compiled into the frontend; then the frontend; then
+set the two origin variables and redeploy the backend.
+
+To load data, `pg_dump` the local database and `pg_restore` it through the database's TCP proxy, redeploy the backend so its
+migration step brings the copy up to date, then remove the proxy. On a 0.5 GB volume three things made the difference: cap the
+write-ahead log (`ALTER SYSTEM SET max_wal_size = '64MB'`), turn off parallel index builds (`max_parallel_maintenance_workers = 0`;
+the container's 64 MB of shared memory cannot hold a parallel HNSW build), and load a subset. The full corpus needs about 1.5 GB.
+
 ## Configuration
 
 Docker Compose reads the root `.env` ([template](.env.example)); a backend run on the host reads `backend/.env`
@@ -545,6 +577,8 @@ Docker Compose reads the root `.env` ([template](.env.example)); a backend run o
 | `EMAIL_RECIPIENT_ALLOWLIST` | empty (nobody) | Addresses and `@domains` that may receive email, or `*` for everyone |
 | `APP_PUBLIC_URL` | `http://localhost:3000` | Base of the links inside emails |
 | `RERANKER_ENABLED` | `false` | Run the optional cross-encoder on literature search |
+| `EMBEDDING_WARMUP_ON_STARTUP` | `false` | Load the embedding model at startup instead of on the first search |
+| `TRUST_PROXY_HEADERS` | `false` | Take client addresses from `X-Forwarded-For`; only behind a proxy that sets it |
 
 Every setting, every production rule and a deployment checklist are in
 [Production configuration](docs/architecture/phase6-4-production-configuration.md).
@@ -637,6 +671,9 @@ security assessment has been carried out.
   so workspace invitations cannot be answered.
 - **The scheduler is off by default**, so reminders, email delivery and refreshes need it switched on, in one
   backend process.
+- **The public showcase holds a subset.** The deployed copy has 20,000 of the roughly 58,000 papers (the most cited),
+  because its database runs on a 0.5 GB free tier; the OpenAlex refresh and email are off there. The full corpus runs
+  locally and loads unchanged once the volume is larger.
 
 ## Project status and roadmap
 
@@ -651,6 +688,7 @@ The platform's planned phases are delivered, as recorded in the [development roa
 | Research postings, applications, peer and supervisor discovery, reading list, email delivery | Complete |
 | Frontend redesign (P0–P12): design system, accessibility, performance and visual regression | Complete |
 | Platform, security and correctness hardening (roadmap Phase 6) | Marked in progress in the roadmap |
+| Public showcase deployment (Vercel and Railway, 20,000-paper subset) | Live |
 | System evaluation (roadmap Phase 7) | Continuous |
 
 Directions that follow from the limitations above, without dates or commitments:
@@ -670,6 +708,7 @@ Directions that follow from the limitations above, without dates or commitments:
 | `schema=unrecognized` | A newer build migrated the database. Deploy the matching backend image. |
 | `Refusing to start with APP_ENV=production: ...` | The message lists every setting to fix, such as a missing or weak `AUTH_SECRET_KEY`. |
 | The browser cannot reach the API | `NEXT_PUBLIC_API_URL` must be reachable from the browser and the site's origin listed in `CORS_ORIGINS`; rebuild the frontend after changing it. |
+| The first search after the backend starts fails with "server could not be reached" | The embedding model loads on the first search, which can take 30 seconds on a small host. Set `EMBEDDING_WARMUP_ON_STARTUP=true` so it loads at startup. |
 | The database rejects the password after `POSTGRES_PASSWORD` changed | The password is fixed when the data volume is created; put the old one back. |
 | A port is already in use | Stop the process using 3000, 8000 or 5432, or change the published port. |
 | The seeder asks for `--password` | The containers run in production mode, which requires a password of your own. |
