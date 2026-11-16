@@ -7,10 +7,11 @@ lists everything under `docs/`.
 
 | Document | What it covers |
 |---|---|
+| [Project Guide](PROJECT_GUIDE.md) | Plain-language tour: what the project does, how the parts fit, what every folder and file is for, the libraries, how to run it |
 | [Development Roadmap](architecture/project-roadmap.md) | What each phase delivered, current status, and what remains |
 | [Methodology](METHODOLOGY.md) | Research methodology, design principles, known limitations |
 | [PostgreSQL and pgvector](database/postgres-pgvector.md) | Database setup, migrations, tables, search indexes, backup |
-| [Phase 6.6 — End-to-End Verification](../PHASE_6_6_E2E_VERIFICATION_REPORT.md) | The running platform verified as one system: API, browser, scheduler and restart suites, results, findings ([how to run](../e2e/README.md)) |
+| [Phase 6.6 — End-to-End Verification](architecture/PHASE6-6_E2E_VERIFICATION_REPORT.md) | The running platform verified as one system: API, browser, scheduler and restart suites, results, findings ([how to run](../e2e/README.md)) |
 | [Phase 6.5 — Database and Migration Startup](architecture/phase6-5-database-startup.md) | Fresh-database startup order, readiness endpoint, production schema gate, migration lock and verification |
 | [Phase 6.4 — Production Configuration](architecture/phase6-4-production-configuration.md) | Every setting, what production refuses, deployment checklist, secrets policy |
 | [Phase 6.3 — Background Scheduler](architecture/phase6-3-scheduler.md) | The five maintenance jobs, locking, timeouts, how to enable it |

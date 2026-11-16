@@ -637,6 +637,7 @@ security assessment has been carried out.
 
 | Document | Contents |
 |---|---|
+| [Project guide](docs/PROJECT_GUIDE.md) | Plain-language tour of every folder and file, the libraries and how to run it |
 | [Documentation index](docs/README.md) | Every design document, by subsystem |
 | [Methodology](docs/METHODOLOGY.md) | Research approach, design rationale and limitations |
 | [Development roadmap](docs/architecture/project-roadmap.md) | Phase-by-phase delivery log and status |
